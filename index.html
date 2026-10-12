@@ -9,7 +9,7 @@
 <meta property="og:description" content="관람의 모든 순간, 곁에 두는 앱.">
 <meta property="og:image" content="https://kippu-homepage.vercel.app/monet100-web/img/keyvisual.jpg">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23CC4725'/><path fill='%23F7EFE2' d='M33 20a4 4 0 0 1 4-4h26a4 4 0 0 1 4 4v24a6 6 0 0 0 0 12v24a4 4 0 0 1-4 4H37a4 4 0 0 1-4-4V56a6 6 0 0 0 0-12Z'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23111111'/><path fill='%23F7EFE2' d='M33 20a4 4 0 0 1 4-4h26a4 4 0 0 1 4 4v24a6 6 0 0 0 0 12v24a4 4 0 0 1-4 4H37a4 4 0 0 1-4-4V56a6 6 0 0 0 0-12Z'/></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
 /* KIPPU 컬처 커머스 — 밝은 지면 + rust 브랜드 컬러
    라운딩 체계: 버튼 10px / 입력·칩 pill / 카드 16~18px */
 :root{
-  --brand:#CC4725; --brand-deep:#B23A1C; --brand-tint:#FBEFEA;
+  --brand:#111111; --brand-deep:#000000; --brand-tint:#EFEDE7;
   --ink:#111111; --body:#454541; --sub:#77776F; --meta:#9C9C96;
   --line:#ECE9E2; --fill:#F5F3EE; --bg:#FFFFFF; --rbtn:10px;
 }
@@ -99,7 +99,7 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);
 /* 특징 — 풀블리드 블랙 밴드 (타이포 온리) */
 .bandx{margin:48px calc(50% - 50vw) 0;background:#111111;color:#F5F3EE;
   padding:clamp(56px,8vw,96px) calc(50vw - 50%)}
-.bandx .cap{font-size:12px;font-weight:700;letter-spacing:.2em;color:var(--brand)}
+.bandx .cap{font-size:12px;font-weight:700;letter-spacing:.2em;color:#F5F3EE}
 .bandx h2{font-family:'Paperlogy',Pretendard,sans-serif;font-size:clamp(26px,3.6vw,40px);font-weight:800;letter-spacing:-.01em;line-height:1.25;margin-top:14px}
 .bandx .tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:clamp(34px,5vw,52px)}
 .tile{grid-column:span 2}
@@ -107,8 +107,8 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);
 .tile:nth-child(5){grid-column:4/6}
 .tile{background:#1B1B1B;border:1px solid rgba(255,255,255,.08);border-radius:14px;
   padding:30px 26px 26px;min-height:320px;display:flex;flex-direction:column;transition:border-color .25s}
-.tile:hover{border-color:rgba(204,71,37,.6)}
-.tile .gfx{flex:1;display:flex;align-items:center;justify-content:center;color:var(--brand);padding:14px 0 26px}
+.tile:hover{border-color:rgba(255,255,255,.45)}
+.tile .gfx{flex:1;display:flex;align-items:center;justify-content:center;color:#F5F3EE;padding:14px 0 26px}
 .tile .gfx svg{width:116px;height:116px}
 .tile h3{font-size:clamp(19px,2vw,23px);font-weight:700;letter-spacing:.08em}
 .tile p{margin-top:7px;font-size:12.5px;color:#8C8C86}
