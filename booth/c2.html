@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="theme-color" content="#EFE4CC">
+<meta name="theme-color" content="#FFFFFF">
 <title>C-2 산업혁명</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/c2.css">
 </head>
-<body class="paper-bg c2">
+<body class="c2">
 
 <!-- Step 1. 체험존 자유롭게 관람 (현장) -->
 <section class="step" data-step="1">
@@ -21,18 +21,19 @@
   </div>
   <div class="progress" data-progress></div>
   <div class="wrap">
-    <div class="step-head">
-      <div class="eyebrow">Step 1 · 현장 체험</div>
+    <header class="mhead">
+      <div class="cap">MONET 100 — C-2 · STEP 1</div>
       <h2>체험존 자유롭게 관람</h2>
-    </div>
-    <div class="concept"><img src="assets/concept/c2_booth.jpg" alt="산업혁명 체험존 시안"><span class="tag dark">시안 이미지</span></div>
-    <p class="lead" style="margin-top:16px">산업혁명 시대를 재현한 공간 내 전시물 및 오브제 자유 관람</p>
+      <div class="rule"></div>
+      <p class="sub">산업혁명 시대를 재현한 공간 내 전시물 및 오브제 자유 관람</p>
+    </header>
+    <div class="concept" style="margin-top:18px"><img src="assets/concept/c2_booth.jpg" alt="산업혁명 체험존 시안"><span class="tag dark">시안 이미지</span></div>
     <div class="note-box">이 단계는 부스 현장에서 진행되며 앱 조작이 없습니다.</div>
-    <div style="margin-top:22px"><button class="btn" data-next>다음</button></div>
+    <div style="margin-top:20px"><button class="btn" data-next>다음</button></div>
   </div>
 </section>
 
-<!-- Step 2. 다음 목적지 단서 발견 (현장) -->
+<!-- Step 2. 다음 목적지 단서 발견 — 돋보기로 소품 살피기 -->
 <section class="step" data-step="2">
   <div class="topbar">
     <button class="icon-btn" data-back></button>
@@ -40,17 +41,39 @@
     <span></span>
   </div>
   <div class="progress" data-progress></div>
-  <div class="wrap">
-    <div class="step-head">
-      <div class="eyebrow">Step 2 · 현장 체험</div>
+  <div class="wrap" style="padding-left:0;padding-right:0">
+    <header class="mhead" style="padding-left:var(--pad);padding-right:var(--pad)">
+      <div class="cap">MONET 100 — C-2 · STEP 2</div>
       <h2>다음 목적지 단서 발견</h2>
+      <div class="rule"></div>
+      <p class="sub">벽면 지도, 신문, 책상 위 소품 등에서 다음 목적지에 대한 힌트 탐색</p>
+    </header>
+
+    <div id="scene" class="scene" aria-label="체험존 장면 — 돋보기를 끌어 소품을 살펴보세요">
+      <span class="tag dark scene-tag">시안 이미지</span>
+      <div id="spots"></div>
+      <div id="lens" class="lens" role="slider" aria-label="돋보기" tabindex="0">
+        <div id="lensView" class="lens-view"></div>
+        <img id="lensClue" class="lens-clue" alt="" hidden>
+        <span class="lens-ring"></span>
+        <span class="lens-handle"></span>
+      </div>
     </div>
-    <div class="concept contain clues"><img src="assets/concept/c2_clues.png" alt="단서 소품 시안"><span class="tag dark">시안 이미지</span></div>
-    <p class="lead" style="margin-top:12px">벽면 지도, 신문, 책상 위 소품 등에서 다음 목적지에 대한 힌트 탐색</p>
-    <div class="note-box">이 단계는 부스 현장에서 진행되며 앱 조작이 없습니다.</div>
-    <div style="margin-top:22px"><button class="btn" data-next>앱 퀴즈 참여하기</button></div>
+    <p class="scene-hint">돋보기를 끌어 벽면 지도 · 신문 · 책상 위 소품을 살펴보세요. 표시된 곳을 눌러도 됩니다.</p>
+
+    <div style="padding:0 var(--pad)">
+      <div class="tray-head"><span class="sec-title" style="margin:0">찾은 단서</span><span id="trayCount" class="muted small">0/3</span></div>
+      <ul id="tray" class="tray"></ul>
+      <div style="margin-top:18px"><button id="toQuiz" class="btn" disabled>앱 퀴즈 참여하기</button></div>
+    </div>
   </div>
 </section>
+
+<div id="clueSheet" class="sheet" role="dialog" aria-label="발견한 단서">
+  <div class="grip"></div>
+  <div id="clueBody"></div>
+  <button class="btn" data-sheet-close style="margin-top:16px">단서 담기</button>
+</div>
 
 <!-- Step 3. 앱 퀴즈 참여 — 지도 -->
 <section class="step quiz" data-step="3">
@@ -60,20 +83,18 @@
   <header class="quiz-top">
     <div class="quiz-bar">
       <button class="icon-btn" data-back></button>
-      <div class="quiz-title"><span class="rule"></span><span>INDUSTRIAL REVOLUTION</span><span class="rule"></span></div>
+      <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
       <span class="quiz-count">4/8</span>
     </div>
-    <div class="progress dark" data-progress></div>
+    <div class="progress" data-progress></div>
     <div class="banner">
-      <span class="compass" data-compass></span>
-      <div>
-        <strong>단서를 바탕으로<br>다음 목적지로 가는 노선을 선택하세요.</strong>
-        <p id="banner2" hidden></p>
-      </div>
+      <strong>단서를 바탕으로<br>다음 목적지로 가는 노선을 선택하세요.</strong>
+      <p id="banner2" hidden></p>
+      <div id="clueChips" class="clue-chips"></div>
     </div>
   </header>
   <div class="quiz-bottom">
-    <button id="autoLink" class="link-link" hidden>노선 자동 연결</button>
+    <button id="autoLink" class="auto-link" hidden>노선 자동 연결</button>
     <div id="chips" class="chips" role="radiogroup" aria-label="목적지 선택"></div>
   </div>
 </section>

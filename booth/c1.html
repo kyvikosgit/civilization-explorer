@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="theme-color" content="#15100B">
+<meta name="theme-color" content="#000000">
 <title>C-1 시민사회</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="css/base.css">
@@ -19,11 +19,10 @@
 </head>
 <body class="c1">
 
-<!-- Step 1·2 공용 무대: 카메라(또는 데모 3D) -->
+<!-- Step 1~3 공용 무대: 카메라(인식) / 3D 모리스 칼럼 -->
 <div id="stage" class="cam-screen">
-  <div id="demoBg" class="cam-layer demo-bg"></div>
   <div id="arLayer" class="cam-layer"></div>
-  <canvas id="gl" class="cam-layer"></canvas>
+  <div id="mv" class="cam-layer mv"></div>
   <div class="stage-top">
     <div class="topbar dark">
       <button class="icon-btn" data-back></button>
@@ -32,52 +31,46 @@
     </div>
     <div class="progress dark" data-progress></div>
   </div>
-  <div id="frame" class="scan-frame"><i></i><i></i><i></i><i></i><div class="sweep"></div></div>
-  <div id="pillWrap" class="pill-wrap"><span id="pill" class="pill"></span></div>
-  <div id="camLoading" class="cam-loading" hidden><div class="spinner"></div><span>카메라 준비 중</span></div>
+  <div id="frame" class="scan-frame off"><i></i><i></i><i></i><i></i><div class="sweep"></div></div>
+  <div id="pillWrap" class="pill-wrap off"><span id="pill" class="pill"></span></div>
+  <div id="camLoading" class="cam-loading" hidden><div class="spinner"></div><span id="camLoadingText">카메라 준비 중</span></div>
 </div>
 
 <!-- Step 1. 모리스칼럼 광고탑 스캔 -->
 <section class="step overlay-step" data-step="1">
   <div id="s1Intro" class="intro-card">
-    <div class="eyebrow">Step 1</div>
+    <div class="cap">MONET 100 — C-1 · STEP 1</div>
     <h2>모리스칼럼 광고탑 스캔</h2>
+    <div class="rule"></div>
     <p>앱 카메라로 모리스 칼럼 인식 시 전단지 회전 효과 활성화</p>
-    <button id="s1Cam" class="btn gold"><span data-ic="camera"></span>카메라로 스캔하기</button>
-    <button id="s1Demo" class="btn light">데모로 진행</button>
+    <button id="s1Cam" class="btn"><span data-ic="camera"></span>카메라로 스캔하기</button>
+    <button id="s1Demo" class="btn line">데모로 진행</button>
   </div>
   <div id="s1Bottom" class="cam-bottom" hidden>
-    <button id="s1Next" class="btn gold" hidden>다음 · 전단지 선택</button>
-    <button id="s1DemoInCam" class="btn light">데모로 진행</button>
+    <button id="s1Next" class="btn white" hidden>다음 · 전단지 선택</button>
+    <button id="s1DemoInCam" class="btn dark-line">데모로 진행</button>
   </div>
 </section>
 
 <!-- Step 2. 전단지 선택 -->
 <section class="step overlay-step" data-step="2">
   <div class="cam-bottom">
-    <p class="s2-desc">광고탑에 부착된 전단지 중 활성화된 전단지를 터치해 선택하세요.</p>
-    <button id="s2DemoInCam" class="btn light" hidden>데모로 진행</button>
+    <p class="s2-desc">광고탑에 부착된 전단지 중 활성화된 전단지를 터치해 선택하세요.<br><span>밀어서 돌리기 · 두 손가락으로 확대</span></p>
   </div>
 </section>
 
-<!-- Step 3. 전단지 확대 -->
-<section class="step s3" data-step="3">
-  <div class="topbar dark">
-    <button class="icon-btn" data-back></button>
-    <div class="tb-title" data-step-label></div>
-    <span></span>
-  </div>
-  <div class="progress dark" data-progress></div>
-  <div id="zoomer" class="zoomer" aria-label="전단지 확대 보기 (두 번 탭하여 확대)">
-    <img id="s3Img" src="assets/img/fl_batignolles.jpg" alt="카페 게르부아 전단지" draggable="false">
-  </div>
-  <div class="s3-bar">
-    <div class="s3-title">
-      <span class="eyebrow">선택한 전단지</span>
-      <strong id="s3Label"></strong>
+<!-- Step 3. 전단지 확대 — 칼럼에서 떼어 낸 전단지를 앞에서 살펴본다 -->
+<section class="step overlay-step" data-step="3">
+  <div id="caption" class="caption">
+    <div class="eyebrow">선택한 전단지</div>
+    <strong id="cTitle"></strong>
+    <p id="cBody"></p>
+    <button id="cInfo" class="link-btn">당시 예술가들의 모임과 시대적 배경 보기</button>
+    <p class="c-hint">끌어서 기울이기 · 두 손가락으로 확대</p>
+    <div class="btn-row">
+      <button id="cReturn" class="btn line">돌려놓기</button>
+      <button id="cNext" class="btn">다음 · 삽화 애니메이션</button>
     </div>
-    <button id="s3Info" class="btn ghost">모임과 시대적 배경 보기</button>
-    <button id="s3Next" class="btn gold"><span data-ic="play"></span>삽화 애니메이션 보기</button>
   </div>
 </section>
 
@@ -86,7 +79,7 @@
   <div class="eyebrow">당시 예술가들의 모임</div>
   <h3 id="shTitle" class="sh-title"></h3>
   <p id="shSub" class="sh-quote"></p>
-  <div class="ornament" aria-hidden="true"><span data-fleuron></span></div>
+  <div class="hairline" style="margin:16px 0"></div>
   <div id="shBody" class="sh-body"></div>
   <p id="shMeta" class="sh-meta"></p>
   <div class="eyebrow" style="margin-top:22px">시대적 배경</div>
@@ -109,8 +102,8 @@
     <div id="subtitle" class="subtitle" aria-live="polite"></div>
     <div class="timeline"><i id="timeBar"></i></div>
     <div id="s4End" class="btn-row" hidden>
-      <button id="s4Replay" class="btn light"><span data-ic="replay"></span>다시 보기</button>
-      <a class="btn gold" href="index.html">체험 완료</a>
+      <button id="s4Replay" class="btn dark-line"><span data-ic="replay"></span>다시 보기</button>
+      <a class="btn white" href="index.html">체험 완료</a>
     </div>
   </div>
   <div id="animErr" class="cam-msg" hidden></div>
