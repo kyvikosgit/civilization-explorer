@@ -8,7 +8,7 @@
 <meta name="description" content="관람의 모든 순간, 곁에 두는 앱. 입장부터 체험, 관람 기록까지 한 앱에.">
 <meta property="og:title" content="KIPPU — 전시 관람 앱">
 <meta property="og:description" content="관람의 모든 순간, 곁에 두는 앱.">
-<meta property="og:image" content="https://kippu-homepage.vercel.app/monet100-web/img/keyvisual.jpg">
+<meta property="og:image" content="https://kippu-homepage.vercel.app/monet100-web/img/poster.jpg">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23111111'/><path fill='%23F7EFE2' d='M33 20a4 4 0 0 1 4-4h26a4 4 0 0 1 4 4v24a6 6 0 0 0 0 12v24a4 4 0 0 1-4 4H37a4 4 0 0 1-4-4V56a6 6 0 0 0 0-12Z'/></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
@@ -88,10 +88,8 @@ header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);
 .btn.fill:hover{opacity:.92}
 .btn.ghostc{border:1.5px solid rgba(236,227,210,.4);color:#ECE3D2}
 .btn.ghostc:hover{border-color:#ECE3D2}
-.fvis{position:relative;min-height:440px;
-  background:url('/monet100-web/img/keyvisual.jpg') center 18%/cover no-repeat}
-.fvis::before{content:"";position:absolute;inset:0;
-  background:linear-gradient(90deg,#121B1A 0%,rgba(18,27,26,0) 34%)}
+.fvis{position:relative;line-height:0}
+.fvis img{display:block;width:100%;height:auto}  /* 공식 포스터(261008) 그대로 — 위에 덧칠·글자 없음 */
 .bdg{position:absolute;top:16px;right:16px;display:flex;gap:6px;z-index:2}
 .bdg span{background:#C14B2A;color:#F7EFE2;font-size:11.5px;font-weight:800;border-radius:6px;padding:5px 10px;letter-spacing:.02em}
 .bdg span.w{background:rgba(255,255,255,.94);color:var(--ink)}
@@ -177,6 +175,7 @@ footer a:hover{color:var(--ink)}
   .tile .gfx{padding:10px 0 18px}
   .tile .gfx svg{width:84px;height:84px}
   .feature{grid-template-columns:1fr}
+  .fvis{order:-1}
   .fvis{order:-1;min-height:0;aspect-ratio:1800/2548}
   .fvis::before{background:linear-gradient(180deg,rgba(18,27,26,0) 60%,#121B1A 100%)}
 }
@@ -209,9 +208,7 @@ footer a:hover{color:var(--ink)}
     <div class="h"><h2>지금 전시 중</h2></div>
     <div class="feature">
       <div class="fcopy">
-        <div class="overline ko">클로드 모네 서거 100주년 기념 미디어 체험 전시</div>
-        <img class="flockup" src="/monet100-web/img/logo_lockup.png" alt="MONET 100 — 시대를 읽는 감각의 계보">
-        <div class="fmeta">
+        <div class="fmeta" style="margin-top:0;padding-top:0;border-top:0">
           <b>2026. 12. 5 — 2027. 2. 28</b>
           <span>신세계본점 더 헤리티지 4F 뮤지엄 · 매 정시 입장 · 회차당 60분</span>
           <span>성인 22,000원 · 청소년 16,000원</span>
@@ -221,7 +218,8 @@ footer a:hover{color:var(--ink)}
           <a class="btn ghostc" href="/monet100-web/#tickets">예매 안내</a>
         </div>
       </div>
-      <div class="fvis" role="img" aria-label="MONET 100 키비주얼 — 모네 자화상과 인상, 해돋이">
+      <div class="fvis">
+        <img src="/monet100-web/img/poster.jpg" alt="MONET 100 포스터 — 클로드 모네 서거 100주년 기념 미디어 체험 전시, 시대를 읽는 감각의 계보, 2026. 12. 5 — 2027. 2. 28, 신세계본점 더 헤리티지 4F 뮤지엄" loading="eager">
         <div class="bdg"><span id="dday">D-58</span><span class="w">단독</span></div>
       </div>
     </div>
