@@ -36,6 +36,8 @@ img{display:block;max-width:100%}
 ul{list-style:none}
 button{font:inherit;border:0;background:none;cursor:pointer}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+/* 풀블리드 밴드(50vw)가 세로 스크롤바 폭만큼 가로로 넘치지 않게 — clip은 sticky GNB를 깨지 않음 */
+html,body{overflow-x:clip}
 
 /* top bar — 공통 GNB(/gnb.css·/gnb.js) */
 
@@ -60,21 +62,24 @@ button{font:inherit;border:0;background:none;cursor:pointer}
   display:inline-flex;align-items:center;justify-content:center;background:#fff}
 .rnav button:hover{border-color:var(--ink)}
 .rnav button:disabled{opacity:.3;cursor:default;border-color:var(--line)}
-.rail{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-  margin:0 -24px;padding:0 24px 4px;scroll-padding:0 24px;-webkit-overflow-scrolling:touch}
+.rail{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch}
 .rail::-webkit-scrollbar{display:none}
-.rail{align-items:flex-start}
-.exc{flex:none;scroll-snap-align:start;color:var(--ink)}
+/* 슬라이드 = 전시 1개, 모든 전시가 같은 템플릿(포스터 + 정보 패널). 화살표·스와이프 한 번에 한 장 */
+.exc{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;color:var(--ink);display:flex;gap:40px}
 .exc .pv{display:block;position:relative;aspect-ratio:1800/2548;border-radius:10px;overflow:hidden;background:var(--fill);line-height:0}
 .exc .pv img{display:block;width:100%;height:100%;object-fit:cover}  /* 공식 포스터(261008) 그대로 — 위에 덧칠·글자 없음 */
 
-/* 현재 전시 — 포스터가 화면 폭 절반 이상 + 우측 정보 패널 */
-.exc.main{display:flex;gap:36px}
-.exc.main .pv{flex:none;width:min(600px,52vw,calc((100vh - 120px) * .7065))}
-.exc.main .info{width:340px;display:flex;flex-direction:column;align-self:stretch;padding-top:4px}
+.exc .pv{flex:none;width:min(600px,52vw,calc((100vh - 120px) * .7065))}
+.exc .info{flex:1;max-width:420px;padding-top:4px}
 .exc .hd{padding-bottom:20px;border-bottom:2px solid var(--ink)}
 .exc .live{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:12px}
 .exc .live::before{content:"";width:7px;height:7px;border-radius:50%;background:#1F8A4C}
+.exc .live.wait{color:var(--sub)}
+.exc .live.wait::before{background:#C9C7C0}
+.rdots{display:flex;justify-content:center;gap:6px;margin-top:20px}
+.rdots i{width:6px;height:6px;border-radius:3px;background:#D9D9D4;transition:width .25s,background .25s}
+.rdots i.on{width:18px;background:var(--ink)}
 .exc .t{font-family:'Paperlogy',sans-serif;font-size:30px;font-weight:800;line-height:1.2}
 .exc .d{margin-top:8px;font-size:14px;color:var(--sub);line-height:1.6}
 .exc .rows{margin:0}
@@ -88,15 +93,11 @@ button{font:inherit;border:0;background:none;cursor:pointer}
 .btn.fill:hover{background:var(--brand-deep)}
 .btn.line{border:1px solid #D9D9D4;color:var(--ink)}
 .btn.line:hover{border-color:var(--ink)}
-/* 커밍순 카드 — 작게, 포스터 자리는 빈 지면 */
-.exc.soon{width:240px}
+/* 오픈 예정 — 같은 템플릿, 포스터 자리만 빈 지면 */
 .exc.soon .pv{border:1px dashed #D9D9D4;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px;line-height:1.2}
-.exc.soon .pv b{font-family:'Paperlogy',sans-serif;font-size:12px;font-weight:800;letter-spacing:.24em;color:var(--sub)}
-.exc.soon .pv span{font-family:'Paperlogy',sans-serif;font-size:30px;font-weight:800;color:#C9C7C0}
-.exc.soon .info{padding-top:14px}
-.exc.soon .t{font-size:16px;color:var(--sub)}
-.exc.soon .d{margin-top:2px;font-size:13px;color:var(--meta)}
+  align-items:center;justify-content:center;gap:10px;line-height:1.2}
+.exc.soon .pv b{font-family:'Paperlogy',sans-serif;font-size:14px;font-weight:800;letter-spacing:.24em;color:var(--sub)}
+.exc.soon .pv span{font-family:'Paperlogy',sans-serif;font-size:56px;font-weight:800;color:#C9C7C0}
 .bdg{position:absolute;top:16px;right:16px;display:flex;gap:6px;z-index:2}
 /* 카드 라벨 — 두 칩 동일 규격(높이·서체·라운드), 색만 반전. 플랫폼 브랜드 = 먹색 */
 .bdg span{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 10px;
@@ -182,11 +183,10 @@ footer a:hover{color:var(--ink)}
   .tile .gfx{padding:10px 0 18px}
   .tile .gfx svg{width:84px;height:84px}
   .rnav{display:none}
-  .exc.main{flex-direction:column;gap:0;width:84vw}
-  .exc.main .pv{width:100%}
-  .exc.main .info{width:auto;padding-top:20px}
+  .exc{flex-direction:column;gap:0}
+  .exc .pv{width:100%}
+  .exc .info{max-width:none;padding-top:20px}
   .exc .t{font-size:24px}
-  .exc.soon{width:52vw}
 }
 </style>
 </head>
@@ -210,7 +210,7 @@ footer a:hover{color:var(--ink)}
       </div>
     </div>
     <div class="rail" id="rail">
-      <article class="exc main">
+      <article class="exc">
         <a class="pv" href="/monet100-web/">
           <img src="/monet100-web/img/poster.jpg" alt="MONET 100 포스터 — 클로드 모네 서거 100주년 기념 미디어 체험 전시, 시대를 읽는 감각의 계보, 2026. 12. 5 — 2027. 2. 28, 신세계본점 더 헤리티지 4F 뮤지엄" loading="eager">
           <div class="bdg"><span id="dday">D-58</span><span class="w">단독</span></div>
@@ -236,13 +236,18 @@ footer a:hover{color:var(--ink)}
       <article class="exc soon">
         <div class="pv"><b>COMING SOON</b><span>2027</span></div>
         <div class="info">
-          <div class="t">다음 전시</div>
-          <div class="d">2027 공개</div>
+          <div class="hd">
+            <div class="live wait">오픈 예정</div>
+            <div class="t">다음 전시</div>
+            <div class="d">다음 전시를 준비하고 있습니다</div>
+          </div>
+          <dl class="rows">
+            <div><dt>공개</dt><dd>2027</dd></div>
+          </dl>
         </div>
       </article>
     </div>
-      </article>
-    </div>
+    <div class="rdots" id="rdots"></div>
   </section>
 
   <section class="bandx" id="only">
@@ -287,6 +292,7 @@ footer a:hover{color:var(--ink)}
         <span>App Store · Google Play</span>
       </div>
     </div>
+  </section>
 
 </div>
 
@@ -308,17 +314,25 @@ footer a:hover{color:var(--ink)}
 const n = Math.ceil((new Date('2026-12-05') - Date.now()) / 86400000);
 document.getElementById('dday').textContent = n <= 0 ? 'NOW OPEN' : 'D-' + n;
 
-// 전시 레일 — 화살표는 넘칠 때만 활성
+// 전시 레일 — 한 번에 한 장(슬라이드 폭 + 간격)씩, 도트·화살표 동기화
 const rail = document.getElementById('rail');
+const slides = rail.querySelectorAll('.exc');
 const rbtn = document.querySelectorAll('.rnav button');
+const dots = document.getElementById('rdots');
+dots.innerHTML = Array.from(slides, () => '<i></i>').join('');
+const step = () => slides[0].getBoundingClientRect().width + 24;
 const syncRail = () => {
-  const max = rail.scrollWidth - rail.clientWidth - 2;
-  rbtn[0].disabled = rail.scrollLeft <= 2;
-  rbtn[1].disabled = rail.scrollLeft >= max;
-  document.querySelector('.rnav').style.visibility = max > 0 ? 'visible' : 'hidden';
+  const i = Math.round(rail.scrollLeft / step());
+  rbtn[0].disabled = i <= 0;
+  rbtn[1].disabled = i >= slides.length - 1;
+  dots.querySelectorAll('i').forEach((d, k) => d.classList.toggle('on', k === i));
+  const many = slides.length > 1;
+  document.querySelector('.rnav').style.visibility = many ? 'visible' : 'hidden';
+  dots.style.display = many ? '' : 'none';
 };
 rbtn.forEach((b) => b.addEventListener('click', () => {
-  rail.scrollBy({ left: rail.clientWidth * 0.6 * Number(b.dataset.dir), behavior: 'smooth' });
+  const i = Math.round(rail.scrollLeft / step()) + Number(b.dataset.dir);
+  rail.scrollTo({ left: Math.max(0, Math.min(slides.length - 1, i)) * step(), behavior: 'smooth' });
 }));
 rail.addEventListener('scroll', syncRail, { passive: true });
 addEventListener('resize', syncRail);
