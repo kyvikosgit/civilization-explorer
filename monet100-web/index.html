@@ -64,10 +64,10 @@ nav a:hover::after{width:100%}
 /* ── hero — 왼쪽 카피 컬럼 + 오른쪽 키비주얼(포스터 비율 유지) 스플릿 */
 /* 히어로 = 공식 포스터(261008) 그대로. 글자를 다시 얹지 않는다 */
 .hero.poster{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-  min-height:auto;padding:28px 4vw 56px;background:var(--deep)}
-.hero.poster .poster-img{display:block;width:min(92vw,620px,calc((100svh - 190px) * .7063));height:auto;
+  min-height:auto;padding:104px 4vw 56px;background:var(--deep)}  /* 고정 메뉴(투명, 약 90px) 아래에서 시작 */
+.hero.poster .poster-img{display:block;width:min(92vw,620px,calc((100svh - 300px) * .7063));height:auto;
   box-shadow:0 30px 80px rgba(0,0,0,.45)}
-.hero.poster .poster-foot{width:min(92vw,620px,calc((100svh - 190px) * .7063));display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hero.poster .poster-foot{width:min(92vw,620px,calc((100svh - 300px) * .7063));display:flex;align-items:center;justify-content:space-between;gap:16px}
 .hero.poster .poster-credit{font-size:10px;letter-spacing:.16em;color:var(--dim)}
 .hero.poster .cta{display:inline-flex;align-items:center;background:var(--rust);color:#F7EFE2;
   height:46px;padding:0 26px;border-radius:6px;font-weight:800;letter-spacing:.18em;font-size:13px;flex:none}
