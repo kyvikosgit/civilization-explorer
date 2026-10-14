@@ -1,0 +1,40 @@
+/* KIPPU GNB — 홈페이지·전시 페이지 공통 상단 바.
+   단일 출처: /gnb.css(스타일) + /gnb.js(마크업·검색). 페이지에서 따로 헤더를 그리지 말 것.
+   다른 페이지 고정 요소는 높이를 var(--gnb-h)로 참조한다. */
+:root{--gnb-h:64px}
+@media (max-width:860px){:root{--gnb-h:56px}}
+
+.kgnb{position:sticky;top:0;z-index:40;height:var(--gnb-h);
+  background:#FFFFFF;
+  border-bottom:1px solid #ECE9E2;color:#111111;
+  font-family:Freesentation,-apple-system,sans-serif;font-weight:400;line-height:1.2;letter-spacing:0}
+.kgnb .in{max-width:1120px;height:100%;margin:0 auto;padding:0 24px;
+  display:flex;align-items:center;gap:22px;white-space:nowrap}
+.kgnb a{text-decoration:none}
+.kgnb .logo{flex:none;font-size:24px;font-weight:900;letter-spacing:.02em;color:#111111}
+
+.kgnb .search{flex:1;max-width:440px;display:flex;align-items:center;gap:10px;background:#F5F3EE;
+  border:1.5px solid transparent;border-radius:999px;padding:0 18px;height:42px;color:#9C9C96}
+.kgnb .search:focus-within{background:#FFFFFF;border-color:#111111}
+.kgnb .search svg{flex:none}
+.kgnb .search input{flex:1;min-width:0;border:0;outline:0;background:transparent;
+  font:inherit;font-size:14.5px;font-weight:500;color:#111111}
+.kgnb .search input::placeholder{color:#9C9C96}
+
+.kgnb nav{margin-left:auto;display:flex;align-items:center;gap:22px;flex:none}
+.kgnb nav a{position:static;margin:0;padding:0;letter-spacing:0;
+  font-size:15px;font-weight:600;color:#454541}
+.kgnb nav a::after{display:none}
+.kgnb nav a:hover{color:#111111}
+.kgnb nav a.on{color:#111111;font-weight:800}
+.kgnb nav a.app{background:#111111;color:#FFFFFF;border-radius:10px;padding:11px 20px;
+  font-size:14.5px;font-weight:700}
+.kgnb nav a.app:hover{background:#000000;color:#FFFFFF}
+
+@media (max-width:860px){
+  .kgnb .in{padding:0 20px}
+  .kgnb .logo{font-size:22px}
+  .kgnb .search{display:none}
+  .kgnb nav a:not(.app){display:none}
+  .kgnb nav a.app{padding:9px 15px;font-size:13px}
+}

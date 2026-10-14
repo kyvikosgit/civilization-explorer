@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Noto+Serif+KR:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="/gnb.css">
 <style>
 :root{
   --deep:#121b1a; --sea:#1c2927; --cream:#ece3d2; --dim:#93a19c;
@@ -23,32 +24,10 @@ body{background:var(--deep);color:var(--cream);font-family:Freesentation,-apple-
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
 
-/* ── KIPPU 서비스 바 — 플랫폼 공통 상단 */
-body{padding-top:64px}
-.svcbar{position:fixed;top:0;left:0;right:0;z-index:30;height:64px;
-  background:#FFFFFF;color:#111111;border-bottom:1px solid #ECECEA;
-  font-family:Freesentation,-apple-system,sans-serif;font-weight:400;line-height:1}
-.svcbar .in{height:64px;display:flex;align-items:center;white-space:nowrap;padding:0 4vw}
-.svcbar .brand{flex:none;font-size:24px;font-weight:900;letter-spacing:.02em;color:#CC4725}
-.svcbar .sw{flex:none;display:inline-flex;align-items:center;gap:8px;margin-left:22px;
-  padding:9px 15px;border:1px solid #ECE9E2;border-radius:999px;
-  font-size:13.5px;font-weight:700;color:#111111;transition:background .2s}
-.svcbar .sw:hover{background:#F5F3EE}
-.svcbar .sw::before{content:"";width:6px;height:6px;border-radius:50%;background:#CC4725}
-.svcbar .sw small{font-size:11.5px;font-weight:500;color:#9C9C96}
-.svcbar .sw i{width:7px;height:7px;border-right:1.5px solid #9C9C96;border-bottom:1.5px solid #9C9C96;
-  transform:rotate(45deg) translate(-1px,-1px)}
-.svcbar nav{margin-left:auto;display:flex;align-items:center;gap:28px;flex:none}
-.svcbar nav a{font-size:14px;font-weight:600;color:#77776F;padding:0;margin:0;letter-spacing:0}
-.svcbar nav a:hover{color:#111111}
-.svcbar nav a.on{color:#111111;font-weight:800}
-.svcbar nav a.app{background:#CC4725;color:#FFFFFF;border-radius:10px;padding:10px 18px;
-  font-size:13.5px;font-weight:700}
-.svcbar nav a.app:hover{background:#B23A1C;color:#FFFFFF}
-.svcbar nav a::after{display:none}
+/* ── KIPPU 상단 바 — 공통 GNB(/gnb.css·/gnb.js). 전시 nav는 그 아래 var(--gnb-h)에 붙는다 */
 
 /* ── nav — 스크롤하면 불투명 배경 + 헤어라인 */
-header{position:fixed;top:64px;left:0;right:0;z-index:10;
+header{position:fixed;top:var(--gnb-h);left:0;right:0;z-index:10;
   background:transparent;border-bottom:1px solid transparent;
   transition:background .35s,border-color .35s}
 header.scrolled{background:rgba(18,27,26,.92);border-color:var(--hair);
@@ -169,28 +148,12 @@ footer .legal a:hover{color:#111111}
   .figure{order:-1;max-width:420px}
   .credit{display:none}
   nav a{margin-left:18px;letter-spacing:.14em}
-  body{padding-top:56px}
-  .svcbar{height:56px}
-  .svcbar .in{height:56px;padding:0 16px}
-  .svcbar .brand{font-size:20px}
-  .svcbar .sw{margin-left:12px;padding:7px 11px;font-size:12px;gap:6px}
-  .svcbar nav a:not(.app){display:none}
-  .svcbar nav a.app{padding:9px 15px;font-size:12.5px}
-  header{top:56px}
 }
 </style>
 </head>
 <body>
 
-<div class="svcbar"><div class="in">
-  <a class="brand" href="/">KIPPU</a>
-  <a class="sw" href="/#now"><b>MONET 100</b><i></i></a>
-  <nav>
-    <a class="on" href="/#now">전시</a>
-    <a href="/#only">특징</a>
-    <a class="app" href="/#app">앱 다운로드</a>
-  </nav>
-</div></div>
+<div class="kgnb" data-current="exhibition"></div><script src="/gnb.js"></script>
 
 
 <header>

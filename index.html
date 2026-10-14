@@ -13,6 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23111111'/><path fill='%23F7EFE2' d='M33 20a4 4 0 0 1 4-4h26a4 4 0 0 1 4 4v24a6 6 0 0 0 0 12v24a4 4 0 0 1-4 4H37a4 4 0 0 1-4-4V56a6 6 0 0 0 0-12Z'/></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="/gnb.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 @font-face{font-family:'Paperlogy';font-weight:800;font-style:normal;
@@ -36,23 +37,7 @@ ul{list-style:none}
 button{font:inherit;border:0;background:none;cursor:pointer}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 
-/* top bar */
-header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.95);
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.top{display:flex;align-items:center;gap:22px;height:64px}
-.logo{font-size:24px;font-weight:900;letter-spacing:.02em;color:var(--brand);flex:none}
-.search{flex:1;max-width:440px;display:flex;align-items:center;gap:10px;background:var(--fill);
-  border:1.5px solid transparent;border-radius:999px;height:42px;padding:0 18px;color:var(--meta)}
-.search:focus-within{background:#fff;border-color:var(--brand)}
-.search svg{flex:none}
-.search input{flex:1;min-width:0;border:0;outline:0;background:transparent;
-  font:inherit;font-size:14.5px;font-weight:500;color:var(--ink)}
-.search input::placeholder{color:var(--meta)}
-.top nav{margin-left:auto;display:flex;gap:22px;align-items:center;flex:none}
-.top nav a{font-size:15px;font-weight:600;color:var(--body)}
-.top nav a:hover{color:var(--ink)}
-.top nav a.app{background:var(--brand);color:#fff;border-radius:var(--rbtn);padding:11px 20px;font-weight:700;font-size:14.5px}
-.top nav a.app:hover{background:var(--brand-deep);color:#fff}
+/* top bar — 공통 GNB(/gnb.css·/gnb.js) */
 
 /* masthead — 타이포만으로 */
 .mast{padding:clamp(88px,15vh,180px) 0 clamp(56px,9vh,110px)}
@@ -167,8 +152,6 @@ footer a{color:var(--sub);font-weight:500}
 footer a:hover{color:var(--ink)}
 
 @media (max-width:860px){
-  .search{display:none}
-  .top nav a:not(.app){display:none}
   .bandx .tiles{grid-template-columns:1fr}
   .tile{min-height:0;grid-column:auto}
   .tile:nth-child(4),.tile:nth-child(5){grid-column:auto}
@@ -183,18 +166,7 @@ footer a:hover{color:var(--ink)}
 </head>
 <body>
 
-<header><div class="wrap top">
-  <a class="logo" href="/">KIPPU</a>
-  <form class="search" id="sform" role="search">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>
-    <input id="sinput" type="search" placeholder="전시 검색" autocomplete="off">
-  </form>
-  <nav>
-    <a href="#now">전시</a>
-    <a href="#only">특징</a>
-    <a class="app" href="#app">앱 다운로드</a>
-  </nav>
-</div></header>
+<div class="kgnb"></div><script src="/gnb.js"></script>
 
 <div class="wrap">
 
@@ -289,14 +261,6 @@ footer a:hover{color:var(--ink)}
 const n = Math.ceil((new Date('2026-12-05') - Date.now()) / 86400000);
 document.getElementById('dday').textContent = n <= 0 ? 'NOW OPEN' : 'D-' + n;
 
-// 검색 — 현재 전시 대상
-document.getElementById('sform').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const q = document.getElementById('sinput').value.trim().toLowerCase();
-  if (!q) return;
-  if (/모네|monet|100|인상|해돋이|신세계|헤리티지/.test(q)) location.href = '/monet100-web/';
-  else location.hash = '#now';
-});
 </script>
 </body>
 </html>
