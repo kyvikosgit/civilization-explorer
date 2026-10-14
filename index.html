@@ -63,27 +63,40 @@ button{font:inherit;border:0;background:none;cursor:pointer}
 .rail{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
   margin:0 -24px;padding:0 24px 4px;scroll-padding:0 24px;-webkit-overflow-scrolling:touch}
 .rail::-webkit-scrollbar{display:none}
-.exc{flex:none;width:clamp(260px,38vw,460px);scroll-snap-align:start;color:var(--ink)}
+.rail{align-items:flex-start}
+.exc{flex:none;scroll-snap-align:start;color:var(--ink)}
 .exc .pv{display:block;position:relative;aspect-ratio:1800/2548;border-radius:10px;overflow:hidden;background:var(--fill);line-height:0}
 .exc .pv img{display:block;width:100%;height:100%;object-fit:cover}  /* 공식 포스터(261008) 그대로 — 위에 덧칠·글자 없음 */
-.exc .info{padding:16px 2px 0}
-.exc .t{font-family:'Paperlogy',sans-serif;font-size:19px;font-weight:800;line-height:1.3}
-.exc .d{margin-top:4px;font-size:13.5px;color:var(--sub);line-height:1.6}
-.exc .m{margin-top:10px;font-size:13.5px;color:var(--body);line-height:1.7}
-.exc .m b{font-weight:700;color:var(--ink)}
-.exc .bt{margin-top:14px;display:flex;gap:8px}
-.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 18px;
-  border-radius:var(--rbtn);font-weight:700;font-size:14px;flex:1}
+
+/* 현재 전시 — 포스터가 화면 폭 절반 이상 + 우측 정보 패널 */
+.exc.main{display:flex;gap:36px}
+.exc.main .pv{flex:none;width:min(600px,52vw,calc((100vh - 120px) * .7065))}
+.exc.main .info{width:340px;display:flex;flex-direction:column;align-self:stretch;padding-top:4px}
+.exc .hd{padding-bottom:20px;border-bottom:2px solid var(--ink)}
+.exc .live{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:12px}
+.exc .live::before{content:"";width:7px;height:7px;border-radius:50%;background:#1F8A4C}
+.exc .t{font-family:'Paperlogy',sans-serif;font-size:30px;font-weight:800;line-height:1.2}
+.exc .d{margin-top:8px;font-size:14px;color:var(--sub);line-height:1.6}
+.exc .rows{margin:0}
+.exc .rows div{display:flex;gap:16px;padding:15px 0;border-bottom:1px solid var(--line)}
+.exc .rows dt{flex:none;width:40px;font-size:13px;font-weight:600;color:var(--meta);line-height:1.6}
+.exc .rows dd{margin:0;font-size:14.5px;font-weight:500;color:var(--ink);line-height:1.6;font-variant-numeric:tabular-nums}
+.exc .bt{margin-top:28px;display:flex;flex-direction:column;gap:8px}
+.btn{display:flex;align-items:center;justify-content:center;height:52px;padding:0 18px;
+  border-radius:var(--rbtn);font-weight:700;font-size:15px}
 .btn.fill{background:var(--brand);color:#fff}
 .btn.fill:hover{background:var(--brand-deep)}
 .btn.line{border:1px solid #D9D9D4;color:var(--ink)}
 .btn.line:hover{border-color:var(--ink)}
-/* 커밍순 카드 — 포스터 자리를 빈 지면으로 */
-.exc.soon .pv{border:1px dashed #D9D9D4;background:var(--fill);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:10px;line-height:1.2}
-.exc.soon .pv b{font-family:'Paperlogy',sans-serif;font-size:15px;font-weight:800;letter-spacing:.24em;color:var(--sub)}
-.exc.soon .pv span{font-family:'Paperlogy',sans-serif;font-size:40px;font-weight:800;color:#C9C7C0}
-.exc.soon .t{color:var(--sub)}
+/* 커밍순 카드 — 작게, 포스터 자리는 빈 지면 */
+.exc.soon{width:240px}
+.exc.soon .pv{border:1px dashed #D9D9D4;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;line-height:1.2}
+.exc.soon .pv b{font-family:'Paperlogy',sans-serif;font-size:12px;font-weight:800;letter-spacing:.24em;color:var(--sub)}
+.exc.soon .pv span{font-family:'Paperlogy',sans-serif;font-size:30px;font-weight:800;color:#C9C7C0}
+.exc.soon .info{padding-top:14px}
+.exc.soon .t{font-size:16px;color:var(--sub)}
+.exc.soon .d{margin-top:2px;font-size:13px;color:var(--meta)}
 .bdg{position:absolute;top:16px;right:16px;display:flex;gap:6px;z-index:2}
 /* 카드 라벨 — 두 칩 동일 규격(높이·서체·라운드), 색만 반전. 플랫폼 브랜드 = 먹색 */
 .bdg span{display:inline-flex;align-items:center;justify-content:center;height:26px;padding:0 10px;
@@ -169,7 +182,11 @@ footer a:hover{color:var(--ink)}
   .tile .gfx{padding:10px 0 18px}
   .tile .gfx svg{width:84px;height:84px}
   .rnav{display:none}
-  .exc{width:78vw}
+  .exc.main{flex-direction:column;gap:0;width:84vw}
+  .exc.main .pv{width:100%}
+  .exc.main .info{width:auto;padding-top:20px}
+  .exc .t{font-size:24px}
+  .exc.soon{width:52vw}
 }
 </style>
 </head>
@@ -193,15 +210,23 @@ footer a:hover{color:var(--ink)}
       </div>
     </div>
     <div class="rail" id="rail">
-      <article class="exc">
+      <article class="exc main">
         <a class="pv" href="/monet100-web/">
           <img src="/monet100-web/img/poster.jpg" alt="MONET 100 포스터 — 클로드 모네 서거 100주년 기념 미디어 체험 전시, 시대를 읽는 감각의 계보, 2026. 12. 5 — 2027. 2. 28, 신세계본점 더 헤리티지 4F 뮤지엄" loading="eager">
           <div class="bdg"><span id="dday">D-58</span><span class="w">단독</span></div>
         </a>
         <div class="info">
-          <div class="t">MONET 100</div>
-          <div class="d">클로드 모네 서거 100주년 기념 미디어 체험 전시</div>
-          <div class="m"><b>2026. 12. 5 — 2027. 2. 28</b><br>신세계본점 더 헤리티지 4F 뮤지엄<br>성인 22,000원 · 청소년 16,000원</div>
+          <div class="hd">
+            <div class="live">예매 중</div>
+            <div class="t">MONET 100</div>
+            <div class="d">클로드 모네 서거 100주년 기념<br>미디어 체험 전시</div>
+          </div>
+          <dl class="rows">
+            <div><dt>기간</dt><dd>2026. 12. 5 — 2027. 2. 28</dd></div>
+            <div><dt>장소</dt><dd>신세계본점 더 헤리티지 4F 뮤지엄</dd></div>
+            <div><dt>관람</dt><dd>매 정시 입장 · 회차당 60분</dd></div>
+            <div><dt>요금</dt><dd>성인 22,000원 · 청소년 16,000원</dd></div>
+          </dl>
           <div class="bt">
             <a class="btn fill" href="/monet100-web/">전시 자세히 보기</a>
             <a class="btn line" href="/monet100-web/#tickets">예매 안내</a>
@@ -212,8 +237,10 @@ footer a:hover{color:var(--ink)}
         <div class="pv"><b>COMING SOON</b><span>2027</span></div>
         <div class="info">
           <div class="t">다음 전시</div>
-          <div class="d">다음 전시를 준비하고 있습니다 · 2027 공개</div>
+          <div class="d">2027 공개</div>
         </div>
+      </article>
+    </div>
       </article>
     </div>
   </section>
@@ -291,8 +318,7 @@ const syncRail = () => {
   document.querySelector('.rnav').style.visibility = max > 0 ? 'visible' : 'hidden';
 };
 rbtn.forEach((b) => b.addEventListener('click', () => {
-  const w = rail.querySelector('.exc').getBoundingClientRect().width + 20;
-  rail.scrollBy({ left: w * Number(b.dataset.dir), behavior: 'smooth' });
+  rail.scrollBy({ left: rail.clientWidth * 0.6 * Number(b.dataset.dir), behavior: 'smooth' });
 }));
 rail.addEventListener('scroll', syncRail, { passive: true });
 addEventListener('resize', syncRail);
