@@ -120,7 +120,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 
 /* ── 특징 — 다크 섹션. 형태는 단정하게(수평·수직 정렬), 감각은 모션으로
    · 배경: 할프톤 망점(우측으로 갈수록 짙어짐)
-   · 제목: 단어 블록 — 채움/외곽선/채움, 같은 크기·같은 기준선
+   · 제목: 장식 없는 타이포 (단어 단위로 차례로 올라오는 모션만)
    · 카드: 귀 한쪽만 깎은 패널(흰 외곽선 레이어 + 검정 면 레이어), 패널 위로 걸친 외곽선 번호
    · 모션: 진입 시 아래에서 차례로 올라옴, 호버 시 살짝 떠오르며 흑백 반전 (reduced-motion이면 정지) */
 .features{--paper:#F5F3EE;--void:#0B0B0B;position:relative;isolation:isolate;overflow:hidden;
@@ -130,12 +130,10 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
   -webkit-mask-image:linear-gradient(90deg,transparent 40%,#000 100%);mask-image:linear-gradient(90deg,transparent 40%,#000 100%)}
 .features .section-head{display:block;margin-bottom:clamp(56px,7vw,80px)}
 
-.features-tag{display:inline-block;background:var(--paper);color:var(--void);padding:5px 12px;
-  font-size:12px;font-weight:800;letter-spacing:.2em}
-.features-title{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;
-  font-family:var(--display);font-size:clamp(28px,4vw,48px);font-weight:800;line-height:1.1;letter-spacing:-.01em}
-.rn{display:inline-block;padding:.12em .32em .16em;border:2px solid var(--paper)}
-.rn--1,.rn--3{background:var(--paper);color:var(--void)}
+.features-tag{font-size:12px;font-weight:700;letter-spacing:.2em}
+.features-title{margin-top:14px;font-family:var(--display);font-size:clamp(28px,4vw,48px);font-weight:800;
+  line-height:1.2;letter-spacing:-.01em}
+.rn{display:inline-block}  /* 단어 단위 진입 모션용 */
 
 .feature-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:56px 18px}
 .feature{--cut:polygon(0 0,100% 0,100% calc(100% - 28px),calc(100% - 28px) 100%,0 100%);
