@@ -11,6 +11,7 @@
   document.querySelectorAll('.kgnb:not([data-ready])').forEach(function (el) {
     var cur = el.getAttribute('data-current');
     el.setAttribute('data-ready', '');
+    el.setAttribute('role', 'banner');
     el.innerHTML =
       '<div class="in">' +
         '<a class="logo" href="/">KIPPU</a>' +
