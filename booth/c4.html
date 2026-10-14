@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#15100B">
+<title>C-4 나다르 사진관</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/c4.css">
+</head>
+<body class="paper-bg c4">
+
+<!-- Step 1. 나다르 사진관 촬영 체험 (현장) -->
+<section class="step" data-step="1">
+  <div class="topbar">
+    <button class="icon-btn" data-back></button>
+    <div class="tb-title" data-step-label></div>
+    <span></span>
+  </div>
+  <div class="progress" data-progress></div>
+  <div class="wrap">
+    <div class="step-head">
+      <div class="eyebrow">Step 1 · 현장 체험</div>
+      <h2>나다르 사진관 촬영 체험</h2>
+    </div>
+    <div class="concept"><img src="assets/concept/c4_booth.jpg" alt="나다르 사진관 부스 시안"><span class="tag dark">시안 이미지</span></div>
+    <p class="lead" style="margin-top:16px">나다르 사진관을 배경으로 카메라 앞에 서서 인물 사진 촬영</p>
+    <div class="note-box">이 단계는 부스 현장에서 진행되며 앱 조작이 없습니다.</div>
+    <div style="margin-top:22px"><button class="btn" data-next>다음 · QR 코드 인식</button></div>
+  </div>
+</section>
+
+<!-- Step 2. QR 코드 인식 -->
+<section class="step qr-step" data-step="2">
+  <div class="cam-screen">
+    <div class="cam-layer"><video id="qrVideo" playsinline muted></video></div>
+    <div class="qr-top">
+      <div class="topbar dark">
+        <button class="icon-btn" data-back></button>
+        <div class="tb-title" data-step-label></div>
+        <span></span>
+      </div>
+      <div class="progress dark" data-progress></div>
+    </div>
+    <div id="qrFrame" class="scan-frame square"><i></i><i></i><i></i><i></i><div class="sweep"></div></div>
+    <div class="qr-pill"><span id="qrPill" class="pill">전시 모니터에 표시된 QR 코드를 비춰주세요</span></div>
+    <div id="qrMsg" class="cam-msg" hidden></div>
+    <div class="cam-bottom">
+      <button id="qrStart" class="btn gold"><span data-ic="camera"></span>카메라로 QR 스캔</button>
+      <button id="qrDemo" class="btn light">데모로 진행</button>
+    </div>
+  </div>
+</section>
+
+<!-- Step 3. 촬영 이미지 확인 및 저장 -->
+<section class="step result" data-step="3">
+  <div class="topbar dark">
+    <button class="icon-btn" data-back></button>
+    <div class="tb-title" data-step-label></div>
+    <span></span>
+  </div>
+  <div class="progress dark" data-progress></div>
+  <div class="nadar-head">
+    <div class="nadar-word">NADAR</div>
+    <div class="nadar-sub"><span class="rule"></span>나의 모습을, 두 시대의 예술로<span class="rule"></span></div>
+  </div>
+
+  <!-- 사진 불러오기 -->
+  <div id="pick" class="pick">
+    <div class="gilt empty">
+      <div class="gilt-inner">
+        <span data-ic="image"></span>
+        <p>현장 촬영 이미지는 실제 운영 시 QR 인식 후 불러옵니다.<br>프로토타입에서는 사진을 직접 선택하세요.</p>
+      </div>
+    </div>
+    <div class="pick-btns">
+      <label class="btn gold"><span data-ic="camera"></span>사진 촬영<input id="fileCam" type="file" accept="image/*" capture="user" hidden></label>
+      <label class="btn light"><span data-ic="image"></span>앨범에서 선택<input id="fileLib" type="file" accept="image/*" hidden></label>
+      <button id="demoImg" class="link-btn">시안 이미지로 데모</button>
+    </div>
+  </div>
+
+  <!-- 변환 중 -->
+  <div id="busy" class="busy" hidden><div class="spinner"></div><span>두 가지 스타일로 변환하는 중</span></div>
+
+  <!-- 비교 -->
+  <div id="compare" class="compare" hidden>
+    <div class="gilt">
+      <div id="cmp" class="cmp" aria-label="초상화와 19세기 사진 비교 — 좌우로 끌어 비교">
+        <canvas id="cvPhoto"></canvas>
+        <canvas id="cvPaint"></canvas>
+        <div id="handle" class="handle"><span class="knob"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"/></svg></span></div>
+        <div class="cmp-tags">
+          <button class="cmp-tag" data-pick="paint">초상화</button>
+          <button class="cmp-tag" data-pick="photo">19세기 사진</button>
+        </div>
+      </div>
+    </div>
+    <div class="save-bar">
+      <button id="save" class="btn gold"><span data-ic="download"></span><span id="saveLabel">이미지 저장</span></button>
+      <button id="again" class="link-btn">다른 사진으로</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="js/c4.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+/* C-2 산업혁명 */
+.clues img { filter: drop-shadow(0 10px 18px rgba(60,35,10,.25)); }
+.clues .tag { left: auto; right: 6px; top: 0; }
+
+.quiz { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; overflow: hidden; background: #6f8c86; min-height: 0; }
+.quiz.active { display: block; }
+.map-box { position: absolute; inset: 0; touch-action: none; overflow: hidden; }
+#map { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+
+.quiz-top { position: absolute; left: 0; right: 0; top: 0; z-index: 5; padding-top: var(--safe-t);
+  background: linear-gradient(rgba(28,20,12,.78), rgba(28,20,12,.35) 70%, rgba(28,20,12,0)); color: var(--cream); pointer-events: none; }
+.quiz-top .icon-btn, .quiz-top .banner { pointer-events: auto; }
+.quiz-bar { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 6px 8px 4px; }
+.quiz-title { display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .12em; }
+.quiz-title .rule { width: 18px; height: 1px; background: var(--gold-hi); opacity: .8; }
+.quiz-count { font-family: var(--display); font-weight: 600; font-size: 14px; text-align: center; }
+.banner { margin: 6px 14px 0; display: grid; grid-template-columns: 50px 1fr; gap: 10px; align-items: center;
+  padding: 12px 14px; border-radius: 6px; color: var(--ink);
+  background: linear-gradient(#F3E7CB, #E7D3A8); border: 1px solid #B8955A;
+  box-shadow: 0 0 0 3px rgba(243,231,203,.5), 0 10px 24px rgba(0,0,0,.35); }
+.banner strong { display: block; font-family: var(--display); font-weight: 600; font-size: 15px; line-height: 1.4; text-align: center; }
+.banner p { margin: 6px 0 0; font-size: 13px; line-height: 1.45; text-align: center; color: var(--ink-2); }
+.compass svg { width: 50px; height: 50px; display: block; }
+
+.quiz-bottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; padding: 30px 10px calc(12px + var(--safe-b));
+  background: linear-gradient(rgba(28,20,12,0), rgba(28,20,12,.7)); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.link-link { color: var(--cream); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; padding: 6px 10px; }
+.chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+.chip { position: relative; display: flex; align-items: center; gap: 6px; height: 54px; padding: 0 8px 0 5px; white-space: nowrap; min-width: 0; border-radius: 29px;
+  background: rgba(36,26,18,.88); color: var(--cream); border: 1.5px solid rgba(232,201,135,.55);
+  font-family: var(--display); font-weight: 600; font-size: 13.5px; letter-spacing: -.02em; box-shadow: 0 6px 16px rgba(0,0,0,.35); transition: background .2s, border-color .2s, box-shadow .2s; }
+.chip .thumb { flex: none; width: 42px; height: 42px; border-radius: 50%; background: #E9D9B4; display: grid; place-items: center; overflow: hidden; border: 1px solid rgba(232,201,135,.6); }
+.chip .thumb svg { width: 36px; height: 36px; }
+.chip.on { background: linear-gradient(#D9542A, #B23A1A); border-color: #FFC58A; box-shadow: 0 0 0 3px rgba(255,140,60,.35), 0 0 22px rgba(255,120,40,.6); }
+.chip .ck { position: absolute; right: -2px; top: -6px; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: #B23A1A; display: none; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.chip .ck svg { width: 14px; height: 14px; }
+.chip.on .ck { display: grid; }
+.chip:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+
+/* 지도 위 라벨 */
+.lbl { font-family: var(--display); fill: #3B2A19; paint-order: stroke; stroke: rgba(243,231,203,.85); stroke-linejoin: round; }
+.lbl-ko { font-family: var(--body); font-weight: 600; fill: #4a3722; paint-order: stroke; stroke: rgba(243,231,203,.85); stroke-linejoin: round; }
+.lbl-sea { font-family: var(--display); fill: #F3E7CB; font-style: italic; }
+.lbl-sea-ko { font-family: var(--body); fill: #F3E7CB; }
+.region { cursor: pointer; transition: fill .3s; }
+
+.res-title { font-size: 24px; margin: 4px 0 10px; }
+.res-title.ok { color: var(--ok); }
+.res-title.no { color: var(--accent); }
+.res-route { font-family: var(--display); font-weight: 600; font-size: 16px; margin: 0 0 8px; }
+.res-body { font-size: 15px; line-height: 1.75; white-space: pre-line; margin: 0 0 18px; color: var(--ink); }

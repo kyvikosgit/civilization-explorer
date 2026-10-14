@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#EFE4CC">
+<title>C-2 산업혁명</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/c2.css">
+</head>
+<body class="paper-bg c2">
+
+<!-- Step 1. 체험존 자유롭게 관람 (현장) -->
+<section class="step" data-step="1">
+  <div class="topbar">
+    <button class="icon-btn" data-back></button>
+    <div class="tb-title" data-step-label></div>
+    <span></span>
+  </div>
+  <div class="progress" data-progress></div>
+  <div class="wrap">
+    <div class="step-head">
+      <div class="eyebrow">Step 1 · 현장 체험</div>
+      <h2>체험존 자유롭게 관람</h2>
+    </div>
+    <div class="concept"><img src="assets/concept/c2_booth.jpg" alt="산업혁명 체험존 시안"><span class="tag dark">시안 이미지</span></div>
+    <p class="lead" style="margin-top:16px">산업혁명 시대를 재현한 공간 내 전시물 및 오브제 자유 관람</p>
+    <div class="note-box">이 단계는 부스 현장에서 진행되며 앱 조작이 없습니다.</div>
+    <div style="margin-top:22px"><button class="btn" data-next>다음</button></div>
+  </div>
+</section>
+
+<!-- Step 2. 다음 목적지 단서 발견 (현장) -->
+<section class="step" data-step="2">
+  <div class="topbar">
+    <button class="icon-btn" data-back></button>
+    <div class="tb-title" data-step-label></div>
+    <span></span>
+  </div>
+  <div class="progress" data-progress></div>
+  <div class="wrap">
+    <div class="step-head">
+      <div class="eyebrow">Step 2 · 현장 체험</div>
+      <h2>다음 목적지 단서 발견</h2>
+    </div>
+    <div class="concept contain clues"><img src="assets/concept/c2_clues.png" alt="단서 소품 시안"><span class="tag dark">시안 이미지</span></div>
+    <p class="lead" style="margin-top:12px">벽면 지도, 신문, 책상 위 소품 등에서 다음 목적지에 대한 힌트 탐색</p>
+    <div class="note-box">이 단계는 부스 현장에서 진행되며 앱 조작이 없습니다.</div>
+    <div style="margin-top:22px"><button class="btn" data-next>앱 퀴즈 참여하기</button></div>
+  </div>
+</section>
+
+<!-- Step 3. 앱 퀴즈 참여 — 지도 -->
+<section class="step quiz" data-step="3">
+  <div id="mapBox" class="map-box">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="파리 주변 지도"></svg>
+  </div>
+  <header class="quiz-top">
+    <div class="quiz-bar">
+      <button class="icon-btn" data-back></button>
+      <div class="quiz-title"><span class="rule"></span><span>INDUSTRIAL REVOLUTION</span><span class="rule"></span></div>
+      <span class="quiz-count">4/8</span>
+    </div>
+    <div class="progress dark" data-progress></div>
+    <div class="banner">
+      <span class="compass" data-compass></span>
+      <div>
+        <strong>단서를 바탕으로<br>다음 목적지로 가는 노선을 선택하세요.</strong>
+        <p id="banner2" hidden></p>
+      </div>
+    </div>
+  </header>
+  <div class="quiz-bottom">
+    <button id="autoLink" class="link-link" hidden>노선 자동 연결</button>
+    <div id="chips" class="chips" role="radiogroup" aria-label="목적지 선택"></div>
+  </div>
+</section>
+
+<div id="resultSheet" class="sheet" role="dialog" aria-label="결과">
+  <div class="grip"></div>
+  <div id="resBody"></div>
+</div>
+
+<script type="module" src="js/c2.js"></script>
+</body>
+</html>
