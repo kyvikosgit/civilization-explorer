@@ -7,6 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&display=swap">
 <link rel="stylesheet" href="/gnb.css">
 <style>
 /* 시안 보드 + 실물 크기 히어로(?v=A|B|C) 한 파일.
@@ -39,12 +40,25 @@ img{display:block;max-width:100%}
   background:linear-gradient(180deg,rgba(0,0,0,.38) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%)}
 .hA .in{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:space-between;
   padding:104px 4vw 48px}
-.hA .kicker{font-size:19px;font-weight:600;line-height:1.5}
-.hA .lockup{width:clamp(360px,48vw,780px);height:auto}
-.hA .row{display:flex;align-items:flex-end;gap:28px 48px;margin-top:34px;flex-wrap:wrap}
-.hA .dates{font-size:clamp(24px,2.3vw,34px);font-weight:600;line-height:1.1}
-.hA .venue{font-size:17px;font-weight:500;opacity:.92}
+.hA .foot{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
 .hA .cta{margin-left:auto}
+
+/* 포스터 타이포 재현 — 공식 포스터(261008, 7016px) 실측 좌표를 락업 폭 기준 단위(--u = 락업폭/6200)로 옮김.
+   서체: 상단 2줄·장소·크레딧 = Paperlogy 500, 기간 = Song Myung(포스터 숫자와 폭·형태 일치), 락업은 공식 PNG */
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.kv{--L:clamp(360px,48vw,760px);--u:calc(var(--L) / 6200);color:#FFFFFF}
+.kv-kicker{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 213);line-height:1.286;
+  margin-left:calc(var(--u) * 40);white-space:nowrap}
+.kv-block{position:relative;width:var(--L);height:calc(var(--u) * 3400)}
+.kv-block > *{position:absolute;margin:0;line-height:1;white-space:nowrap}
+.kv-block h1{left:0;top:0;width:100%;font-size:0}
+.kv-lockup{width:100%;height:auto}
+.kv-d{font-family:"Song Myung",serif;font-weight:400;font-size:calc(var(--u) * 398);top:calc(var(--u) * 2269)}
+.kv-rule{left:calc(var(--u) * 2094);top:calc(var(--u) * 2492);width:calc(var(--u) * 2028);height:max(1px,calc(var(--u) * 8));background:#FFFFFF}
+.kv-venue{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 168);top:calc(var(--u) * 2820);left:calc(var(--u) * 42)}
+.kv-cl{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 90.4);top:calc(var(--u) * 3304)}
+.kv-cn{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 119.4);top:calc(var(--u) * 3289);left:calc(var(--u) * 3425)}
+.kv-kyv{left:calc(var(--u) * 5391);top:calc(var(--u) * 3302);width:calc(var(--u) * 769);height:auto}
 
 /* ───────── B · 포스터 대형 + 에디토리얼 정보 ───────── */
 .hB{background:var(--white);display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(40px,5vw,96px);
@@ -86,14 +100,11 @@ img{display:block;max-width:100%}
   .xnav .mark img{height:24px}
   .xnav nav{gap:18px;font-size:14px}
   .hero{min-height:0}
-  /* A */
-  .hA .in{padding:82px 16px 28px}
-  .hA .kicker{font-size:16px}
-  .hA .lockup{width:100%}
-  .hA .row{flex-direction:column;align-items:flex-start;gap:6px;margin-top:22px}
-  .hA .dates{font-size:24px}
-  .hA .venue{font-size:15px}
-  .hA .cta{margin:16px 0 0;width:100%}
+  /* A — 포스터와 같은 비율: 락업 폭 = 화면폭 × 6200/7016, 좌우 여백 = 화면폭 × 400/7016 */
+  .hA .in{padding:76px calc(100vw * 400 / 7016) 24px}
+  .hA .foot{flex-direction:column;align-items:stretch;gap:18px}
+  .hA .cta{margin:0;width:100%}
+  .kv{--L:calc(100vw * 6200 / 7016)}
   /* B */
   .hB{height:auto;display:block;padding:76px 16px 40px}
   .hB .poster{width:100%;height:auto}
@@ -179,15 +190,26 @@ var V = (new URLSearchParams(location.search).get('v') || '').toUpperCase();
     </picture>
     <div class="xnav"><a class="mark" href="#"><img src="img/logo_mark.png" alt="Monet 100"></a>
       <nav><a href="#about">전시</a><a href="#info">관람 정보</a><a href="#tickets">티켓</a></nav></div>
-    <div class="in">
-      <p class="kicker">클로드 모네 서거 100주년 기념<br>미디어 체험 전시</p>
-      <div>
-        <h1><img class="lockup" src="img/logo_lockup.png" alt="Monet 100 시대를 읽는 감각의 계보"></h1>
-        <div class="row">
-          <span class="dates disp">2026. 12. 5 – 2027. 2. 28</span>
-          <span class="venue">신세계본점 더 헤리티지 4F 뮤지엄</span>
-          <a class="cta" href="#tickets">TICKETS</a>
+    <div class="in kv">
+      <p class="kv-kicker">클로드 모네 서거 100주년 기념<br>미디어 체험 전시</p>
+      <div class="foot">
+        <div class="kv-block">
+          <h1><img class="kv-lockup" src="img/logo_lockup.png" alt="Monet 100 시대를 읽는 감각의 계보"></h1>
+          <p class="sr">2026. 12. 5 – 2027. 2. 28</p>
+          <span class="kv-d" style="left:calc(var(--u) * 27)" aria-hidden="true">2026.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 1051)" aria-hidden="true">12.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 1680)" aria-hidden="true">5</span>
+          <span class="kv-rule" aria-hidden="true"></span>
+          <span class="kv-d" style="left:calc(var(--u) * 4319)" aria-hidden="true">2027.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 5344)" aria-hidden="true">2.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 5782)" aria-hidden="true">28</span>
+          <p class="kv-venue">신세계본점 더 헤리티지 4F 뮤지엄</p>
+          <span class="kv-cl" style="left:calc(var(--u) * 3165)">주최</span>
+          <span class="kv-cn">SONG DONG HUN Inc.</span>
+          <span class="kv-cl" style="left:calc(var(--u) * 5103)">주관</span>
+          <img class="kv-kyv" src="img/kyvikos_wordmark.png" alt="KYVIKOS">
         </div>
+        <a class="cta" href="#tickets">TICKETS</a>
       </div>
     </div>
   </section>
@@ -248,7 +270,7 @@ var V = (new URLSearchParams(location.search).get('v') || '').toUpperCase();
 
   <section class="opt">
     <div class="t"><b class="disp">A</b><h2>풀블리드 키비주얼</h2><a class="solo" href="?v=A" target="_blank">실물 크기로 보기</a></div>
-    <p class="d">포스터 그림(글자 없는 영역)을 첫 화면 전체에 깔고, 포스터의 공식 로고 락업과 기간·장소를 포스터와 같은 자리(좌하단)에 얹습니다. 포스터를 가로 화면으로 옮긴 형태. 모바일은 세로 원화 그대로 풀블리드.</p>
+    <p class="d">포스터 그림(글자 없는 영역)을 첫 화면 전체에 깔고, 포스터의 문구 전부를 포스터와 같은 구조·비율로 얹습니다. 상단 2줄, 공식 로고 락업, 기간(가는 선으로 잇는 두 날짜), 장소, 주최·주관 크레딧. 좌표는 포스터 원본 실측값을 락업 폭 기준으로 환산했습니다. 서체는 포스터에 맞춰 상단·장소·크레딧 Paperlogy 500, 기간 Song Myung. 모바일은 세로 원화 그대로 풀블리드.</p>
     <p class="r">레퍼런스 <a href="https://groundseesaw.co.kr" target="_blank" rel="noopener">그라운드시소</a> 키비주얼 풀블리드 · 텍스트는 포스터 위치 그대로</p>
     <div class="frames">
       <div class="frame d"><p class="lbl">데스크톱 1440</p><div class="vp" data-w="1440" data-h="900"><iframe loading="lazy" data-src="?v=A" title="시안 A 데스크톱"></iframe></div></div>
