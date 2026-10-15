@@ -1,4 +1,13 @@
 /* C-4 나다르 사진관 */
+/* 글꼴 자체 호스팅 — 외부 CDN 요청 없이. base.css 의 Paperlogy(외부 CDN)는 공용이라 그대로 두고, C-4 는 별도 이름 'Paperlogy Local' 로 쓴다 */
+@font-face { font-family: 'Paperlogy Local'; font-weight: 800; font-display: swap; src: url('../assets/fonts/Paperlogy-8ExtraBold.woff2') format('woff2'); }
+@font-face { font-family: 'Paperlogy Local'; font-weight: 600; font-display: swap; src: url('../assets/fonts/Paperlogy-6SemiBold.woff2') format('woff2'); }
+@font-face { font-family: 'Freesentation'; font-weight: 400; font-style: normal; font-display: swap; src: url('../assets/fonts/Freesentation-4Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Freesentation'; font-weight: 500; font-style: normal; font-display: swap; src: url('../assets/fonts/Freesentation-5Medium.woff2') format('woff2'); }
+@font-face { font-family: 'Freesentation'; font-weight: 600; font-style: normal; font-display: swap; src: url('../assets/fonts/Freesentation-6SemiBold.woff2') format('woff2'); }
+@font-face { font-family: 'Freesentation'; font-weight: 700; font-style: normal; font-display: swap; src: url('../assets/fonts/Freesentation-7Bold.woff2') format('woff2'); }
+@font-face { font-family: 'Freesentation'; font-weight: 800; font-style: normal; font-display: swap; src: url('../assets/fonts/Freesentation-8ExtraBold.woff2') format('woff2'); }
+:root { --display: 'Paperlogy Local', 'Freesentation', system-ui, sans-serif; }
 .qr-step .cam-screen { z-index: 1; }
 .qr-step video { width: 100%; height: 100%; object-fit: cover; }
 .qr-top { position: absolute; left: 0; right: 0; top: 0; z-index: 5; padding-bottom: 10px; background: linear-gradient(rgba(0,0,0,.6), rgba(0,0,0,0)); }
@@ -47,3 +56,6 @@
 .c4 .wrap { padding-bottom: calc(96px + var(--safe-b)); }
 .pick-btns { justify-items: stretch; }
 #busy, #compare { scroll-margin-top: calc(64px + var(--safe-t)); }
+
+/* 데모(미리 만든 결과) — 화풍 강도 조절 없음 */
+.compare.demo .strength { display: none; }

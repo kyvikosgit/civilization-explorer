@@ -2,13 +2,17 @@
 //   photo : 19세기 사진 — 알부민 인화 톤(세피아), 소프트 포커스, 가장자리 흐림, 하이라이트 번짐, 비네트, 입자, 바랜 가장자리
 //   paint : 초상화 — 일반화 쿠와하라(사분면 분산 가중 평균) 2회 + 따뜻한 팔레트 + 윤곽 강조 + 캔버스 결
 self.onmessage = (e) => {
-  const { id, w, h, buf } = e.data;
+  const { id, w, h, buf, kinds = ['photo', 'paint'] } = e.data;   // kinds: 필요한 것만 계산 (메모리·시간 절약)
   const src = new Uint8ClampedArray(buf);
   try {
-    const photo = photo19(src, w, h);
-    self.postMessage({ id, kind: 'photo', w, h, buf: photo.buffer }, [photo.buffer]);
-    const paint = portrait(src, w, h);
-    self.postMessage({ id, kind: 'paint', w, h, buf: paint.buffer }, [paint.buffer]);
+    if (kinds.includes('photo')) {
+      const photo = photo19(src, w, h);
+      self.postMessage({ id, kind: 'photo', w, h, buf: photo.buffer }, [photo.buffer]);
+    }
+    if (kinds.includes('paint')) {
+      const paint = portrait(src, w, h);
+      self.postMessage({ id, kind: 'paint', w, h, buf: paint.buffer }, [paint.buffer]);
+    }
   } catch (err) {
     self.postMessage({ id, error: String(err && err.message || err) });
   }

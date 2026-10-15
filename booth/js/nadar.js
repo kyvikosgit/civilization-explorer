@@ -1,19 +1,23 @@
 // C-4 나다르 사진관 — 촬영 이미지 → (1) 인물 분리 → 19세기 스튜디오 배경 합성 → (2) 19세기 사진(WebGL 현상) / (3) 초상화(신경망 화풍 변환)
 // 모두 브라우저 안에서 처리 (서버·API 키 없음). 모델은 Step3 에서만 지연 로드
 //
-// 라이브러리·모델 (버전 고정)
-//   MediaPipe Tasks Vision 0.10.14 (Apache-2.0) — jsDelivr
-//     · ImageSegmenter: selfie_segmenter float16 v1 (≈244KB) — 인물 마스크
-//     · FaceDetector: blaze_face_short_range float16 v1 — 얼굴 위치 (부드러운 조명 보정에만 사용)
-//   Magenta.js @magenta/image 0.2.1 (Apache-2.0) — ArbitraryStyleTransferNetwork
-//     (MobileNet 스타일 예측 + 분리 합성곱 변환기, magentadata 체크포인트)
+// 라이브러리·모델 (버전 고정, 전부 프로젝트 안에 자체 호스팅 — 외부 서버 요청 없음)
+//   MediaPipe Tasks Vision 0.10.14 (Apache-2.0) — js/vendor/tasks-vision-0.10.14/ (번들 + wasm)
+//     · ImageSegmenter: selfie_segmenter float16 v1 (≈244KB) — 인물 마스크        assets/models/selfie_segmenter.tflite
+//     · FaceDetector: blaze_face_short_range float16 v1 — 얼굴 위치             assets/models/blaze_face_short_range.tflite
+//   Magenta.js @magenta/image 0.2.1 (Apache-2.0) — js/vendor/magentaimage-0.2.1.min.js · ArbitraryStyleTransferNetwork
+//     (MobileNet 스타일 예측 + 분리 합성곱 변환기, magentadata 체크포인트 → assets/models/style-arbitrary/)
 //   화풍 기준 그림: 클로드 모네 〈베레모를 쓴 자화상〉 1886 — 퍼블릭 도메인 (assets/img/style_monet_beret_1886.jpg)
 // 실패 시: 분리 실패 → 원래 배경 유지 / 화풍 변환 실패 → 쿠와하라 필터(워커) / WebGL 실패 → 캔버스 필터(워커)
+// 모델 파일은 c4.html 을 연 순간부터 뒤에서 미리 받아 두고(preloadModels), 서비스 워커(sw.js)가 기기에 보관한다
 
-const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
-const SEG_MODEL = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/1/selfie_segmenter.tflite';
-const FACE_MODEL = 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
-const MAGENTA = 'https://cdn.jsdelivr.net/npm/@magenta/image@0.2.1/dist/magentaimage.min.js';
+const ROOT = new URL('../', import.meta.url).href;            // booth-prototype/
+const MP = `${ROOT}js/vendor/tasks-vision-0.10.14`;
+const SEG_MODEL = `${ROOT}assets/models/selfie_segmenter.tflite`;
+const FACE_MODEL = `${ROOT}assets/models/blaze_face_short_range.tflite`;
+const MAGENTA = `${ROOT}js/vendor/magentaimage-0.2.1.min.js`;
+const STYLE_CKPT = `${ROOT}assets/models/style-arbitrary/predictor`;
+const TRANSFORM_CKPT = `${ROOT}assets/models/style-arbitrary/transformer`;
 export const STYLE_SRC = 'assets/img/style_monet_beret_1886.jpg';
 
 // 작업 해상도 (3:4) · 결과 카드 (3:4)
@@ -41,7 +45,8 @@ export function cropTo34(img) {
 // ── 지연 로드
 let visionP = null, segP = null, faceP = null, magentaP = null, styleImgP = null;
 function vision() {
-  return visionP ||= import(/* @vite-ignore */ `${MP}/vision_bundle.mjs`).then(async (m) => ({ m, fs: await m.FilesetResolver.forVisionTasks(`${MP}/wasm`) }));
+  return visionP ||= import(/* @vite-ignore */ `${MP}/vision_bundle.mjs`).then(async (m) => ({ m, fs: await m.FilesetResolver.forVisionTasks(`${MP}/wasm`) }))
+    .catch((e) => { visionP = null; throw e; });
 }
 async function createTask(Klass, fs, opts) {
   try { return await Klass.createFromOptions(fs, { ...opts, baseOptions: { ...opts.baseOptions, delegate: 'GPU' } }); }
@@ -50,12 +55,12 @@ async function createTask(Klass, fs, opts) {
 export function loadSegmenter() {
   return segP ||= vision().then(({ m, fs }) => createTask(m.ImageSegmenter, fs, {
     baseOptions: { modelAssetPath: SEG_MODEL }, runningMode: 'IMAGE', outputCategoryMask: false, outputConfidenceMasks: true,
-  }));
+  })).catch((e) => { segP = null; throw e; });
 }
 export function loadFace() {
   return faceP ||= vision().then(({ m, fs }) => createTask(m.FaceDetector, fs, {
     baseOptions: { modelAssetPath: FACE_MODEL }, runningMode: 'IMAGE', minDetectionConfidence: 0.4,
-  }));
+  })).catch((e) => { faceP = null; throw e; });
 }
 export function loadMagenta() {
   return magentaP ||= new Promise((res, rej) => {
@@ -64,11 +69,46 @@ export function loadMagenta() {
     s.onload = () => (window.mi ? res(window.mi) : rej(new Error('magenta_missing')));
     s.onerror = () => rej(new Error('magenta_load_failed'));
     document.head.appendChild(s);
-  }).then(async (mi) => { const net = new mi.ArbitraryStyleTransferNetwork(); await net.initialize(); return net; });
+  }).then(async (mi) => { const net = new mi.ArbitraryStyleTransferNetwork(STYLE_CKPT, TRANSFORM_CKPT); await net.initialize(); return net; })
+    .catch((e) => { magentaP = null; throw e; });   // 실패(시간 초과 포함)하면 다음 시도에서 다시 받는다
+}
+
+// ── 미리 받기 — 화면을 막지 않게 낮은 우선순위로 하나씩. 서비스 워커가 있으면 그 캐시에 남아 다음 방문엔 다시 받지 않는다
+const shardList = (dir, shards) => [`${dir}/tensorflowjs_model.pb`, `${dir}/weights_manifest.json`, ...shards.map((x) => `${dir}/${x}`)];
+export async function modelUrls() {
+  let simd = true;
+  try { const m = await import(/* @vite-ignore */ `${MP}/vision_bundle.mjs`); simd = await m.FilesetResolver.isSimdSupported(); } catch (e) { /* 번들을 못 받으면 아래에서 다시 시도 */ }
+  const wasm = simd ? 'vision_wasm_internal' : 'vision_wasm_nosimd_internal';
+  return [
+    `${MP}/vision_bundle.mjs`, `${MP}/wasm/${wasm}.js`, `${MP}/wasm/${wasm}.wasm`, SEG_MODEL, FACE_MODEL,
+    MAGENTA, ...shardList(STYLE_CKPT, ['group1-shard1of3', 'group1-shard2of3', 'group1-shard3of3']),
+    ...shardList(TRANSFORM_CKPT, ['group1-shard1of2', 'group1-shard2of2']),
+    `${ROOT}${STYLE_SRC}`,
+  ];
+}
+// cacheName: 서비스 워커(c4-sw.js)의 MODELS 캐시와 같은 이름. 서비스 워커가 아직 페이지를 맡지 않았으면 그 캐시에 직접 넣는다
+let preloadP = null;
+export function preloadModels(cacheName) {
+  return preloadP ||= (async () => {
+    const urls = await modelUrls();
+    const viaSW = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+    const cache = !viaSW && cacheName && self.caches ? await caches.open(cacheName).catch(() => null) : null;
+    let ok = 0, fetched = 0;
+    for (const u of urls) {
+      try {
+        if (cache && await cache.match(u)) { ok++; continue; }
+        const r = await fetch(u, { priority: 'low' });
+        if (!r.ok) continue;
+        if (cache) await cache.put(u, r); else await r.blob();
+        ok++; fetched++;
+      } catch (e) { /* 오프라인 등 — 변환 때 다시 시도 */ }
+    }
+    return { ok, fetched, total: urls.length, mode: viaSW ? 'sw' : cache ? 'cache' : 'http' };
+  })().catch((e) => { preloadP = null; throw e; });
 }
 function styleImg() {
   // 기준 그림은 짧은 변 256px 로 — 붓 터치가 크게, 색이 또렷하게 옮겨진다 (원본 크기로 넣으면 색이 바랜다)
-  return styleImgP ||= new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = STYLE_SRC; })
+  return styleImgP ||= new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => { styleImgP = null; rej(new Error('style_img')); }; i.src = `${ROOT}${STYLE_SRC}`; })
     .then((i) => { const k = 256 / Math.min(i.width, i.height); const c = canvas(Math.round(i.width * k), Math.round(i.height * k)); c.getContext('2d').drawImage(i, 0, 0, c.width, c.height); return c; });
 }
 
@@ -344,7 +384,7 @@ function imprint(g) {
   g.save();
   const y = PLATE.y + PLATE.h + 50;
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '800 30px Paperlogy, Freesentation, sans-serif';
+  g.font = '800 30px "Paperlogy Local", Freesentation, sans-serif';
   // 눌러 찍은 자국 — 아래 밝은 선 + 위 어두운 글자
   g.fillStyle = 'rgba(255,248,230,.6)'; g.fillText(ERA_PHOTO, CARD_W / 2, y + 1.5);
   g.fillStyle = 'rgba(92,58,34,.88)'; g.fillText(ERA_PHOTO, CARD_W / 2, y);
@@ -356,7 +396,7 @@ function imprint(g) {
 // 액자 아래 황동 명판 (클라이언트 지정: 초상화 = '1500년대')
 function eraPlate(g, cx, cy, text) {
   g.save();
-  g.font = '800 24px Paperlogy, Freesentation, sans-serif';
+  g.font = '800 24px "Paperlogy Local", Freesentation, sans-serif';
   const w = Math.max(150, g.measureText(text).width + 56), h = 36;
   const x = cx - w / 2, y = cy - h / 2;
   g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 6; g.shadowOffsetY = 2;
@@ -370,6 +410,19 @@ function eraPlate(g, cx, cy, text) {
   g.fillStyle = 'rgba(255,240,200,.55)'; g.fillText(text, cx, cy + 1.5);
   g.fillStyle = '#3d2a0e'; g.fillText(text, cx, cy);
   g.restore();
+}
+// 마지막 대체 — 워커·WebGL 모두 못 쓸 때 메인 스레드에서 바로 (수십 ms): 정색성 흑백 + 알부민 톤 + 비네트
+export function quickPhoto(comp) {
+  const W = comp.width, H = comp.height, c = canvas(W, H), g = c.getContext('2d');
+  const id = comp.getContext('2d').getImageData(0, 0, W, H), d = id.data;
+  for (let y = 0, p = 0; y < H; y++) for (let x = 0; x < W; x++, p += 4) {
+    let v = (d[p] * 0.12 + d[p + 1] * 0.45 + d[p + 2] * 0.43) / 255;
+    const nx = x / W - 0.5, ny = y / H - 0.5;
+    v = (0.05 + v * 0.9) * (1 - 0.45 * smooth(0.25, 0.75, Math.sqrt(nx * nx + ny * ny)));
+    d[p] = clamp(255 * (0.16 + v * 0.80), 0, 255); d[p + 1] = clamp(255 * (0.09 + v * 0.81), 0, 255); d[p + 2] = clamp(255 * (0.10 + v * 0.66), 0, 255);
+  }
+  g.putImageData(id, 0, 0);
+  return mountFallback(c);
 }
 // WebGL 이 안 되면: 워커 결과(판 크기)를 카드에 얹는다
 export function mountFallback(plateCanvas) {
