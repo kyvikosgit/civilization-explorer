@@ -35,10 +35,10 @@
   </div>
 </section>
 
-<!-- Step 2. 앱 퀴즈 참여 — 지도 -->
+<!-- Step 2. 앱 퀴즈 참여 — 단서로 추리: ① 파리의 출발역(5) → ② 도착 지역(5) -->
 <section class="step quiz" data-step="2">
   <div id="mapBox" class="map-box">
-    <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="파리 주변 지도"></svg>
+    <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="지도"></svg>
   </div>
   <header class="quiz-top">
     <div class="quiz-bar">
@@ -49,18 +49,36 @@
     <div class="progress" data-progress></div>
     <div class="banner">
       <strong>단서를 바탕으로<br>다음 목적지로 가는 노선을 선택하세요.</strong>
-      <p id="banner2" hidden></p>
+      <div class="stage-row">
+        <ol class="stages" aria-label="단계">
+          <li id="stg1" class="on"><b>1</b>출발역</li>
+          <li id="stg2"><b>2</b>도착 지역</li>
+        </ol>
+        <button id="openClues" class="clue-btn" type="button">현장 단서 <span>4</span></button>
+      </div>
+      <p id="stageHint" class="stage-hint"></p>
     </div>
   </header>
   <div class="quiz-bottom">
-    <div id="chips" class="chips" role="radiogroup" aria-label="목적지 선택"></div>
+    <div id="chips" class="chips" role="radiogroup" aria-label="선택지"></div>
   </div>
 </section>
 
+<!-- 현장 단서 — 부스에서 본 소품을 앱에서 다시 보기 (언제든 열 수 있다) -->
+<div id="clueSheet" class="sheet clue-sheet" role="dialog" aria-label="현장 단서">
+  <div class="grip"></div>
+  <div class="eyebrow">현장 단서</div>
+  <h3 class="confirm-title">부스에서 찾은 단서</h3>
+  <p class="small muted" style="margin:6px 0 0">벽면의 그림, 신문, 책상 위 소품을 다시 살펴보세요. 옆으로 넘겨 볼 수 있습니다.</p>
+  <div id="clueRow" class="clue-row"></div>
+  <button class="btn" data-sheet-close style="margin-top:14px">닫기</button>
+</div>
+
 <div id="confirmSheet" class="sheet" role="dialog" aria-label="선택 확인">
   <div class="grip"></div>
-  <div class="eyebrow" id="cfRegion"></div>
-  <h3 class="confirm-title">이 지역을 선택하시겠습니까?</h3>
+  <div class="eyebrow" id="cfWhat"></div>
+  <h3 class="confirm-title" id="cfTitle"></h3>
+  <p class="small muted" id="cfSub" style="margin:6px 0 0"></p>
   <div class="btn-row" style="margin-top:18px">
     <button id="cfRetry" class="btn line">다시 고르기</button>
     <button id="cfOk" class="btn">선택</button>
