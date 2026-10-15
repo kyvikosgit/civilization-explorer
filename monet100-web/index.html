@@ -47,29 +47,29 @@ nav a:hover::after{width:100%}
    서체(포스터 재현 예외): 상단 2줄·장소·크레딧 = Paperlogy 500, 기간 = Song Myung, 락업 = 공식 PNG */
 .kvhero{position:relative;overflow:hidden;height:calc(100svh - var(--gnb-h));min-height:560px;padding:0;background:#0E0E0E;color:#FFFFFF}
 .kvhero picture,.kvhero picture img{position:absolute;inset:0;width:100%;height:100%}
-.kvhero picture img{object-fit:cover;object-position:50% 46%}
+.kvhero picture img{object-fit:cover;object-position:50% 22%}  /* 가로 키비주얼: 포스터 원화 + 왼쪽은 〈인상, 해돋이〉 원작으로 이어 붙임(얼굴 비중 축소) */
 .kvhero::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(180deg,rgba(0,0,0,.38) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%)}
 .kvhero .in{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:space-between;
   padding:112px 4vw 48px}  /* 고정 메뉴(투명, 약 86px) 아래에서 시작 */
 .kvhero .foot{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
-.kvhero .cta{display:inline-flex;align-items:center;justify-content:center;height:52px;padding:0 30px;border-radius:8px;
-  background:#D9672F;color:#FFFFFF;font-family:Freesentation,sans-serif;font-size:15px;font-weight:700;letter-spacing:.08em;flex:none}
-.kvhero .cta:hover{opacity:.9}
 .sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .kv{--L:clamp(360px,48vw,760px);--u:calc(var(--L) / 6200)}
 .kv-kicker{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 213);line-height:1.286;
   margin-left:calc(var(--u) * 40);white-space:nowrap}
-.kv-block{position:relative;width:var(--L);height:calc(var(--u) * 3400)}
+.kv-block{position:relative;width:var(--L);height:calc(var(--u) * 3000)}
 .kv-block > *{position:absolute;margin:0;line-height:1;white-space:nowrap}
 .kv-block h1{left:0;top:0;width:100%;font-size:0}
 .kv-lockup{width:100%;height:auto}
 .kv-d{font-family:"Song Myung",serif;font-weight:400;font-size:calc(var(--u) * 398);top:calc(var(--u) * 2269)}
 .kv-rule{left:calc(var(--u) * 2094);top:calc(var(--u) * 2492);width:calc(var(--u) * 2028);height:max(1px,calc(var(--u) * 8));background:#FFFFFF}
 .kv-venue{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 168);top:calc(var(--u) * 2820);left:calc(var(--u) * 42)}
-.kv-cl{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 90.4);top:calc(var(--u) * 3304)}
-.kv-cn{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 119.4);top:calc(var(--u) * 3289);left:calc(var(--u) * 3425)}
-.kv-kyv{left:calc(var(--u) * 5391);top:calc(var(--u) * 3302);width:calc(var(--u) * 769);height:auto}
+/* 주최·주관 — 히어로 오른쪽 아래 (포스터의 크레딧 줄과 같은 서체·비율, 작은 화면에서도 읽히는 최소 크기) */
+.kv-credit{display:flex;align-items:center;margin:0;line-height:1;white-space:nowrap;flex:none}
+.kv-cl{font-family:Paperlogy,sans-serif;font-weight:500;font-size:max(10px,calc(var(--u) * 90.4));opacity:.85;margin-right:max(8px,calc(var(--u) * 90))}
+.kv-cl--2{margin-left:max(20px,calc(var(--u) * 260))}
+.kv-cn{font-family:Paperlogy,sans-serif;font-weight:500;font-size:max(12px,calc(var(--u) * 119.4))}
+.kv-kyv{width:max(66px,calc(var(--u) * 769));height:auto}
 .hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,42vw,720px);min-height:calc(100svh - 60px)}
 .hero-vis{position:relative;overflow:hidden}
 .hero-vis .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 24%}
@@ -171,7 +171,7 @@ footer .legal a:hover{color:#111111}
   .kvhero{min-height:0}
   .kvhero .in{padding:100px calc(100vw * 400 / 7016) 24px}
   .kvhero .foot{flex-direction:column;align-items:stretch;gap:18px}
-  .kvhero .cta{width:100%}
+  .kv-credit{align-self:flex-end}
   .kv{--L:calc(100vw * 6200 / 7016)}
 }
 </style>
@@ -195,7 +195,7 @@ footer .legal a:hover{color:#111111}
 <section class="kvhero" aria-label="MONET 100">
   <picture>
     <source media="(max-width:820px)" srcset="img/keyvisual.jpg">
-    <img src="img/hero_kv_wide.jpg" alt="클로드 모네의 자화상(1886)과 인상, 해돋이(1872)를 겹친 MONET 100 키비주얼" fetchpriority="high">
+    <img src="img/hero_kv_land.jpg" alt="클로드 모네의 자화상(1886)과 인상, 해돋이(1872)를 겹친 MONET 100 키비주얼" fetchpriority="high">
   </picture>
   <div class="in kv">
     <p class="kv-kicker">클로드 모네 서거 100주년 기념<br>미디어 체험 전시</p>
@@ -211,12 +211,11 @@ footer .legal a:hover{color:#111111}
         <span class="kv-d" style="left:calc(var(--u) * 5344)" aria-hidden="true">2.</span>
         <span class="kv-d" style="left:calc(var(--u) * 5782)" aria-hidden="true">28</span>
         <p class="kv-venue">신세계본점 더 헤리티지 4F 뮤지엄</p>
-        <span class="kv-cl" style="left:calc(var(--u) * 3165)">주최</span>
-        <span class="kv-cn">SONG DONG HUN Inc.</span>
-        <span class="kv-cl" style="left:calc(var(--u) * 5103)">주관</span>
-        <img class="kv-kyv" src="img/kyvikos_wordmark.png" alt="KYVIKOS">
       </div>
-      <a class="cta" href="#tickets">TICKETS</a>
+      <p class="kv-credit">
+        <span class="kv-cl">주최</span><span class="kv-cn">SONG DONG HUN Inc.</span>
+        <span class="kv-cl kv-cl--2">주관</span><img class="kv-kyv" src="img/kyvikos_wordmark.png" alt="KYVIKOS">
+      </p>
     </div>
   </div>
 </section>
