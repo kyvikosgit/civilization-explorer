@@ -33,7 +33,7 @@ function onViewerEvent(type, d) {
   else if (type === 'error') console.warn('[morris]', d && d.message);
   else if (type === 'tap' && flow.current === 2) {
     picked = d.index;
-    if (picked === ACTIVE_INDEX) playLoop();   // 누르는 순간(사용자 제스처 안)부터 재생 — iOS 인라인 자동재생 조건
+    playLoop(picked);                          // 누르는 순간(사용자 제스처 안)부터 재생 — iOS 인라인 자동재생 조건
     flow.to(3);
   }
   else if (type === 'settled' && flow.current === 3) onSettled();
@@ -208,13 +208,14 @@ function enterStep3() {
     const go = () => {
       if (flow.current !== 3) return;
       if (!viewer.inspect(picked)) { setTimeout(go, 200); return; }
-      if (picked === ACTIVE_INDEX) attachLoop();
+      attachLoop();
     };
     whenLoaded().then(go);
   }
 }
 function onSettled() {
-  if (picked === ACTIVE_INDEX) { playLoop(); return; }     // 혹시 재생이 막혔으면 다시 시도
+  if (loop.paused) playLoop(picked, true);                 // 혹시 재생이 막혔으면 다시 시도
+  if (picked === ACTIVE_INDEX) return;
   const it = ITEMS[picked];
   $('#cTitle').textContent = it.label;
   $('#cBody').textContent = it.body || '';
@@ -229,23 +230,29 @@ function leaveStep3() {
 }
 $('#closeBtn').addEventListener('click', () => flow.to(2));   // 닫기 = 전단지를 칼럼에 돌려놓고 계속 둘러보기
 
-// ── 삽화 애니메이션 = 미리 렌더한 Live2D 식 메시 변형 애니메이션 + 따뜻한 채색·가스등 빛·연기 영상, 10초 무한 반복
-//   assets/video/guerbois_loop.mp4 · .webm — 인물마다 머리·목·몸통을 하나의 부드러운 변형 영역으로 움직였다 (글자·테두리는 그대로)
+// ── 삽화 애니메이션 — 6장 모두 각자의 영상 (미리 렌더, 10초 이음매 없는 반복)
+//   assets/video/<이름>.mp4 · .webm : 인쇄물 그림의 인물·사람·마차·깃발을 Live2D 식 메시 변형으로 움직이고,
+//   손채색이 0.8~2.8초에 서서히 들어와 7.2~9.2초에 빠진다 (0초 = 칼럼의 원래 인쇄물과 똑같은 화면 → 떼어 낼 때 끊김 없음)
+const LOOPS = ['guerbois', 'bonmarche', 'expo', 'venus', 'critic', 'quality'];   // ITEMS 순서
 const loop = document.createElement('video');
 loop.muted = true; loop.defaultMuted = true; loop.loop = true; loop.preload = 'auto';
 loop.setAttribute('muted', ''); loop.setAttribute('playsinline', ''); loop.setAttribute('webkit-playsinline', '');
-loop.innerHTML = '<source src="assets/video/guerbois_loop.mp4" type="video/mp4"><source src="assets/video/guerbois_loop.webm" type="video/webm">';
 loop.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
 document.body.appendChild(loop);
-loop.load();
-function playLoop() {
-  try { loop.currentTime = 0; } catch (e) { /* noop */ }
+// H.264 mp4 를 기본으로 (iOS Safari 포함 모두 재생), 못 열면 webm 으로
+loop.addEventListener('error', () => { if (loop.src.endsWith('.mp4')) { loop.src = loop.src.replace(/\.mp4$/, '.webm'); loop.play().catch(() => {}); } });
+let loopName = '';
+function playLoop(i, keep) {
+  const name = LOOPS[i]; if (!name) return;
+  if (name !== loopName) { loopName = name; loop.src = `assets/video/${name}.mp4`; }
+  else if (!keep) { try { loop.currentTime = 0; } catch (e) { /* noop */ } }
   const p = loop.play();
   if (p && p.catch) p.catch((e) => console.warn('[loop] play', e));
 }
 function attachLoop() {
   // 첫 프레임이 준비되기 전에는 인쇄물 그대로 — 준비되면 바로 영상 텍스처로
-  const on = () => { if (flow.current === 3 && picked === ACTIVE_INDEX && viewer && viewer.mode !== 'back') viewer.setInspectMap(loop); };
+  const want = picked;
+  const on = () => { if (flow.current === 3 && picked === want && viewer && viewer.mode !== 'back') viewer.setInspectMap(loop); };
   // 처음부터 다시 감는 중(seek)이면 readyState 가 잠시 내려간다 — 어느 이벤트든 먼저 오는 것에 붙인다
   if (loop.readyState >= 2) { on(); return; }
   const evs = ['loadeddata', 'canplay', 'seeked', 'playing'];
