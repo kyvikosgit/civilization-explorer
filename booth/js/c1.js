@@ -3,10 +3,9 @@
 // 3D 칼럼 = kippu-app 모리스 칼럼 뷰어 이식본 (js/morris-viewer.js)
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { $, $$, ICON, createFlow, toast, sleep, startCamera, stopCamera, cameraErrorText, cameraSupported, loadImage } from './common.js';
+import { $, $$, ICON, createFlow, toast, sleep, startCamera, stopCamera, cameraErrorText, cameraSupported } from './common.js';
 import { createMorrisViewer } from './morris-viewer.js';
 import { ITEMS, FILLER, BACKDROP } from './morris-items.js';
-import { createFlyerAnimator } from './flyer-anim.js';
 
 const ACTIVE_INDEX = ITEMS.findIndex((it) => it.active);
 
@@ -32,10 +31,15 @@ try {
 function onViewerEvent(type, d) {
   if (type === 'loaded') { loaded = true; loadedWaiters.splice(0).forEach((r) => r()); if (flow.current <= 2) camLoading.hidden = true; }
   else if (type === 'error') console.warn('[morris]', d && d.message);
-  else if (type === 'tap' && flow.current === 2) { picked = d.index; flow.to(3); }
+  else if (type === 'tap' && flow.current === 2) {
+    picked = d.index;
+    if (picked === ACTIVE_INDEX) playLoop();   // 누르는 순간(사용자 제스처 안)부터 재생 — iOS 인라인 자동재생 조건
+    flow.to(3);
+  }
   else if (type === 'settled' && flow.current === 3) onSettled();
   else if (type === 'release' && flow.current === 3) flow.to(2);
 }
+if (new URLSearchParams(location.search).has('debug')) window.__mv = viewer;   // 검수용
 function showViewer(on) { mvEl.classList.toggle('off', !on); if (on && viewer) viewer.resize(); }
 
 // ── 상태
@@ -189,24 +193,28 @@ function enterStep2(prev) {
 }
 
 // ── Step3: 떼어 낸 전단지가 화면 가운데 3D 로 떠 있다 (배경은 흐리고 어둡게, 끌어서 돌리기·핀치 확대)
-//   카페 게르부아는 그 떠 있는 종이 위에서 삽화 애니메이션이 재생된다 (애니메이션 캔버스 → 종이 텍스처)
+//   카페 게르부아는 누르는 순간부터 삽화 애니메이션(영상)이 종이 텍스처로 재생된다 — 날아오는 동안에도, 돌리는 동안에도
 function enterStep3() {
   runId++;
   showViewer(true);
   setPill('');
   showGuide(false);
   $('#closeBtn').hidden = false; modeTag.hidden = true;
-  $('#caption').hidden = true; $('#animHud').hidden = true;
+  $('#caption').hidden = true;
   if (!viewer) return;
   viewer.setInteractive(true);
   if (viewer.mode === 'inspect') { onSettled(); return; }
   if (viewer.mode === 'column') {
-    const go = () => { if (flow.current === 3 && !viewer.inspect(picked)) setTimeout(go, 200); };
+    const go = () => {
+      if (flow.current !== 3) return;
+      if (!viewer.inspect(picked)) { setTimeout(go, 200); return; }
+      if (picked === ACTIVE_INDEX) attachLoop();
+    };
     whenLoaded().then(go);
   }
 }
 function onSettled() {
-  if (picked === ACTIVE_INDEX) { $('#animHud').hidden = false; startAnim(); return; }
+  if (picked === ACTIVE_INDEX) { playLoop(); return; }     // 혹시 재생이 막혔으면 다시 시도
   const it = ITEMS[picked];
   $('#cTitle').textContent = it.label;
   $('#cBody').textContent = it.body || '';
@@ -214,38 +222,36 @@ function onSettled() {
   $('#caption').hidden = false;
 }
 function leaveStep3() {
-  if (animator) animator.stop();
-  if (viewer) viewer.setInspectMap(null);
-  $('#caption').hidden = true; $('#animHud').hidden = true;
+  loop.pause();
+  if (viewer) viewer.setInspectMap(null);                  // 칼럼에는 원래 인쇄물로 돌아간다
+  $('#caption').hidden = true;
   $('#closeBtn').hidden = true; modeTag.hidden = false;
 }
 $('#closeBtn').addEventListener('click', () => flow.to(2));   // 닫기 = 전단지를 칼럼에 돌려놓고 계속 둘러보기
 
-// ── 삽화 애니메이션 — 화면 전체가 아니라 떠 있는 종이의 텍스처로 그린다 (내용은 그대로)
-let animator = null;
-const animCanvas = document.createElement('canvas');
-animCanvas.width = 631 * 2; animCanvas.height = 946 * 2;       // 전단지 원본 비율 그대로
-async function startAnim() {
-  $('#s4Replay').hidden = true;
-  try {
-    if (!animator) {
-      const img = await loadImage('assets/img/fl_batignolles.jpg');
-      const at = parseFloat(new URLSearchParams(location.search).get('at'));
-      animator = createFlyerAnimator(animCanvas, img, {
-        fixedView: true,
-        freezeAt: Number.isFinite(at) ? at : null,
-        onEnd() { $('#s4Replay').hidden = false; },
-      });
-    }
-    if (flow.current !== 3) return;
-    animator.play();
-    viewer && viewer.setInspectMap(animCanvas);
-  } catch (e) {
-    console.error(e);
-    const m = $('#animErr'); m.hidden = false; m.textContent = '이 기기에서 애니메이션(WebGL)을 실행할 수 없습니다.';
-  }
+// ── 삽화 애니메이션 = 미리 렌더한 Live2D 식 메시 변형 애니메이션 + 따뜻한 채색·가스등 빛·연기 영상, 10초 무한 반복
+//   assets/video/guerbois_loop.mp4 · .webm — 인물마다 머리·목·몸통을 하나의 부드러운 변형 영역으로 움직였다 (글자·테두리는 그대로)
+const loop = document.createElement('video');
+loop.muted = true; loop.defaultMuted = true; loop.loop = true; loop.preload = 'auto';
+loop.setAttribute('muted', ''); loop.setAttribute('playsinline', ''); loop.setAttribute('webkit-playsinline', '');
+loop.innerHTML = '<source src="assets/video/guerbois_loop.mp4" type="video/mp4"><source src="assets/video/guerbois_loop.webm" type="video/webm">';
+loop.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+document.body.appendChild(loop);
+loop.load();
+function playLoop() {
+  try { loop.currentTime = 0; } catch (e) { /* noop */ }
+  const p = loop.play();
+  if (p && p.catch) p.catch((e) => console.warn('[loop] play', e));
 }
-$('#s4Replay').addEventListener('click', startAnim);
+function attachLoop() {
+  // 첫 프레임이 준비되기 전에는 인쇄물 그대로 — 준비되면 바로 영상 텍스처로
+  const on = () => { if (flow.current === 3 && picked === ACTIVE_INDEX && viewer && viewer.mode !== 'back') viewer.setInspectMap(loop); };
+  // 처음부터 다시 감는 중(seek)이면 readyState 가 잠시 내려간다 — 어느 이벤트든 먼저 오는 것에 붙인다
+  if (loop.readyState >= 2) { on(); return; }
+  const evs = ['loadeddata', 'canplay', 'seeked', 'playing'];
+  const once = () => { evs.forEach((e) => loop.removeEventListener(e, once)); on(); };
+  evs.forEach((e) => loop.addEventListener(e, once));
+}
 
 // ── 흐름
 const flow = createFlow({

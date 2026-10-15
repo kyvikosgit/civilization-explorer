@@ -31,7 +31,6 @@ body.c1.hide-stage #stage { display: none; }
 .caption strong { display: block; font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -0.3px; }
 .caption p { margin: 5px 0 0; font-size: 13px; line-height: 19px; color: rgba(255,255,255,.88); }
 .caption .c-meta { font-size: 11.5px; color: rgba(255,255,255,.7); }
-.anim-hud { display: grid; gap: 10px; }
 .tb-right { display: flex; align-items: center; justify-content: flex-end; }
 .stage-top .tb-right .icon-btn { pointer-events: auto; color: #fff; }
 .subtitle { min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; font-size: 16px; line-height: 1.5; color: #FFFFFF; transition: opacity .3s; }

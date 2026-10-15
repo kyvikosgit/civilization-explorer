@@ -552,27 +552,39 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     renderInspect(performance.now());
     return true;
   }
-  // 부스 추가: 떠 있는 종이에 움직이는 그림(삽화 애니메이션 캔버스)을 입힌다 — null 이면 원래 인쇄물로
-  let liveTex = null, savedMaps = null;
-  function setInspectMap(cv) {
+  // 부스 추가: 떠 있는 종이에 움직이는 그림(삽화 애니메이션 영상/캔버스)을 입힌다 — null 이면 원래 인쇄물로
+  //   찢긴 종이 가장자리는 원래 인쇄물 텍스처의 알파를 alphaMap 으로 그대로 쓴다
+  let liveTex = null, savedMaps = null, edgeTex = null;
+  function edgeAlpha(map) {
+    const img = map && map.image; if (!img || !img.getContext) return null;
+    const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    const d = g.getImageData(0, 0, c.width, c.height);
+    for (let i = 0; i < d.data.length; i += 4) { const a = d.data[i + 3]; d.data[i] = d.data[i + 1] = d.data[i + 2] = a; d.data[i + 3] = 255; }
+    g.putImageData(d, 0, 0);
+    return new T.CanvasTexture(c);
+  }
+  function setInspectMap(src) {
     const p = insp && insp.p; if (!p) return;
-    if (cv) {
-      if (!savedMaps) savedMaps = { p, map: p.front.map, em: p.front.emissiveMap };
+    if (src) {
+      if (!savedMaps) { savedMaps = { p, map: p.front.map, em: p.front.emissiveMap }; edgeTex = edgeAlpha(p.front.map); }
       if (liveTex) liveTex.dispose();
-      liveTex = new T.CanvasTexture(cv); liveTex.encoding = T.sRGBEncoding;
+      liveTex = src.tagName === 'VIDEO' ? new T.VideoTexture(src) : new T.CanvasTexture(src);
+      liveTex.encoding = T.sRGBEncoding;
       liveTex.minFilter = T.LinearFilter; liveTex.generateMipmaps = false; liveTex.anisotropy = maxAniso;
-      p.front.map = liveTex; p.front.emissiveMap = liveTex; p.front.needsUpdate = true;
+      p.front.map = liveTex; p.front.emissiveMap = liveTex; p.front.alphaMap = edgeTex; p.front.needsUpdate = true;
     } else restoreMaps();
   }
   function restoreMaps() {
     if (!savedMaps) return;
     const { p, map, em } = savedMaps;
-    p.front.map = map; p.front.emissiveMap = em; p.front.needsUpdate = true;
+    p.front.map = map; p.front.emissiveMap = em; p.front.alphaMap = null; p.front.needsUpdate = true;
     if (liveTex) liveTex.dispose();
-    liveTex = null; savedMaps = null;
+    if (edgeTex) edgeTex.dispose();
+    liveTex = null; savedMaps = null; edgeTex = null;
   }
   function renderInspect(now) {
-    if (liveTex) liveTex.needsUpdate = true;
+    if (liveTex && !liveTex.isVideoTexture) liveTex.needsUpdate = true;
     poseInspect(now);
     renderer.setClearColor(0xffffff, 0);
     renderer.render(paperScene, camera);
@@ -810,6 +822,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   return {
     get mode() { return mode; },
     inspect, release, reset, resize, focusItem, setInspectMap,
+    get debugMap() { const p = insp && insp.p; return p ? { type: p.front.map && p.front.map.constructor.name, video: !!(p.front.map && p.front.map.isVideoTexture), alpha: !!p.front.alphaMap } : null; },
     setHighlight(on) { highlight = on; dirty = true; },
     setSpotlight(on) { spot = on; if (on) ensureSpotClones(); dirty = true; },
     setInteractive(on) { interactive = on; el.style.pointerEvents = on ? 'auto' : 'none'; if (!on) { hoverIdx = -1; pressIdx = -1; } },
