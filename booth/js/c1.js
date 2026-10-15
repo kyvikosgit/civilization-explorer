@@ -13,7 +13,7 @@ const ACTIVE_INDEX = ITEMS.findIndex((it) => it.active);
 $$('[data-ic]').forEach((e) => (e.outerHTML = ICON[e.dataset.ic]));
 
 const stage = $('#stage'), arLayer = $('#arLayer'), mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap');
-const camLoading = $('#camLoading'), modeTag = $('#modeTag'), animEl = $('#anim');
+const camLoading = $('#camLoading'), modeTag = $('#modeTag');
 
 // ── 3D 모리스 칼럼
 let loaded = false;
@@ -22,7 +22,7 @@ const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => loaded
 let viewer = null;
 try {
   viewer = createMorrisViewer(THREE, RoomEnvironment, mvEl, {
-    items: ITEMS.map((it) => ({ src: it.src, ratio: it.ratio, row: it.row, active: !!it.active })),
+    items: ITEMS.map((it) => ({ src: it.src, ratio: it.ratio, row: it.row, active: true })),   // 6장 모두 압정·가장자리 빛, 모두 떼어 볼 수 있다
     filler: FILLER, backdrop: BACKDROP,
     onEvent: onViewerEvent,
   });
@@ -32,11 +32,8 @@ try {
 function onViewerEvent(type, d) {
   if (type === 'loaded') { loaded = true; loadedWaiters.splice(0).forEach((r) => r()); if (flow.current <= 2) camLoading.hidden = true; }
   else if (type === 'error') console.warn('[morris]', d && d.message);
-  else if (type === 'tap' && flow.current === 2) {
-    if (d.active) flow.to(3);
-    else toast('활성화된 전단지를 선택해 주세요');
-  }
-  else if (type === 'settled' && flow.current === 3) showAnim();
+  else if (type === 'tap' && flow.current === 2) { picked = d.index; flow.to(3); }
+  else if (type === 'settled' && flow.current === 3) onSettled();
   else if (type === 'release' && flow.current === 3) flow.to(2);
 }
 function showViewer(on) { mvEl.classList.toggle('off', !on); if (on && viewer) viewer.resize(); }
@@ -47,6 +44,7 @@ let recognized = false;
 let ar = null;              // MindAR 인스턴스
 let plainVideo = null;      // MindAR 실패 시 일반 카메라
 let runId = 0;              // 단계 재진입 시 이전 비동기 연출 무효화
+let picked = ACTIVE_INDEX;  // 떼어 낸 전단지 (6장 중 하나)
 
 function setPill(text, found = false) {
   pill.textContent = text || '';
@@ -172,64 +170,71 @@ function resetStep1() {
 }
 
 // ── Step2: 활성화된 전단지(카페 게르부아)만 숨쉬기 빛 — 압정은 6장 모두
-// 인식 직후부터 3D 칼럼을 자유롭게: 드래그 회전·핀치 확대, 활성 전단지를 누르면 Step3
+// ── Step2: 인식 직후부터 3D 칼럼을 자유롭게 — 드래그 회전·핀치 확대, 6장 중 아무 전단지나 눌러 떼어 본다
+//   전체를 어둡게 덮지 않는다. 떼어 볼 수 있는 6장은 압정 + 가장자리 빛으로 구분 (앱 뷰어 v4 와 같음)
 function enterStep2(prev) {
   runId++;
   stopAR();
   if (!mode) setMode('demo');
   showViewer(true);
   showGuide(false);
+  setPill('');
   if (viewer) {
     if (viewer.mode !== 'column') viewer.release();
+    viewer.setSpotlight(false);
     viewer.setHighlight(true);
-    viewer.setSpotlight(true);                                      // 활성 전단지만 남기고 어둡게
     viewer.setInteractive(true);
-    if (viewer.mode === 'column' && prev !== 3) viewer.focusItem(ACTIVE_INDEX);   // 처음 들어올 때만 활성 전단지를 정면으로
+    if (prev === 1) viewer.reset();               // 처음 들어올 때: 앱처럼 천천히 도는 기본 시점
   }
-  setPill('활성화된 전단지를 터치하세요', true);
 }
 
-// ── Step3: 선택한 전단지가 칼럼에서 떼어져 화면 가득 확대 → 그 위에서 삽화 애니메이션 재생
+// ── Step3: 떼어 낸 전단지가 화면 가운데 3D 로 떠 있다 (배경은 흐리고 어둡게, 끌어서 돌리기·핀치 확대)
+//   카페 게르부아는 그 떠 있는 종이 위에서 삽화 애니메이션이 재생된다 (애니메이션 캔버스 → 종이 텍스처)
 function enterStep3() {
   runId++;
   showViewer(true);
   setPill('');
   showGuide(false);
-  if (!viewer) { showAnim(); return; }
-  viewer.setInteractive(false);
-  if (viewer.mode === 'inspect') { showAnim(); return; }
+  $('#closeBtn').hidden = false; modeTag.hidden = true;
+  $('#caption').hidden = true; $('#animHud').hidden = true;
+  if (!viewer) return;
+  viewer.setInteractive(true);
+  if (viewer.mode === 'inspect') { onSettled(); return; }
   if (viewer.mode === 'column') {
-    hideAnim();
-    const go = () => { if (flow.current === 3 && !viewer.inspect(ACTIVE_INDEX, { fill: true })) setTimeout(go, 200); };
+    const go = () => { if (flow.current === 3 && !viewer.inspect(picked)) setTimeout(go, 200); };
     whenLoaded().then(go);
   }
 }
-let animShown = false;
-function showAnim() {
-  if (animShown) return;
-  animShown = true;
-  animEl.classList.add('on');
-  startAnim();
-  setTimeout(() => { if (animShown && viewer) viewer.pause(); }, 500);   // 애니메이션이 덮으면 3D 렌더는 쉰다
+function onSettled() {
+  if (picked === ACTIVE_INDEX) { $('#animHud').hidden = false; startAnim(); return; }
+  const it = ITEMS[picked];
+  $('#cTitle').textContent = it.label;
+  $('#cBody').textContent = it.body || '';
+  $('#cMeta').textContent = it.meta || '';
+  $('#caption').hidden = false;
 }
-function hideAnim() {
-  animShown = false;
-  animEl.classList.remove('on');
+function leaveStep3() {
   if (animator) animator.stop();
-  if (viewer) viewer.resume();
+  if (viewer) viewer.setInspectMap(null);
+  $('#caption').hidden = true; $('#animHud').hidden = true;
+  $('#closeBtn').hidden = true; modeTag.hidden = false;
 }
+$('#closeBtn').addEventListener('click', () => flow.to(2));   // 닫기 = 전단지를 칼럼에 돌려놓고 계속 둘러보기
 
-// ── 삽화 애니메이션 (내용 변경 없음)
+// ── 삽화 애니메이션 — 화면 전체가 아니라 떠 있는 종이의 텍스처로 그린다 (내용은 그대로)
 let animator = null;
+const animCanvas = document.createElement('canvas');
+animCanvas.width = 631 * 2; animCanvas.height = 946 * 2;       // 전단지 원본 비율 그대로
 const subtitle = $('#subtitle'), timeBar = $('#timeBar');
 async function startAnim() {
-  $('#s4End').hidden = true;
+  $('#s4Replay').hidden = true;
   subtitle.classList.add('off');
   try {
     if (!animator) {
       const img = await loadImage('assets/img/fl_batignolles.jpg');
       const at = parseFloat(new URLSearchParams(location.search).get('at'));
-      animator = createFlyerAnimator($('#animCanvas'), img, {
+      animator = createFlyerAnimator(animCanvas, img, {
+        fixedView: true,
         freezeAt: Number.isFinite(at) ? at : null,
         onLine(line) {
           subtitle.classList.add('off');
@@ -240,25 +245,26 @@ async function startAnim() {
           }, 250);
         },
         onTime(p) { timeBar.style.width = `${(p * 100).toFixed(1)}%`; },
-        onEnd() { $('#s4End').hidden = false; },
+        onEnd() { $('#s4Replay').hidden = false; },
       });
     }
+    if (flow.current !== 3) return;
     animator.play();
+    viewer && viewer.setInspectMap(animCanvas);
   } catch (e) {
     console.error(e);
     const m = $('#animErr'); m.hidden = false; m.textContent = '이 기기에서 애니메이션(WebGL)을 실행할 수 없습니다.';
   }
 }
 $('#s4Replay').addEventListener('click', startAnim);
-$('#animClose').addEventListener('click', () => flow.to(2));   // 닫기 = 전단지를 칼럼에 돌려놓고 계속 둘러보기
 
 // ── 흐름
 const flow = createFlow({
   total: 3,
   booth: '4층 C-1 시민사회',
-  titles: ['모리스칼럼 광고탑 스캔', '전단지 선택', '전단지 확대 · 삽화 애니메이션'],
+  titles: ['모리스칼럼 광고탑 스캔', '모리스 칼럼', '전단지 확대'],
   onLeave(prev) {
-    if (prev === 3) hideAnim();          // 뒤로 → 애니메이션 닫고 전단지를 칼럼에 돌려놓는다(Step2 진입 시)
+    if (prev === 3) leaveStep3();        // 뒤로·닫기 → 애니메이션 멈추고 전단지를 칼럼에 돌려놓는다(Step2 진입 시)
   },
   onEnter(n, prev) {
     if (viewer) { viewer.resume(); viewer.resize(); }

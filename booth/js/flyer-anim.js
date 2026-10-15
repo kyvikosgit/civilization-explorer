@@ -148,8 +148,9 @@ void main(){
   gl_FragColor = vec4(col, 1.0);
 }`;
 
-export function createFlyerAnimator(canvas, img, { onLine, onEnd, onTime, freezeAt = null } = {}) {
-  const gl = canvas.getContext('webgl', { antialias: false, preserveDrawingBuffer: false });
+// fixedView: 카메라 이동 없이 전단지 전체를 그대로 — 3D 로 떠 있는 종이에 텍스처로 입힐 때 (C-1 Step3)
+export function createFlyerAnimator(canvas, img, { onLine, onEnd, onTime, freezeAt = null, fixedView = false } = {}) {
+  const gl = canvas.getContext('webgl', { antialias: false, preserveDrawingBuffer: fixedView });
   if (!gl) throw new Error('webgl_unavailable');
   const sh = (type, src) => {
     const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
@@ -202,6 +203,7 @@ export function createFlyerAnimator(canvas, img, { onLine, onEnd, onTime, freeze
 
   let t0 = performance.now(), raf = 0, running = false, lastLine = -1, ended = false, pausedAt = 0;
   function size() {
+    if (fixedView) { gl.viewport(0, 0, canvas.width, canvas.height); return canvas.height / Math.max(canvas.width, 1); }
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
@@ -213,6 +215,7 @@ export function createFlyerAnimator(canvas, img, { onLine, onEnd, onTime, freeze
     const t = freezeAt !== null ? freezeAt : (now - t0) / 1000;   // ?at=초 — 검수용 정지 프레임
     const tt = Math.min(t, DURATION);
     const s = sample(tt);
+    if (fixedView) { s.cx = 0.5; s.cy = 0.5; s.vw = 1; s.focus *= 0.15; }
     const aspect = size();
     // 세로가 전단지 밖으로 나가지 않게 중심 보정 (가능한 범위에서)
     const vh = s.vw * aspect / (H / W);

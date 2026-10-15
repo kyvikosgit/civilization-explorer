@@ -27,7 +27,7 @@
     <div class="topbar dark">
       <button class="icon-btn" data-back></button>
       <div class="tb-title" data-step-label></div>
-      <span id="modeTag" class="mode-tag"></span>
+      <span class="tb-right"><span id="modeTag" class="mode-tag"></span><button id="closeBtn" class="icon-btn" aria-label="닫기 — 전단지를 칼럼에 돌려놓기" hidden><span data-ic="close"></span></button></span>
     </div>
     <div class="progress dark" data-progress></div>
   </div>
@@ -45,34 +45,30 @@
   </div>
 </section>
 
-<!-- Step 2. 전단지 선택 -->
+<!-- Step 2. 모리스 칼럼 — 자유롭게 돌려 보고, 압정 꽂힌 전단지 6장 중 아무거나 눌러 떼어 본다 -->
 <section class="step overlay-step" data-step="2">
   <div class="cam-bottom">
-    <p class="s2-desc">광고탑에 부착된 전단지 중 활성화된 전단지를 터치해 선택하세요.<br><span>밀어서 돌리기 · 두 손가락으로 확대</span></p>
+    <p class="s2-desc"><span>밀어서 돌리기 · 두 손가락으로 확대 · 전단지를 눌러 살펴보기</span></p>
   </div>
 </section>
 
-<!-- Step 3. 전단지 확대 · 삽화 애니메이션 — 선택한 전단지가 화면 가득 확대되고, 그 위에서 삽화 애니메이션이 재생된다 -->
+<!-- Step 3. 전단지 확대 — 떼어 낸 전단지가 화면 가운데 3D 로 떠 있다 (끌어서 돌리기·핀치 확대)
+     카페 게르부아는 떠 있는 종이 위에서 삽화 애니메이션이 재생된다 -->
 <section class="step overlay-step" data-step="3">
-  <div id="anim" class="anim">
-    <canvas id="animCanvas" class="anim-canvas"></canvas>
-    <div class="anim-top">
-      <div class="topbar dark">
-        <button class="icon-btn" data-back></button>
-        <div class="tb-title" data-step-label></div>
-        <button id="animClose" class="icon-btn" aria-label="닫기 — 전단지를 칼럼에 돌려놓기"><span data-ic="close"></span></button>
-      </div>
-      <div class="progress dark" data-progress></div>
+  <div class="s3-bottom">
+    <div id="caption" class="caption" hidden>
+      <strong id="cTitle"></strong>
+      <p id="cBody"></p>
+      <p id="cMeta" class="c-meta"></p>
     </div>
-    <div class="s4-bottom">
+    <div id="animHud" class="anim-hud" hidden>
       <div id="subtitle" class="subtitle" aria-live="polite"></div>
       <div class="timeline"><i id="timeBar"></i></div>
-      <div id="s4End" class="btn-row" hidden>
-        <button id="s4Replay" class="btn dark-line"><span data-ic="replay"></span>다시 보기</button>
-      </div>
+      <button id="s4Replay" class="btn dark-line" hidden><span data-ic="replay"></span>다시 보기</button>
     </div>
-    <div id="animErr" class="cam-msg" hidden></div>
+    <p class="s2-desc"><span>끌어서 돌리기 · 두 손가락으로 확대</span></p>
   </div>
+  <div id="animErr" class="cam-msg" hidden></div>
 </section>
 
 <script type="module" src="js/c1.js"></script>

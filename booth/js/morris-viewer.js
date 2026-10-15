@@ -552,7 +552,27 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     renderInspect(performance.now());
     return true;
   }
+  // 부스 추가: 떠 있는 종이에 움직이는 그림(삽화 애니메이션 캔버스)을 입힌다 — null 이면 원래 인쇄물로
+  let liveTex = null, savedMaps = null;
+  function setInspectMap(cv) {
+    const p = insp && insp.p; if (!p) return;
+    if (cv) {
+      if (!savedMaps) savedMaps = { p, map: p.front.map, em: p.front.emissiveMap };
+      if (liveTex) liveTex.dispose();
+      liveTex = new T.CanvasTexture(cv); liveTex.encoding = T.sRGBEncoding;
+      liveTex.minFilter = T.LinearFilter; liveTex.generateMipmaps = false; liveTex.anisotropy = maxAniso;
+      p.front.map = liveTex; p.front.emissiveMap = liveTex; p.front.needsUpdate = true;
+    } else restoreMaps();
+  }
+  function restoreMaps() {
+    if (!savedMaps) return;
+    const { p, map, em } = savedMaps;
+    p.front.map = map; p.front.emissiveMap = em; p.front.needsUpdate = true;
+    if (liveTex) liveTex.dispose();
+    liveTex = null; savedMaps = null;
+  }
   function renderInspect(now) {
+    if (liveTex) liveTex.needsUpdate = true;
     poseInspect(now);
     renderer.setClearColor(0xffffff, 0);
     renderer.render(paperScene, camera);
@@ -565,6 +585,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     dirty = true;
   }
   function finishBack() {
+    restoreMaps();
     const p = insp.p;
     paperScene.remove(p.mesh);
     p.front.transparent = false; p.back.transparent = false; p.front.opacity = 1; p.back.opacity = 1;
@@ -666,8 +687,8 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     }
     if (down && (Math.abs(e.clientX - down.x) > 6 || Math.abs(e.clientY - down.y) > 6)) down.moved = true;
     if (mode === 'inspect' && insp) {
-      insp.yaw = clamp(insp.yaw + dx * 0.006, -0.6, 0.6);
-      insp.pitch = clamp(insp.pitch + dy * 0.005, -0.45, 0.45);
+      insp.yaw = clamp(insp.yaw + dx * 0.006, -1.1, 1.1);
+      insp.pitch = clamp(insp.pitch + dy * 0.005, -0.6, 0.6);
       return;
     }
     if (mode !== 'column') return;
@@ -788,7 +809,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
 
   return {
     get mode() { return mode; },
-    inspect, release, reset, resize, focusItem,
+    inspect, release, reset, resize, focusItem, setInspectMap,
     setHighlight(on) { highlight = on; dirty = true; },
     setSpotlight(on) { spot = on; if (on) ensureSpotClones(); dirty = true; },
     setInteractive(on) { interactive = on; el.style.pointerEvents = on ? 'auto' : 'none'; if (!on) { hoverIdx = -1; pressIdx = -1; } },
