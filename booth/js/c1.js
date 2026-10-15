@@ -12,7 +12,7 @@ const ACTIVE_INDEX = ITEMS.findIndex((it) => it.active);
 
 $$('[data-ic]').forEach((e) => (e.outerHTML = ICON[e.dataset.ic]));
 
-const stage = $('#stage'), arLayer = $('#arLayer'), mvEl = $('#mv'), frame = $('#frame'), pill = $('#pill'), pillWrap = $('#pillWrap');
+const stage = $('#stage'), arLayer = $('#arLayer'), mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap');
 const camLoading = $('#camLoading'), modeTag = $('#modeTag'), animEl = $('#anim');
 
 // ── 3D 모리스 칼럼
@@ -99,82 +99,92 @@ function stopAR() {
 }
 function onFound() { if (flow.current === 1 && mode === 'camera' && !recognized) recognize(); }
 
-// ── Step1
+// ── Step1: 스캔 — 카메라(또는 어두운 바탕) 위에 칼럼 윤곽 점선만. 인식되면 윤곽이 채워지고 3D 칼럼으로
+// 윤곽 = 3D 모델(morris-viewer.js)의 실측 반지름 프로파일 [반지름, 높이] (지름 D=1) — 받침·몸체·처마·돔·첨탑
+const PROFILE = [[0.55, 0], [0.585, 0.03], [0.612, 0.06], [0.618, 0.08], [0.618, 0.207], [0.61, 0.24], [0.6, 0.26], [0.578, 0.28],
+  [0.567, 0.3], [0.557, 0.323], [0.557, 0.54], [0.57, 0.56], [0.577, 0.567], [0.577, 0.6], [0.565, 0.62], [0.55, 0.641], [0.535, 0.655],
+  [0.515, 0.67], [0.513, 0.713], [0.5, 0.728], [0.5, 2.906], [0.506, 2.92], [0.513, 2.95], [0.543, 2.964], [0.56, 2.993], [0.545, 3.02],
+  [0.545, 3.11], [0.56, 3.123], [0.59, 3.152], [0.598, 3.17], [0.598, 3.185], [0.57, 3.205], [0.5, 3.225], [0.45, 3.24], [0.442, 3.255],
+  [0.44, 3.27], [0.44, 3.3], [0.443, 3.3], [0.443, 3.325], [0.45, 3.325], [0.468, 3.354], [0.48, 3.398], [0.477, 3.441], [0.467, 3.484],
+  [0.442, 3.528], [0.407, 3.571], [0.358, 3.614], [0.31, 3.643], [0.242, 3.672], [0.2, 3.687], [0.17, 3.7], [0.167, 3.716], [0.154, 3.73],
+  [0.12, 3.745], [0.065, 3.759], [0.046, 3.773], [0.034, 3.802], [0.044, 3.817], [0.067, 3.846], [0.068, 3.86], [0.063, 3.875],
+  [0.052, 3.889], [0.034, 3.904], [0.023, 3.918], [0.027, 3.947], [0.036, 3.961], [0.035, 3.975], [0.023, 3.99], [0.014, 4.019],
+  [0.018, 4.063], [0.01, 4.092], [0.003, 4.164], [0, 4.165]];
+(function buildGuide() {
+  const H = 4.165, pt = ([r, y]) => `${r.toFixed(3)},${(H - y).toFixed(3)}`;
+  const right = PROFILE.map(pt), left = PROFILE.slice().reverse().map(([r, y]) => pt([-r, y]));
+  const outline = `M${right.join(' L')} L${left.join(' L')} Z`;
+  // 몸체 위·아래 경계, 처마 띠 — 보조선
+  const bands = [[0.5, 0.728], [0.5, 2.906], [0.545, 3.02], [0.545, 3.11]].map(([r, y]) => `M${pt([-r, y])} L${pt([r, y])}`).join(' ');
+  const svg = $('#guideSvg');
+  svg.setAttribute('viewBox', `-0.68 -0.05 1.36 ${H + 0.1}`);
+  svg.innerHTML = `<path class="g-fill" d="${outline}"/><path class="g-band" d="${bands}"/><path class="g-line" d="${outline}"/>`;
+})();
+const guide = $('#guide');
+function showGuide(on) { guide.classList.toggle('off', !on); if (on) guide.classList.remove('found'); }
+
 async function chooseCamera() {
-  $('#s1Intro').hidden = true;
   setMode('camera');
-  showViewer(false);              // 인식 전에는 카메라 화면
+  showViewer(false);
+  showGuide(true);
+  $('#s1Cam').hidden = true;
   const ok = await startAR();
-  if (!ok) return chooseDemo();
-  $('#s1Bottom').hidden = false;
-  $('#s1DemoInCam').hidden = false;
-  frame.classList.remove('off', 'found');
-  setPill(ar ? '모리스 칼럼을 비춰주세요' : '모리스 칼럼을 비춰주세요 · 인식 미지원');
+  if (!ok) { $('#s1Cam').hidden = true; return chooseDemo(); }
+  setPill(ar ? '모리스 칼럼을 점선에 맞춰 비춰주세요' : '모리스 칼럼을 점선에 맞춰 비춰주세요 · 인식 미지원');
 }
 async function chooseDemo() {
   const id = ++runId;
   stopAR();
-  $('#s1Intro').hidden = true;
-  $('#s1Bottom').hidden = false;
-  $('#s1DemoInCam').hidden = true;
   setMode('demo');
-  showViewer(true);
-  frame.classList.remove('off', 'found');
-  setPill('모리스 칼럼을 비춰주세요');
-  await sleep(1400);
+  $('#s1Cam').hidden = true; $('#s1Demo').hidden = true;
+  showViewer(false);
+  showGuide(true);
+  setPill('모리스 칼럼을 점선에 맞춰 비춰주세요');
+  await sleep(1200);                                   // 데모: 잠시 뒤 인식된 것으로
   if (id === runId && flow.current === 1 && !recognized) recognize();
 }
 async function recognize() {
   const id = ++runId;
   recognized = true;
-  frame.classList.add('found');
+  guide.classList.add('found');                        // 윤곽이 채워지며 확인
   setPill('모리스 칼럼을 인식했어요', true);
   if (navigator.vibrate && navigator.userActivation?.hasBeenActive !== false) navigator.vibrate(30);
-  // 카메라는 인식에만 쓰고, 인식 후에는 3D 칼럼(배경 포함)으로 전환
-  if (mode === 'camera') { stopAR(); showViewer(true); }
+  if (mode === 'camera') stopAR();
   if (!loaded) { $('#camLoadingText').textContent = '모리스 칼럼 불러오는 중'; camLoading.hidden = false; await whenLoaded(); camLoading.hidden = true; }
-  await sleep(500);
-  if (id !== runId) return;
-  frame.classList.add('off');
-  viewer && viewer.focusItem(ACTIVE_INDEX);  // 활성 전단지를 정면으로 (나머지는 어둡게)
-  await sleep(900);
+  await sleep(650);
   if (id !== runId || flow.current !== 1) return;
-  $('#s1Next').hidden = false;
+  flow.to(2);                                          // 인식 → 바로 3D 칼럼 (버튼 없음)
 }
 $('#s1Cam').addEventListener('click', chooseCamera);
-$('#s1Demo').addEventListener('click', chooseDemo);
-$('#s1DemoInCam').addEventListener('click', () => { recognized = false; chooseDemo(); });
-$('#s1Next').addEventListener('click', () => flow.to(2));
+$('#s1Demo').addEventListener('click', () => { recognized = false; chooseDemo(); });
 
 function resetStep1() {
   runId++;
   recognized = false;
   stopAR();
   setMode(null);
-  showViewer(true);                 // 선택 화면 배경은 3D 칼럼
-  if (viewer) { viewer.setHighlight(false); viewer.setInteractive(false); viewer.reset(); viewer.setSpotlight(true); }
-  $('#s1Intro').hidden = false;
-  $('#s1Bottom').hidden = true;
-  $('#s1Next').hidden = true;
-  frame.classList.add('off');
-  setPill('');
-  camLoading.hidden = loaded;
-  if (!loaded) $('#camLoadingText').textContent = '모리스 칼럼 불러오는 중';
+  showViewer(false);                                   // 스캔 화면에는 3D 칼럼을 깔지 않는다
+  showGuide(true);
+  if (viewer) { viewer.setHighlight(false); viewer.setInteractive(false); viewer.reset(); }
+  $('#s1Cam').hidden = false; $('#s1Demo').hidden = false;
+  setPill('모리스 칼럼을 점선에 맞춰 비춰주세요');
+  camLoading.hidden = true;
 }
 
 // ── Step2: 활성화된 전단지(카페 게르부아)만 숨쉬기 빛 — 압정은 6장 모두
-function enterStep2() {
+// 인식 직후부터 3D 칼럼을 자유롭게: 드래그 회전·핀치 확대, 활성 전단지를 누르면 Step3
+function enterStep2(prev) {
   runId++;
   stopAR();
   if (!mode) setMode('demo');
   showViewer(true);
-  frame.classList.add('off');
+  showGuide(false);
   if (viewer) {
     if (viewer.mode !== 'column') viewer.release();
     viewer.setHighlight(true);
     viewer.setSpotlight(true);                                      // 활성 전단지만 남기고 어둡게
     viewer.setInteractive(true);
-    if (viewer.mode === 'column') viewer.focusItem(ACTIVE_INDEX);   // 활성 전단지를 정면으로
+    if (viewer.mode === 'column' && prev !== 3) viewer.focusItem(ACTIVE_INDEX);   // 처음 들어올 때만 활성 전단지를 정면으로
   }
   setPill('활성화된 전단지를 터치하세요', true);
 }
@@ -184,7 +194,7 @@ function enterStep3() {
   runId++;
   showViewer(true);
   setPill('');
-  frame.classList.add('off');
+  showGuide(false);
   if (!viewer) { showAnim(); return; }
   viewer.setInteractive(false);
   if (viewer.mode === 'inspect') { showAnim(); return; }
@@ -240,6 +250,7 @@ async function startAnim() {
   }
 }
 $('#s4Replay').addEventListener('click', startAnim);
+$('#animClose').addEventListener('click', () => flow.to(2));   // 닫기 = 전단지를 칼럼에 돌려놓고 계속 둘러보기
 
 // ── 흐름
 const flow = createFlow({
@@ -249,10 +260,10 @@ const flow = createFlow({
   onLeave(prev) {
     if (prev === 3) hideAnim();          // 뒤로 → 애니메이션 닫고 전단지를 칼럼에 돌려놓는다(Step2 진입 시)
   },
-  onEnter(n) {
+  onEnter(n, prev) {
     if (viewer) { viewer.resume(); viewer.resize(); }
     if (n === 1) resetStep1();
-    if (n === 2) enterStep2();
+    if (n === 2) enterStep2(prev);
     if (n === 3) enterStep3();
   },
 });
