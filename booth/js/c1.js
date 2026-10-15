@@ -225,10 +225,8 @@ $('#closeBtn').addEventListener('click', () => flow.to(2));   // 닫기 = 전단
 let animator = null;
 const animCanvas = document.createElement('canvas');
 animCanvas.width = 631 * 2; animCanvas.height = 946 * 2;       // 전단지 원본 비율 그대로
-const subtitle = $('#subtitle'), timeBar = $('#timeBar');
 async function startAnim() {
   $('#s4Replay').hidden = true;
-  subtitle.classList.add('off');
   try {
     if (!animator) {
       const img = await loadImage('assets/img/fl_batignolles.jpg');
@@ -236,15 +234,6 @@ async function startAnim() {
       animator = createFlyerAnimator(animCanvas, img, {
         fixedView: true,
         freezeAt: Number.isFinite(at) ? at : null,
-        onLine(line) {
-          subtitle.classList.add('off');
-          setTimeout(() => {
-            if (!line) { subtitle.innerHTML = ''; return; }
-            subtitle.innerHTML = `<span class="who">인물 ${line}</span><span class="placeholder">대사 미정</span>`;
-            subtitle.classList.remove('off');
-          }, 250);
-        },
-        onTime(p) { timeBar.style.width = `${(p * 100).toFixed(1)}%`; },
         onEnd() { $('#s4Replay').hidden = false; },
       });
     }
