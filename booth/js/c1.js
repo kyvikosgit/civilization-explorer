@@ -136,13 +136,8 @@ async function recognize() {
   await sleep(500);
   if (id !== runId) return;
   frame.classList.add('off');
-  viewer && viewer.setOrbit(true);          // 전단지 회전 효과
-  await sleep(5200);
-  if (id !== runId || flow.current !== 1) return;
-  viewer && viewer.setOrbit(false);         // 칼럼 제자리에 붙는다
-  await sleep(1700);
-  if (id !== runId || flow.current !== 1) return;
-  viewer && viewer.focusItem(ACTIVE_INDEX);  // 활성 전단지를 정면으로
+  viewer && viewer.focusItem(ACTIVE_INDEX);  // 활성 전단지를 정면으로 (나머지는 어둡게)
+  await sleep(900);
   if (id !== runId || flow.current !== 1) return;
   $('#s1Next').hidden = false;
 }
@@ -157,7 +152,7 @@ function resetStep1() {
   stopAR();
   setMode(null);
   showViewer(true);                 // 선택 화면 배경은 3D 칼럼
-  if (viewer) { viewer.setOrbit(false); viewer.setHighlight(false); viewer.setInteractive(false); viewer.reset(); viewer.setSpotlight(true); }
+  if (viewer) { viewer.setHighlight(false); viewer.setInteractive(false); viewer.reset(); viewer.setSpotlight(true); }
   $('#s1Intro').hidden = false;
   $('#s1Bottom').hidden = true;
   $('#s1Next').hidden = true;
@@ -175,7 +170,6 @@ function enterStep2() {
   showViewer(true);
   frame.classList.add('off');
   if (viewer) {
-    viewer.setOrbit(false);
     if (viewer.mode !== 'column') viewer.release();
     viewer.setHighlight(true);
     viewer.setSpotlight(true);                                      // 활성 전단지만 남기고 어둡게
@@ -196,7 +190,7 @@ function enterStep3() {
   if (viewer.mode === 'inspect') { showAnim(); return; }
   if (viewer.mode === 'column') {
     hideAnim();
-    const go = () => { if (flow.current === 3 && !viewer.inspect(ACTIVE_INDEX, { fill: true })) setTimeout(go, 200); }; // 회전 중이면 잠시 대기
+    const go = () => { if (flow.current === 3 && !viewer.inspect(ACTIVE_INDEX, { fill: true })) setTimeout(go, 200); };
     whenLoaded().then(go);
   }
 }

@@ -11,7 +11,7 @@
 //   · iframe/postMessage 대신 같은 페이지의 ES 모듈 (호스트 = js/c1.js). 이벤트는 onEvent 콜백
 //   · 탭 판정은 호스트가 결정 (Step2 에서는 '활성화된' 전단지만 떼어 낸다) — onEvent('tap', index)
 //   · 숨쉬기 빛은 활성 항목에만 (setHighlight)
-//   · Step1 '전단지 회전 효과': 상호작용 6장이 칼럼에서 떨어져 칼럼 둘레를 돌고(금빛 고리·반짝임), 다시 제자리에 붙는다 (orbit)
+//   · 스포트라이트: 활성 전단지(카페 게르부아)만 밝게, 나머지 칼럼·포스터·배경은 어둡게 (setSpotlight)
 //   · 화면 크기는 창 대신 컨테이너 기준, 렌더 루프 일시정지(pause/resume)
 export function createMorrisViewer(T, RoomEnvironment, container, { items, filler, backdrop, onEvent }) {
   const post = (type, extra) => onEvent && onEvent(type, extra);
@@ -444,67 +444,6 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     });
   }
 
-  // ── 부스 추가: 전단지 회전(궤도) 효과 — 금빛 고리 + 반짝임 (기존 부스 효과를 새 칼럼 치수에 맞춤)
-  const fx = new T.Group(); scene.add(fx);
-  const ORBIT_R = 1.12;
-  const orbitY = (i) => 1.85 + (i % 2 ? -0.36 : 0.36);
-  const ringVS = 'varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }';
-  const ringFS = `uniform float uAmt, uTime, uSeed; varying vec3 vP;
-    void main(){
-      float r = length(vP.xy);
-      float band = exp(-pow((r - 1.0) / 0.03, 2.0)) + 0.35 * exp(-pow((r - 1.0) / 0.1, 2.0));
-      float ang = atan(vP.y, vP.x);
-      float sh = 0.55 + 0.45 * sin(ang * 3.0 - uTime * 2.4 + uSeed);
-      float a = clamp(band * sh * uAmt * 1.9, 0.0, 1.0);
-      gl_FragColor = vec4(vec3(1.0, 0.8, 0.42) * a, a);
-    }`;
-  const rings = [1.25, 1.85, 2.45].map((y, i) => {
-    const m = new T.Mesh(new T.RingGeometry(0.8, 1.2, 160, 1), new T.ShaderMaterial({
-      uniforms: { uAmt: { value: 0 }, uTime: { value: 0 }, uSeed: { value: i * 2.1 } },
-      vertexShader: ringVS, fragmentShader: ringFS, transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide,
-    }));
-    m.rotation.x = -Math.PI / 2; m.position.y = y; m.userData.base = 0.95 + i * 0.06; m.renderOrder = 62; m.visible = false;
-    fx.add(m); return m;
-  });
-  const sparkN = 90;
-  const sparkGeo = new T.BufferGeometry();
-  const sp = new Float32Array(sparkN * 3), sd = new Float32Array(sparkN * 3);
-  for (let i = 0; i < sparkN; i++) { sd[i * 3] = Math.random() * Math.PI * 2; sd[i * 3 + 1] = 0.8 + Math.random() * 2.4; sd[i * 3 + 2] = 0.75 + Math.random() * 0.6; }
-  sparkGeo.setAttribute('position', new T.BufferAttribute(sp, 3));
-  const sparkTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 32; const g = c.getContext('2d');
-    const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,232,180,1)'); gr.addColorStop(1, 'rgba(255,200,120,0)');
-    g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return new T.CanvasTexture(c); })();
-  const sparks = new T.Points(sparkGeo, new T.PointsMaterial({ size: 0.06, map: sparkTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: 0, toneMapped: false, fog: false }));
-  sparks.visible = false; sparks.renderOrder = 62;
-  fx.add(sparks);
-  let orbitOn = false, orbitMix = 0, orbitFrom = 0, orbitT0 = 0, orbitDur = 1, orbitClock = 0, ringAmt = 0;
-  function setOrbit(on) {
-    if (on === orbitOn) return;
-    orbitOn = on; orbitFrom = orbitMix; orbitT0 = performance.now(); orbitDur = on ? 1.8 : 1.6;
-    posters.forEach((p) => { p.k = undefined; });
-    idle = true; vel = 0;
-  }
-  function placeOrbit(time) {
-    posters.forEach((p, i) => {
-      const o = p.o;
-      let oa = (i / posters.length) * Math.PI * 2 + orbitClock - rot;  // 칼럼(회전하는 그룹) 기준 각
-      if (p.k === undefined) p.k = Math.round((oa - o.ang) / (Math.PI * 2));
-      oa -= p.k * Math.PI * 2;
-      const e = clamp(orbitMix * 1.25 - (i / posters.length) * 0.25, 0, 1);
-      const grow = 1 + 0.3 * e;
-      const q = {
-        r: o.r + (ORBIT_R - o.r) * e,
-        ang: o.ang + (oa - o.ang) * e,
-        cy: o.cy + (orbitY(i) - o.cy) * e + Math.sin(time * 1.3 + i * 1.7) * 0.05 * e,
-        tilt: o.tilt * (1 - e),
-      };
-      const pa = p.geo.attributes.position, b = p.base;
-      for (let k = 0; k < pa.count; k++) { wrapLocal(q, b[k * 3] * grow, b[k * 3 + 1] * grow, tv); pa.setXYZ(k, tv.x, tv.y, tv.z); }
-      pa.needsUpdate = true; p.geo.computeVertexNormals(); p.geo.computeBoundingSphere();
-      p.glow.visible = false;
-    });
-  }
-
   // ── 부스 추가: 스포트라이트 — 활성 전단지만 남기고 칼럼·포스터·배경을 어둡게
   //   카메라에 붙은 반투명 검정 판(renderOrder 50)을 덮고, 활성 전단지는 같은 기하를 쓰는 복제본을 그 위에(깊이 같음 → 보이는 부분만) 다시 그린다
   const dimQuad = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false, fog: false }));
@@ -531,7 +470,6 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   const DEF = { rot: -0.3, elev: 0.08, zoom: 1 };
   let rot = DEF.rot, vel = 0, elev = DEF.elev, zoom = DEF.zoom;
   const ZMIN = 0.4; let idle = true, lastTouch = 0;
-  let pullBack = 0; // 궤도 중 카메라를 조금 뒤로
   let focusRot = null;
   function focusItem(i) {
     const p = posters.filter((q) => q.idx === i)[0]; if (!p) return;
@@ -545,7 +483,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     return Math.max((TOTAL_H * 0.5 + 0.3) / Math.tan(vfov / 2), (MAX_R + 0.3) / Math.tan(hfov / 2));
   }
   function placeCamera() {
-    const d = fitDist() * zoom * (1 + 0.42 * pullBack), k = (1 - zoom) / (1 - ZMIN);
+    const d = fitDist() * zoom, k = (1 - zoom) / (1 - ZMIN);
     const ty = TOTAL_H * 0.5 * (1 - k) + 2.0 * k;
     camera.position.set(0, ty + Math.sin(elev) * d, Math.cos(elev) * d);
     camera.lookAt(0, ty, 0);
@@ -583,7 +521,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   }
   function inspect(i, opts = {}) {
     const p = posters.filter((q) => q.idx === i)[0];
-    if (!p || mode !== 'column' || orbitMix > 0.001) return false;
+    if (!p || mode !== 'column') return false;
     if (p.spotClone) p.spotClone.visible = false;
     idle = false; vel = 0;
     column.updateMatrixWorld(true);
@@ -798,34 +736,6 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       else if (Math.abs(vel) > 0.0001 && count() === 0) { rot += vel; vel *= 0.94; animating = true; }
       column.rotation.y = rot;
       parallax();
-      // 궤도 효과
-      const k = Math.min((now - orbitT0) / (orbitDur * 1000), 1);
-      const goal = orbitOn ? 1 : 0;
-      const wasOrbit = orbitMix > 0;
-      orbitMix = orbitFrom + (goal - orbitFrom) * easeIO(k);
-      if (orbitOn || orbitMix > 0.0005) { orbitClock += dt * 0.55; animating = true; }
-      pullBack += ((orbitOn ? 1 : 0) - pullBack) * Math.min(dt * 1.8, 1);
-      ringAmt += ((orbitOn ? 1 : 0) - ringAmt) * Math.min(dt * 2.4, 1);
-      if (orbitMix > 0.0005) placeOrbit(time);
-      else if (wasOrbit) { orbitMix = 0; posters.forEach((p) => stickLocal(p)); }
-      rings.forEach((r, i) => {
-        const s = r.userData.base * (0.85 + 0.15 * Math.min(ringAmt * 1.2, 1));
-        r.scale.set(s, s, 1);
-        r.material.uniforms.uAmt.value = ringAmt * (0.85 - i * 0.1);
-        r.material.uniforms.uTime.value = time;
-        r.visible = ringAmt > 0.01;
-      });
-      sparks.visible = ringAmt > 0.01;
-      if (sparks.visible) {
-        for (let i = 0; i < sparkN; i++) {
-          const a = sd[i * 3] + time * 0.35 * (i % 2 ? 1 : -1), rr = sd[i * 3 + 2];
-          sp[i * 3] = Math.sin(a) * rr; sp[i * 3 + 1] = sd[i * 3 + 1] + Math.sin(time + i) * 0.05; sp[i * 3 + 2] = Math.cos(a) * rr;
-        }
-        sparkGeo.attributes.position.needsUpdate = true;
-        sparks.material.opacity = ringAmt * 0.9;
-      }
-      if (Math.abs(pullBack - (orbitOn ? 1 : 0)) > 0.002 || ringAmt > 0.01) animating = true;
-
       // 상호작용 인쇄물 — 활성 항목만 가장자리 숨쉬기 빛, 누름/올림 들림
       const breath = 0.5 + 0.5 * Math.sin(time * Math.PI * 2 / 2.6);
       let lifting = false;
@@ -833,12 +743,10 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
         const target = q.idx === pressIdx ? 1 : (q.idx === hoverIdx ? 0.6 : 0);
         q.lift += (target - q.lift) * Math.min(1, dt * 14);
         if (Math.abs(target - q.lift) > 0.002) lifting = true;
-        if (orbitMix <= 0.0005) {
-          const sc = 1 + 0.022 * q.lift;
-          q.mesh.scale.set(sc, 1, sc);
-          q.tack.position.set(q.tackBase.x * sc, q.tackBase.y, q.tackBase.z * sc);
-          q.glow.visible = highlight && active.has(q.idx);
-        }
+        const sc = 1 + 0.022 * q.lift;
+        q.mesh.scale.set(sc, 1, sc);
+        q.tack.position.set(q.tackBase.x * sc, q.tackBase.y, q.tackBase.z * sc);
+        q.glow.visible = highlight && active.has(q.idx);
         q.glow.material.opacity = Math.min(1, (0.45 + 0.55 * breath) * (1 + 0.6 * q.lift));
         q.front.emissiveIntensity = 0.05 * q.lift;
       });
@@ -880,8 +788,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
 
   return {
     get mode() { return mode; },
-    get orbiting() { return orbitOn || orbitMix > 0.0005; },
-    setOrbit, inspect, release, reset, resize, focusItem,
+    inspect, release, reset, resize, focusItem,
     setHighlight(on) { highlight = on; dirty = true; },
     setSpotlight(on) { spot = on; if (on) ensureSpotClones(); dirty = true; },
     setInteractive(on) { interactive = on; el.style.pointerEvents = on ? 'auto' : 'none'; if (!on) { hoverIdx = -1; pressIdx = -1; } },
