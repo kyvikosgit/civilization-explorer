@@ -80,14 +80,15 @@
       <div class="pick-btns">
         <label class="btn"><span data-ic="camera"></span>사진 촬영<input id="fileCam" type="file" accept="image/*" capture="user" hidden></label>
         <label class="btn line"><span data-ic="image"></span>앨범에서 선택<input id="fileLib" type="file" accept="image/*" hidden></label>
-        <button id="demoImg" class="link-btn">시안 이미지로 데모</button>
+        <button id="demoImg" type="button" class="btn line">시안 이미지로 데모</button>
       </div>
     </div>
 
-    <!-- 처리 진행 -->
+    <!-- 변환 중 (단순 로딩) -->
     <div id="busy" class="busy" hidden>
-      <ol id="stages" class="stages"></ol>
-      <p class="small muted" style="margin-top:12px">모든 처리는 이 기기 안에서만 이루어집니다. 모델은 처음 한 번만 내려받습니다.</p>
+      <div class="spinner"></div>
+      <p class="busy-t">사진을 변환하고 있어요</p>
+      <p class="small muted">잠시만 기다려 주세요</p>
     </div>
 
     <!-- 비교 -->
@@ -107,8 +108,8 @@
 
       <div id="strengthRow" class="strength">
         <label for="strength">화풍 강도</label>
-        <input id="strength" type="range" min="0.2" max="1" step="0.05" value="0.8">
-        <output id="strengthOut">80</output>
+        <input id="strength" type="range" min="0.2" max="1" step="0.05" value="0.7">
+        <output id="strengthOut">70</output>
       </div>
       <p id="engineNote" class="engine small muted"></p>
 

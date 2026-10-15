@@ -1,44 +1,6 @@
 /* C-2 산업혁명 */
 
-/* Step 2 — 체험존 장면 + 돋보기 */
-.scene { position: relative; margin-top: 18px; width: 100%; aspect-ratio: 936 / 900; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
-  background: #1b140d url(../assets/concept/c2_booth.jpg) no-repeat; background-size: 128.205% auto; background-position: 100% 0; }
-.scene-tag { position: absolute; left: 10px; top: 10px; z-index: 3; }
-.spot { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; z-index: 2;
-  border: 2px solid rgba(255,255,255,.9); box-shadow: 0 0 0 2px rgba(217,103,47,.75); background: rgba(217,103,47,.18); }
-.spot::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); animation: ping 2s ease-out infinite; }
-.spot.found { background: var(--point); box-shadow: none; display: grid; place-items: center; color: #fff; }
-.spot.found::after { display: none; }
-.spot svg { width: 18px; height: 18px; }
-@keyframes ping { from { transform: scale(.7); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
-.lens { position: absolute; left: 0; top: 0; width: 124px; height: 124px; z-index: 4; cursor: grab; touch-action: none; outline: none; }
-.lens:active { cursor: grabbing; }
-.lens-view, .lens-clue { position: absolute; inset: 6px; border-radius: 50%; overflow: hidden; background-repeat: no-repeat; background-color: #1b140d; }
-.lens-clue { width: calc(100% - 12px); height: calc(100% - 12px); object-fit: cover; transform: scale(1.16); clip-path: circle(43%); inset: 6px; transition: opacity .2s; }
-.lens-ring { position: absolute; inset: 0; border-radius: 50%; border: 6px solid #B8873C;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.4), 0 6px 16px rgba(0,0,0,.45), inset 0 0 18px rgba(255,255,255,.25); pointer-events: none; }
-.lens-handle { position: absolute; width: 16px; height: 58px; right: -14px; bottom: -40px; border-radius: 8px; background: linear-gradient(90deg, #3a2414, #6a4325 50%, #3a2414);
-  transform: rotate(-45deg); transform-origin: top center; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,.4); }
-.lens.hit .lens-ring { border-color: var(--point); }
-.scene-hint { margin: 10px var(--pad) 0; font-size: 13px; line-height: 1.55; color: var(--dim); }
-
-.tray-head { display: flex; align-items: baseline; justify-content: space-between; margin-top: 26px; }
-.tray { list-style: none; margin: 10px 0 0; padding: 0; border-top: 1px solid var(--hair); }
-.tray li { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--hair); }
-.tray .t-img { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--panel); display: grid; place-items: center; color: var(--dim); font-family: var(--display); font-weight: 800; }
-.tray .t-img img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.16); }
-.tray .t-k { font-size: 12px; color: var(--dim); }
-.tray .t-v { font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -0.3px; margin-top: 2px; }
-.tray li.empty .t-v { color: #C4C4C0; font-weight: 600; }
-
-.clue-big { width: 220px; height: 220px; margin: 4px auto 16px; border-radius: 50%; overflow: hidden; }
-.clue-big img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.2); }
-.clue-k { font-size: 12.5px; color: var(--dim); }
-.clue-v { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: -0.6px; margin-top: 4px; }
-.clue-notes { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid var(--hair); font-size: 13px; line-height: 1.6; color: var(--dim); }
-.clue-src { margin-top: 8px; font-size: 11.5px; color: var(--dim); }
-
-/* Step 3 — 지도 퀴즈 */
+/* Step 2 — 지도 퀴즈 */
 .quiz { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; overflow: hidden; background: #6f8c86; min-height: 0; }
 .quiz.active { display: block; }
 .map-box { position: absolute; inset: 0; touch-action: none; overflow: hidden; }
@@ -52,13 +14,9 @@
 .banner { margin: 10px var(--pad) 0; }
 .banner strong { display: block; font-family: var(--display); font-weight: 800; font-size: 17px; line-height: 1.38; letter-spacing: -0.4px; }
 .banner p { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: var(--dim); }
-.clue-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.clue-chips span { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border-radius: 13px; background: var(--panel); font-size: 12px; font-weight: 600; }
-.clue-chips span i { font-style: normal; color: var(--dim); font-weight: 500; }
 
 .quiz-bottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; padding: 26px 12px calc(12px + var(--safe-b));
   background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.45)); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.auto-link { color: #fff; font-size: 13px; font-weight: 700; padding: 6px 10px; text-decoration: underline; text-underline-offset: 3px; }
 .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
 .chip { position: relative; display: flex; align-items: center; gap: 6px; height: 52px; padding: 0 8px 0 5px; white-space: nowrap; min-width: 0; border-radius: 26px;
   background: #FFFFFF; color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 13.5px; letter-spacing: -0.02em;
@@ -84,3 +42,5 @@
 .res-title.no { color: var(--bad); }
 .res-route { font-family: var(--display); font-weight: 800; font-size: 16px; margin: 0 0 8px; }
 .res-body { font-size: 14.5px; line-height: 1.7; white-space: pre-line; margin: 0 0 18px; color: var(--ink); }
+
+.confirm-title { font-size: 22px; letter-spacing: -0.6px; margin-top: 6px; }

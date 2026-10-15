@@ -1,26 +1,19 @@
-// C-1 시민사회 체험 부스 — Step1 모리스칼럼 스캔 → Step2 전단지 선택 → Step3 전단지 확대 → Step4 삽화 애니메이션
+// C-1 시민사회 체험 부스 — Step1 모리스칼럼 스캔 → Step2 전단지 선택 → Step3 전단지 확대 · 삽화 애니메이션
+// (2026-10-15 클라이언트 피드백: 활성 전단지 외 전부 어둡게 / 선택 즉시 화면 가득 확대 → 그 자리에서 애니메이션, 설명 카드 없음)
 // 3D 칼럼 = kippu-app 모리스 칼럼 뷰어 이식본 (js/morris-viewer.js)
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { $, $$, ICON, createFlow, sheet, toast, sleep, startCamera, stopCamera, cameraErrorText, cameraSupported, loadImage } from './common.js';
+import { $, $$, ICON, createFlow, toast, sleep, startCamera, stopCamera, cameraErrorText, cameraSupported, loadImage } from './common.js';
 import { createMorrisViewer } from './morris-viewer.js';
 import { ITEMS, FILLER, BACKDROP } from './morris-items.js';
 import { createFlyerAnimator } from './flyer-anim.js';
 
-// 전단지 원고 — kippu-app/src/lib/missions.ts (mission id 'flyer') 문구 그대로
-const FLYER = {
-  label: ITEMS[0].label,
-  sub: ITEMS[0].body,
-  body: '바티뇰파(École des Batignolles)\n\n카페가 있던 바티뇰 지역의 이름을 딴 것으로, 마네를 중심으로 모네·르누아르·드가·바지유 등이 모였습니다.\n이들 대부분이 훗날 "인상주의"라는 이름으로 불리게 됩니다.',
-  meta: '〈카페 게르부아 안내문〉 바티뇰파의 모임 장소, 1870년대',
-};
 const ACTIVE_INDEX = ITEMS.findIndex((it) => it.active);
 
 $$('[data-ic]').forEach((e) => (e.outerHTML = ICON[e.dataset.ic]));
-$$('[data-fleuron]').forEach((e) => (e.outerHTML = ICON.fleuron));
 
 const stage = $('#stage'), arLayer = $('#arLayer'), mvEl = $('#mv'), frame = $('#frame'), pill = $('#pill'), pillWrap = $('#pillWrap');
-const camLoading = $('#camLoading'), modeTag = $('#modeTag'), caption = $('#caption');
+const camLoading = $('#camLoading'), modeTag = $('#modeTag'), animEl = $('#anim');
 
 // ── 3D 모리스 칼럼
 let loaded = false;
@@ -43,8 +36,8 @@ function onViewerEvent(type, d) {
     if (d.active) flow.to(3);
     else toast('활성화된 전단지를 선택해 주세요');
   }
-  else if (type === 'settled') caption.classList.add('on');
-  else if (type === 'release') { caption.classList.remove('on'); if (flow.current === 3) flow.to(2); }
+  else if (type === 'settled' && flow.current === 3) showAnim();
+  else if (type === 'release' && flow.current === 3) flow.to(2);
 }
 function showViewer(on) { mvEl.classList.toggle('off', !on); if (on && viewer) viewer.resize(); }
 
@@ -149,6 +142,8 @@ async function recognize() {
   viewer && viewer.setOrbit(false);         // 칼럼 제자리에 붙는다
   await sleep(1700);
   if (id !== runId || flow.current !== 1) return;
+  viewer && viewer.focusItem(ACTIVE_INDEX);  // 활성 전단지를 정면으로
+  if (id !== runId || flow.current !== 1) return;
   $('#s1Next').hidden = false;
 }
 $('#s1Cam').addEventListener('click', chooseCamera);
@@ -162,7 +157,7 @@ function resetStep1() {
   stopAR();
   setMode(null);
   showViewer(true);                 // 선택 화면 배경은 3D 칼럼
-  if (viewer) { viewer.setOrbit(false); viewer.setHighlight(false); viewer.setInteractive(false); viewer.reset(); }
+  if (viewer) { viewer.setOrbit(false); viewer.setHighlight(false); viewer.setInteractive(false); viewer.reset(); viewer.setSpotlight(true); }
   $('#s1Intro').hidden = false;
   $('#s1Bottom').hidden = true;
   $('#s1Next').hidden = true;
@@ -183,44 +178,44 @@ function enterStep2() {
     viewer.setOrbit(false);
     if (viewer.mode !== 'column') viewer.release();
     viewer.setHighlight(true);
+    viewer.setSpotlight(true);                                      // 활성 전단지만 남기고 어둡게
     viewer.setInteractive(true);
     if (viewer.mode === 'column') viewer.focusItem(ACTIVE_INDEX);   // 활성 전단지를 정면으로
   }
   setPill('활성화된 전단지를 터치하세요', true);
 }
 
-// ── Step3: 떼어 내기 → 비행 → 살펴보기, 캡션 + 돌려놓기 / 다음
-$('#cTitle').textContent = FLYER.label;
-$('#cBody').textContent = FLYER.sub;
-$('#shTitle').textContent = FLYER.label;
-$('#shSub').textContent = FLYER.sub;
-{
-  const [head, ...rest] = FLYER.body.split('\n\n');
-  $('#shBody').innerHTML = `<b>${head}</b>${rest.join('\n\n')}`;
-}
-$('#shMeta').textContent = FLYER.meta;
-const infoSheet = sheet($('#infoSheet'));
-$('#cInfo').addEventListener('click', () => infoSheet.open());
-$('#cNext').addEventListener('click', () => flow.to(4));
-$('#cReturn').addEventListener('click', () => { caption.classList.remove('on'); flow.to(2); });
-
+// ── Step3: 선택한 전단지가 칼럼에서 떼어져 화면 가득 확대 → 그 위에서 삽화 애니메이션 재생
 function enterStep3() {
   runId++;
   showViewer(true);
   setPill('');
   frame.classList.add('off');
-  if (!viewer) return;
-  viewer.setHighlight(true);
-  viewer.setInteractive(true);
-  if (viewer.mode === 'inspect') { caption.classList.add('on'); return; }
+  if (!viewer) { showAnim(); return; }
+  viewer.setInteractive(false);
+  if (viewer.mode === 'inspect') { showAnim(); return; }
   if (viewer.mode === 'column') {
-    caption.classList.remove('on');
-    const go = () => { if (flow.current === 3 && !viewer.inspect(ACTIVE_INDEX)) setTimeout(go, 200); }; // 궤도에서 돌아오는 중이면 잠시 대기
+    hideAnim();
+    const go = () => { if (flow.current === 3 && !viewer.inspect(ACTIVE_INDEX, { fill: true })) setTimeout(go, 200); }; // 회전 중이면 잠시 대기
     whenLoaded().then(go);
   }
 }
+let animShown = false;
+function showAnim() {
+  if (animShown) return;
+  animShown = true;
+  animEl.classList.add('on');
+  startAnim();
+  setTimeout(() => { if (animShown && viewer) viewer.pause(); }, 500);   // 애니메이션이 덮으면 3D 렌더는 쉰다
+}
+function hideAnim() {
+  animShown = false;
+  animEl.classList.remove('on');
+  if (animator) animator.stop();
+  if (viewer) viewer.resume();
+}
 
-// ── Step4: 삽화 애니메이션 (변경 없음)
+// ── 삽화 애니메이션 (내용 변경 없음)
 let animator = null;
 const subtitle = $('#subtitle'), timeBar = $('#timeBar');
 async function startAnim() {
@@ -254,21 +249,17 @@ $('#s4Replay').addEventListener('click', startAnim);
 
 // ── 흐름
 const flow = createFlow({
-  total: 4,
+  total: 3,
   booth: '4층 C-1 시민사회',
-  titles: ['모리스칼럼 광고탑 스캔', '전단지 선택', '전단지 확대', '삽화 애니메이션'],
-  onLeave(prev, next) {
-    if (prev === 4 && animator) animator.stop();
-    if (prev === 3) { infoSheet.close(); if (next < 3) caption.classList.remove('on'); }
-    if (next === 4 && viewer) viewer.pause();
+  titles: ['모리스칼럼 광고탑 스캔', '전단지 선택', '전단지 확대 · 삽화 애니메이션'],
+  onLeave(prev) {
+    if (prev === 3) hideAnim();          // 뒤로 → 애니메이션 닫고 전단지를 칼럼에 돌려놓는다(Step2 진입 시)
   },
   onEnter(n) {
-    document.body.classList.toggle('hide-stage', n === 4);
-    if (n <= 3 && viewer) { viewer.resume(); viewer.resize(); }
+    if (viewer) { viewer.resume(); viewer.resize(); }
     if (n === 1) resetStep1();
     if (n === 2) enterStep2();
     if (n === 3) enterStep3();
-    if (n === 4) startAnim();
   },
 });
 flow.start();

@@ -463,7 +463,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       uniforms: { uAmt: { value: 0 }, uTime: { value: 0 }, uSeed: { value: i * 2.1 } },
       vertexShader: ringVS, fragmentShader: ringFS, transparent: true, depthWrite: false, blending: T.AdditiveBlending, side: T.DoubleSide,
     }));
-    m.rotation.x = -Math.PI / 2; m.position.y = y; m.userData.base = 0.95 + i * 0.06; m.renderOrder = 3; m.visible = false;
+    m.rotation.x = -Math.PI / 2; m.position.y = y; m.userData.base = 0.95 + i * 0.06; m.renderOrder = 62; m.visible = false;
     fx.add(m); return m;
   });
   const sparkN = 90;
@@ -475,7 +475,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,232,180,1)'); gr.addColorStop(1, 'rgba(255,200,120,0)');
     g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return new T.CanvasTexture(c); })();
   const sparks = new T.Points(sparkGeo, new T.PointsMaterial({ size: 0.06, map: sparkTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: 0, toneMapped: false, fog: false }));
-  sparks.visible = false;
+  sparks.visible = false; sparks.renderOrder = 62;
   fx.add(sparks);
   let orbitOn = false, orbitMix = 0, orbitFrom = 0, orbitT0 = 0, orbitDur = 1, orbitClock = 0, ringAmt = 0;
   function setOrbit(on) {
@@ -504,6 +504,24 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       p.glow.visible = false;
     });
   }
+
+  // ── 부스 추가: 스포트라이트 — 활성 전단지만 남기고 칼럼·포스터·배경을 어둡게
+  //   카메라에 붙은 반투명 검정 판(renderOrder 50)을 덮고, 활성 전단지는 같은 기하를 쓰는 복제본을 그 위에(깊이 같음 → 보이는 부분만) 다시 그린다
+  const dimQuad = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false, fog: false }));
+  dimQuad.position.z = -1; dimQuad.renderOrder = 50; dimQuad.visible = false;
+  camera.add(dimQuad);
+  let spot = false, spotAmt = 0;
+  const spotClones = [];
+  function ensureSpotClones() {
+    posters.forEach((p) => {
+      if (!active.has(p.idx) || p.spotClone) return;
+      const m = new T.Mesh(p.geo, p.front.clone());
+      m.material.transparent = true; m.material.depthWrite = false; m.material.depthFunc = T.LessEqualDepth;
+      m.renderOrder = 60; m.userData.index = p.idx; m.raycast = () => {};
+      p.spotClone = m; column.add(m); spotClones.push({ p, m });
+    });
+  }
+  function syncSpotClones() { spotClones.forEach(({ p, m }) => { if (m.material.map !== p.front.map) { m.material.map = p.front.map; m.material.emissiveMap = p.front.emissiveMap; m.material.color.copy(p.front.color); m.material.emissive.copy(p.front.emissive); m.material.needsUpdate = true; } m.scale.copy(p.mesh.scale); }); }
 
   // ── 강조(숨쉬기 빛)·입력 허용 — 호스트가 단계별로 지정
   let active = new Set(items.map((_, i) => i).filter((i) => items[i].active));
@@ -563,9 +581,10 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     snap.style.transition = 'filter ' + (on ? DUR_OUT : DUR_BACK) + 's ease, opacity 0.2s';
     snap.style.filter = on ? 'blur(5px) brightness(0.62) saturate(0.85)' : 'blur(0px) brightness(1) saturate(1)';
   }
-  function inspect(i) {
+  function inspect(i, opts = {}) {
     const p = posters.filter((q) => q.idx === i)[0];
     if (!p || mode !== 'column' || orbitMix > 0.001) return false;
+    if (p.spotClone) p.spotClone.visible = false;
     idle = false; vel = 0;
     column.updateMatrixWorld(true);
     const n = p.geo.attributes.position.count, b = p.base;
@@ -587,7 +606,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     snap.style.display = 'block'; snap.style.transition = 'none'; snap.style.filter = 'none';
     void snap.offsetWidth;
     paperScene.add(p.mesh);
-    insp = { p, t: 0, A0, N, yaw: 0, pitch: 0, zoom: 1, start: performance.now() };
+    insp = { p, t: 0, A0, N, yaw: 0, pitch: 0, zoom: 1, start: performance.now(), fill: !!opts.fill };
     mode = 'out';
     setSnap(true);
     if (reduceMotion) { p.front.transparent = true; p.back.transparent = true; }
@@ -614,6 +633,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     stickLocal(p);
     column.add(p.mesh);
     p.glow.visible = true;
+    if (p.spotClone) p.spotClone.visible = true;
     insp = null; mode = 'column';
     // 깜빡임 방지 — 정지 이미지를 내리기 전에 같은 프레임에서 살아 있는 칼럼을 먼저 그린다
     column.rotation.y = rot; placeCamera(); parallax();
@@ -634,11 +654,13 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     camera.matrixWorld.extractBasis(camR, camU, camB);
     camF.copy(camB).negate();
     const D = 2.2, vh = 2 * D * Math.tan(camera.fov * Math.PI / 360), vw = vh * camera.aspect;
-    const S = Math.min(0.56 * vh / o.h, 0.84 * vw / o.w) * insp.zoom; // 아래 30% 는 캡션 자리
-    C.copy(camera.position).addScaledVector(camF, D).addScaledVector(camU, vh * 0.1);
+    // fill: 화면을 꽉 채우도록 (부스 Step3 — 이어서 삽화 애니메이션의 첫 장면과 같은 크기·위치)
+    const S = insp.fill ? Math.min(vh / o.h, vw / o.w) : Math.min(0.56 * vh / o.h, 0.84 * vw / o.w) * insp.zoom; // 아래 30% 는 캡션 자리
+    C.copy(camera.position).addScaledVector(camF, D).addScaledVector(camU, insp.fill ? 0 : vh * 0.1);
     const tt = now / 1000;
-    const yaw = insp.yaw + (reduceMotion ? 0 : 0.05 * Math.sin(tt * 0.7)) * sFly;
-    const pitch = insp.pitch + (reduceMotion ? 0 : 0.03 * Math.sin(tt * 0.9 + 1)) * sFly;
+    const sway = insp.fill ? 0 : 1;
+    const yaw = insp.yaw + (reduceMotion ? 0 : 0.05 * Math.sin(tt * 0.7)) * sFly * sway;
+    const pitch = insp.pitch + (reduceMotion ? 0 : 0.03 * Math.sin(tt * 0.9 + 1)) * sFly * sway;
     const cyw = Math.cos(yaw), syw = Math.sin(yaw), cp = Math.cos(pitch), spp = Math.sin(pitch);
     off.set(0, 0, 0);
     if (!reduceMotion) off.copy(camU).multiplyScalar(0.55).addScaledVector(camB, 0.5);
@@ -647,7 +669,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       const u = clamp(x / o.w + 0.5, 0, 1), v = clamp(y / o.h + 0.5, 0, 1);
       const d = clamp((u + v) / 2, 0, 1), lift = 0.26 * o.w * sPeel * Math.pow(d, 2.3) * (1 - sFly);
       A.set(insp.A0[k * 3] + insp.N[k * 3] * lift, insp.A0[k * 3 + 1] + insp.N[k * 3 + 1] * lift, insp.A0[k * 3 + 2] + insp.N[k * 3 + 2] * lift);
-      const lx = x * S, ly = y * S, lz = -0.055 * S * o.w * Math.pow(2 * x / o.w, 2);
+      const lx = x * S, ly = y * S, lz = (insp.fill ? -0.012 * (1 - sFly) : -0.055) * S * o.w * Math.pow(2 * x / o.w, 2);
       const rx = lx * cyw + lz * syw; let rz = -lx * syw + lz * cyw;
       const ry = ly * cp - rz * spp; rz = ly * spp + rz * cp;
       F.copy(C).addScaledVector(camR, rx).addScaledVector(camU, ry).addScaledVector(camB, rz);
@@ -820,7 +842,16 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
         q.glow.material.opacity = Math.min(1, (0.45 + 0.55 * breath) * (1 + 0.6 * q.lift));
         q.front.emissiveIntensity = 0.05 * q.lift;
       });
+      // 스포트라이트
+      spotAmt += ((spot ? 1 : 0) - spotAmt) * Math.min(1, dt * 4);
+      if (Math.abs(spotAmt - (spot ? 1 : 0)) > 0.003) animating = true;
+      dimQuad.visible = spotAmt > 0.005;
+      dimQuad.material.opacity = 0.72 * spotAmt;
+      if (spotClones.length) syncSpotClones();
+      spotClones.forEach(({ p, m }) => { m.visible = dimQuad.visible && p.mesh.parent === column; });
+      posters.forEach((q) => { q.glow.renderOrder = spot && active.has(q.idx) ? 61 : 0; });
       placeCamera();
+      { const hh = 2 * Math.tan(camera.fov * Math.PI / 360) * 1.05; dimQuad.scale.set(hh * camera.aspect, hh, 1); }
       skip = !skip;
       if (animating || dirty || lifting || !skip) { renderer.render(scene, camera); dirty = false; }
     } else {
@@ -852,6 +883,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     get orbiting() { return orbitOn || orbitMix > 0.0005; },
     setOrbit, inspect, release, reset, resize, focusItem,
     setHighlight(on) { highlight = on; dirty = true; },
+    setSpotlight(on) { spot = on; if (on) ensureSpotClones(); dirty = true; },
     setInteractive(on) { interactive = on; el.style.pointerEvents = on ? 'auto' : 'none'; if (!on) { hoverIdx = -1; pressIdx = -1; } },
     pause() { running = false; cancelAnimationFrame(raf); },
     resume() { if (!running) { running = true; prev = performance.now(); dirty = true; raf = requestAnimationFrame(frame); } },

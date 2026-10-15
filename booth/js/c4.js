@@ -4,6 +4,19 @@ import * as N from './nadar.js';
 
 $$('[data-ic]').forEach((e) => (e.outerHTML = ICON[e.dataset.ic]));
 
+// 검수용: ?debug=1 — 기기(iPhone Safari 등)에서 콘솔을 화면에 띄운다
+if (new URLSearchParams(location.search).has('debug')) {
+  const box = document.createElement('pre');
+  box.style.cssText = 'position:fixed;left:0;right:0;top:0;pointer-events:none;max-height:30vh;overflow:auto;margin:0;padding:6px 8px;font:10px/1.35 monospace;background:rgba(0,0,0,.82);color:#9f9;z-index:999;white-space:pre-wrap';
+  document.body.appendChild(box);
+  const log = (k) => (...a) => { box.textContent += `[${k}] ${a.map((x) => (x && x.message) || (typeof x === 'object' ? JSON.stringify(x) : String(x))).join(' ')}\n`; box.scrollTop = 1e9; };
+  ['info', 'warn', 'error'].forEach((k) => { const o = console[k].bind(console); console[k] = (...a) => { o(...a); log(k)(...a); }; });
+  window.addEventListener('error', (e) => log('onerror')(e.message, e.filename, e.lineno));
+  window.addEventListener('unhandledrejection', (e) => log('reject')(e.reason));
+  log('ua')(navigator.userAgent);
+  ['pointerdown', 'click'].forEach((t) => document.addEventListener(t, (e) => log(t)(e.target.tagName + '#' + (e.target.id || '') + '.' + (e.target.className || '') + ' @' + Math.round(e.clientX) + ',' + Math.round(e.clientY)), true));
+}
+
 const flow = createFlow({
   total: 3,
   booth: '4층 C-4 나다르 사진관',
@@ -103,40 +116,36 @@ let job = 0, pick = 'paint', pos = 0.5;
 let state = null;            // { compPaint, face, engine }
 const FORCE_FALLBACK = new URLSearchParams(location.search).has('fallback'); // 검수용: ML·WebGL 실패 경로 확인
 const cvPhoto = $('#cvPhoto'), cvPaint = $('#cvPaint'), cmp = $('#cmp'), handle = $('#handle');
-const STAGES = [
-  { id: 'seg', t: '인물 분리', s: 'MediaPipe 셀피 세그멘터 · 처음 한 번 최대 약 10MB(엔진 포함)' },
-  { id: 'photo', t: '19세기 사진 현상', s: 'WebGL 셰이더 — 정색성 감광·할레이션·습판 가장자리' },
-  { id: 'style', t: '초상화 화풍 변환', s: 'Magenta 임의 화풍 변환 · 처음 한 번 약 18MB' },
-];
-function setStage(id, st, sub) {
-  const li = $(`#stages li[data-id="${id}"]`); if (!li) return;
-  li.className = st;
-  li.querySelector('.st').innerHTML = st === 'done' ? ICON.check : st === 'fail' ? '!' : '';
-  if (sub) li.querySelector('small').textContent = sub;
-}
 function show(v) {
   $('#pick').hidden = v !== 'pick';
   $('#busy').hidden = v !== 'busy';
   $('#compare').hidden = v !== 'compare';
+  // 화면이 아래로 내려가 있던 상태에서도 로딩·결과가 바로 보이게
+  const el = { pick: '#pick', busy: '#busy', compare: '#compare' }[v];
+  if (el && v !== 'pick') { try { $(el).scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { $(el).scrollIntoView(); } }
 }
 show('pick');
+// 단계마다 시간 제한 — 모델 다운로드·실행이 멈춰도(모바일 Safari 등) 대체 경로로 결과를 낸다
+const withTimeout = (p, ms, name) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(`${name}_timeout`)), ms))]);
+const raf2 = () => new Promise((r) => setTimeout(r, 16));   // 로딩 화면이 그려질 틈 (rAF 는 백그라운드 탭에서 멈추므로 쓰지 않는다)
 
 function runWorker(comp) {
-  // 대체 경로 — 기존 캔버스 필터 워커 (19세기 사진 · 쿠와하라 초상화)
+  // 회화 필터(쿠와하라) · 대체용 19세기 사진 — 기존 캔버스 필터 워커
   worker ||= new Worker('js/filters-worker.js');
   const w = comp.width, h = comp.height;
   const data = comp.getContext('2d').getImageData(0, 0, w, h);
   const id = Math.random();
   return new Promise((res, rej) => {
     const out = {};
-    worker.onmessage = (e) => {
+    const onMsg = (e) => {
       const m = e.data; if (m.id !== id) return;
-      if (m.error) return rej(new Error(m.error));
+      if (m.error) { worker.removeEventListener('message', onMsg); return rej(new Error(m.error)); }
       const c = document.createElement('canvas'); c.width = m.w; c.height = m.h;
       c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(m.buf), m.w, m.h), 0, 0);
       out[m.kind] = c;
-      if (out.photo && out.paint) res(out);
+      if (out.photo && out.paint) { worker.removeEventListener('message', onMsg); res(out); }
     };
+    worker.addEventListener('message', onMsg);
     worker.postMessage({ id, w, h, buf: data.data.buffer }, [data.data.buffer]);
   });
 }
@@ -145,79 +154,77 @@ function paintTo(cv, src) { cv.width = src.width; cv.height = src.height; cv.get
 async function processImage(src) {
   const id = ++job;
   show('busy');
-  $('#stages').innerHTML = STAGES.map((s) => `<li class="wait" data-id="${s.id}"><span class="st"></span><div>${s.t}<small>${s.s}</small></div></li>`).join('');
   const t0 = performance.now();
-  let img;
-  try { img = await loadImage(src); } catch (e) { toast('이미지를 열 수 없습니다.'); show('pick'); return; }
-  const base = N.cropTo34(img);
-  const engine = { seg: false, photo: 'webgl', paint: 'magenta', face: false };
-
-  // 1) 인물 분리 + 얼굴 위치
-  setStage('seg', 'run');
-  let mask = null, face = null;
+  const engine = { seg: false, photo: 'webgl', paint: 'neural+painterly', face: false };
   try {
-    if (FORCE_FALLBACK) throw new Error('forced');
-    const r = await N.personMask(base);
-    if (r.cover > 0.02 && r.cover < 0.98) { mask = r.mask; engine.seg = true; setStage('seg', 'done'); }
-    else setStage('seg', 'fail', '인물을 찾지 못해 원래 배경을 유지합니다');
-  } catch (e) { console.warn('[nadar] segmentation', e); setStage('seg', 'fail', '모델을 불러오지 못해 원래 배경을 유지합니다'); }
-  try { if (!FORCE_FALLBACK) { face = await N.faceBox(base); engine.face = !!face; } } catch (e) { console.warn('[nadar] face', e); }
-  if (id !== job) return;
-  const compPhoto = mask ? N.compositeOn(base, mask, N.studioBackdrop('photo', 7)) : base;
-  const compPaint = mask ? N.compositeOn(base, mask, N.studioBackdrop('paint', 11)) : base;
+    if (document.fonts && document.fonts.load) await withTimeout(Promise.all([document.fonts.load('800 30px Paperlogy'), document.fonts.load('800 24px Paperlogy')]), 4000, 'font').catch(() => {});
+    const img = await withTimeout(loadImage(src), 15000, 'image');
+    await raf2();
+    const base = N.cropTo34(img);
 
-  // 2) 19세기 사진
-  setStage('photo', 'run');
-  await new Promise((r) => setTimeout(r, 30));
-  let photoCard = null, fallback = null;
-  try { if (FORCE_FALLBACK) throw new Error('forced'); photoCard = N.renderPhoto19(compPhoto, face); setStage('photo', 'done'); }
-  catch (e) {
-    console.warn('[nadar] webgl', e); engine.photo = 'canvas';
-    fallback = await runWorker(compPhoto); photoCard = N.mountFallback(fallback.photo);
-    setStage('photo', 'done', 'WebGL 을 쓸 수 없어 캔버스 필터로 대체했습니다');
-  }
-  if (id !== job) return;
+    // 1) 인물 분리 + 얼굴 위치
+    let mask = null, face = null;
+    try {
+      if (FORCE_FALLBACK) throw new Error('forced');
+      const r = await withTimeout(N.personMask(base), 25000, 'seg');
+      if (r.cover > 0.02 && r.cover < 0.98) { mask = r.mask; engine.seg = true; }
+    } catch (e) { console.warn('[nadar] segmentation', e); }
+    try { if (!FORCE_FALLBACK && engine.seg) { face = await withTimeout(N.faceBox(base), 8000, 'face'); engine.face = !!face; } } catch (e) { console.warn('[nadar] face', e); }
+    if (id !== job) return;
+    const compPhoto = mask ? N.compositeOn(base, mask, N.studioBackdrop('photo', 7)) : base;
+    const compPaint = mask ? N.compositeOn(base, mask, N.studioBackdrop('paint', 11)) : base;
+    await raf2();
 
-  // 3) 초상화
-  setStage('style', 'run');
-  let paintCard = null;
-  const strength = parseFloat($('#strength').value);
-  try {
-    if (FORCE_FALLBACK) throw new Error('forced');
-    const styled = await N.stylize(compPaint, strength);
-    paintCard = N.finishPortrait(styled, compPaint, face);
-    setStage('style', 'done');
+    // 2) 회화 필터(워커)는 신경망과 나란히 돌린다 — 초상화의 바탕 + 실패 시 대체
+    const painterlyP = runWorker(compPaint);
+
+    // 3) 19세기 사진
+    let photoCard = null;
+    try { if (FORCE_FALLBACK) throw new Error('forced'); photoCard = N.renderPhoto19(compPhoto, face); }
+    catch (e) {
+      console.warn('[nadar] webgl', e); engine.photo = 'canvas';
+      const fb = await runWorker(compPhoto); photoCard = N.mountFallback(fb.photo);
+    }
+    if (id !== job) return;
+
+    // 4) 초상화 — 신경망 화풍(모네 자화상) + 회화 필터
+    let styled = null;
+    try {
+      if (FORCE_FALLBACK) throw new Error('forced');
+      const st = await withTimeout(N.stylize(compPaint, parseFloat($('#strength').value)), 45000, 'style');
+      const q = N.styledLooksValid(st, compPaint);
+      console.info('[nadar] style check', q);
+      if (q.ok) styled = st; else engine.paint = 'painterly (신경망 출력 품질 미달)';
+    } catch (e) { console.warn('[nadar] style transfer', e); engine.paint = 'painterly'; }
+    const painterly = (await painterlyP).paint;
+    if (id !== job) return;
+    const paintCard = N.finishPortrait(styled, compPaint, face, painterly);
+    state = { compPaint, face, engine, painterly };
+    paintTo(cvPhoto, photoCard); paintTo(cvPaint, paintCard);
+    console.info(`[nadar] ${Math.round(performance.now() - t0)}ms`, engine);
+    $('#strengthRow').classList.toggle('off', !styled);
+    $('#engineNote').textContent = styled ? '화풍 기준: 클로드 모네 〈베레모를 쓴 자화상〉 1886 (퍼블릭 도메인)' : '';
+    show('compare'); setPos(0.5); setPick(pick);
   } catch (e) {
-    console.warn('[nadar] style transfer', e); engine.paint = 'kuwahara';
-    fallback ||= await runWorker(compPaint);
-    paintCard = N.framePainting(fallback.paint);
-    setStage('style', 'fail', '화풍 모델을 불러오지 못해 회화 필터로 대체했습니다');
+    console.error('[nadar] failed', e);
+    if (id !== job) return;
+    toast('이미지를 변환하지 못했습니다. 다른 사진으로 다시 시도해 주세요.', 3200);
+    show('pick');
   }
-  if (id !== job) return;
-  state = { compPaint, face, engine };
-  paintTo(cvPhoto, photoCard); paintTo(cvPaint, paintCard);
-  console.info(`[nadar] ${Math.round(performance.now() - t0)}ms`, engine);
-  $('#strengthRow').classList.toggle('off', engine.paint !== 'magenta');
-  $('#engineNote').innerHTML = [
-    engine.paint === 'magenta' ? '초상화: 신경망 화풍 변환 — 기준 그림 클로드 모네 〈베레모를 쓴 자화상〉 1886 (퍼블릭 도메인)' : '초상화: 회화 필터(대체 경로)',
-    engine.photo === 'webgl' ? '19세기 사진: WebGL 현상' : '19세기 사진: 캔버스 필터(대체 경로)',
-    engine.seg ? '배경: 인물 분리 후 사진관 배경 합성' : '배경: 원본 유지',
-  ].join('<br>');
-  show('compare'); setPos(0.5); setPick(pick);
 }
 
 // 화풍 강도 — 바뀌면 다시 변환 (잠시 후)
 let restyleT = 0, restyleJob = 0;
 $('#strength').addEventListener('input', (e) => {
   $('#strengthOut').textContent = Math.round(e.target.value * 100);
-  if (!state || state.engine.paint !== 'magenta') return;
+  if (!state || !state.engine.paint.startsWith('neural')) return;
   clearTimeout(restyleT);
   restyleT = setTimeout(async () => {
     const my = ++restyleJob;
     $('#restyle').hidden = false;
     try {
       const styled = await N.stylize(state.compPaint, parseFloat(e.target.value));
-      if (my === restyleJob) paintTo(cvPaint, N.finishPortrait(styled, state.compPaint, state.face));
+      if (my === restyleJob && N.styledLooksValid(styled, state.compPaint).ok) paintTo(cvPaint, N.finishPortrait(styled, state.compPaint, state.face, state.painterly));
     } catch (err) { console.warn(err); }
     if (my === restyleJob) $('#restyle').hidden = true;
   }, 380);

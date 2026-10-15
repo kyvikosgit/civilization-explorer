@@ -1,4 +1,5 @@
-// C-2 산업혁명 체험 부스 — Step1 현장 관람 안내 → Step2 돋보기로 단서 찾기 → Step3 앱 퀴즈 (파리에서 떠나는 다음 목적지 선택)
+// C-2 산업혁명 체험 부스 — Step1 현장 체험 안내(관람·단서 발견은 부스에서 직접) → Step2 앱 퀴즈 (파리에서 떠나는 다음 목적지 선택)
+// 2026-10-15 피드백: 앱 내 단서 찾기 삭제 / 지역을 누르면 노선이 자동으로 이어지고 '이 지역을 선택하시겠습니까?' 확인 후 결과
 // 지도 데이터: assets/data/map.json (Natural Earth 1:10m 해안선·국경 + IGN Admin Express 2018 지역 경계, 메르카토르 투영)
 import { $, $$, ICON, createFlow, sheet, clamp } from './common.js';
 
@@ -32,122 +33,15 @@ function compassSVG(c1, c2) {
 
 // ── 흐름
 const resultSheet = sheet($('#resultSheet'));
+const confirmSheet = sheet($('#confirmSheet'));
 const flow = createFlow({
-  total: 3,
+  total: 2,
   booth: '4층 C-2 산업혁명',
-  titles: ['체험존 자유롭게 관람', '다음 목적지 단서 발견', '앱 퀴즈 참여'],
-  onEnter(n) { if (n === 2) initHunt(); if (n === 3) { renderClueChips(); initMap(); } },
-  onLeave(prev) { if (prev === 3) resultSheet.close(); if (prev === 2) { clearTimeout(dwell); clueSheet.close(); } },
+  titles: ['현장 체험', '앱 퀴즈 참여'],
+  onEnter(n) { if (n === 2) initMap(); },
+  onLeave(prev) { if (prev === 2) { resultSheet.close(); confirmSheet.close(); } },
 });
 $$('[data-next]').forEach((b) => b.addEventListener('click', () => flow.next()));
-
-// ── Step2: 단서 찾기
-// 단서 문구 = 구성안 PDF 2쪽 'Step2. 다음 목적지 단서 발견' 돋보기 이미지 3장에 보이는 글자 그대로
-//   지도: '노르망디', '파리' / 신문: 헤드라인 '노르망디 해안 도시', 제호 '…리 저널'(첫 글자 가려짐), 부제 일부 판독 불가
-//   기차표: '파리 ▶ 노르망디' (이름 '노르망디행 기차표' = kippu-app missions.ts 'ticket' 수집품명)
-// 장면 = 같은 쪽 체험존 시안 이미지. 핫스팟 위치는 시안 속 벽면 지도·신문·책상 소품 자리
-const CLUES = [
-  { id: 'news', kind: '신문', img: 'assets/concept/clue_news.jpg', at: [0.335, 0.30], found: '노르망디 해안 도시',
-    notes: ['제호: <span class="placeholder">첫 글자 가려짐</span>리 저널', '부제: 새로운 예술의 <span class="placeholder">판독 불가</span> 머무는 <span class="placeholder">판독 불가</span>'] },
-  { id: 'ticket', kind: '노르망디행 기차표', img: 'assets/concept/clue_ticket.jpg', at: [0.665, 0.565], found: '파리 ▶ 노르망디',
-    notes: ['책상 위 기차표 표기'] },
-  { id: 'map', kind: '벽면 지도', img: 'assets/concept/clue_map.jpg', at: [0.895, 0.56], found: '노르망디',
-    notes: ['지도 위 표기: 노르망디 · 파리'] },
-];
-const CROP_X0 = 0.22, CROP_W = 0.78;   // 장면은 시안 이미지의 오른쪽 78%
-const ZOOM = 2.4;
-const store = {
-  get() { try { return JSON.parse(sessionStorage.getItem('c2clues') || '[]'); } catch (e) { return []; } },
-  set(v) { try { sessionStorage.setItem('c2clues', JSON.stringify(v)); } catch (e) { /* noop */ } },
-};
-let found = new Set(store.get());
-const clueSheet = sheet($('#clueSheet'));
-let huntReady = false, lensPos = { x: 0.5, y: 0.78 }, dwell = null, hitId = null;
-
-function sceneXY(c) { return [(c.at[0] - CROP_X0) / CROP_W, c.at[1]]; }
-function initHunt() {
-  renderTray();
-  if (huntReady) { placeLens(); return; }
-  huntReady = true;
-  const scene = $('#scene'), lens = $('#lens');
-  $('#spots').innerHTML = CLUES.map((c) => {
-    const [x, y] = sceneXY(c);
-    return `<button class="spot" data-id="${c.id}" style="left:${x * 100}%;top:${y * 100}%" aria-label="${c.kind} 살펴보기"></button>`;
-  }).join('');
-  $$('.spot').forEach((b) => b.addEventListener('click', () => { const c = CLUES.find((q) => q.id === b.dataset.id); moveLensTo(sceneXY(c)); collect(c); }));
-  let drag = null;
-  lens.addEventListener('pointerdown', (e) => {
-    lens.setPointerCapture(e.pointerId);
-    const r = scene.getBoundingClientRect();
-    drag = { dx: e.clientX - (r.left + lensPos.x * r.width), dy: e.clientY - (r.top + lensPos.y * r.height) };
-  });
-  lens.addEventListener('pointermove', (e) => {
-    if (!drag) return;
-    const r = scene.getBoundingClientRect();
-    lensPos.x = clamp((e.clientX - drag.dx - r.left) / r.width, 0, 1);
-    lensPos.y = clamp((e.clientY - drag.dy - r.top) / r.height, 0, 1);
-    placeLens();
-  });
-  const up = () => { drag = null; };
-  lens.addEventListener('pointerup', up); lens.addEventListener('pointercancel', up);
-  lens.addEventListener('keydown', (e) => {
-    const k = { ArrowLeft: [-0.03, 0], ArrowRight: [0.03, 0], ArrowUp: [0, -0.03], ArrowDown: [0, 0.03] }[e.key];
-    if (k) { e.preventDefault(); lensPos.x = clamp(lensPos.x + k[0], 0, 1); lensPos.y = clamp(lensPos.y + k[1], 0, 1); placeLens(); }
-  });
-  window.addEventListener('resize', placeLens);
-  $('#toQuiz').addEventListener('click', () => flow.to(3));
-  placeLens();
-}
-function moveLensTo([x, y]) { lensPos.x = x; lensPos.y = y; placeLens(); }
-function placeLens() {
-  const scene = $('#scene'), lens = $('#lens'), view = $('#lensView'), clueImg = $('#lensClue');
-  const W = scene.clientWidth, H = scene.clientHeight, L = lens.offsetWidth;
-  if (!W) return;
-  const cx = lensPos.x * W, cy = lensPos.y * H;
-  lens.style.transform = `translate(${cx - L / 2}px, ${cy - L / 2}px)`;
-  // 확대 화면 — 장면 배경과 같은 이미지를 ZOOM 배로
-  const bgW = W / CROP_W * ZOOM, bgH = bgW * 900 / 1200;
-  const imgX = (CROP_X0 + lensPos.x * CROP_W) * bgW, imgY = lensPos.y * bgH;
-  const inner = L - 12;
-  view.style.backgroundImage = 'url(assets/concept/c2_booth.jpg)';
-  view.style.backgroundSize = `${bgW}px ${bgH}px`;
-  view.style.backgroundPosition = `${inner / 2 - imgX}px ${inner / 2 - imgY}px`;
-  // 소품 위에 오면 돋보기 속에 단서가 보인다
-  let hit = null;
-  for (const c of CLUES) { const [x, y] = sceneXY(c); if (Math.hypot((x - lensPos.x) * W, (y - lensPos.y) * H) < 30) hit = c; }
-  lens.classList.toggle('hit', !!hit);
-  if (hit) { if (clueImg.dataset.id !== hit.id) { clueImg.src = hit.img; clueImg.dataset.id = hit.id; } clueImg.hidden = false; }
-  else { clueImg.hidden = true; clueImg.dataset.id = ''; }
-  if ((hit && hit.id) !== hitId) {
-    hitId = hit ? hit.id : null;
-    clearTimeout(dwell);
-    if (hit && !found.has(hit.id)) dwell = setTimeout(() => { if (!found.has(hit.id) && flow.current === 2) collect(hit); }, 650);
-  }
-}
-function collect(c) {
-  clearTimeout(dwell);
-  const isNew = !found.has(c.id);
-  found.add(c.id); store.set([...found]);
-  renderTray();
-  $('#clueBody').innerHTML = `<div class="clue-big"><img src="${c.img}" alt=""></div>
-    <div class="eyebrow">${isNew ? '단서 발견' : '찾은 단서'}</div>
-    <div class="clue-k" style="margin-top:8px">${c.kind}</div>
-    <div class="clue-v">${c.found}</div>
-    <ul class="clue-notes">${c.notes.map((n) => `<li>${n}</li>`).join('')}</ul>
-    <div class="clue-src">이미지: 구성(안) PDF 2쪽 단서 시안 이미지</div>`;
-  clueSheet.open();
-}
-function renderTray() {
-  $$('.spot').forEach((b) => { const on = found.has(b.dataset.id); b.classList.toggle('found', on); b.innerHTML = on ? ICON.check : ''; });
-  $('#tray').innerHTML = CLUES.map((c) => found.has(c.id)
-    ? `<li><span class="t-img"><img src="${c.img}" alt=""></span><div><div class="t-k">${c.kind}</div><div class="t-v">${c.found}</div></div></li>`
-    : `<li class="empty"><span class="t-img">?</span><div><div class="t-k">${c.kind}</div><div class="t-v">아직 찾지 못했어요</div></div></li>`).join('');
-  $('#trayCount').textContent = `${found.size}/${CLUES.length}`;
-  $('#toQuiz').disabled = found.size < CLUES.length;
-}
-function renderClueChips() {
-  $('#clueChips').innerHTML = CLUES.filter((c) => found.has(c.id)).map((c) => `<span><i>${c.kind}</i>${c.found}</span>`).join('');
-}
 
 // ── 지도
 let M = null;           // map.json
@@ -301,10 +195,15 @@ function buildChips() {
   const box = $('#chips');
   box.innerHTML = CHOICES.map((c) => `<button class="chip" role="radio" aria-checked="false" data-id="${c.id}"><span class="thumb">${regionThumb(c.id)}</span><span>${c.ko}</span><span class="ck">${ICON.check}</span></button>`).join('');
   $$('.chip', box).forEach((b) => b.addEventListener('click', () => select(b.dataset.id)));
-  $('#autoLink').addEventListener('click', () => selected && connect(selected));
+  $('#cfOk').addEventListener('click', () => { confirmSheet.close(); if (selected) setTimeout(() => showResult(selected), 260); });
+  $('#cfRetry').addEventListener('click', () => { confirmSheet.close(); reset(); });
 }
-function select(id) {
-  if (connected) return;
+// 지역(칩·지도)을 누르면 파리에서 그 지역까지 노선이 자동으로 이어지고, 끝나면 확인 팝업
+let selectRun = 0;
+async function select(id) {
+  if (resultSheet.isOpen || confirmSheet.isOpen) return;
+  const run = ++selectRun;
+  connected = false;
   selected = id;
   const c = CHOICES.find((q) => q.id === id);
   $$('.chip').forEach((b) => { const on = b.dataset.id === id; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
@@ -313,21 +212,18 @@ function select(id) {
   const b2 = $('#banner2');
   b2.hidden = false;
   b2.textContent = `지도를 탐색하여 화면에서 ${c.ko}로 가는 노선을 연결해 주세요.`;
-  $('#autoLink').hidden = false;
   pinAt = null; updatePin(); setRoute(null);
-}
-
-async function connect(id) {
-  connecting = null;
-  select(id);
+  await new Promise((r) => setTimeout(r, 60));
+  if (run !== selectRun) return;
   connected = true;
   const to = M.anchors[id];
   setRoute(to, true);
   pinAt = to; updatePin();
   pinG.querySelector('.pin-in').animate([{ transform: 'translateY(-18px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 380, delay: 500, fill: 'backwards', easing: 'cubic-bezier(.3,1.4,.5,1)' });
-  $('#autoLink').hidden = true;
   await new Promise((r) => setTimeout(r, 1300));
-  showResult(id);
+  if (run !== selectRun || selected !== id) return;
+  $('#cfRegion').textContent = c.ko;
+  confirmSheet.open();
 }
 
 function showResult(id) {
@@ -349,7 +245,7 @@ function reset() {
   connected = false; selected = null; pinAt = null; updatePin(); setRoute(null);
   $$('.chip').forEach((b) => { b.classList.remove('on'); b.setAttribute('aria-checked', 'false'); });
   CHOICES.forEach((q) => regionEls[q.id + '_hl'].setAttribute('opacity', 0));
-  $('#banner2').hidden = true; $('#autoLink').hidden = true;
+  $('#banner2').hidden = true;
 }
 
 // 화면 좌표가 어느 목표 지역 안에 있는지
@@ -360,7 +256,7 @@ function regionAt(sx, sy) {
   return null;
 }
 
-// ── 입력: 팬·핀치 줌, 파리에서 끌어 노선 연결, 지역 탭 선택
+// ── 입력: 팬·핀치 줌, 지역 탭 선택
 function bindInput() {
   const box = $('#mapBox');
   const pts = new Map();
@@ -376,8 +272,6 @@ function bindInput() {
       return;
     }
     down = { p, t: performance.now(), moved: false };
-    const [px, py] = toScreen(M.paris);
-    if (!connected && selected && Math.hypot(p[0] - px, p[1] - py) < 34) { connecting = { p }; drawLabels(); return; }
     pan = { p, tx: view.tx, ty: view.ty };
   });
   box.addEventListener('pointermove', (e) => {
@@ -389,10 +283,6 @@ function bindInput() {
       const ns = clamp(pinch.s * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d, view.min, view.max);
       const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
       view.s = ns; view.tx = mx - pinch.w[0] * ns; view.ty = my - pinch.w[1] * ns; applyView();
-    } else if (connecting) {
-      const w = toWorld(p[0], p[1]);
-      const d = curve(M.paris, w);
-      [routeGlow, routeCore, routeLine].forEach((q) => { q.style.strokeDasharray = ''; q.setAttribute('d', d); });
     } else if (pan) {
       view.tx = pan.tx + p[0] - pan.p[0]; view.ty = pan.ty + p[1] - pan.p[1]; applyView();
     }
@@ -401,11 +291,7 @@ function bindInput() {
     if (!pts.has(e.pointerId)) return;
     const p = pts.get(e.pointerId); pts.delete(e.pointerId);
     if (pts.size < 2) pinch = null;
-    if (connecting && e.type === 'pointerup') {
-      const hit = regionAt(p[0], p[1]);
-      connecting = null; drawLabels();
-      if (hit) { connect(hit); } else setRoute(null);
-    } else if (down && !down.moved && e.type === 'pointerup' && !connected) {
+    if (down && !down.moved && e.type === 'pointerup') {
       const hit = regionAt(p[0], p[1]);
       if (hit) select(hit);
     }

@@ -59,54 +59,28 @@
   </div>
 </section>
 
-<!-- Step 3. 전단지 확대 — 칼럼에서 떼어 낸 전단지를 앞에서 살펴본다 -->
+<!-- Step 3. 전단지 확대 · 삽화 애니메이션 — 선택한 전단지가 화면 가득 확대되고, 그 위에서 삽화 애니메이션이 재생된다 -->
 <section class="step overlay-step" data-step="3">
-  <div id="caption" class="caption">
-    <div class="eyebrow">선택한 전단지</div>
-    <strong id="cTitle"></strong>
-    <p id="cBody"></p>
-    <button id="cInfo" class="link-btn">당시 예술가들의 모임과 시대적 배경 보기</button>
-    <p class="c-hint">끌어서 기울이기 · 두 손가락으로 확대</p>
-    <div class="btn-row">
-      <button id="cReturn" class="btn line">돌려놓기</button>
-      <button id="cNext" class="btn">다음 · 삽화 애니메이션</button>
+  <div id="anim" class="anim">
+    <canvas id="animCanvas" class="anim-canvas"></canvas>
+    <div class="anim-top">
+      <div class="topbar dark">
+        <button class="icon-btn" data-back></button>
+        <div class="tb-title" data-step-label></div>
+        <a class="icon-btn" href="index.html" aria-label="체험 종료"><span data-ic="close"></span></a>
+      </div>
+      <div class="progress dark" data-progress></div>
     </div>
-  </div>
-</section>
-
-<div id="infoSheet" class="sheet" role="dialog" aria-label="모임과 시대적 배경">
-  <div class="grip"></div>
-  <div class="eyebrow">당시 예술가들의 모임</div>
-  <h3 id="shTitle" class="sh-title"></h3>
-  <p id="shSub" class="sh-quote"></p>
-  <div class="hairline" style="margin:16px 0"></div>
-  <div id="shBody" class="sh-body"></div>
-  <p id="shMeta" class="sh-meta"></p>
-  <div class="eyebrow" style="margin-top:22px">시대적 배경</div>
-  <p class="sh-body"><span class="placeholder">시대적 배경 원고 미정</span></p>
-  <button class="btn" data-sheet-close style="margin-top:18px">닫기</button>
-</div>
-
-<!-- Step 4. 삽화 애니메이션 -->
-<section class="step s4" data-step="4">
-  <canvas id="animCanvas" class="anim-canvas"></canvas>
-  <div class="stage-top">
-    <div class="topbar dark">
-      <button class="icon-btn" data-back></button>
-      <div class="tb-title" data-step-label></div>
-      <span></span>
+    <div class="s4-bottom">
+      <div id="subtitle" class="subtitle" aria-live="polite"></div>
+      <div class="timeline"><i id="timeBar"></i></div>
+      <div id="s4End" class="btn-row" hidden>
+        <button id="s4Replay" class="btn dark-line"><span data-ic="replay"></span>다시 보기</button>
+        <a class="btn white" href="index.html">체험 완료</a>
+      </div>
     </div>
-    <div class="progress dark" data-progress></div>
+    <div id="animErr" class="cam-msg" hidden></div>
   </div>
-  <div class="s4-bottom">
-    <div id="subtitle" class="subtitle" aria-live="polite"></div>
-    <div class="timeline"><i id="timeBar"></i></div>
-    <div id="s4End" class="btn-row" hidden>
-      <button id="s4Replay" class="btn dark-line"><span data-ic="replay"></span>다시 보기</button>
-      <a class="btn white" href="index.html">체험 완료</a>
-    </div>
-  </div>
-  <div id="animErr" class="cam-msg" hidden></div>
 </section>
 
 <script type="module" src="js/c1.js"></script>

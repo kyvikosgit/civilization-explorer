@@ -6,23 +6,17 @@
 .qr-step .scan-frame { top: 45%; }
 .qr-step .cam-msg { top: auto; bottom: 170px; }
 
-.pick-box { margin-top: 18px; aspect-ratio: 3 / 4; max-height: 46dvh; width: 100%; border-radius: 12px; background: var(--panel);
+.pick-box { margin-top: 18px; aspect-ratio: 3 / 4; max-height: 34dvh; width: 100%; border-radius: 12px; background: var(--panel);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; text-align: center; color: var(--dim); }
 .pick-box svg { width: 36px; height: 36px; }
 .pick-box p { margin: 0; font-size: 13.5px; line-height: 1.6; }
 .pick-btns { display: grid; gap: 8px; margin-top: 16px; justify-items: center; }
 .pick-btns .btn { cursor: pointer; }
 
-.busy { margin-top: 18px; padding: 18px; border-radius: 12px; background: var(--panel); }
-.stages { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.stages li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; font-size: 14px; }
-.stages li small { display: block; font-size: 12px; color: var(--dim); margin-top: 1px; }
-.stages .st { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--hair-strong); display: grid; place-items: center; }
-.stages li.run .st { border-color: var(--point); border-top-color: transparent; animation: spin 1s linear infinite; }
-.stages li.done .st { background: var(--ink); border-color: var(--ink); color: #fff; }
-.stages li.fail .st { border-color: var(--bad); color: var(--bad); }
-.stages li.done .st svg, .stages li.fail .st svg { width: 12px; height: 12px; }
-.stages li.wait { color: var(--dim); }
+.busy { margin-top: 18px; aspect-ratio: 3 / 4; max-height: 52dvh; width: 100%; border-radius: 12px; background: var(--panel); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+.busy .spinner { width: 30px; height: 30px; margin-bottom: 10px; }
+.busy-t { margin: 0; font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: -0.3px; }
+.busy p.small { margin: 0; }
 
 .compare { margin-top: 18px; }
 .cmp { position: relative; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--panel); cursor: ew-resize; border-radius: 4px; }
@@ -48,3 +42,8 @@
 .strength.off { opacity: .4; pointer-events: none; }
 .engine { margin: 10px 0 0; line-height: 1.55; }
 .save-bar { display: grid; gap: 8px; margin-top: 18px; }
+
+/* iOS Safari 의 떠 있는 하단 도구 막대 아래로 버튼이 숨지 않게 */
+.c4 .wrap { padding-bottom: calc(96px + var(--safe-b)); }
+.pick-btns { justify-items: stretch; }
+#busy, #compare { scroll-margin-top: calc(64px + var(--safe-t)); }

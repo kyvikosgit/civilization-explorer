@@ -22,7 +22,7 @@ body.c1.hide-stage #stage { display: none; }
 
 /* 무대 위 단계 UI */
 .overlay-step { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; z-index: 10; pointer-events: none; min-height: 0; }
-.overlay-step .btn, .overlay-step .intro-card, .overlay-step .caption { pointer-events: auto; }
+.overlay-step .btn, .overlay-step .intro-card { pointer-events: auto; }
 .intro-card { position: absolute; left: 12px; right: 12px; bottom: calc(12px + var(--safe-b)); padding: 18px var(--pad) 16px; border-radius: 14px;
   background: #FFFFFF; color: var(--ink); display: flex; flex-direction: column; gap: 8px; }
 .intro-card .cap { font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: 3px; color: var(--point); }
@@ -32,28 +32,11 @@ body.c1.hide-stage #stage { display: none; }
 .s2-desc { margin: 0; font-size: 14px; line-height: 1.55; text-align: center; color: #FFFFFF; text-shadow: 0 1px 6px rgba(0,0,0,.7); }
 .s2-desc span { font-size: 12.5px; opacity: .85; }
 
-/* Step 3 캡션 — 종이가 자리 잡으면 페이드로 뜬다 (아래 30% 영역) */
-.caption { position: absolute; left: 12px; right: 12px; bottom: calc(12px + var(--safe-b)); padding: 14px 16px 14px; border-radius: 14px;
-  background: #FFFFFF; color: var(--ink); box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  opacity: 0; transform: translateY(8px); transition: opacity .16s ease-in, transform .16s ease-in; pointer-events: none !important; }
-.caption.on { opacity: 1; transform: none; transition: opacity .26s ease-out, transform .26s ease-out; pointer-events: auto !important; }
-.caption strong { display: block; font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -0.3px; margin-top: 4px; }
-.caption p { margin: 5px 0 0; font-size: 13px; line-height: 19px; color: var(--dim); }
-.caption .link-btn { padding: 6px 0 2px; font-size: 13.5px; }
-.caption .c-hint { font-size: 12px; color: var(--dim); margin-top: 2px; }
-.caption .btn-row { margin-top: 10px; }
-.caption .btn { height: 48px; font-size: 15px; }
-.caption .btn.line { flex: 0 0 34%; }
-
-.sh-title { font-size: 22px; margin-top: 6px; }
-.sh-quote { margin: 12px 0 0; font-size: 14.5px; line-height: 1.7; color: var(--ink); padding-left: 12px; border-left: 2px solid var(--point); }
-.sh-body { font-size: 15px; line-height: 1.75; color: var(--ink); white-space: pre-line; margin: 6px 0 0; }
-.sh-body b { font-family: var(--display); font-weight: 800; font-size: 17px; display: block; margin-bottom: 4px; }
-.sh-meta { margin: 14px 0 0; font-size: 12.5px; color: var(--dim); }
-
-/* Step 4 */
-.s4 { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #000; overflow: hidden; }
-.s4.active { display: block; }
+/* Step 3 — 화면 가득 확대된 전단지 위 삽화 애니메이션 */
+.anim { position: absolute; inset: 0; background: #000; opacity: 0; visibility: hidden; transition: opacity .45s ease, visibility 0s linear .45s; }
+.anim.on { opacity: 1; visibility: visible; transition: opacity .45s ease; pointer-events: auto; }
+.anim-top { position: absolute; left: 0; right: 0; top: 0; z-index: 3; padding-bottom: 14px; background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,0)); }
+.anim .icon-btn { color: #fff; }
 .anim-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .s4-bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 18px calc(16px + var(--safe-b)); display: grid; gap: 12px;
   background: linear-gradient(rgba(8,5,3,0), rgba(8,5,3,.85) 45%); }

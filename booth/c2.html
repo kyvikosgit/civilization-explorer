@@ -12,7 +12,7 @@
 </head>
 <body class="c2">
 
-<!-- Step 1. 체험존 자유롭게 관람 (현장) -->
+<!-- Step 1. 현장 체험 — 구성(안) Step1 체험존 자유 관람 + Step2 다음 목적지 단서 발견 (방문객이 부스에서 직접) -->
 <section class="step" data-step="1">
   <div class="topbar">
     <button class="icon-btn" data-back></button>
@@ -22,61 +22,21 @@
   <div class="progress" data-progress></div>
   <div class="wrap">
     <header class="mhead">
-      <div class="cap">MONET 100 — C-2 · STEP 1</div>
+      <div class="cap">MONET 100 — C-2 · 현장 체험</div>
       <h2>체험존 자유롭게 관람</h2>
       <div class="rule"></div>
       <p class="sub">산업혁명 시대를 재현한 공간 내 전시물 및 오브제 자유 관람</p>
     </header>
     <div class="concept" style="margin-top:18px"><img src="assets/concept/c2_booth.jpg" alt="산업혁명 체험존 시안"><span class="tag dark">시안 이미지</span></div>
-    <div class="note-box">이 단계는 부스 현장에서 진행되며 앱 조작이 없습니다.</div>
-    <div style="margin-top:20px"><button class="btn" data-next>다음</button></div>
+    <h3 class="sec-title">다음 목적지 단서 발견</h3>
+    <p class="lead" style="margin:0">벽면 지도, 신문, 책상 위 소품 등에서 다음 목적지에 대한 힌트 탐색</p>
+    <div class="note-box">이 두 단계는 부스 현장에서 진행되며 앱 조작이 없습니다. 단서를 찾았다면 퀴즈에 참여하세요.</div>
+    <div style="margin-top:20px"><button class="btn" data-next>앱 퀴즈 참여하기</button></div>
   </div>
 </section>
 
-<!-- Step 2. 다음 목적지 단서 발견 — 돋보기로 소품 살피기 -->
-<section class="step" data-step="2">
-  <div class="topbar">
-    <button class="icon-btn" data-back></button>
-    <div class="tb-title" data-step-label></div>
-    <span></span>
-  </div>
-  <div class="progress" data-progress></div>
-  <div class="wrap" style="padding-left:0;padding-right:0">
-    <header class="mhead" style="padding-left:var(--pad);padding-right:var(--pad)">
-      <div class="cap">MONET 100 — C-2 · STEP 2</div>
-      <h2>다음 목적지 단서 발견</h2>
-      <div class="rule"></div>
-      <p class="sub">벽면 지도, 신문, 책상 위 소품 등에서 다음 목적지에 대한 힌트 탐색</p>
-    </header>
-
-    <div id="scene" class="scene" aria-label="체험존 장면 — 돋보기를 끌어 소품을 살펴보세요">
-      <span class="tag dark scene-tag">시안 이미지</span>
-      <div id="spots"></div>
-      <div id="lens" class="lens" role="slider" aria-label="돋보기" tabindex="0">
-        <div id="lensView" class="lens-view"></div>
-        <img id="lensClue" class="lens-clue" alt="" hidden>
-        <span class="lens-ring"></span>
-        <span class="lens-handle"></span>
-      </div>
-    </div>
-    <p class="scene-hint">돋보기를 끌어 벽면 지도 · 신문 · 책상 위 소품을 살펴보세요. 표시된 곳을 눌러도 됩니다.</p>
-
-    <div style="padding:0 var(--pad)">
-      <div class="tray-head"><span class="sec-title" style="margin:0">찾은 단서</span><span id="trayCount" class="muted small">0/3</span></div>
-      <ul id="tray" class="tray"></ul>
-      <div style="margin-top:18px"><button id="toQuiz" class="btn" disabled>앱 퀴즈 참여하기</button></div>
-    </div>
-  </div>
-</section>
-
-<div id="clueSheet" class="sheet" role="dialog" aria-label="발견한 단서">
-  <div class="grip"></div>
-  <div id="clueBody"></div>
-  <button class="btn" data-sheet-close style="margin-top:16px">단서 담기</button>
-</div>
-
-<!-- Step 3. 앱 퀴즈 참여 — 지도 -->
-<section class="step quiz" data-step="3">
+<!-- Step 2. 앱 퀴즈 참여 — 지도 -->
+<section class="step quiz" data-step="2">
   <div id="mapBox" class="map-box">
     <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="파리 주변 지도"></svg>
   </div>
@@ -90,14 +50,22 @@
     <div class="banner">
       <strong>단서를 바탕으로<br>다음 목적지로 가는 노선을 선택하세요.</strong>
       <p id="banner2" hidden></p>
-      <div id="clueChips" class="clue-chips"></div>
     </div>
   </header>
   <div class="quiz-bottom">
-    <button id="autoLink" class="auto-link" hidden>노선 자동 연결</button>
     <div id="chips" class="chips" role="radiogroup" aria-label="목적지 선택"></div>
   </div>
 </section>
+
+<div id="confirmSheet" class="sheet" role="dialog" aria-label="선택 확인">
+  <div class="grip"></div>
+  <div class="eyebrow" id="cfRegion"></div>
+  <h3 class="confirm-title">이 지역을 선택하시겠습니까?</h3>
+  <div class="btn-row" style="margin-top:18px">
+    <button id="cfRetry" class="btn line">다시 고르기</button>
+    <button id="cfOk" class="btn">선택</button>
+  </div>
+</div>
 
 <div id="resultSheet" class="sheet" role="dialog" aria-label="결과">
   <div class="grip"></div>

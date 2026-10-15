@@ -338,16 +338,37 @@ export function renderPhoto19(comp, face) {
   gl.getExtension('WEBGL_lose_context')?.loseContext();
   return out;
 }
-// 카드 아래 인쇄 문구 — 부스 이름
+// 카드 아래 연대 표기 — 마운트에 찍힌 인쇄 문구처럼 (클라이언트 지정: 19세기 사진 = '1850년대')
+export const ERA_PHOTO = '1850년대', ERA_PAINT = '1500년대';
 function imprint(g) {
   g.save();
-  g.fillStyle = 'rgba(92,58,34,.85)';
+  const y = PLATE.y + PLATE.h + 50;
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '600 26px Paperlogy, Freesentation, serif';
-  const word = 'N A D A R';
-  g.fillText(word, CARD_W / 2, PLATE.y + PLATE.h + 50);
-  g.fillRect(CARD_W / 2 - 170, PLATE.y + PLATE.h + 50, 80, 1);
-  g.fillRect(CARD_W / 2 + 90, PLATE.y + PLATE.h + 50, 80, 1);
+  g.font = '800 30px Paperlogy, Freesentation, sans-serif';
+  // 눌러 찍은 자국 — 아래 밝은 선 + 위 어두운 글자
+  g.fillStyle = 'rgba(255,248,230,.6)'; g.fillText(ERA_PHOTO, CARD_W / 2, y + 1.5);
+  g.fillStyle = 'rgba(92,58,34,.88)'; g.fillText(ERA_PHOTO, CARD_W / 2, y);
+  const tw = g.measureText(ERA_PHOTO).width / 2 + 24;
+  g.fillRect(CARD_W / 2 - tw - 90, y, 90, 1.5);
+  g.fillRect(CARD_W / 2 + tw, y, 90, 1.5);
+  g.restore();
+}
+// 액자 아래 황동 명판 (클라이언트 지정: 초상화 = '1500년대')
+function eraPlate(g, cx, cy, text) {
+  g.save();
+  g.font = '800 24px Paperlogy, Freesentation, sans-serif';
+  const w = Math.max(150, g.measureText(text).width + 56), h = 36;
+  const x = cx - w / 2, y = cy - h / 2;
+  g.shadowColor = 'rgba(0,0,0,.45)'; g.shadowBlur = 6; g.shadowOffsetY = 2;
+  const gr = g.createLinearGradient(0, y, 0, y + h);
+  gr.addColorStop(0, '#f3dc9c'); gr.addColorStop(0.45, '#c9a14f'); gr.addColorStop(1, '#8a6427');
+  g.fillStyle = gr; roundRect(g, x, y, w, h, 5); g.fill();
+  g.shadowColor = 'transparent';
+  g.strokeStyle = 'rgba(70,46,14,.9)'; g.lineWidth = 1.5; roundRect(g, x + 4, y + 4, w - 8, h - 8, 3); g.stroke();
+  [[x + 9, cy], [x + w - 9, cy]].forEach(([sx, sy]) => { g.fillStyle = '#6e4f1e'; g.beginPath(); g.arc(sx, sy, 2.4, 0, 7); g.fill(); });
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = 'rgba(255,240,200,.55)'; g.fillText(text, cx, cy + 1.5);
+  g.fillStyle = '#3d2a0e'; g.fillText(text, cx, cy);
   g.restore();
 }
 // WebGL 이 안 되면: 워커 결과(판 크기)를 카드에 얹는다
@@ -363,7 +384,7 @@ export function mountFallback(plateCanvas) {
 function roundRect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 
 // ── 초상화 — 신경망 화풍 변환 (모네 자화상 1886) + 원본 세부 일부 보존 + 바니시·캔버스 결 + 금박 액자
-const ST_W = 384, ST_H = 512;
+const ST_W = 480, ST_H = 640;
 export async function stylize(compPaint, strength) {
   const [net, style] = await Promise.all([loadMagenta(), styleImg()]);
   const small = canvas(ST_W, ST_H); small.getContext('2d').drawImage(compPaint, 0, 0, ST_W, ST_H);
@@ -371,10 +392,24 @@ export async function stylize(compPaint, strength) {
   const c = canvas(data.width, data.height); c.getContext('2d').putImageData(data, 0, 0);
   return c;
 }
-export function finishPortrait(styled, comp, face, detail = 0.2) {
+// 초상화 = 회화 필터(쿠와하라, 형태·얼굴 보존) 위에 신경망 화풍(모네의 색·붓결)을 섞는다
+//   styled 가 없으면(실패·품질 미달) 회화 필터만. 얼굴 둘레는 화풍 비중을 줄여 그 사람으로 읽히게
+export function finishPortrait(styled, comp, face, painterly, detail = 0.16) {
   const W = WORK_W, H = WORK_H;
-  const up = canvas(W, H), ug = up.getContext('2d'); ug.imageSmoothingQuality = 'high'; ug.drawImage(styled, 0, 0, W, H);
-  const s = ug.getImageData(0, 0, W, H), sd = s.data;
+  const up = canvas(W, H), ug = up.getContext('2d'); ug.imageSmoothingQuality = 'high';
+  ug.drawImage(painterly || comp, 0, 0, W, H);
+  const base = ug.getImageData(0, 0, W, H);
+  let nd = null;
+  if (styled) { const tmp = canvas(W, H), tg = tmp.getContext('2d'); tg.imageSmoothingQuality = 'high'; tg.drawImage(styled, 0, 0, W, H); nd = tg.getImageData(0, 0, W, H).data; }
+  const s = base, sd = s.data;
+  if (nd) {
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const p = (y * W + x) * 4;
+      let w = 0.55;
+      if (face) { const dx = x / W - face.cx, dy = (y / H - face.cy) * 1.33; w -= 0.3 * Math.exp(-(dx * dx + dy * dy) / (face.r * face.r * 1.4)); }
+      sd[p] += (nd[p] - sd[p]) * w; sd[p + 1] += (nd[p + 1] - sd[p + 1]) * w; sd[p + 2] += (nd[p + 2] - sd[p + 2]) * w;
+    }
+  }
   const o = comp.getContext('2d').getImageData(0, 0, W, H).data;
   // 원본 명암 세부(고주파) — 얼굴 주변은 조금 더 남겨 닮음 유지
   const lum = new Float32Array(W * H);
@@ -390,7 +425,7 @@ export function finishPortrait(styled, comp, face, detail = 0.2) {
     // 오래된 바니시 — 아주 약하게 따뜻하게, 대비 살짝
     r = (r - 128) * 1.06 + 128 + 5; g = (g - 128) * 1.06 + 128 + 2; b = (b - 128) * 1.06 + 128 - 4;
     const nx = x / W - 0.5, ny = y / H - 0.5;
-    const vig = 1 - 0.38 * smooth(0.3, 0.78, Math.sqrt(nx * nx + ny * ny * 0.8));
+    const vig = 1 - (painterly ? 0.16 : 0.38) * smooth(0.3, 0.78, Math.sqrt(nx * nx + ny * ny * 0.8));
     const weave = (Math.sin(x * 1.6) * Math.sin(y * 1.6)) * 0.5 + 0.5;
     const tex = 0.96 + 0.05 * weave + (R() - 0.5) * 0.03;
     sd[p] = clamp(r * vig * tex, 0, 255); sd[p + 1] = clamp(g * vig * tex, 0, 255); sd[p + 2] = clamp(b * vig * tex, 0, 255);
@@ -398,6 +433,22 @@ export function finishPortrait(styled, comp, face, detail = 0.2) {
   ug.putImageData(s, 0, 0);
   return framePainting(up);
 }
+// 신경망 결과 검사 — 원본과 명암 구조가 닮지 않으면(낙서처럼 깨진 출력) 버린다
+export function styledLooksValid(styled, comp) {
+  const w = 48, h = 64;
+  const a = canvas(w, h), b = canvas(w, h);
+  a.getContext('2d').drawImage(styled, 0, 0, w, h); b.getContext('2d').drawImage(comp, 0, 0, w, h);
+  const da = a.getContext('2d').getImageData(0, 0, w, h).data, db = b.getContext('2d').getImageData(0, 0, w, h).data;
+  const n = w * h, la = new Float32Array(n), lb = new Float32Array(n);
+  let ma = 0, mb = 0;
+  for (let i = 0; i < n; i++) { la[i] = da[i * 4] * 0.3 + da[i * 4 + 1] * 0.59 + da[i * 4 + 2] * 0.11; lb[i] = db[i * 4] * 0.3 + db[i * 4 + 1] * 0.59 + db[i * 4 + 2] * 0.11; ma += la[i]; mb += lb[i]; }
+  ma /= n; mb /= n;
+  let sab = 0, saa = 0, sbb = 0;
+  for (let i = 0; i < n; i++) { const x = la[i] - ma, y = lb[i] - mb; sab += x * y; saa += x * x; sbb += y * y; }
+  const corr = sab / Math.sqrt(saa * sbb + 1e-6), sd = Math.sqrt(saa / n);
+  return { ok: corr > 0.45 && sd > 12 && ma > 15 && ma < 240, corr, sd, mean: ma };
+}
+
 // 금박 액자 — 절차 생성 (카드와 같은 크기 → 비교 슬라이더가 정확히 겹친다)
 export function framePainting(painting) {
   const out = canvas(CARD_W, CARD_H), g = out.getContext('2d');
@@ -425,6 +476,7 @@ export function framePainting(painting) {
   g.fillStyle = lip; g.fillRect(F, F, iw, 18); g.fillRect(F, F, 18, ih);
   g.restore();
   g.strokeStyle = 'rgba(40,26,10,.8)'; g.lineWidth = 2; g.strokeRect(F - 1, F - 1, iw + 2, ih + 2);
+  eraPlate(g, CARD_W / 2, CARD_H - F / 2, ERA_PAINT);
   return out;
 }
 function shade(hex, k) {
