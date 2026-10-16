@@ -6,10 +6,10 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=7';
+import SCENES from './scenes.js?v=10';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=8', import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=10', import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -83,8 +83,8 @@ export function createTour({ stage, plan, onZone }) {
   const bReset = el('button', 'v3d-btn', '처음 시점'); bReset.type = 'button';
   const bFull = el('button', 'v3d-btn', '전체화면'); bFull.type = 'button';
   tools.append(bReset, bFull);
-  const hint = el('p', 'v3d-hint', isSmall() ? '한 손가락으로 돌려보기 · 두 손가락으로 확대·이동' : '드래그로 돌려보기 · 스크롤로 확대 · 오른쪽 드래그로 이동');
-  stage.append(canvasWrap, bar, tools, hint);
+  const hint = el('p', 'v3d-hint', isSmall() ? '한 손가락으로 돌려보기 · 두 손가락으로 확대·이동' : '드래그로 돌려보기 · Ctrl(⌘)+스크롤로 확대 · 오른쪽 드래그로 이동');
+  stage.prepend(canvasWrap); stage.append(bar, tools, hint);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, isSmall() ? 1.5 : 2));
@@ -102,6 +102,11 @@ export function createTour({ stage, plan, onZone }) {
   Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, rotateSpeed: 0.55, zoomSpeed: 0.8, panSpeed: 0.8, screenSpacePanning: true,
     minDistance: 0.35, maxDistance: 14, minPolarAngle: Math.PI * 0.08, maxPolarAngle: Math.PI * 0.7 });
   controls.target.copy(home.tgt); controls.update();
+  // 화면을 채우는 캔버스가 페이지 스크롤을 막지 않도록: 일반 휠은 페이지로, Ctrl/⌘+휠(트랙패드 핀치 포함)과 전체화면에서만 확대
+  canvasWrap.addEventListener('wheel', (e) => {
+    const full = stage.classList.contains('is-full') || document.fullscreenElement === stage;
+    if (!(e.ctrlKey || e.metaKey || full)) e.stopPropagation();
+  }, { capture: true });
 
   let dirty = true;
   const fit = () => {
@@ -195,7 +200,7 @@ export function createTour({ stage, plan, onZone }) {
       const t = Math.min(1, (performance.now() - fly.t0) / fly.dur), k = ease(t);
       camera.position.lerpVectors(fly.p0, fly.p1, k); controls.target.lerpVectors(fly.q0, fly.q1, k);
       camera.lookAt(controls.target); moved = true;
-      if (t >= 1) { fly = null; controls.update(); queueOccl(); }
+      if (t >= 1) { fly = null; controls.update(); queueOccl(); setTimeout(queueOccl, 600); }
     } else {
       moved = controls.update();
       let cl = clampToBoxes(camera.position); cl = clampToBoxes(controls.target) || cl;

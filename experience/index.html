@@ -75,52 +75,80 @@ ol.flow span{color:var(--dim);font-size:15px}
 .fly{font-family:var(--display);font-weight:600;font-size:14px;color:var(--point);text-decoration:underline;text-underline-offset:4px}
 .fly:hover,.fly:focus-visible{color:var(--ink)}
 
-/* 4층 전체 3D 둘러보기 */
-.tour{padding-block:48px 40px;border-bottom:1px solid var(--line);display:grid;gap:16px}
-.tour h2{font-size:clamp(22px,3vw,28px);font-weight:800;line-height:1.3}
-.tour .sub{color:var(--dim);font-size:15px}
-.plan{display:block;width:100%;height:auto;background:var(--panel)}
-.plan .ctx{fill:none;stroke:var(--line);stroke-width:1px;vector-effect:non-scaling-stroke}
-.plan .ctxt{fill:var(--dim);font-family:var(--body);font-size:.75px}
-.plan .z{cursor:pointer;outline:none}
-.plan .z>rect,.plan .z>polygon{fill:var(--bg);stroke:var(--ink);stroke-width:1.2px;vector-effect:non-scaling-stroke;transition:fill .15s}
-.plan .z.corr>rect{fill:var(--panel)}
-.plan .z:hover>rect,.plan .z:hover>polygon,.plan .z:focus-visible>rect,.plan .z:focus-visible>polygon{fill:color-mix(in srgb,var(--point) 18%,var(--bg))}
-.plan .z.on>rect,.plan .z.on>polygon{fill:var(--point)}
-.plan .z text{fill:var(--ink);font-family:var(--display);font-weight:800;font-size:1.05px;text-anchor:middle;pointer-events:none}
-.plan .z text.nm{font-family:var(--body);font-weight:600;font-size:.7px}
-.plan .z.on text{fill:#FFFFFF}
-.plan .win{stroke:var(--dim);stroke-width:2px;vector-effect:non-scaling-stroke}
-.plan .curtain{stroke:var(--point);stroke-width:1.2px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
-.plan .door{stroke:var(--panel);stroke-width:3px;vector-effect:non-scaling-stroke}
-.plan .you{pointer-events:none;display:none}
-.plan.live .you{display:inline}
-.plan .you path{fill:var(--point);opacity:.35}
-.plan .you circle{fill:var(--point);stroke:#FFFFFF;stroke-width:1.5px;vector-effect:non-scaling-stroke}
-@media (max-width:640px){.plan .z text.nm,.plan .z text.cl{display:none}.plan .z text{font-size:1.5px}.plan .ctxt{font-size:1.1px}}
-.zchips{display:flex;flex-wrap:wrap;gap:6px}
-.zchips button{height:34px;padding:0 12px;background:transparent;color:var(--ink);border:1px solid var(--line);font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer}
-.zchips button:hover,.zchips button:focus-visible{border-color:var(--ink)}
-.zchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.v3d-stage{position:relative;aspect-ratio:16/9;background:#1B1B1A;overflow:hidden;color:#F2F2F0}
-@media (max-width:640px){.v3d-stage{aspect-ratio:auto;height:60vh;min-height:320px}}
-.v3d-stage.is-full{position:fixed;inset:0;z-index:100;aspect-ratio:auto;height:100%}
-.v3d-stage:fullscreen{aspect-ratio:auto;height:100%;width:100%}
-.poster{position:absolute;inset:0;display:grid;place-items:center;background:#1B1B1A center/cover no-repeat}
-.poster::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.35)}
-.poster button{position:relative;display:grid;gap:2px;justify-items:center;padding:14px 22px;background:var(--point);color:#FFFFFF;border:0;font-family:var(--display);font-weight:800;font-size:16px;cursor:pointer}
-.poster button small{font-family:var(--body);font-weight:400;font-size:12px;opacity:.9}
-.poster button:hover,.poster button:focus-visible{background:#111111}
-.v3d-canvas{position:absolute;inset:0}
+/* 4층 전체 3D: 화면을 채우는 캔버스 + 위에 뜨는 평면도·구역 버튼·설명 */
+.tour{margin-inline:-20px;border-bottom:1px solid var(--line)}
+.v3d-stage{position:relative;height:100vh;height:100svh;min-height:420px;background:#1B1B1A;overflow:hidden;color:#F2F2F0;isolation:isolate}
+.v3d-stage.is-full{position:fixed;inset:0;z-index:100;height:100%}
+.v3d-stage:fullscreen{height:100%;width:100%}
+.v3d-canvas{position:absolute;inset:0;z-index:0}
 .v3d-canvas canvas{display:block;width:100%!important;height:100%!important}
 .v3d-labels{position:absolute!important;inset:0;touch-action:none}
 .v3d-pin{border:0;padding:0;cursor:pointer;box-shadow:0 0 0 2px #FFFFFF,0 2px 10px rgba(0,0,0,.45);transition:opacity .2s}
 .v3d-pin.hid{opacity:.28}
-.v3d-tools{position:absolute;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.v3d-btn{height:34px;padding:0 12px;background:rgba(17,17,17,.74);color:#FFFFFF;border:1px solid rgba(255,255,255,.18);font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer}
+.poster{position:absolute;inset:0;z-index:1;display:grid;place-items:center;background:#1B1B1A center/cover no-repeat}
+.poster::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.poster button{position:relative;display:grid;gap:2px;justify-items:center;padding:14px 22px;background:var(--point);color:#FFFFFF;border:0;font-family:var(--display);font-weight:800;font-size:16px;cursor:pointer}
+.poster button small{font-family:var(--body);font-weight:400;font-size:12px;opacity:.9}
+.poster button:hover,.poster button:focus-visible{background:#111111}
+/* 오버레이: 빈 곳은 캔버스로 통과, 패널·버튼만 클릭을 받는다 */
+.ov{position:absolute;z-index:5;pointer-events:none}
+.ov-cap{pointer-events:auto}
+.ov>*{pointer-events:auto}
+.glass{background:rgba(20,20,19,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12)}
+.ov-top{top:12px;left:12px;right:236px;display:grid;justify-items:start;gap:8px}
+.ov-bar{display:flex;gap:6px;align-items:center;max-width:100%}
+.zchips{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:4px;max-width:100%}
+.zchips::-webkit-scrollbar{display:none}
+.zchips button,.ov-toggle,.v3d-btn{flex:none;height:32px;padding:0 11px;background:transparent;color:#F2F2F0;border:0;font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+.zchips button:hover,.zchips button:focus-visible,.ov-toggle:hover,.ov-toggle:focus-visible{background:rgba(255,255,255,.12)}
+.zchips button[aria-pressed="true"]{background:var(--point);color:#FFFFFF}
+.ov-toggle{height:40px}
+.ov-plan{width:340px;max-width:100%;padding:8px 8px 6px}
+.ov-plan[hidden]{display:none}
+.ov-plan .ttl{display:block;font-family:var(--display);font-weight:600;font-size:11px;letter-spacing:.12em;color:rgba(255,255,255,.6);margin:0 2px 4px}
+.plan{display:block;width:100%;height:auto}
+.plan .ctx{fill:none;stroke:rgba(255,255,255,.22);stroke-width:1px;vector-effect:non-scaling-stroke}
+.plan .ctxt{fill:rgba(255,255,255,.45);font-family:var(--body);font-size:1.2px}
+.plan .z{cursor:pointer;outline:none}
+.plan .z>rect,.plan .z>polygon{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.75);stroke-width:1px;vector-effect:non-scaling-stroke;transition:fill .15s}
+.plan .z.corr>rect{fill:rgba(255,255,255,.02)}
+.plan .z:not(.corr)>rect,.plan .z>polygon{fill:#2B2B29}
+.plan .z:hover>rect,.plan .z:hover>polygon,.plan .z:focus-visible>rect,.plan .z:focus-visible>polygon{fill:rgba(226,115,61,.35)}
+.plan .z.on>rect,.plan .z.on>polygon{fill:var(--point)}
+.plan .z text{fill:#FFFFFF;font-family:var(--display);font-weight:800;font-size:1.7px;text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.plan .z text.nm,.plan .z text.cl{display:none}
+.plan .win{stroke:rgba(255,255,255,.5);stroke-width:2px;vector-effect:non-scaling-stroke}
+.plan .curtain{stroke:var(--point);stroke-width:1.2px;stroke-dasharray:3 2;vector-effect:non-scaling-stroke}
+.plan .door{stroke:#1B1B1A;stroke-width:3px;vector-effect:non-scaling-stroke}
+.plan .you{pointer-events:none;display:none}
+.plan.live .you{display:inline}
+.plan .you path{fill:#FFFFFF;opacity:.45}
+.plan .you circle{fill:#FFFFFF;stroke:var(--point);stroke-width:2px;vector-effect:non-scaling-stroke}
+.v3d-tools{position:absolute;z-index:6;top:12px;right:12px;display:flex;gap:4px;padding:4px}
+.v3d-tools{background:rgba(20,20,19,.72);border:1px solid rgba(255,255,255,.12)}
 .v3d-btn:hover,.v3d-btn:focus-visible{background:var(--point)}
-.v3d-hint{position:absolute;left:12px;bottom:10px;right:12px;font-size:12px;color:rgba(255,255,255,.82);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.6)}
-.v3d-load{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;font-size:13px;text-align:center;padding:20px}
+.ov-cap{left:12px;bottom:12px;max-width:min(440px,calc(100% - 24px));padding:10px 14px;display:grid;gap:2px}
+.ov-cap b{font-family:var(--display);font-weight:800;font-size:16px}
+.ov-cap span{font-size:13px;line-height:1.5;color:rgba(255,255,255,.82)}
+.ov-cap a{font-family:var(--display);font-weight:600;font-size:12px;color:#F0A27A;text-decoration:none;margin-top:2px}
+.ov-cap a:hover,.ov-cap a:focus-visible{text-decoration:underline}
+.v3d-hint{position:absolute;z-index:4;right:14px;bottom:12px;margin:0;font-size:12px;color:rgba(255,255,255,.8);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+@media (max-width:820px){.v3d-hint{display:none}}
+@media (max-width:640px){
+  .v3d-stage{height:82svh;min-height:380px}
+  .v3d-stage.is-full,.v3d-stage:fullscreen{height:100%}
+  .ov-top{left:8px;right:8px;top:8px}
+  .ov-bar{width:100%}
+  .ov-bar{overflow:hidden}
+  .zchips{flex:1 1 0;min-width:0;max-width:none}
+  .ov-toggle{order:-1;border-right:1px solid rgba(255,255,255,.18)}
+  .ov-plan{width:100%}
+  .v3d-tools{top:auto;bottom:8px;right:8px}
+  .ov-cap{left:8px;bottom:8px;max-width:calc(100% - 196px);padding:8px 10px}
+  .ov-cap b{font-size:14px}
+  .ov-cap span{display:none}
+}
+.v3d-load{position:absolute;z-index:3;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;font-size:13px;text-align:center;padding:20px}
 .v3d-load-track{width:min(240px,60vw);height:3px;background:rgba(255,255,255,.18)}
 .v3d-load-track i{display:block;height:100%;width:0;background:var(--point);transition:width .15s}
 .v3d-load.err .v3d-load-track{display:none}
@@ -147,29 +175,20 @@ a{color:inherit}
 <body>
 
 
-<div class="wrap">
-<header class="cover">
-  <div class="cap">MONET 100 · 4F 체험 구성</div>
-  <h1>체험 구성안</h1>
-  <p class="lead">4층 여섯 개 체험의 공간과 체험장치 구성입니다. 공간 시각화 위 번호는 아래 '체험장치 구성'의 번호와 같고, 맨 위 4층 평면도에서 공간을 누르면 3D로 그 공간을 돌려보고 확대해 볼 수 있습니다.</p>
-  <p class="assume">평면도에 축척 표기가 없어, 공간 치수는 에스컬레이터 길이를 기준으로 역산한 추정치입니다. 실측 도면을 받으면 같은 구성으로 치수만 갱신합니다.</p>
-</header>
-
-<nav class="toc" aria-label="체험 목록">
-  <a href="#c0"><b>C0</b><span>아카데미 살롱</span><small>미션 · 올해의 그림</small></a>
-  <a href="#c1"><b>C1</b><span>시민사회</span><small>미션 · 모리스 칼럼</small></a>
-  <a href="#c2"><b>C2</b><span>산업혁명</span><small>미션 · 다음 목적지</small></a>
-  <a href="#c3"><b>C3</b><span>화가의 아틀리에</span><small>미션 · 튜브물감</small></a>
-  <a href="#c4"><b>C4</b><span>나다르 사진관</span><small>현장 · 초상 촬영</small></a>
-  <a href="#c5"><b>C5</b><span>모네 전시관</span><small>미션 · 인상, 해돋이</small></a>
-</nav>
-
-<!-- 4층 전체 3D -->
+<!-- 4층 전체 3D: 화면을 채우는 캔버스 위에 평면도·구역 버튼·설명을 띄운다 -->
 <section class="tour" id="tour" aria-label="4층 3D 둘러보기">
-  <div class="cap">4F · 3D</div>
-  <h2>4층 전체 3D 둘러보기</h2>
-  <p class="sub">평면도에서 공간을 누르면 그 공간으로 카메라가 이동합니다. 이동한 뒤에도 자유롭게 돌려보고 확대할 수 있습니다.</p>
-  <svg class="plan" viewBox="-26 -1.9 37.6 11.4" role="group" aria-label="4층 평면도">
+  <div class="v3d-stage" id="tour-stage">
+    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 10MB</small></button></div>
+    <div class="ov ov-top">
+      <div class="ov-bar glass">
+        <div class="zchips" role="group" aria-label="공간 선택">
+            <button type="button" data-zone="c0" aria-pressed="false">C0 살롱</button><button type="button" data-zone="corridor" aria-pressed="false">복도 전체</button><button type="button" data-zone="c1" aria-pressed="false">C1 시민사회</button><button type="button" data-zone="c2" aria-pressed="false">C2 산업혁명</button><button type="button" data-zone="c3" aria-pressed="false">C3 아틀리에</button><button type="button" data-zone="c4" aria-pressed="false">C4 나다르</button><button type="button" data-zone="c5" aria-pressed="false">C5 모네관</button>
+          </div>
+        <button type="button" class="ov-toggle" aria-controls="ov-plan" aria-expanded="true">평면도 접기</button>
+      </div>
+      <div class="ov-plan glass" id="ov-plan">
+        <span class="ttl">4F 평면도 · 누르면 그 공간으로 이동</span>
+        <svg class="plan" viewBox="-26 -1.9 37.6 11.4" role="group" aria-label="4층 평면도">
     <rect class="ctx" x="-17.5" y="4.8" width="20.1" height="4.7"/><text class="ctxt" x="-7.6" y="7.6" text-anchor="middle">E 미디어 전시</text>
     <rect class="ctx" x="3.9" y="4.8" width="2.35" height="4.7"/><text class="ctxt" x="5.07" y="7.6" text-anchor="middle">A</text>
     <g class="z corr" data-zone="corridor" role="button" tabindex="0" aria-label="복도 전체 보기"><rect x="-19.25" y="-0.7" width="25.35" height="5.2"/><text class="cl" x="-6.6" y="4.05">C 변화의 복도 · 전체</text></g>
@@ -184,13 +203,30 @@ a{color:inherit}
     <line class="door" x1="6.17" y1="-0.1" x2="6.17" y2="1.0"/><line class="door" x1="-19.33" y1="0.7" x2="-19.33" y2="2.3"/>
     <g class="you"><path d="M0 0 L2.4 -1.3 L2.4 1.3 Z"/><circle r="0.45"/></g>
   </svg>
-  <div class="zchips" role="group" aria-label="공간 선택">
-    <button type="button" data-zone="c0" aria-pressed="false">C0 살롱</button><button type="button" data-zone="corridor" aria-pressed="false">복도 전체</button><button type="button" data-zone="c1" aria-pressed="false">C1 시민사회</button><button type="button" data-zone="c2" aria-pressed="false">C2 산업혁명</button><button type="button" data-zone="c3" aria-pressed="false">C3 아틀리에</button><button type="button" data-zone="c4" aria-pressed="false">C4 나다르</button><button type="button" data-zone="c5" aria-pressed="false">C5 모네관</button>
-  </div>
-  <div class="v3d-stage" id="tour-stage">
-    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 10MB</small></button></div>
+      </div>
+    </div>
+    <div class="ov ov-cap glass" aria-live="polite"><b>C 변화의 복도</b><span>앞면이 열린 부스 4개가 흰 홀을 따라 이어집니다.</span><a href="#corridor">이 공간 설명 보기 ↓</a></div>
   </div>
 </section>
+
+<div class="wrap">
+<header class="cover">
+  <div class="cap">MONET 100 · 4F 체험 구성</div>
+  <h1>체험 구성안</h1>
+  <p class="lead">4층 여섯 개 체험의 공간과 체험장치 구성입니다. 공간 시각화 위 번호는 아래 '체험장치 구성'의 번호와 같고, 맨 위 3D 화면에서 평면도나 구역 버튼을 누르면 그 공간으로 이동해 돌려보고 확대해 볼 수 있습니다.</p>
+  <p class="assume">평면도에 축척 표기가 없어, 공간 치수는 에스컬레이터 길이를 기준으로 역산한 추정치입니다. 실측 도면을 받으면 같은 구성으로 치수만 갱신합니다.</p>
+</header>
+
+<nav class="toc" aria-label="체험 목록">
+  <a href="#c0"><b>C0</b><span>아카데미 살롱</span><small>미션 · 올해의 그림</small></a>
+  <a href="#c1"><b>C1</b><span>시민사회</span><small>미션 · 모리스 칼럼</small></a>
+  <a href="#c2"><b>C2</b><span>산업혁명</span><small>미션 · 다음 목적지</small></a>
+  <a href="#c3"><b>C3</b><span>화가의 아틀리에</span><small>미션 · 튜브물감</small></a>
+  <a href="#c4"><b>C4</b><span>나다르 사진관</span><small>현장 · 초상 촬영</small></a>
+  <a href="#c5"><b>C5</b><span>모네 전시관</span><small>미션 · 인상, 해돋이</small></a>
+</nav>
+
+
 
 <!-- C0 -->
 <section class="zone" id="c0">
@@ -454,14 +490,31 @@ a{color:inherit}
 </div>
 
 <script type="module">
-// 3D는 '3D로 보기'나 평면도를 처음 누를 때만 불러온다 (three.js + floor.glb 지연 로드)
-const stage = document.getElementById('tour-stage'), plan = document.querySelector('.plan'), tour = document.getElementById('tour');
+// 3D는 '3D로 보기'(휴대폰)나 데스크톱 자동 로드로 시작한다 (three.js + floor.glb 지연 로드)
+const stage = document.getElementById('tour-stage'), plan = stage.querySelector('.plan'), panel = document.getElementById('ov-plan');
+const toggle = stage.querySelector('.ov-toggle'), cap = stage.querySelector('.ov-cap');
+const ZINFO = {
+  c0: ['C0 아카데미 살롱', '1873년 살롱 전시장. 후보작 5점 중 올해의 그림을 고릅니다.'],
+  corridor: ['C 변화의 복도', '앞면이 열린 부스 4개가 흰 홀을 따라 이어집니다.'],
+  c1: ['C1 시민사회', '카페 게르부아 정면과 실물 크기 모리스 칼럼.'],
+  c2: ['C2 산업혁명', '사업가의 방에서 단서로 다음 목적지를 찾습니다.'],
+  c3: ['C3 화가의 아틀리에', '야외와 실내 오브제 중 화가를 밖으로 이끈 물건을 찾습니다.'],
+  c4: ['C4 나다르 사진관', '사진관 정면에서 촬영하고, 액자 화면에서 사진을 받습니다.'],
+  c5: ['C5 모네 전시관', '〈인상, 해돋이〉 한 점과 가벽 뒤 모네의 연작.'],
+};
 let tourP = null;
-const onZone = (z) => document.querySelectorAll('.zchips button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.zone === z)));
+const onZone = (z) => {
+  stage.querySelectorAll('.zchips button').forEach((b) => {
+    const on = b.dataset.zone === z; b.setAttribute('aria-pressed', String(on));
+    if (on) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  });
+  const [t, d] = ZINFO[z] || ZINFO.corridor;
+  cap.querySelector('b').textContent = t; cap.querySelector('span').textContent = d; cap.querySelector('a').href = '#' + z;
+};
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=9').then((m) => m.createTour({ stage, plan, onZone }));
+    tourP = import('./js/tour.js?v=12').then((m) => m.createTour({ stage, plan, onZone }));
   }
   return tourP;
 }
@@ -471,10 +524,16 @@ plan.querySelectorAll('.z').forEach((g) => {
   g.addEventListener('click', () => go(g.dataset.zone));
   g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(g.dataset.zone); } });
 });
-document.querySelectorAll('.zchips button').forEach((b) => b.addEventListener('click', () => go(b.dataset.zone)));
+stage.querySelectorAll('.zchips button').forEach((b) => b.addEventListener('click', () => go(b.dataset.zone)));
+// 평면도 접기/펼치기 — 좁은 화면은 접힌 상태(구역 버튼 줄만)로 시작
+const setPlan = (open) => { panel.hidden = !open; toggle.setAttribute('aria-expanded', String(open)); toggle.textContent = open ? '평면도 접기' : '평면도'; };
+setPlan(!matchMedia('(max-width: 640px)').matches);
+toggle.addEventListener('click', () => setPlan(panel.hidden));
 document.querySelectorAll('[data-fly]').forEach((a) => a.addEventListener('click', (e) => {
-  e.preventDefault(); tour.scrollIntoView({ behavior: 'smooth', block: 'start' }); go(a.dataset.fly);
+  e.preventDefault(); stage.scrollIntoView({ behavior: 'smooth', block: 'start' }); go(a.dataset.fly);
 }));
+// 데스크톱(넓은 화면 + 마우스)은 바로 불러온다
+if (matchMedia('(min-width: 900px) and (pointer: fine)').matches) start().then((t) => t.flyTo('corridor'));
 // 장치 목록 ↔ 사진 번호 강조
 for (const z of document.querySelectorAll('.zone')) {
   const set = (n, on) => z.querySelectorAll(`.pins [data-n="${n}"], .devices [data-n="${n}"]`).forEach((e) => e.classList.toggle('on', on));
