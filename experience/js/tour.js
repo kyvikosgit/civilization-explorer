@@ -6,10 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=21';
+import SCENES from './scenes.js?v=22';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=21', import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=22' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -436,6 +436,9 @@ export function createTour({ stage, plan, onZone, onPin }) {
     const z = T.pending; T.zone = null; T.flyTo(z, true); relight(true); dirty = true;
     return T;
   }).catch((err) => { pct.textContent = '3D 공간을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'; bar.classList.add('err'); console.warn(err); });
+  // 점검용(?debug): 콘솔에서 시점 지정·캡처
+  if (/[?&]debug\b/.test(location.search)) window.__tour = { T, camera, V, renderer, scene, setPose: (x, z, yawDeg, pitchDeg = 0) => { camera.position.set(x, EYE, z); V.yaw = V.yawT = THREE.MathUtils.degToRad(yawDeg); V.pitch = V.pitchT = THREE.MathUtils.degToRad(pitchDeg); zoneLock = null; dirty = true; afterMove(); },
+    snap: (w = 1600, h = 1000) => { const s = new THREE.Vector2(); renderer.getSize(s); const a = camera.aspect; camera.rotation.set(V.pitch, V.yaw, 0); camera.position.y = EYE; relight(true); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.render(scene, camera); const u = renderer.domElement.toDataURL('image/jpeg', 0.9); renderer.setSize(s.x, s.y, false); camera.aspect = a; camera.updateProjectionMatrix(); dirty = true; return u; } };
   const prevFly = T.flyTo;
   T.flyTo = (z, instant) => { if (!T.ready) { T.pending = z; plan.querySelectorAll('[data-zone]').forEach((e) => e.classList.toggle('on', e.dataset.zone === z)); onZone?.(z); return; } prevFly(z, instant); };
   tick();
