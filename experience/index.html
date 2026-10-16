@@ -82,7 +82,14 @@ ol.flow span{color:var(--dim);font-size:15px}
 .v3d-stage:fullscreen{height:100%;width:100%}
 .v3d-canvas{position:absolute;inset:0;z-index:0}
 .v3d-canvas canvas{display:block;width:100%!important;height:100%!important}
-.v3d-labels{position:absolute!important;inset:0;touch-action:none}
+.v3d-labels{position:absolute!important;inset:0;touch-action:none;cursor:grab}
+.v3d-labels:active{cursor:grabbing}
+.v3d-fade{position:absolute;inset:0;z-index:4;background:#000;opacity:0;pointer-events:none;transition:opacity .25s}
+.v3d-fade.on{opacity:1}
+.v3d-pad{position:absolute;z-index:6;right:12px;bottom:12px;display:grid;grid-template-columns:repeat(3,36px);grid-template-rows:36px 36px;gap:4px;padding:4px;background:rgba(20,20,19,.72);border:1px solid rgba(255,255,255,.12)}
+.v3d-pad button{width:36px;height:36px;padding:0;border:0;background:rgba(255,255,255,.08);color:#F2F2F0;font-size:13px;cursor:pointer}
+.v3d-pad button:hover,.v3d-pad button:focus-visible{background:var(--point)}
+.v3d-pad [data-k=fwd]{grid-column:2;grid-row:1}.v3d-pad [data-k=left]{grid-column:1;grid-row:2}.v3d-pad [data-k=back]{grid-column:2;grid-row:2}.v3d-pad [data-k=right]{grid-column:3;grid-row:2}
 .v3d-pin{border:0;padding:0;cursor:pointer;box-shadow:0 0 0 2px #FFFFFF,0 2px 10px rgba(0,0,0,.45);transition:opacity .2s}
 .v3d-pin.hid{opacity:.28}
 .poster{position:absolute;inset:0;z-index:1;display:grid;place-items:center;background:#1B1B1A center/cover no-repeat}
@@ -132,7 +139,7 @@ ol.flow span{color:var(--dim);font-size:15px}
 .ov-cap span{font-size:13px;line-height:1.5;color:rgba(255,255,255,.82)}
 .ov-cap a{font-family:var(--display);font-weight:600;font-size:12px;color:#F0A27A;text-decoration:none;margin-top:2px}
 .ov-cap a:hover,.ov-cap a:focus-visible{text-decoration:underline}
-.v3d-hint{position:absolute;z-index:4;right:14px;bottom:12px;margin:0;font-size:12px;color:rgba(255,255,255,.8);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.v3d-hint{position:absolute;z-index:4;right:150px;bottom:16px;margin:0;font-size:12px;color:rgba(255,255,255,.8);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.6)}
 @media (max-width:820px){.v3d-hint{display:none}}
 @media (max-width:640px){
   .v3d-stage{height:82svh;min-height:380px}
@@ -144,6 +151,8 @@ ol.flow span{color:var(--dim);font-size:15px}
   .ov-toggle{order:-1;border-right:1px solid rgba(255,255,255,.18)}
   .ov-plan{width:100%}
   .v3d-tools{top:auto;bottom:8px;right:8px}
+  .v3d-pad{right:8px;bottom:60px;grid-template-columns:repeat(3,40px);grid-template-rows:40px 40px}
+  .v3d-pad button{width:40px;height:40px}
   .ov-cap{left:8px;bottom:8px;max-width:calc(100% - 196px);padding:8px 10px}
   .ov-cap b{font-size:14px}
   .ov-cap span{display:none}
@@ -514,7 +523,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=13').then((m) => m.createTour({ stage, plan, onZone }));
+    tourP = import('./js/tour.js?v=15').then((m) => m.createTour({ stage, plan, onZone }));
   }
   return tourP;
 }

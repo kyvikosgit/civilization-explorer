@@ -1,9 +1,9 @@
 // 4층 전체 3D 둘러보기 — 한 장면(floor.glb: B 살롱 · C 복도와 부스 4개 · D 모네관)에 카메라만 옮겨 다닌다.
-// 평면도의 구역을 누르면 그 구역의 스틸과 같은 구도로 카메라가 이동하고, 평면도에는 현재 카메라 위치가 표시된다.
+// 1인칭 눈높이(1.6 m) 둘러보기: 끌면 제자리에서 시선이 돌고, 바닥을 누르거나 WASD·방향키로 걷는다. 벽·가벽·가구는 통과하지 못한다.
+// 평면도·구역 버튼을 누르면 그 구역의 스틸과 같은 자리·방향으로 이동하고, 평면도에는 현재 위치와 시선 방향이 표시된다.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import SCENES from './scenes.js?v=10';
@@ -13,36 +13,80 @@ const MODEL = new URL('../models/floor.glb?v=10', import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
-// 카메라·회전 중심이 다닐 수 있는 범위: Blender 좌표(m, z-up) 상자 합집합 [x0, y0, z0, x1, y1, z1]
+// 걸을 수 있는 바닥: Blender 좌표(m, z-up) 직사각형 합집합 [x0, y0, x1, y1] (평면도 기준). 이 안에서도 벽·가벽·가구 자리는 막힌다.
 const WALK = [
-  [-19.0, -4.3, 0.3, 6.0, -2.6, 5.8],     // C 복도 보행로
-  [-15.2, -2.9, 0.3, 2.0, -0.3, 3.3],     // C-4 ~ C-1 부스 안쪽
-  [2.3, -4.3, 0.3, 6.0, 0.4, 5.8],        // C-1 옆 ~ 커튼선 너머
-  [5.5, -0.9, 0.3, 6.8, 0.0, 2.4],        // B 살롱 출입문
-  [6.45, -5.6, 0.3, 10.05, 0.45, 3.9],    // B 아카데미 살롱
-  [-19.9, -2.15, 0.3, -18.2, -0.85, 2.4], // D 입구
-  [-24.05, -6.0, 0.3, -19.65, 0.4, 3.9],  // D 모네 전시관
+  [-19.25, -4.5, 6.1, -2.6],    // C 복도 보행로
+  [-15.3, -2.95, 2.1, -0.05],   // C-4 ~ C-1 부스 안쪽
+  [2.2, -4.5, 6.1, 0.7],        // C-1 옆 ~ 커튼선 너머
+  [5.6, -1.0, 6.7, 0.1],        // B 살롱 출입문
+  [6.25, -5.8, 10.25, 0.7],     // B 아카데미 살롱
+  [-20.0, -2.3, -18.9, -0.7],   // D 입구
+  [-25.2, -6.3, -19.25, 0.7],   // D 모네 전시관
 ];
-const BOXES = WALK.map(([x0, y0, z0, x1, y1, z1]) => new THREE.Box3(new THREE.Vector3(x0, z0, -y1), new THREE.Vector3(x1, z1, -y0)));
-// 현재 구역 판정(회전 중심 기준, Blender x/y): 평면도 강조와 번호 표시에 씀
+// 현재 구역 판정(시선 앞 1.5 m 지점, Blender x/y): 평면도 강조와 번호 표시에 씀
 const REGIONS = [
   ['c0', 6.2, -6.0, 10.4, 0.9], ['c5', -25.5, -6.5, -19.3, 0.9],
   ['c1', -2.2, -2.9, 2.2, 0.7], ['c2', -6.6, -2.9, -2.2, 0.7], ['c3', -11.0, -2.9, -6.6, 0.7], ['c4', -15.4, -2.9, -11.0, 0.7],
 ];
-// 구역별 처음 시점: 스틸 카메라 위치·방향 그대로, 회전 중심만 공간 안쪽으로
-const TDIST = { c1: 4.2, c2: 3.0, c3: 3.0, c4: 3.0, corridor: 6.0 };
+const EYE = 1.6;
+// 구역별 처음 자리: 스틸 카메라 위치(눈높이 1.6 m)와 시선 방향(렌즈 시프트는 살짝 올려다보는 각도로)
 const PRESETS = {};
 for (const [z, d] of Object.entries(SCENES)) {
-  const pos = new THREE.Vector3(...d.position); let tgt = new THREE.Vector3(...d.target);
-  if (TDIST[z]) tgt = pos.clone().addScaledVector(tgt.clone().sub(pos).normalize(), TDIST[z]);
-  PRESETS[z] = { pos, tgt };
+  const pos = new THREE.Vector3(d.position[0], EYE, d.position[2]);
+  const dir = new THREE.Vector3(...d.target).sub(new THREE.Vector3(...d.position)).normalize();
+  PRESETS[z] = { pos, yaw: Math.atan2(-dir.x, -dir.z), pitch: Math.asin(THREE.MathUtils.clamp(dir.y, -1, 1)) };
 }
 
-function clampToBoxes(p) {
-  for (const b of BOXES) if (b.containsPoint(p)) return false;
-  let best = null, bd = Infinity; const q = new THREE.Vector3();
-  for (const b of BOXES) { b.clampPoint(p, q); const d = q.distanceToSquared(p); if (d < bd) { bd = d; best = q.clone(); } }
-  p.copy(best); return true;
+// ---- 충돌 격자: 불러온 장면의 삼각형 중 무릎~머리 높이(0.2–1.8 m)에 걸친 것을 10 cm 격자에 찍고, 몸 반경만큼 부풀린다 ----
+const GRID = { x0: -27, z0: -2.5, x1: 15, z1: 11.5, s: 0.1 };
+GRID.nx = Math.ceil((GRID.x1 - GRID.x0) / GRID.s); GRID.nz = Math.ceil((GRID.z1 - GRID.z0) / GRID.s);
+function buildGrid(meshes) {
+  const { nx, nz, s, x0, z0 } = GRID, raw = new Uint8Array(nx * nz);
+  const ci = (x) => Math.floor((x - x0) / s), cj = (z) => Math.floor((z - z0) / s);
+  const mark = (i, j) => { if (i >= 0 && j >= 0 && i < nx && j < nz) raw[j * nx + i] = 1; };
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), n = new THREE.Vector3(), e1 = new THREE.Vector3(), e2 = new THREE.Vector3();
+  for (const m of meshes) {
+    const g = m.geometry, P = g.attributes.position, I = g.index, mw = m.matrixWorld;
+    const cnt = I ? I.count : P.count;
+    for (let t = 0; t < cnt; t += 3) {
+      const ia = I ? I.getX(t) : t, ib = I ? I.getX(t + 1) : t + 1, ic = I ? I.getX(t + 2) : t + 2;
+      a.fromBufferAttribute(P, ia).applyMatrix4(mw); b.fromBufferAttribute(P, ib).applyMatrix4(mw); c.fromBufferAttribute(P, ic).applyMatrix4(mw);
+      const ymin = Math.min(a.y, b.y, c.y), ymax = Math.max(a.y, b.y, c.y);
+      if (ymax < 0.2 || ymin > 1.8) continue;
+      n.crossVectors(e1.subVectors(b, a), e2.subVectors(c, a)); const len = n.length(); if (len < 1e-9) continue;
+      if (Math.abs(n.y / len) < 0.35) {          // 벽처럼 선 면: 평면에 그린 선분
+        const pts = [a, b, c]; let best = [a, b], bd = -1;
+        for (let p = 0; p < 3; p++) for (let q = p + 1; q < 3; q++) { const d = (pts[p].x - pts[q].x) ** 2 + (pts[p].z - pts[q].z) ** 2; if (d > bd) { bd = d; best = [pts[p], pts[q]]; } }
+        const L = Math.sqrt(bd), steps = Math.max(1, Math.ceil(L / (s * 0.5)));
+        for (let k = 0; k <= steps; k++) { const u = k / steps; mark(ci(best[0].x + (best[1].x - best[0].x) * u), cj(best[0].z + (best[1].z - best[0].z) * u)); }
+      } else {                                   // 탁자 상판·의자처럼 누운 면: 평면 투영 삼각형을 채움
+        const i0 = ci(Math.min(a.x, b.x, c.x)), i1 = ci(Math.max(a.x, b.x, c.x)), j0 = cj(Math.min(a.z, b.z, c.z)), j1 = cj(Math.max(a.z, b.z, c.z));
+        const area = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z);
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+          const px = x0 + (i + 0.5) * s, pz = z0 + (j + 0.5) * s;
+          const w0 = ((b.x - px) * (c.z - pz) - (c.x - px) * (b.z - pz)) / area, w1 = ((c.x - px) * (a.z - pz) - (a.x - px) * (c.z - pz)) / area;
+          if (w0 >= -0.02 && w1 >= -0.02 && 1 - w0 - w1 >= -0.02) mark(i, j);
+        }
+        if (i1 - i0 <= 1 || j1 - j0 <= 1) for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) mark(i, j);   // 아주 작은 다리·기둥
+      }
+    }
+  }
+  // 걸을 수 있는 바닥 밖은 막힘
+  const walk = WALK.map(([bx0, by0, bx1, by1]) => [bx0, -by1, bx1, -by0]);
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+    const px = x0 + (i + 0.5) * s, pz = z0 + (j + 0.5) * s;
+    if (!walk.some(([wx0, wz0, wx1, wz1]) => px >= wx0 && px <= wx1 && pz >= wz0 && pz <= wz1)) raw[j * nx + i] = 2;
+  }
+  // 몸 반경 0.22 m 만큼 부풀림
+  const R = 2, inf = new Uint8Array(nx * nz);
+  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+    if (!raw[j * nx + i]) continue;
+    for (let dj = -R; dj <= R; dj++) for (let di = -R; di <= R; di++) {
+      if (di * di + dj * dj > R * R + 1) continue;
+      const ii = i + di, jj = j + dj; if (ii >= 0 && jj >= 0 && ii < nx && jj < nz) inf[jj * nx + ii] = 1;
+    }
+  }
+  return { raw, inf };
 }
 
 function haloTexture(w, h, m) {
@@ -72,7 +116,6 @@ function fixHalo(mesh) {
   mesh.renderOrder = 2;
 }
 
-const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
 export function createTour({ stage, plan, onZone }) {
@@ -83,8 +126,10 @@ export function createTour({ stage, plan, onZone }) {
   const bReset = el('button', 'v3d-btn', '처음 시점'); bReset.type = 'button';
   const bFull = el('button', 'v3d-btn', '전체화면'); bFull.type = 'button';
   tools.append(bReset, bFull);
-  const hint = el('p', 'v3d-hint', isSmall() ? '한 손가락으로 돌려보기 · 두 손가락으로 확대·이동' : '드래그로 돌려보기 · Ctrl(⌘)+스크롤로 확대 · 오른쪽 드래그로 이동');
-  stage.prepend(canvasWrap); stage.append(bar, tools, hint);
+  const pad = el('div', 'v3d-pad', '<button type="button" data-k="left" aria-label="왼쪽으로 돌기">◀</button><button type="button" data-k="fwd" aria-label="앞으로">▲</button><button type="button" data-k="right" aria-label="오른쪽으로 돌기">▶</button><button type="button" data-k="back" aria-label="뒤로">▼</button>');
+  const hint = el('p', 'v3d-hint', '끌어서 둘러보기 · 바닥 클릭이나 WASD·방향키로 걷기 · Ctrl(⌘)+스크롤로 확대');
+  const fade = el('div', 'v3d-fade');
+  stage.prepend(canvasWrap); stage.append(fade, bar, tools, pad, hint);
   // 위쪽 구역 버튼 줄이 오른쪽 위 조작 버튼 밑으로 들어가지 않도록 그 폭만큼 비워 둔다
   new ResizeObserver(() => stage.style.setProperty('--toolsw', tools.offsetWidth + 'px')).observe(tools);
 
@@ -94,31 +139,148 @@ export function createTour({ stage, plan, onZone }) {
   renderer.toneMapping = THREE.AgXToneMapping;
   canvasWrap.append(renderer.domElement);
   const labelR = new CSS2DRenderer(); labelR.domElement.className = 'v3d-labels'; canvasWrap.append(labelR.domElement);
+  const surface = labelR.domElement;   // 포인터 입력을 받는 면(캔버스 위)
 
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x1b1b1a);
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = ENV_INTENSITY;
   const camera = new THREE.PerspectiveCamera(60, 1.6, 0.05, 150);
-  const home = PRESETS.corridor; camera.position.copy(home.pos);
-  const controls = new OrbitControls(camera, labelR.domElement);
-  Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, rotateSpeed: 0.55, zoomSpeed: 0.8, panSpeed: 0.8, screenSpacePanning: true,
-    minDistance: 0.35, maxDistance: 14, minPolarAngle: Math.PI * 0.08, maxPolarAngle: Math.PI * 0.7 });
-  controls.target.copy(home.tgt); controls.update();
-  // 화면을 채우는 캔버스가 페이지 스크롤을 막지 않도록: 일반 휠은 페이지로, Ctrl/⌘+휠(트랙패드 핀치 포함)과 전체화면에서만 확대
-  canvasWrap.addEventListener('wheel', (e) => {
-    const full = stage.classList.contains('is-full') || document.fullscreenElement === stage;
-    if (!(e.ctrlKey || e.metaKey || full)) e.stopPropagation();
-  }, { capture: true });
+  camera.rotation.order = 'YXZ';
 
-  let dirty = true;
+  // ---- 시선·위치 상태 ----
+  const V = { yaw: 0, pitch: 0, yawT: 0, pitchT: 0, zoom: 1, zoomT: 1 };
+  const PITCH = THREE.MathUtils.degToRad(60);
+  let grid = null, dirty = true, glide = null, zoneLock = null;   // zoneLock: 구역 버튼으로 이동한 뒤 사용자가 움직이기 전까지 그 구역 유지
+  const setPose = (p) => { camera.position.copy(p.pos); V.yaw = V.yawT = p.yaw; V.pitch = V.pitchT = p.pitch; dirty = true; };
+  setPose(PRESETS.corridor);
+
+  let baseFov = 60;
+  const applyFov = () => { camera.fov = THREE.MathUtils.clamp(baseFov * V.zoom, 35, 75); camera.updateProjectionMatrix(); };
   const fit = () => {
     const w = canvasWrap.clientWidth, h = canvasWrap.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false); labelR.setSize(w, h); camera.aspect = w / h;
-    // 스틸과 같은 수평 화각(24 mm → 73.7°), 세로 화면은 세로 화각 상한
-    camera.fov = Math.min(THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(73.74) / 2) / camera.aspect)), 72);
-    camera.updateProjectionMatrix(); dirty = true;
+    // 스틸과 같은 수평 화각(24 mm → 73.7°)을 기준으로, 세로 화면은 세로 화각 상한
+    baseFov = Math.min(THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(73.74) / 2) / camera.aspect)), 72);
+    applyFov(); dirty = true;
   };
   new ResizeObserver(fit).observe(canvasWrap); fit();
+
+  // ---- 충돌 ----
+  const cellFree = (x, z, layer = 'inf') => {
+    if (!grid) return true;
+    const i = Math.floor((x - GRID.x0) / GRID.s), j = Math.floor((z - GRID.z0) / GRID.s);
+    if (i < 0 || j < 0 || i >= GRID.nx || j >= GRID.nz) return false;
+    return !grid[layer][j * GRID.nx + i];
+  };
+  // 벽에 미끄러지듯 이동: 전체 → x만 → z만
+  const tryMove = (dx, dz) => {
+    const p = camera.position;
+    if (cellFree(p.x + dx, p.z + dz)) { p.x += dx; p.z += dz; return true; }
+    if (Math.abs(dx) > 1e-4 && cellFree(p.x + dx, p.z)) { p.x += dx; return true; }
+    if (Math.abs(dz) > 1e-4 && cellFree(p.x, p.z + dz)) { p.z += dz; return true; }
+    return false;
+  };
+  // 직선 경로에서 막히기 전 마지막 자리
+  const reach = (x0, z0, x1, z1) => {
+    const L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(L / 0.05));
+    let lx = x0, lz = z0;
+    for (let k = 1; k <= n; k++) { const x = x0 + (x1 - x0) * k / n, z = z0 + (z1 - z0) * k / n; if (!cellFree(x, z)) return { x: lx, z: lz, clear: false }; lx = x; lz = z; }
+    return { x: x1, z: z1, clear: true };
+  };
+
+  // ---- 바닥 커서(이동할 자리) ----
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.17, 0.23, 40), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; ring.visible = false; ring.renderOrder = 3; scene.add(ring);
+  const ndc = new THREE.Vector2(), rc = new THREE.Raycaster(), floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit = new THREE.Vector3();
+  function floorTarget(cx, cy) {
+    const r = surface.getBoundingClientRect();
+    ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+    rc.setFromCamera(ndc, camera);
+    if (!rc.ray.intersectPlane(floorPlane, hit)) return null;
+    const p = camera.position, d = Math.hypot(hit.x - p.x, hit.z - p.z);
+    if (d > 14) return null;
+    // 시선 경로가 벽(원래 격자)을 지나면 그 앞에서 멈춘다
+    const L = Math.max(1, Math.ceil(d / 0.05)); let tx = hit.x, tz = hit.z;
+    for (let k = 1; k <= L; k++) { const x = p.x + (hit.x - p.x) * k / L, z = p.z + (hit.z - p.z) * k / L; if (!cellFree(x, z, 'raw')) { tx = p.x + (hit.x - p.x) * Math.max(0, k - 4) / L; tz = p.z + (hit.z - p.z) * Math.max(0, k - 4) / L; break; } }
+    const r2 = reach(p.x, p.z, tx, tz);
+    return Math.hypot(r2.x - p.x, r2.z - p.z) > 0.15 ? r2 : null;
+  }
+  const showRing = (t) => { if (t) { ring.position.set(t.x, 0.015, t.z); ring.visible = true; } else ring.visible = false; dirty = true; };
+
+  // ---- 걷기(부드럽게 미끄러지듯, 약 0.8초) ----
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const walkTo = (x, z, yaw, pitch, dur) => {
+    const p = camera.position, d = Math.hypot(x - p.x, z - p.z);
+    glide = { t0: performance.now(), dur: dur ?? THREE.MathUtils.clamp(d / 3, 0.5, 1.4) * 1000, x0: p.x, z0: p.z, x1: x, z1: z };
+    if (yaw != null) { V.yawT = V.yaw + (((yaw - V.yaw) % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; V.pitchT = pitch; }
+  };
+  const fadeTo = (pose) => {
+    glide = null; fade.classList.add('on');
+    setTimeout(() => { setPose(pose); V.zoom = V.zoomT = 1; applyFov(); afterMove(); requestAnimationFrame(() => fade.classList.remove('on')); }, 260);
+  };
+
+  // ---- 포인터: 끌면 제자리에서 시선 회전, 짧게 누르면 그 바닥으로 걷기, 두 손가락은 화각 확대 ----
+  const ptrs = new Map(); let drag = null, pinch = null, lastHover = 0;
+  surface.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.v3d-pin')) return;
+    surface.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) drag = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false };
+    if (ptrs.size === 2) { const [p1, p2] = [...ptrs.values()]; pinch = { d: Math.hypot(p1.x - p2.x, p1.y - p2.y), z: V.zoomT }; drag = null; }
+  });
+  surface.addEventListener('pointermove', (e) => {
+    if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && ptrs.size >= 2) {
+      const [p1, p2] = [...ptrs.values()]; const d = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+      V.zoomT = THREE.MathUtils.clamp(pinch.z * pinch.d / Math.max(d, 1), 35 / baseFov, 75 / baseFov); dirty = true; return;
+    }
+    if (drag && ptrs.has(e.pointerId)) {
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
+      if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) { drag.moved = true; zoneLock = null; }
+      const k = THREE.MathUtils.degToRad(camera.fov) / surface.clientHeight;   // 화면을 잡고 끄는 느낌(1:1)
+      V.yawT += dx * k; V.pitchT = THREE.MathUtils.clamp(V.pitchT + dy * k, -PITCH, PITCH);
+      ring.visible = false; dirty = true; return;
+    }
+    if (e.pointerType === 'mouse' && T.ready) { const now = performance.now(); if (now - lastHover > 50) { lastHover = now; showRing(floorTarget(e.clientX, e.clientY)); } }
+  });
+  const endPtr = (e) => {
+    const wasClick = drag && !drag.moved && ptrs.size === 1 && e.type === 'pointerup';
+    ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
+    if (wasClick && T.ready) {
+      const t = floorTarget(e.clientX, e.clientY);
+      if (t) { zoneLock = null; showRing(t); walkTo(t.x, t.z); if (e.pointerType !== 'mouse') setTimeout(() => showRing(null), 900); }
+    }
+    if (!ptrs.size) { drag = null; queueOccl(); }
+  };
+  surface.addEventListener('pointerup', endPtr); surface.addEventListener('pointercancel', endPtr);
+  surface.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse' && !ptrs.size) showRing(null); });
+  // 휠: 평소에는 페이지 스크롤, Ctrl/⌘+휠(트랙패드 핀치 포함)과 전체화면에서만 화각 확대
+  surface.addEventListener('wheel', (e) => {
+    const full = stage.classList.contains('is-full') || document.fullscreenElement === stage;
+    if (!(e.ctrlKey || e.metaKey || full)) return;
+    e.preventDefault();
+    V.zoomT = THREE.MathUtils.clamp(V.zoomT * Math.exp(e.deltaY * 0.0015), 35 / baseFov, 75 / baseFov); dirty = true;
+  }, { passive: false });
+
+  // ---- 키보드: 3D 위에 마우스가 있거나 전체화면일 때만 (페이지 스크롤 키를 빼앗지 않게) ----
+  let hover = false; const keys = new Set();
+  stage.addEventListener('pointerenter', () => { hover = true; }); stage.addEventListener('pointerleave', () => { hover = false; keys.clear(); });
+  const active = () => hover || stage.classList.contains('is-full') || document.fullscreenElement === stage;
+  const KEYMAP = { KeyW: 'fwd', ArrowUp: 'fwd', KeyS: 'back', ArrowDown: 'back', KeyA: 'sl', KeyD: 'sr', ArrowLeft: 'tl', ArrowRight: 'tr' };
+  addEventListener('keydown', (e) => {
+    const k = KEYMAP[e.code]; if (!k || !T.ready || !active() || e.target.closest?.('input,textarea')) return;
+    e.preventDefault(); keys.add(k); glide = null; zoneLock = null;
+  });
+  addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k && keys.delete(k) && !keys.size) afterMove(); });
+  pad.addEventListener('click', (e) => {
+    const k = e.target.closest('button')?.dataset.k; if (!k || !T.ready) return; zoneLock = null;
+    if (k === 'left') V.yawT += Math.PI / 6; else if (k === 'right') V.yawT -= Math.PI / 6;
+    else {
+      const s = k === 'fwd' ? 1 : -1, p = camera.position;
+      const r2 = reach(p.x, p.z, p.x - Math.sin(V.yawT) * s, p.z - Math.cos(V.yawT) * s);
+      walkTo(r2.x, r2.z, null, null, 450);
+    }
+    dirty = true;
+  });
 
   // ---- 번호 핫스팟: 모든 구역을 만들어 두고 현재 구역 것만 보인다 ----
   const pins = [];
@@ -138,15 +300,16 @@ export function createTour({ stage, plan, onZone }) {
     const ang = Math.atan2(-fwd.z, fwd.x) * 180 / Math.PI;   // Blender 평면 각도(동쪽 0°, 북쪽 90°)
     you.setAttribute('transform', `translate(${camera.position.x.toFixed(2)} ${camera.position.z.toFixed(2)}) rotate(${(-ang).toFixed(1)})`);
   };
+  const lookPoint = () => new THREE.Vector3(camera.position.x - Math.sin(V.yaw) * 2.5, 0, camera.position.z - Math.cos(V.yaw) * 2.5);
   const regionOf = (p) => { const x = p.x, y = -p.z; for (const [z, x0, y0, x1, y1] of REGIONS) if (x >= x0 && x <= x1 && y >= y0 && y <= y1) return z; return 'corridor'; };
   const setZone = (z) => {
     if (z === T.zone) return; T.zone = z;
     for (const o of pins) o.visible = o.userData.zone === z;
     plan.querySelectorAll('[data-zone]').forEach((e) => e.classList.toggle('on', e.dataset.zone === z));
-    onZone?.(z); queueOccl(); relight();
+    onZone?.(z); queueOccl();
   };
 
-  // ---- 조명 풀: 개수를 고정해 셰이더 재컴파일 없이, 회전 중심 가까운 원본 조명의 값을 옮겨 담는다 ----
+  // ---- 조명 풀: 개수를 고정해 셰이더 재컴파일 없이, 시선 앞 가까운 원본 조명의 값을 옮겨 담는다 ----
   const srcLights = [];
   const pool = { spot: [], point: [] };
   const POOL = isSmall() ? { spot: 6, point: 2 } : { spot: 10, point: 4 };
@@ -155,7 +318,7 @@ export function createTour({ stage, plan, onZone }) {
   const lastLit = new THREE.Vector3(1e9, 0, 0);
   function relight(force) {
     if (!srcLights.length) return;
-    const c = controls.target; if (!force && c.distanceTo(lastLit) < 1.5) return; lastLit.copy(c);
+    const c = lookPoint(); c.y = 1.6; if (!force && c.distanceTo(lastLit) < 1.5) return; lastLit.copy(c);
     for (const kind of ['spot', 'point']) {
       const list = srcLights.filter((s) => s.kind === kind).map((s) => ({ s, k: s.intensity / Math.max(1, s.pos.distanceToSquared(c) / 9) })).sort((a, b) => b.k - a.k);
       pool[kind].forEach((L, i) => {
@@ -167,53 +330,68 @@ export function createTour({ stage, plan, onZone }) {
     dirty = true;
   }
 
-  // ---- 가림 판정(조작이 끝났을 때만) ----
-  let meshes = [];
+  // ---- 가림 판정(움직임이 멈췄을 때만) ----
+  const meshes = [];
   const ray = new THREE.Raycaster();
   let occlT = 0;
   function queueOccl() {
     clearTimeout(occlT);
     occlT = setTimeout(() => {
+      camera.updateMatrixWorld();
       for (const o of pins) {
         if (!o.visible) continue;
         const to = o.position.clone().sub(camera.position), dist = to.length();
         ray.set(camera.position, to.normalize()); ray.far = Math.max(0.01, dist - 0.6);
         o.element.classList.toggle('hid', ray.intersectObjects(meshes, false).length > 0);
       }
-    }, 150);
+      dirty = true;
+    }, 200);
   }
-  controls.addEventListener('end', queueOccl);
-  controls.addEventListener('change', () => { dirty = true; });
+  function afterMove() { if (T.ready) { if (!zoneLock) setZone(regionOf(lookPoint())); relight(); queueOccl(); } dirty = true; }
 
-  // ---- 카메라 이동(약 1초) ----
-  let fly = null;
+  // ---- 구역 이동: 직선으로 막힘없이 갈 수 있으면 걸어서, 아니면 잠깐 어두워졌다가 이동 ----
   T.flyTo = (z, instant) => {
     const p = PRESETS[z]; if (!p) return;
-    if (!T.ready || instant) { camera.position.copy(p.pos); controls.target.copy(p.tgt); controls.update(); setZone(z); dirty = true; return; }
-    fly = { t0: performance.now(), dur: 1000, p0: camera.position.clone(), q0: controls.target.clone(), p1: p.pos.clone(), q1: p.tgt.clone(), z };
-    setZone(z);
+    if (!T.ready || instant) { setPose(p); setZone(z); return; }
+    const c = camera.position, r2 = reach(c.x, c.z, p.pos.x, p.pos.z), d = Math.hypot(p.pos.x - c.x, p.pos.z - c.z);
+    if (r2.clear && d < 10) walkTo(p.pos.x, p.pos.z, p.yaw, p.pitch); else fadeTo(p);
+    V.zoomT = 1; zoneLock = z; setZone(z);
   };
   T.pending = 'corridor';
 
+  // ---- 루프 ----
+  let tPrev = performance.now();
   const tick = () => {
     requestAnimationFrame(tick);
+    const now = performance.now(), dt = Math.min(0.05, (now - tPrev) / 1000); tPrev = now;
+    if (!T.ready) return;
     let moved = false;
-    if (fly) {
-      const t = Math.min(1, (performance.now() - fly.t0) / fly.dur), k = ease(t);
-      camera.position.lerpVectors(fly.p0, fly.p1, k); controls.target.lerpVectors(fly.q0, fly.q1, k);
-      camera.lookAt(controls.target); moved = true;
-      if (t >= 1) { fly = null; controls.update(); queueOccl(); setTimeout(queueOccl, 600); }
-    } else {
-      moved = controls.update();
-      let cl = clampToBoxes(camera.position); cl = clampToBoxes(controls.target) || cl;
-      if (cl) { camera.lookAt(controls.target); moved = true; }
-      if (moved && T.ready) { setZone(regionOf(controls.target)); relight(); }
+    // 키보드 걷기(1.6 m/s)·돌기
+    if (keys.size) {
+      const sp = 1.6 * dt, f = (keys.has('fwd') ? 1 : 0) - (keys.has('back') ? 1 : 0), st = (keys.has('sr') ? 1 : 0) - (keys.has('sl') ? 1 : 0);
+      if (keys.has('tl')) V.yawT += 1.6 * dt; if (keys.has('tr')) V.yawT -= 1.6 * dt;
+      const sy = Math.sin(V.yaw), cy = Math.cos(V.yaw);
+      if (f || st) moved = tryMove((-sy * f + cy * st) * sp, (-cy * f - sy * st) * sp) || moved;
+      moved = true;
     }
-    if ((moved || dirty) && T.ready) { renderer.render(scene, camera); labelR.render(scene, camera); updateYou(); dirty = false; }
+    if (glide) {
+      const t = Math.min(1, (now - glide.t0) / glide.dur), k = ease(t);
+      const x = glide.x0 + (glide.x1 - glide.x0) * k, z = glide.z0 + (glide.z1 - glide.z0) * k, p = camera.position;
+      if (!tryMove(x - p.x, z - p.z) || t >= 1) { glide = null; afterMove(); }
+      moved = true;
+    }
+    // 시선·화각 감쇠
+    const a = 1 - Math.exp(-dt * 14);
+    if (Math.abs(V.yawT - V.yaw) > 1e-5 || Math.abs(V.pitchT - V.pitch) > 1e-5) { V.yaw += (V.yawT - V.yaw) * a; V.pitch += (V.pitchT - V.pitch) * a; moved = true; }
+    if (Math.abs(V.zoomT - V.zoom) > 1e-4) { V.zoom += (V.zoomT - V.zoom) * a; applyFov(); moved = true; }
+    camera.rotation.set(V.pitch, V.yaw, 0); camera.position.y = EYE;
+    if (moved) { if (!zoneLock && !glide) { const z = regionOf(lookPoint()); if (z !== T.zone) setZone(z); } relight(); }
+    if (moved || dirty) { renderer.render(scene, camera); labelR.render(scene, camera); updateYou(); dirty = false; }
   };
 
   // ---- 도구 ----
-  bReset.addEventListener('click', () => T.flyTo(T.zone || 'corridor'));
+  bReset.addEventListener('click', () => { zoneLock = T.zone || 'corridor'; walkOrFade(PRESETS[zoneLock]); });
+  const walkOrFade = (p) => { const c = camera.position, r2 = reach(c.x, c.z, p.pos.x, p.pos.z); V.zoomT = 1; if (r2.clear) walkTo(p.pos.x, p.pos.z, p.yaw, p.pitch); else fadeTo(p); };
   const isFull = () => stage.classList.contains('is-full') || document.fullscreenElement === stage;
   const setFullLabel = () => { bFull.textContent = isFull() ? '전체화면 닫기' : '전체화면'; };
   const exitPseudo = () => { stage.classList.remove('is-full'); document.body.classList.remove('v3d-lock'); setFullLabel(); };
@@ -252,6 +430,7 @@ export function createTour({ stage, plan, onZone }) {
       srcLights.push(s); L.parent.remove(L);
     }
     scene.add(room);
+    grid = buildGrid(meshes.filter((m) => !m.material?.name?.startsWith('halo_')));
     bar.remove(); T.ready = true; plan.classList.add('live');
     const z = T.pending; T.zone = null; T.flyTo(z, true); relight(true); dirty = true;
     return T;
