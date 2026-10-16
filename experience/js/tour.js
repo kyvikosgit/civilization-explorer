@@ -6,10 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=23';
+import SCENES from './scenes.js?v=26';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=23' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=26' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -22,10 +22,12 @@ const WALK = [
   [6.25, -5.8, 10.25, 0.7],     // B 아카데미 살롱
   [-20.0, -2.3, -18.9, -0.7],   // D 입구
   [-25.2, -6.3, -19.25, 0.7],   // D 모네 전시관
+  [6.55, -6.05, 7.65, -5.7],     // B 살롱 입구(A 복도 쪽 문)
+  [5.0, -7.6, 10.0, -5.95],      // A 복도: 살롱 입구 앞 안내판·QR 앞 (도면 g_p9 A 구간, 체험 C0 장치 1)
 ];
 // 현재 구역 판정(시선 앞 1.5 m 지점, Blender x/y): 평면도 강조와 번호 표시에 씀
 const REGIONS = [
-  ['c0', 6.2, -6.0, 10.4, 0.9], ['c5', -25.5, -6.5, -19.3, 0.9],
+  ['c0', 6.2, -6.0, 10.4, 0.9], ['c0', 4.9, -7.7, 10.4, -5.9], ['c5', -25.5, -6.5, -19.3, 0.9],
   ['c1', -2.2, -2.9, 2.2, 0.7], ['c2', -6.6, -2.9, -2.2, 0.7], ['c3', -11.0, -2.9, -6.6, 0.7], ['c4', -15.4, -2.9, -11.0, 0.7],
 ];
 const EYE = 1.6;
@@ -133,11 +135,21 @@ export function createTour({ stage, plan, onZone, onPin }) {
   // 위쪽 구역 버튼 줄이 오른쪽 위 조작 버튼 밑으로 들어가지 않도록 그 폭만큼 비워 둔다
   new ResizeObserver(() => stage.style.setProperty('--toolsw', tools.offsetWidth + 'px')).observe(tools);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); }
+  catch (err) {      // WebGL을 못 쓰는 브라우저·차단된 경우: 멈추지 말고 안내만
+    bar.querySelector('span').textContent = '이 브라우저에서는 3D 화면을 열 수 없습니다. 아래 공간 시각화 이미지를 봐 주세요.'; bar.classList.add('err');
+    const no = () => Promise.resolve(false), noop = () => {};
+    Object.assign(T, { flyTo: no, travelTo: no, devicePose: () => null, markPin: noop, setFollow: noop, lockZone: noop, unlockZone: noop, cancelTravel: noop });
+    console.warn(err); return T;
+  }
   renderer.setPixelRatio(Math.min(devicePixelRatio, isSmall() ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.AgXToneMapping;
   canvasWrap.append(renderer.domElement);
+  // GPU가 문맥을 잃으면(백그라운드 탭·메모리 부족) 복구를 허용하고, 돌아오면 다시 그린다
+  renderer.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); stage.classList.add('v3d-lost'); });
+  renderer.domElement.addEventListener('webglcontextrestored', () => { stage.classList.remove('v3d-lost'); dirty = true; });
   const labelR = new CSS2DRenderer(); labelR.domElement.className = 'v3d-labels'; canvasWrap.append(labelR.domElement);
   const surface = labelR.domElement;   // 포인터 입력을 받는 면(캔버스 위)
 
@@ -377,7 +389,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
     if (!p) return;
     const b = el('button', 'v3d-pin', String(i + 1)); b.type = 'button'; b.setAttribute('aria-label', `${z.toUpperCase()} 장치 ${i + 1}`);
     b.addEventListener('click', (e) => { e.stopPropagation(); onPin?.(z, i + 1); });   // 3D 안 오버레이 카드로 (페이지 스크롤 없음)
-    const o = new CSS2DObject(b); o.position.set(...p); o.userData.zone = z; o.visible = false; scene.add(o); pins.push(o);
+    const o = new CSS2DObject(b); o.position.set(...p); o.userData.zone = z; o.userData.n = i + 1; o.visible = false; scene.add(o); pins.push(o);
   });
 
   // ---- 평면도의 '현재 위치' 표시 ----
@@ -546,8 +558,43 @@ export function createTour({ stage, plan, onZone, onPin }) {
     ob.querySelector('button').addEventListener('click', close);
     stage.append(ob);
   }
+  // ---- 체험 따라하기용: 장치마다 관람객이 서는 자리(scenes.js stands: [x, z] 눈높이 자리) → 그 자리에서 장치를 바라보는 자세 ----
+  // 장치가 화면 가운데보다 조금 위(세로 화각의 8%)에 오도록 살짝 내려다본다 — 아래쪽 설명 카드가 장치를 가리지 않게.
+  T.devicePose = (z, n) => {
+    const d = SCENES[z], a = d?.anchors?.[n - 1], st = d?.stands?.[n - 1]; if (!a || !st) return null;
+    const pos = new THREE.Vector3(st[0], EYE, st[1]), dx = a[0] - st[0], dz = a[2] - st[1], h = Math.hypot(dx, dz);
+    const vfov = THREE.MathUtils.degToRad(baseFov);
+    const pitch = THREE.MathUtils.clamp(Math.atan2(a[1] - EYE, h) - vfov * 0.08, -0.6, 0.6);
+    return { pos, yaw: Math.atan2(-dx, -dz), pitch };
+  };
+  T.markPin = (z, n) => { for (const o of pins) o.element.classList.toggle('cur', n != null && o.userData.zone === z && o.userData.n === n); };
+  T.setFollow = (on) => stage.classList.toggle('v3d-follow', !!on);
+  T.lockZone = (z) => { zoneLock = z; setZone(z); };
+  T.unlockZone = () => { zoneLock = null; afterMove(); };
   // 점검용(?debug): 콘솔에서 시점 지정·캡처
-  if (/[?&]debug\b/.test(location.search)) window.__tour = { T, camera, V, renderer, scene, findPath, PRESETS, routeTime, cellFree, setPose: (x, z, yawDeg, pitchDeg = 0) => { camera.position.set(x, EYE, z); V.yaw = V.yawT = THREE.MathUtils.degToRad(yawDeg); V.pitch = V.pitchT = THREE.MathUtils.degToRad(pitchDeg); zoneLock = null; dirty = true; afterMove(); },
+  if (/[?&]debug\b/.test(location.search)) window.__tour = { THREE, meshes, T, camera, V, renderer, scene, findPath, PRESETS, routeTime, cellFree, SCENES,
+    // 장치마다 설 자리 후보(반경 1.2–2.8 m, 15° 간격) 중: 빈 칸 · 그 구역 시작 자리에서 걸어갈 수 있음 · 눈에서 장치까지 막힘 없음 →
+    // 거리 d0와 '시작 자리 쪽에서 다가가는 방향'에 가까운 것
+    computeStands: (d0 = 1.8) => {
+      const out = {}, ray = new THREE.Raycaster(), eye = new THREE.Vector3(), tgt = new THREE.Vector3();
+      for (const [z, d] of Object.entries(SCENES)) {
+        if (!d.anchors?.length) continue; const P = PRESETS[z].pos; out[z] = [];
+        for (const a of d.anchors) {
+          tgt.set(...a); const pref = Math.atan2(P.z - a[2], P.x - a[0]); let best = null;
+          for (const r of [1.2, 1.5, 1.8, 2.1, 2.4, 2.8]) for (let k = 0; k < 24; k++) {
+            const ang = pref + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * Math.PI / 12, x = a[0] + Math.cos(ang) * r, zz = a[2] + Math.sin(ang) * r;
+            if (!cellFree(x, zz)) continue;
+            eye.set(x, EYE, zz); const dir = tgt.clone().sub(eye), L = dir.length(); ray.set(eye, dir.normalize()); ray.far = L - 0.3;
+            if (ray.intersectObjects(meshes, false).length) continue;
+            const score = Math.abs(r - d0) * 0.8 + (1 - Math.cos(ang - pref)) * 1.6;
+            if (!best || score < best.score) best = { score, x, zz };
+          }
+          if (best && !findPath(P.x, P.z, best.x, best.zz)) best = null;
+          out[z].push(best ? [+best.x.toFixed(2), +best.zz.toFixed(2)] : null);
+        }
+      }
+      return out;
+    }, setPose: (x, z, yawDeg, pitchDeg = 0) => { camera.position.set(x, EYE, z); V.yaw = V.yawT = THREE.MathUtils.degToRad(yawDeg); V.pitch = V.pitchT = THREE.MathUtils.degToRad(pitchDeg); zoneLock = null; dirty = true; afterMove(); },
     snap: (w = 1600, h = 1000) => { const s = new THREE.Vector2(); renderer.getSize(s); const a = camera.aspect; camera.rotation.set(V.pitch, V.yaw, 0); camera.position.y = EYE; relight(true); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.render(scene, camera); const u = renderer.domElement.toDataURL('image/jpeg', 0.9); renderer.setSize(s.x, s.y, false); camera.aspect = a; camera.updateProjectionMatrix(); dirty = true; return u; } };
   const prevFly = T.flyTo;
   T.flyTo = (z, instant) => { if (!T.ready) { T.pending = z; plan.querySelectorAll('[data-zone]').forEach((e) => e.classList.toggle('on', e.dataset.zone === z)); onZone?.(z); return Promise.resolve(false); } return prevFly(z, instant); };

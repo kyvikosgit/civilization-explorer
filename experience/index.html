@@ -221,6 +221,41 @@ ol.flow span{color:var(--dim);font-size:15px}
   .v3d-onboard b{font-size:13px}.v3d-onboard span{font-size:13px}
   .v3d-onboard button{height:36px;padding:0 12px;font-size:13px}
 }
+.cap-acts{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-top:2px}
+.cap-acts a{margin-top:0}
+.cap-follow{height:30px;padding:0 12px;border:0;background:var(--point);color:#FFFFFF;font-family:var(--display);font-weight:600;font-size:12px;cursor:pointer}
+.cap-follow:hover,.cap-follow:focus-visible{background:#FFFFFF;color:#111111}
+.cap-follow[hidden]{display:none}
+/* 체험 따라하기 카드: 장치는 화면 가운데 조금 위에 오고, 카드는 아래 왼쪽(휴대폰은 아래 띠) */
+.v3d-fol{left:12px;bottom:12px;width:min(420px,calc(100% - 24px));padding:12px 14px;display:grid;gap:4px;z-index:6}
+.v3d-fol[hidden]{display:none}
+.fol-kick{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.06em;color:#F0A27A}
+.fol-t{margin:0;font-family:var(--display);font-weight:800;font-size:17px;line-height:1.35;color:#FFFFFF}
+.fol-dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 10px;margin:2px 0 0;font-size:14px;line-height:1.5}
+.fol-dl dt{font-family:var(--display);font-weight:600;font-size:12px;color:#F0A27A;padding-top:2px;white-space:nowrap}
+.fol-dl dd{margin:0;color:rgba(255,255,255,.9)}
+.fol-note{font-size:13px;color:rgba(255,255,255,.75)}
+.fol-note[hidden]{display:none}
+.fol-acts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
+.fol-acts button{height:36px;padding:0 12px;border:0;background:rgba(255,255,255,.12);color:#F2F2F0;font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer}
+.fol-acts button.pri{background:var(--point);color:#FFFFFF}
+.fol-acts button:hover,.fol-acts button:focus-visible{background:#FFFFFF;color:#111111}
+.fol-acts button:disabled{opacity:.35;cursor:default;background:rgba(255,255,255,.12);color:#F2F2F0}
+.fol-acts button[hidden]{display:none}
+.fol-auto{display:inline-flex;align-items:center;gap:4px;margin-left:auto;font-size:12px;color:rgba(255,255,255,.8);cursor:pointer}
+.v3d-stage.v3d-follow .ov-cap,.v3d-stage.v3d-follow .v3d-pad,.v3d-stage.v3d-follow .v3d-hint,.v3d-stage.v3d-follow .v3d-onboard{display:none}
+.v3d-stage.v3d-follow .v3d-pin:not(.cur){opacity:.35}
+.v3d-pin.cur{opacity:1!important;z-index:2;transform:scale(1.3);box-shadow:0 0 0 3px #FFFFFF,0 0 0 7px rgba(217,103,47,.45),0 2px 12px rgba(0,0,0,.5)}
+.v3d-stage.modal-open .v3d-fol{visibility:hidden}
+@media (max-width:640px){
+  .v3d-fol{left:0;right:0;bottom:0;width:auto;padding:8px 10px 8px;gap:2px;border-left:0;border-right:0;border-bottom:0}
+  .fol-t{font-size:15px}
+  .fol-dl{font-size:13px;gap:1px 8px;max-height:58px;overflow:auto}
+  .fol-acts{margin-top:4px;gap:4px}
+  .fol-acts button{height:34px;padding:0 10px;font-size:12px}
+  .v3d-stage.v3d-follow .v3d-tools{top:8px;bottom:auto}
+}
+.v3d-stage.v3d-lost::after{content:"3D 화면을 다시 불러오는 중…";position:absolute;inset:0;z-index:3;display:grid;place-items:center;font-size:13px;color:rgba(255,255,255,.7);background:#1B1B1A}
 .v3d-load{position:absolute;z-index:3;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;font-size:13px;text-align:center;padding:20px}
 .v3d-load-track{width:min(240px,60vw);height:3px;background:rgba(255,255,255,.18)}
 .v3d-load-track i{display:block;height:100%;width:0;background:var(--point);transition:width .15s}
@@ -251,7 +286,7 @@ a{color:inherit}
 <!-- 4층 전체 3D: 화면을 채우는 캔버스 위에 평면도·구역 버튼·설명을 띄운다 -->
 <section class="tour" id="tour" aria-label="4층 3D 둘러보기">
   <div class="v3d-stage" id="tour-stage">
-    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=23)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 15MB</small></button></div>
+    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=26)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 15MB</small></button></div>
     <div class="ov ov-top">
       <div class="ov-bar glass">
         <div class="zchips" role="group" aria-label="공간 선택">
@@ -290,7 +325,14 @@ a{color:inherit}
         <iframe title="체험 화면" allow="camera; microphone; fullscreen; clipboard-write; autoplay" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
     </div>
-    <div class="ov ov-cap glass" aria-live="polite"><b>C 변화의 복도</b><span>앞면이 열린 부스 4개가 흰 홀을 따라 이어집니다.</span><a href="#corridor" data-card>이 공간 체험장치 보기</a></div>
+    <div class="ov ov-cap glass" aria-live="polite"><b>C 변화의 복도</b><span>앞면이 열린 부스 4개가 흰 홀을 따라 이어집니다.</span><div class="cap-acts"><a href="#corridor" data-card>이 공간 체험장치 보기</a><button type="button" class="cap-follow" hidden>체험 따라하기 ▶</button></div></div>
+    <div class="ov v3d-fol glass" hidden role="region" aria-label="체험 따라하기" aria-live="polite">
+      <div class="fol-kick"></div>
+      <h4 class="fol-t"></h4>
+      <dl class="fol-dl"></dl>
+      <p class="fol-note" hidden></p>
+      <div class="fol-acts"><button type="button" data-fol="prev">◀ 이전</button><button type="button" data-fol="next" class="pri">다음 ▶</button><button type="button" data-fol="app" class="sub" hidden>앱 화면</button><button type="button" data-fol="stop" class="sub">그만하기</button><label class="fol-auto"><input type="checkbox"> 자동</label></div>
+    </div>
   </div>
 </section>
 
@@ -324,12 +366,12 @@ a{color:inherit}
   <p class="zintro">4층 B 위치의 방(약 4.0×6.5m)을 1873년 살롱 전시장으로 꾸밉니다. 관람객은 심사위원이 되어 후보작 5점 중 '올해의 그림'을 고릅니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C0_a.jpg?v=20" alt="아카데미 살롱 공간 시각화, 입구에서 본 전경">
+      <img src="img/r_C0_a.jpg?v=26" alt="아카데미 살롱 공간 시각화, 입구에서 본 전경">
       <ol class="pins" aria-hidden="true"><li data-n="2" style="left:18.81%;top:44.78%">2</li><li data-n="3" style="left:81.3%;top:66.43%">3</li><li data-n="4" style="left:68.34%;top:84.81%">4</li></ol>
     </div>
     <div class="viz-row">
-      <div class="shot"><img src="img/r_C0_b.jpg?v=20" alt="후보작 5점이 걸린 벽 정면"><ol class="pins" aria-hidden="true"><li data-n="3" style="left:53.45%;top:56.8%">3</li><li data-n="4" style="left:50.04%;top:77.54%">4</li></ol></div>
-      <div class="shot"><img src="img/r_C0_c.jpg?v=20" alt="복도에서 본 살롱 입구와 안내판"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:18.38%;top:59.6%">1</li><li data-n="2" style="left:48.2%;top:47.35%">2</li></ol></div>
+      <div class="shot"><img src="img/r_C0_b.jpg?v=26" alt="후보작 5점이 걸린 벽 정면"><ol class="pins" aria-hidden="true"><li data-n="3" style="left:53.45%;top:56.8%">3</li><li data-n="4" style="left:50.04%;top:77.54%">4</li></ol></div>
+      <div class="shot"><img src="img/r_C0_c.jpg?v=26" alt="복도에서 본 살롱 입구와 안내판"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:18.38%;top:59.6%">1</li><li data-n="2" style="left:48.2%;top:47.35%">2</li></ol></div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c0">3D에서 이 공간 보기</a><figcaption>입구에서 본 전경 / 후보작 벽 / 살롱 입구</figcaption></div>
   </figure>
@@ -366,8 +408,8 @@ a{color:inherit}
   <figure class="viz">
     <div class="shot main">
       <div class="viz-row">
-        <img src="img/r_Cc_eye.jpg?v=23" alt="복도 눈높이에서 본 부스 네 개">
-        <img src="img/r_Cc_top.jpg?v=23" alt="위에서 내려다본 복도와 부스 배치">
+        <img src="img/r_Cc_eye.jpg?v=26" alt="복도 눈높이에서 본 부스 네 개">
+        <img src="img/r_Cc_top.jpg?v=26" alt="위에서 내려다본 복도와 부스 배치">
       </div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="corridor">3D에서 이 공간 보기</a><figcaption>복도 눈높이 / 위에서 본 배치</figcaption></div>
@@ -386,8 +428,8 @@ a{color:inherit}
   <p class="zintro">부스 안쪽은 바티뇰파가 모이던 카페 게르부아의 정면 세트이고, 창 안으로는 이 카페를 그린 것으로 알려진 마네의 석판화 〈카페에서〉(1869)의 손님들이 보입니다. 정면 오른쪽 끝에는 1876년 파리의 모리스 칼럼을 실물 비율 그대로 높이 약 3.4m로 줄여 세웁니다(실물 약 4.8m).</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C1.jpg?v=23" alt="시민사회 부스 공간 시각화">
-      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:18.85%;top:83.42%">1</li><li data-n="2" style="left:85.28%;top:59.15%">2</li><li data-n="3" style="left:63.69%;top:62.09%">3</li><li data-n="4" style="left:26.46%;top:64.75%">4</li></ol>
+      <img src="img/r_C1.jpg?v=26" alt="시민사회 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:18.85%;top:79.54%">1</li><li data-n="2" style="left:85.28%;top:59.15%">2</li><li data-n="3" style="left:63.69%;top:62.09%">3</li><li data-n="4" style="left:26.46%;top:64.75%">4</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c1">3D에서 이 공간 보기</a><figcaption>복도에서 본 시민사회 부스</figcaption></div>
   </figure>
@@ -543,12 +585,12 @@ a{color:inherit}
   <p class="zintro">1874년 『르 샤리바리』에 실린 루이 르루아의 혹평에서 '인상주의'라는 이름이 나왔다는 이야기가 전시관의 중심입니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C5_a.jpg?v=20" alt="모네 전시관 진입 가벽의 인상, 해돋이">
+      <img src="img/r_C5_a.jpg?v=26" alt="모네 전시관 진입 가벽의 인상, 해돋이">
       <ol class="pins" aria-hidden="true"><li data-n="1" style="left:48.51%;top:54.6%">1</li><li data-n="3" style="left:90.96%;top:61.27%">3</li></ol>
     </div>
     <div class="viz-row">
-      <div class="shot"><img src="img/r_C5_c.jpg?v=20" alt="모네 연작이 걸린 벽"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:82.01%;top:52.03%">1</li><li data-n="3" style="left:27.9%;top:58.42%">3</li></ol></div>
-      <div class="shot"><img src="img/r_C5_b.jpg?v=20" alt="모네 전시관 출구 쪽 벽"><ol class="pins" aria-hidden="true"><li data-n="4" style="left:66.3%;top:55.85%">4</li></ol></div>
+      <div class="shot"><img src="img/r_C5_c.jpg?v=26" alt="모네 연작이 걸린 벽"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:82.01%;top:52.03%">1</li><li data-n="3" style="left:27.9%;top:58.42%">3</li></ol></div>
+      <div class="shot"><img src="img/r_C5_b.jpg?v=26" alt="모네 전시관 출구 쪽 벽"><ol class="pins" aria-hidden="true"><li data-n="4" style="left:66.3%;top:55.85%">4</li></ol></div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c5">3D에서 이 공간 보기</a><figcaption>진입 가벽 / 연작 벽 / 출구</figcaption></div>
   </figure>
@@ -596,15 +638,16 @@ const onZone = (z) => {
   });
   const [t, d] = ZINFO[z] || ZINFO.corridor;
   cap.querySelector('b').textContent = t; cap.querySelector('span').textContent = d; cap.querySelector('a').href = '#' + z; cap.dataset.zone = z;
+  cap.querySelector('.cap-follow').hidden = !FOL_APP[z];
 };
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=23' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
+    tourP = import('./js/tour.js?v=27' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
   }
   return tourP;
 }
-const go = (z) => start().then((t) => t.flyTo(z));
+const go = (z) => { if (F) stopFollow(); return start().then((t) => t.flyTo(z)); };
 document.getElementById('tour-start').addEventListener('click', () => go('corridor'));
 plan.querySelectorAll('.z').forEach((g) => {
   g.addEventListener('click', () => go(g.dataset.zone));
@@ -637,7 +680,7 @@ const modal = document.getElementById('v3d-modal'), card = modal.querySelector('
 const phone = modal.querySelector('.v3d-phone'), frame = phone.querySelector('iframe');
 const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const openModal = () => { modal.hidden = false; stage.classList.add('modal-open'); };
-function closeModal() { frame.src = 'about:blank'; phone.hidden = true; card.hidden = false; modal.hidden = true; stage.classList.remove('modal-open'); }
+function closeModal() { frame.src = 'about:blank'; phone.hidden = true; card.hidden = false; modal.hidden = true; stage.classList.remove('modal-open'); if (F) folResume(); }
 function tryBtn(z) { return PROTO[z] ? `<button type="button" data-try="${z}">체험해보기</button>` : ''; }
 function showDevice(z, n) {
   const li = document.querySelector(`#${z} .devices li[data-n="${n}"]`); if (!li) return;
@@ -650,7 +693,7 @@ function showZone(z) {
   const sec = document.getElementById(z);
   const items = [...(sec?.querySelectorAll('.devices li') || [])].map((li) => `<li><button type="button" data-dev="${z}:${li.dataset.n}"><span class="num">${li.dataset.n}</span>${esc(li.querySelector('b')?.textContent || '')}</button></li>`).join('');
   const intro = sec?.querySelector('.zintro')?.textContent || ZINFO[z][1];
-  body.innerHTML = `<div class="kick">공간 안내</div><h3 id="v3d-card-t">${esc(ZINFO[z][0])}</h3><p>${esc(intro)}</p>${items ? `<ol>${items}</ol>` : ''}<div class="acts">${tryBtn(z)}</div>`;
+  body.innerHTML = `<div class="kick">공간 안내</div><h3 id="v3d-card-t">${esc(ZINFO[z][0])}</h3><p>${esc(intro)}</p>${items ? `<ol>${items}</ol>` : ''}<div class="acts">${FOL_APP[z] ? `<button type="button" data-follow="${z}">체험 따라하기 ▶</button>` : ''}${tryBtn(z)}</div>`;
   card.hidden = false; phone.hidden = true; openModal(); card.focus({ preventScroll: true });
 }
 function showTry(z) {
@@ -661,13 +704,96 @@ function showTry(z) {
 }
 modal.addEventListener('click', (e) => {
   if (e.target.closest('[data-close]')) return closeModal();
-  if (e.target.closest('[data-close-phone]')) { frame.src = 'about:blank'; phone.hidden = true; card.hidden = false; return; }
+  if (e.target.closest('[data-close-phone]')) { if (F) return closeModal(); frame.src = 'about:blank'; phone.hidden = true; card.hidden = false; return; }
+  const fo = e.target.closest('[data-follow]'); if (fo) { closeModal(); return startFollow(fo.dataset.follow); }
   const t = e.target.closest('[data-try]'); if (t) return showTry(t.dataset.try);
   const d = e.target.closest('[data-dev]'); if (d) { const [z, n] = d.dataset.dev.split(':'); return showDevice(z, n); }
   const zc = e.target.closest('[data-zcard]'); if (zc) return showZone(zc.dataset.zcard);
 });
 addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.hidden) { e.stopPropagation(); e.preventDefault(); closeModal(); } }, true);
 cap.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); showZone(cap.dataset.zone || 'corridor'); });
+
+// ---- 체험 따라하기: 그 공간의 체험장치를 번호 순서(①→②→…)대로 — 관람객이 서는 자리까지 걸어가 장치를 바라보고, 설명 카드를 띄운다.
+// 앱을 쓰는 단계에 닿으면 실제 프로토타입을 휴대폰 틀에 연다. 이전 / 다음 / 그만하기, '자동'을 켜면 읽을 시간만큼 머문 뒤 넘어간다.
+const FOL_APP = { c0: 1, c1: 2, c2: 1, c3: 1, c4: 5, c5: 2 };     // 앱(QR·카메라)을 처음 쓰는 장치 번호 = 그 단계에서 프로토타입을 연다
+const CIRC = '①②③④⑤⑥⑦⑧⑨';
+const fol = stage.querySelector('.v3d-fol'), folKick = fol.querySelector('.fol-kick'), folT = fol.querySelector('.fol-t'), folDl = fol.querySelector('.fol-dl'), folNote = fol.querySelector('.fol-note');
+const folBtn = (k) => fol.querySelector(`[data-fol="${k}"]`), folAuto = fol.querySelector('.fol-auto input');
+let F = null;
+const folSteps = (z) => [...document.querySelectorAll(`#${z} .devices li`)].map((li) => ({
+  n: +li.dataset.n, name: li.querySelector('b')?.textContent || '',
+  rows: [...li.querySelectorAll('dl dt')].map((dt) => [dt.textContent, dt.nextElementSibling?.textContent || '']),
+}));
+function folRender() {
+  const { z, i, steps } = F, last = i >= steps.length;
+  folKick.textContent = last ? `체험 따라하기 · ${ZINFO[z][0]} · 끝` : `체험 따라하기 · ${ZINFO[z][0]} · ${i + 1} / ${steps.length}`;
+  if (last) {
+    const col = document.querySelector(`#${z} .collect`)?.textContent.replace(/^\s*수집품\s*/, '') || '';
+    folT.textContent = '체험을 모두 따라왔습니다';
+    folDl.innerHTML = (col ? `<dt>수집품</dt><dd>${esc(col)}</dd>` : '') + `<dt>다음</dt><dd>구역 버튼이나 평면도로 다른 공간으로 이동하세요.</dd>`;
+  } else {
+    const st = steps[i];
+    folT.textContent = `${CIRC[st.n - 1] || st.n} ${st.name}`;
+    folDl.innerHTML = st.rows.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('');
+  }
+  folBtn('prev').disabled = i === 0;
+  folBtn('next').textContent = last ? '처음부터 ↺' : (i === steps.length - 1 ? '마치기 ✓' : '다음 ▶');
+  folBtn('stop').textContent = last ? '닫기' : '그만하기';
+  const isApp = !last && steps[i].n === FOL_APP[z] && PROTO[z];
+  folBtn('app').hidden = !isApp; folBtn('app').textContent = '앱 화면 열기';
+  fol.scrollTop = 0;
+}
+function folGo(i) {
+  if (!F) return;
+  clearTimeout(F.timer); F.i = i; F.arrived = false; const tok = ++F.token; folRender();
+  const last = i >= F.steps.length;
+  if (last) { F.t.markPin(F.z, null); F.arrived = true; return; }
+  const st = F.steps[i]; F.t.markPin(F.z, st.n);
+  const pose = F.t.devicePose(F.z, st.n);
+  folNote.hidden = false; folNote.textContent = '장치 앞으로 이동하는 중…';
+  (pose ? F.t.travelTo(pose) : Promise.resolve(true)).then((ok) => {
+    if (!F || tok !== F.token) return;
+    folNote.hidden = true; F.arrived = true;
+    if (st.n === FOL_APP[F.z] && PROTO[F.z] && !F.opened[i]) { F.opened[i] = true; F.timer = setTimeout(() => { if (F && tok === F.token) showTry(F.z); }, 900); return; }
+    folSchedule();
+  });
+}
+function folSchedule() {        // '자동'이면 읽을 시간만큼 머문 뒤 다음 단계
+  if (!F) return; clearTimeout(F.timer);
+  if (!folAuto.checked || !F.arrived || !modal.hidden || F.i >= F.steps.length) return;
+  const len = (folT.textContent + folDl.textContent).length;
+  F.timer = setTimeout(() => { if (F && modal.hidden) folGo(F.i + 1); }, 4500 + len * 45);
+}
+function folResume() { if (F) folSchedule(); }
+function startFollow(z) {
+  if (!FOL_APP[z]) return;
+  start().then((t) => {
+    if (F) stopFollow();
+    F = { z, t, i: 0, steps: folSteps(z), token: 0, timer: 0, arrived: false, opened: {} };
+    t.lockZone(z); t.setFollow(true); fol.hidden = false; folGo(0);
+  });
+}
+function stopFollow() {
+  if (!F) return; const t = F.t; clearTimeout(F.timer); F.token++; F = null;
+  t.cancelTravel(); t.markPin(null, null); t.setFollow(false); t.unlockZone(); fol.hidden = true;
+}
+fol.addEventListener('click', (e) => {
+  const k = e.target.closest('[data-fol]')?.dataset.fol; if (!k || !F) return;
+  if (k === 'prev') folGo(Math.max(0, F.i - 1));
+  else if (k === 'next') folGo(F.i >= F.steps.length ? 0 : F.i + 1);
+  else if (k === 'app') showTry(F.z);
+  else if (k === 'stop') stopFollow();
+});
+folAuto.addEventListener('change', folSchedule);
+cap.querySelector('.cap-follow').addEventListener('click', () => startFollow(cap.dataset.zone));
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && F && modal.hidden) { e.preventDefault(); stopFollow(); } });
+// 본문 각 체험의 '3D에서 이 공간 보기' 옆에 '3D로 체험 따라하기'
+for (const z of Object.keys(FOL_APP)) {
+  const a = document.querySelector(`#${z} .viztools .fly`); if (!a) continue;
+  const b = document.createElement('a'); b.className = 'fly'; b.href = '#tour'; b.textContent = '3D로 체험 따라하기';
+  b.addEventListener('click', (e) => { e.preventDefault(); stage.scrollIntoView({ behavior: 'smooth', block: 'start' }); startFollow(z); });
+  a.after(b);
+}
 
 // 장치 목록 ↔ 사진 번호 강조
 for (const z of document.querySelectorAll('.zone')) {
