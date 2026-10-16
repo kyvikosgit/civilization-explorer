@@ -72,24 +72,50 @@ ol.flow span{color:var(--dim);font-size:15px}
 .viz-row .pins li{width:24px;height:24px;font-size:12px}
 @media (max-width:640px){.pins li{width:22px;height:22px;font-size:11px}.viz-row .pins li{width:20px;height:20px;font-size:10px}}
 .viztools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
-.v3d-open{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;background:transparent;color:var(--ink);border:1px solid var(--ink);font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer}
-.v3d-open:hover,.v3d-open:focus-visible{background:var(--ink);color:var(--bg)}
-.v3d-open[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-.v3d-open:disabled{opacity:.6;cursor:progress}
+.fly{font-family:var(--display);font-weight:600;font-size:14px;color:var(--point);text-decoration:underline;text-underline-offset:4px}
+.fly:hover,.fly:focus-visible{color:var(--ink)}
 
-/* 3D 뷰어 */
-.shot.is-3d>:not(.v3d-stage){display:none}
-.v3d-stage{position:relative;aspect-ratio:16/10;background:#1B1B1A;overflow:hidden;color:#F2F2F0}
-@media (max-width:640px){.v3d-stage{aspect-ratio:4/5}}
-.shot.is-full{position:fixed;inset:0;z-index:100;background:#000}
-.shot.is-full .v3d-stage,.shot:fullscreen .v3d-stage{aspect-ratio:auto;height:100%;width:100%}
-.shot:fullscreen{background:#000}
+/* 4층 전체 3D 둘러보기 */
+.tour{padding-block:48px 40px;border-bottom:1px solid var(--line);display:grid;gap:16px}
+.tour h2{font-size:clamp(22px,3vw,28px);font-weight:800;line-height:1.3}
+.tour .sub{color:var(--dim);font-size:15px}
+.plan{display:block;width:100%;height:auto;background:var(--panel)}
+.plan .ctx{fill:none;stroke:var(--line);stroke-width:1px;vector-effect:non-scaling-stroke}
+.plan .ctxt{fill:var(--dim);font-family:var(--body);font-size:.75px}
+.plan .z{cursor:pointer;outline:none}
+.plan .z>rect,.plan .z>polygon{fill:var(--bg);stroke:var(--ink);stroke-width:1.2px;vector-effect:non-scaling-stroke;transition:fill .15s}
+.plan .z.corr>rect{fill:var(--panel)}
+.plan .z:hover>rect,.plan .z:hover>polygon,.plan .z:focus-visible>rect,.plan .z:focus-visible>polygon{fill:color-mix(in srgb,var(--point) 18%,var(--bg))}
+.plan .z.on>rect,.plan .z.on>polygon{fill:var(--point)}
+.plan .z text{fill:var(--ink);font-family:var(--display);font-weight:800;font-size:1.05px;text-anchor:middle;pointer-events:none}
+.plan .z text.nm{font-family:var(--body);font-weight:600;font-size:.7px}
+.plan .z.on text{fill:#FFFFFF}
+.plan .win{stroke:var(--dim);stroke-width:2px;vector-effect:non-scaling-stroke}
+.plan .curtain{stroke:var(--point);stroke-width:1.2px;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.plan .door{stroke:var(--panel);stroke-width:3px;vector-effect:non-scaling-stroke}
+.plan .you{pointer-events:none;display:none}
+.plan.live .you{display:inline}
+.plan .you path{fill:var(--point);opacity:.35}
+.plan .you circle{fill:var(--point);stroke:#FFFFFF;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+@media (max-width:640px){.plan .z text.nm,.plan .z text.cl{display:none}.plan .z text{font-size:1.5px}.plan .ctxt{font-size:1.1px}}
+.zchips{display:flex;flex-wrap:wrap;gap:6px}
+.zchips button{height:34px;padding:0 12px;background:transparent;color:var(--ink);border:1px solid var(--line);font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer}
+.zchips button:hover,.zchips button:focus-visible{border-color:var(--ink)}
+.zchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.v3d-stage{position:relative;aspect-ratio:16/9;background:#1B1B1A;overflow:hidden;color:#F2F2F0}
+@media (max-width:640px){.v3d-stage{aspect-ratio:auto;height:60vh;min-height:320px}}
+.v3d-stage.is-full{position:fixed;inset:0;z-index:100;aspect-ratio:auto;height:100%}
+.v3d-stage:fullscreen{aspect-ratio:auto;height:100%;width:100%}
+.poster{position:absolute;inset:0;display:grid;place-items:center;background:#1B1B1A center/cover no-repeat}
+.poster::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.35)}
+.poster button{position:relative;display:grid;gap:2px;justify-items:center;padding:14px 22px;background:var(--point);color:#FFFFFF;border:0;font-family:var(--display);font-weight:800;font-size:16px;cursor:pointer}
+.poster button small{font-family:var(--body);font-weight:400;font-size:12px;opacity:.9}
+.poster button:hover,.poster button:focus-visible{background:#111111}
 .v3d-canvas{position:absolute;inset:0}
 .v3d-canvas canvas{display:block;width:100%!important;height:100%!important}
 .v3d-labels{position:absolute!important;inset:0;touch-action:none}
 .v3d-pin{border:0;padding:0;cursor:pointer;box-shadow:0 0 0 2px #FFFFFF,0 2px 10px rgba(0,0,0,.45);transition:opacity .2s}
 .v3d-pin.hid{opacity:.28}
-.v3d-tag{padding:3px 10px;background:rgba(17,17,17,.78);color:#FFFFFF;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.06em;pointer-events:none}
 .v3d-tools{position:absolute;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .v3d-btn{height:34px;padding:0 12px;background:rgba(17,17,17,.74);color:#FFFFFF;border:1px solid rgba(255,255,255,.18);font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer}
 .v3d-btn:hover,.v3d-btn:focus-visible{background:var(--point)}
@@ -125,7 +151,7 @@ a{color:inherit}
 <header class="cover">
   <div class="cap">MONET 100 · 4F 체험 구성</div>
   <h1>체험 구성안</h1>
-  <p class="lead">4층 여섯 개 체험의 공간과 체험장치 구성입니다. 공간 시각화 위 번호는 아래 '체험장치 구성'의 번호와 같고, '3D로 둘러보기'를 누르면 같은 공간을 돌려보고 확대해 볼 수 있습니다.</p>
+  <p class="lead">4층 여섯 개 체험의 공간과 체험장치 구성입니다. 공간 시각화 위 번호는 아래 '체험장치 구성'의 번호와 같고, 맨 위 4층 평면도에서 공간을 누르면 3D로 그 공간을 돌려보고 확대해 볼 수 있습니다.</p>
   <p class="assume">평면도에 축척 표기가 없어, 공간 치수는 에스컬레이터 길이를 기준으로 역산한 추정치입니다. 실측 도면을 받으면 같은 구성으로 치수만 갱신합니다.</p>
 </header>
 
@@ -137,6 +163,34 @@ a{color:inherit}
   <a href="#c4"><b>C4</b><span>나다르 사진관</span><small>현장 · 초상 촬영</small></a>
   <a href="#c5"><b>C5</b><span>모네 전시관</span><small>미션 · 인상, 해돋이</small></a>
 </nav>
+
+<!-- 4층 전체 3D -->
+<section class="tour" id="tour" aria-label="4층 3D 둘러보기">
+  <div class="cap">4F · 3D</div>
+  <h2>4층 전체 3D 둘러보기</h2>
+  <p class="sub">평면도에서 공간을 누르면 그 공간으로 카메라가 이동합니다. 이동한 뒤에도 자유롭게 돌려보고 확대할 수 있습니다.</p>
+  <svg class="plan" viewBox="-26 -1.9 37.6 11.4" role="group" aria-label="4층 평면도">
+    <rect class="ctx" x="-17.5" y="4.8" width="20.1" height="4.7"/><text class="ctxt" x="-7.6" y="7.6" text-anchor="middle">E 미디어 전시</text>
+    <rect class="ctx" x="3.9" y="4.8" width="2.35" height="4.7"/><text class="ctxt" x="5.07" y="7.6" text-anchor="middle">A</text>
+    <g class="z corr" data-zone="corridor" role="button" tabindex="0" aria-label="복도 전체 보기"><rect x="-19.25" y="-0.7" width="25.35" height="5.2"/><text class="cl" x="-6.6" y="4.05">C 변화의 복도 · 전체</text></g>
+    <g class="z" data-zone="c4" role="button" tabindex="0" aria-label="C4 나다르 사진관"><rect x="-15.4" y="0" width="4.4" height="2.8"/><text x="-13.2" y="1.3">C4</text><text class="nm" x="-13.2" y="2.3">나다르 사진관</text></g>
+    <g class="z" data-zone="c3" role="button" tabindex="0" aria-label="C3 화가의 아틀리에"><rect x="-11" y="0" width="4.4" height="2.8"/><text x="-8.8" y="1.3">C3</text><text class="nm" x="-8.8" y="2.3">화가의 아틀리에</text></g>
+    <g class="z" data-zone="c2" role="button" tabindex="0" aria-label="C2 산업혁명"><rect x="-6.6" y="0" width="4.4" height="2.8"/><text x="-4.4" y="1.3">C2</text><text class="nm" x="-4.4" y="2.3">산업혁명</text></g>
+    <g class="z" data-zone="c1" role="button" tabindex="0" aria-label="C1 시민사회"><rect x="-2.2" y="0" width="4.4" height="2.8"/><text x="0" y="1.3">C1</text><text class="nm" x="0" y="2.3">시민사회</text></g>
+    <g class="z" data-zone="c0" role="button" tabindex="0" aria-label="C0 아카데미 살롱"><rect x="6.25" y="-0.7" width="4" height="6.5"/><text x="8.25" y="2.3">C0</text><text class="nm" x="8.25" y="3.3">아카데미 살롱</text></g>
+    <g class="z" data-zone="c5" role="button" tabindex="0" aria-label="C5 모네 전시관"><polygon points="-25.2,6.3 -19.4,6.3 -19.4,-0.7 -24.4,-0.7"/><text x="-22.2" y="2.3">C5</text><text class="nm" x="-22.2" y="3.3">모네 전시관</text></g>
+    <line class="win" x1="-17.9" y1="-0.85" x2="-15.5" y2="-0.85"/><line class="win" x1="-12.75" y1="-0.85" x2="-10.35" y2="-0.85"/><line class="win" x1="-7.5" y1="-0.85" x2="-5.1" y2="-0.85"/><line class="win" x1="-2.15" y1="-0.85" x2="0.25" y2="-0.85"/><line class="win" x1="3.2" y1="-0.85" x2="5.6" y2="-0.85"/>
+    <line class="curtain" x1="3.9" y1="-0.7" x2="3.9" y2="4.5"/>
+    <line class="door" x1="6.17" y1="-0.1" x2="6.17" y2="1.0"/><line class="door" x1="-19.33" y1="0.7" x2="-19.33" y2="2.3"/>
+    <g class="you"><path d="M0 0 L2.4 -1.3 L2.4 1.3 Z"/><circle r="0.45"/></g>
+  </svg>
+  <div class="zchips" role="group" aria-label="공간 선택">
+    <button type="button" data-zone="c0" aria-pressed="false">C0 살롱</button><button type="button" data-zone="corridor" aria-pressed="false">복도 전체</button><button type="button" data-zone="c1" aria-pressed="false">C1 시민사회</button><button type="button" data-zone="c2" aria-pressed="false">C2 산업혁명</button><button type="button" data-zone="c3" aria-pressed="false">C3 아틀리에</button><button type="button" data-zone="c4" aria-pressed="false">C4 나다르</button><button type="button" data-zone="c5" aria-pressed="false">C5 모네관</button>
+  </div>
+  <div class="v3d-stage" id="tour-stage">
+    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 10MB</small></button></div>
+  </div>
+</section>
 
 <!-- C0 -->
 <section class="zone" id="c0">
@@ -156,7 +210,7 @@ a{color:inherit}
       <div class="shot"><img src="img/r_C0_b.jpg" alt="후보작 5점이 걸린 벽 정면"><ol class="pins" aria-hidden="true"><li data-n="3" style="left:53.45%;top:56.8%">3</li><li data-n="4" style="left:50.04%;top:77.54%">4</li></ol></div>
       <div class="shot"><img src="img/r_C0_c.jpg" alt="복도에서 본 살롱 입구와 안내판"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:65.41%;top:59.6%">1</li><li data-n="2" style="left:48.2%;top:47.35%">2</li></ol></div>
     </div>
-    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c0" aria-pressed="false">3D로 둘러보기</button><figcaption>입구에서 본 전경 / 후보작 벽 / 살롱 입구</figcaption></div>
+    <div class="viztools"><a class="fly" href="#tour" data-fly="c0">3D에서 이 공간 보기</a><figcaption>입구에서 본 전경 / 후보작 벽 / 살롱 입구</figcaption></div>
   </figure>
   <div class="cols">
     <div>
@@ -195,7 +249,7 @@ a{color:inherit}
         <img src="img/r_Cc_top.jpg" alt="위에서 내려다본 복도와 부스 배치">
       </div>
     </div>
-    <div class="viztools"><button class="v3d-open" type="button" data-v3d="corridor" aria-pressed="false">3D로 둘러보기</button><figcaption>복도 눈높이 / 위에서 본 배치</figcaption></div>
+    <div class="viztools"><a class="fly" href="#tour" data-fly="corridor">3D에서 이 공간 보기</a><figcaption>복도 눈높이 / 위에서 본 배치</figcaption></div>
   </figure>
   <p class="zintro">헤리티지 건물의 흰 홀을 따라 부스 네 개가 가벽을 공유하며 나란히 섭니다. 부스는 복도 쪽 앞면이 열려 있어 걸으며 안을 들여다보고, 가벽은 시선보다 높게 세워 한 섹션을 다 본 뒤 다음 부스로 넘어가게 합니다(부스 약 4.25×2.8m, 가벽 3.6m 추정).</p>
 </section>
@@ -214,7 +268,7 @@ a{color:inherit}
       <img src="img/r_C1.jpg" alt="시민사회 부스 공간 시각화">
       <ol class="pins" aria-hidden="true"><li data-n="2" style="left:65.86%;top:48.13%">2</li><li data-n="3" style="left:89.61%;top:64.56%">3</li><li data-n="4" style="left:42.52%;top:69.43%">4</li></ol>
     </div>
-    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c1" aria-pressed="false">3D로 둘러보기</button><figcaption>복도에서 본 시민사회 부스</figcaption></div>
+    <div class="viztools"><a class="fly" href="#tour" data-fly="c1">3D에서 이 공간 보기</a><figcaption>복도에서 본 시민사회 부스</figcaption></div>
   </figure>
   <div class="cols">
     <div>
@@ -253,7 +307,7 @@ a{color:inherit}
       <img src="img/r_C2.jpg" alt="산업혁명 부스 공간 시각화">
       <ol class="pins" aria-hidden="true"><li data-n="1" style="left:14.09%;top:78.1%">1</li><li data-n="2" style="left:46.7%;top:78.59%">2</li><li data-n="3" style="left:29.83%;top:48.73%">3</li><li data-n="4" style="left:92.64%;top:41.75%">4</li><li data-n="5" style="left:51.49%;top:36.04%">5</li></ol>
     </div>
-    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c2" aria-pressed="false">3D로 둘러보기</button><figcaption>사업가의 방</figcaption></div>
+    <div class="viztools"><a class="fly" href="#tour" data-fly="c2">3D에서 이 공간 보기</a><figcaption>사업가의 방</figcaption></div>
   </figure>
   <div class="cols">
     <div>
@@ -293,7 +347,7 @@ a{color:inherit}
       <img src="img/r_C3.jpg" alt="화가의 아틀리에 부스 공간 시각화">
       <ol class="pins" aria-hidden="true"><li data-n="1" style="left:50%;top:51.09%">1</li><li data-n="2" style="left:76.17%;top:48.19%">2</li><li data-n="3" style="left:20.97%;top:49.47%">3</li></ol>
     </div>
-    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c3" aria-pressed="false">3D로 둘러보기</button><figcaption>야외(왼쪽)와 실내 아틀리에(오른쪽)</figcaption></div>
+    <div class="viztools"><a class="fly" href="#tour" data-fly="c3">3D에서 이 공간 보기</a><figcaption>야외(왼쪽)와 실내 아틀리에(오른쪽)</figcaption></div>
   </figure>
   <div class="cols">
     <div>
@@ -331,7 +385,7 @@ a{color:inherit}
       <img src="img/r_C4.jpg" alt="나다르 사진관 부스 공간 시각화">
       <ol class="pins" aria-hidden="true"><li data-n="1" style="left:26.45%;top:39.16%">1</li><li data-n="2" style="left:41.76%;top:68.81%">2</li><li data-n="3" style="left:81.15%;top:85.5%">3</li><li data-n="4" style="left:8.63%;top:59.91%">4</li></ol>
     </div>
-    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c4" aria-pressed="false">3D로 둘러보기</button><figcaption>나다르 사진관 정면, 촬영 카메라, 액자형 디스플레이</figcaption></div>
+    <div class="viztools"><a class="fly" href="#tour" data-fly="c4">3D에서 이 공간 보기</a><figcaption>나다르 사진관 정면, 촬영 카메라, 액자형 디스플레이</figcaption></div>
   </figure>
   <div class="cols">
     <div>
@@ -374,7 +428,7 @@ a{color:inherit}
       <div class="shot"><img src="img/r_C5_c.jpg" alt="모네 연작이 걸린 벽"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:82.01%;top:52.03%">1</li><li data-n="3" style="left:27.9%;top:58.42%">3</li></ol></div>
       <div class="shot"><img src="img/r_C5_b.jpg" alt="모네 전시관 출구 쪽 벽"><ol class="pins" aria-hidden="true"><li data-n="4" style="left:66.3%;top:55.85%">4</li></ol></div>
     </div>
-    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c5" aria-pressed="false">3D로 둘러보기</button><figcaption>진입 가벽 / 연작 벽 / 출구</figcaption></div>
+    <div class="viztools"><a class="fly" href="#tour" data-fly="c5">3D에서 이 공간 보기</a><figcaption>진입 가벽 / 연작 벽 / 출구</figcaption></div>
   </figure>
   <div class="cols">
     <div>
@@ -400,14 +454,27 @@ a{color:inherit}
 </div>
 
 <script type="module">
-// 3D 뷰어는 버튼을 누를 때만 불러온다 (three.js · glb 모두 지연 로드)
-let mod = null;
-for (const b of document.querySelectorAll('[data-v3d]')) {
-  b.addEventListener('click', async () => {
-    if (!mod) { b.disabled = true; try { mod = await import('./js/viewer.js?v=5'); } finally { b.disabled = false; } }
-    mod.openViewer(b.closest('.viz').querySelector('.shot.main'), b.dataset.v3d, b);
-  });
+// 3D는 '3D로 보기'나 평면도를 처음 누를 때만 불러온다 (three.js + floor.glb 지연 로드)
+const stage = document.getElementById('tour-stage'), plan = document.querySelector('.plan'), tour = document.getElementById('tour');
+let tourP = null;
+const onZone = (z) => document.querySelectorAll('.zchips button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.zone === z)));
+function start() {
+  if (!tourP) {
+    stage.querySelector('.poster')?.remove();
+    tourP = import('./js/tour.js?v=9').then((m) => m.createTour({ stage, plan, onZone }));
+  }
+  return tourP;
 }
+const go = (z) => start().then((t) => t.flyTo(z));
+document.getElementById('tour-start').addEventListener('click', () => go('corridor'));
+plan.querySelectorAll('.z').forEach((g) => {
+  g.addEventListener('click', () => go(g.dataset.zone));
+  g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(g.dataset.zone); } });
+});
+document.querySelectorAll('.zchips button').forEach((b) => b.addEventListener('click', () => go(b.dataset.zone)));
+document.querySelectorAll('[data-fly]').forEach((a) => a.addEventListener('click', (e) => {
+  e.preventDefault(); tour.scrollIntoView({ behavior: 'smooth', block: 'start' }); go(a.dataset.fly);
+}));
 // 장치 목록 ↔ 사진 번호 강조
 for (const z of document.querySelectorAll('.zone')) {
   const set = (n, on) => z.querySelectorAll(`.pins [data-n="${n}"], .devices [data-n="${n}"]`).forEach((e) => e.classList.toggle('on', on));
