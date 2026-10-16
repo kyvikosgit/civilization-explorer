@@ -243,7 +243,7 @@ ol.flow span{color:var(--dim);font-size:15px}
 .fol-acts button:disabled{opacity:.35;cursor:default;background:rgba(255,255,255,.12);color:#F2F2F0}
 .fol-acts button[hidden]{display:none}
 .fol-auto{display:inline-flex;align-items:center;gap:4px;margin-left:auto;font-size:12px;color:rgba(255,255,255,.8);cursor:pointer}
-.v3d-stage.v3d-follow .ov-cap,.v3d-stage.v3d-follow .v3d-pad,.v3d-stage.v3d-follow .v3d-hint,.v3d-stage.v3d-follow .v3d-onboard{display:none}
+.v3d-stage.v3d-follow .ov-plan,.v3d-stage.v3d-follow .ov-toggle,.v3d-stage.v3d-follow .ov-cap,.v3d-stage.v3d-follow .v3d-pad,.v3d-stage.v3d-follow .v3d-hint,.v3d-stage.v3d-follow .v3d-onboard{display:none}
 .v3d-stage.v3d-follow .v3d-pin:not(.cur){opacity:.35}
 .v3d-pin.cur{opacity:1!important;z-index:2;transform:scale(1.3);box-shadow:0 0 0 3px #FFFFFF,0 0 0 7px rgba(217,103,47,.45),0 2px 12px rgba(0,0,0,.5)}
 .v3d-stage.modal-open .v3d-fol{visibility:hidden}
@@ -643,7 +643,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=28' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
+    tourP = import('./js/tour.js?v=29' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
   }
   return tourP;
 }
