@@ -85,6 +85,8 @@ export function createTour({ stage, plan, onZone }) {
   tools.append(bReset, bFull);
   const hint = el('p', 'v3d-hint', isSmall() ? '한 손가락으로 돌려보기 · 두 손가락으로 확대·이동' : '드래그로 돌려보기 · Ctrl(⌘)+스크롤로 확대 · 오른쪽 드래그로 이동');
   stage.prepend(canvasWrap); stage.append(bar, tools, hint);
+  // 위쪽 구역 버튼 줄이 오른쪽 위 조작 버튼 밑으로 들어가지 않도록 그 폭만큼 비워 둔다
+  new ResizeObserver(() => stage.style.setProperty('--toolsw', tools.offsetWidth + 'px')).observe(tools);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, isSmall() ? 1.5 : 2));

@@ -95,9 +95,9 @@ ol.flow span{color:var(--dim);font-size:15px}
 .ov-cap{pointer-events:auto}
 .ov>*{pointer-events:auto}
 .glass{background:rgba(20,20,19,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12)}
-.ov-top{top:12px;left:12px;right:236px;display:grid;justify-items:start;gap:8px}
-.ov-bar{display:flex;gap:6px;align-items:center;max-width:100%}
-.zchips{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:4px;max-width:100%}
+.ov-top{top:12px;left:12px;right:calc(var(--toolsw,224px) + 24px);display:grid;justify-items:start;gap:8px}
+.ov-bar{display:flex;gap:6px;align-items:center;max-width:100%;overflow:hidden}
+.zchips{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:4px;max-width:100%;min-width:0;flex:0 1 auto}
 .zchips::-webkit-scrollbar{display:none}
 .zchips button,.ov-toggle,.v3d-btn{flex:none;height:32px;padding:0 11px;background:transparent;color:#F2F2F0;border:0;font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
 .zchips button:hover,.zchips button:focus-visible,.ov-toggle:hover,.ov-toggle:focus-visible{background:rgba(255,255,255,.12)}
@@ -514,7 +514,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=12').then((m) => m.createTour({ stage, plan, onZone }));
+    tourP = import('./js/tour.js?v=13').then((m) => m.createTour({ stage, plan, onZone }));
   }
   return tourP;
 }
