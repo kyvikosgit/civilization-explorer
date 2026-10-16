@@ -6,10 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=22';
+import SCENES from './scenes.js?v=23';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=22' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=23' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -195,7 +195,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
   function floorTarget(cx, cy) {
     const r = surface.getBoundingClientRect();
     ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
-    rc.setFromCamera(ndc, camera);
+    camera.updateMatrixWorld(); rc.setFromCamera(ndc, camera);
     if (!rc.ray.intersectPlane(floorPlane, hit)) return null;
     const p = camera.position, d = Math.hypot(hit.x - p.x, hit.z - p.z);
     if (d > 14) return null;
@@ -214,16 +214,98 @@ export function createTour({ stage, plan, onZone, onPin }) {
     glide = { t0: performance.now(), dur: dur ?? THREE.MathUtils.clamp(d / 3, 0.5, 1.4) * 1000, x0: p.x, z0: p.z, x1: x, z1: z };
     if (yaw != null) { V.yawT = V.yaw + (((yaw - V.yaw) % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; V.pitchT = pitch; }
   };
-  const fadeTo = (pose) => {
-    glide = null; fade.classList.add('on');
-    setTimeout(() => { setPose(pose); V.zoom = V.zoomT = 1; applyFov(); afterMove(); requestAnimationFrame(() => fade.classList.remove('on')); }, 260);
+  const fadeTo = (pose, done) => {
+    glide = null; endRoute(false); fade.classList.add('on');
+    setTimeout(() => { setPose(pose); V.zoom = V.zoomT = 1; applyFov(); afterMove(); setTimeout(() => fade.classList.remove('on'), 40); done?.(); }, 260);
   };
 
+  // ---- 길찾기: 충돌 격자(몸 반경만큼 부풀린 칸) 위 A* → 직선으로 이어도 막히지 않는 점만 남김 → 모서리를 둥글게 ----
+  // 구역 사이 이동은 이 길(살롱 문 · 복도 · 모네관 문)을 따라 걷고, 벽을 뚫고 지나가지 않는다.
+  const cellIdx = (x, z) => { const i = Math.floor((x - GRID.x0) / GRID.s), j = Math.floor((z - GRID.z0) / GRID.s); return (i < 0 || j < 0 || i >= GRID.nx || j >= GRID.nz) ? -1 : j * GRID.nx + i; };
+  const freeIdx = (k) => k >= 0 && grid && !grid.inf[k];
+  const nearFree = (x, z) => {        // 벽에 붙어 서 있으면 가장 가까운 빈 칸에서 출발
+    for (let r = 0; r <= 8; r++) for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) {
+      if (Math.max(Math.abs(di), Math.abs(dj)) !== r) continue;
+      const k = cellIdx(x + di * GRID.s, z + dj * GRID.s); if (freeIdx(k)) return k;
+    }
+    return -1;
+  };
+  const cellXZ = (k) => ({ x: GRID.x0 + ((k % GRID.nx) + 0.5) * GRID.s, z: GRID.z0 + (Math.floor(k / GRID.nx) + 0.5) * GRID.s });
+  const segClear = (a, b) => { const L = Math.hypot(b.x - a.x, b.z - a.z), n = Math.max(1, Math.ceil(L / 0.04)); for (let k = 0; k <= n; k++) if (!freeIdx(cellIdx(a.x + (b.x - a.x) * k / n, a.z + (b.z - a.z) * k / n))) return false; return true; };
+  function findPath(x0, z0, x1, z1) {
+    if (!grid) return null;
+    const s = nearFree(x0, z0), g = nearFree(x1, z1); if (s < 0 || g < 0) return null;
+    const { nx } = GRID, N = GRID.nx * GRID.nz, gs = new Float32Array(N).fill(Infinity), from = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
+    const gx = g % nx, gz = Math.floor(g / nx), h = (k) => { const dx = Math.abs((k % nx) - gx), dz = Math.abs(Math.floor(k / nx) - gz); return Math.max(dx, dz) + 0.4142 * Math.min(dx, dz); };
+    const heap = [], push = (k, f) => { heap.push([f, k]); let i = heap.length - 1; while (i) { const p = (i - 1) >> 1; if (heap[p][0] <= heap[i][0]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top[1]; };
+    gs[s] = 0; push(s, h(s));
+    const D = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.4142], [1, -1, 1.4142], [-1, 1, 1.4142], [-1, -1, 1.4142]];
+    let found = false;
+    while (heap.length) {
+      const k = pop(); if (closed[k]) continue; closed[k] = 1; if (k === g) { found = true; break; }
+      const ci = k % nx, cj = Math.floor(k / nx);
+      for (const [di, dj, c] of D) {
+        const ii = ci + di, jj = cj + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= GRID.nz) continue;
+        const kk = jj * nx + ii; if (closed[kk] || grid.inf[kk]) continue;
+        if (di && dj && (grid.inf[cj * nx + ii] || grid.inf[jj * nx + ci])) continue;     // 모서리 깎아 지나가지 않기
+        const ng = gs[k] + c; if (ng < gs[kk]) { gs[kk] = ng; from[kk] = k; push(kk, ng + h(kk)); }
+      }
+    }
+    if (!found) return null;
+    const cells = []; for (let k = g; k >= 0; k = from[k]) cells.push(cellXZ(k)); cells.reverse();
+    cells[0] = freeIdx(cellIdx(x0, z0)) ? { x: x0, z: z0 } : cells[0];
+    if (freeIdx(cellIdx(x1, z1))) cells[cells.length - 1] = { x: x1, z: z1 };
+    // 시야가 닿는 가장 먼 점으로 건너뛰기
+    const pts = [cells[0]]; let i = 0;
+    while (i < cells.length - 1) { let j = cells.length - 1; while (j > i + 1 && !segClear(cells[i], cells[j])) j--; pts.push(cells[j]); i = j; }
+    // 모서리 둥글게(차이킨 2회) — 둥근 길이 막히면 꺾인 길 그대로
+    let sm = pts;
+    for (let it = 0; it < 2 && sm.length > 2; it++) {
+      const o = [sm[0]];
+      for (let k = 0; k < sm.length - 1; k++) { const a = sm[k], b = sm[k + 1]; if (k > 0) o.push({ x: a.x * 0.75 + b.x * 0.25, z: a.z * 0.75 + b.z * 0.25 }); if (k < sm.length - 2) o.push({ x: a.x * 0.25 + b.x * 0.75, z: a.z * 0.25 + b.z * 0.75 }); }
+      o.push(sm[sm.length - 1]);
+      if (o.every((p, k) => k === 0 || segClear(o[k - 1], p))) sm = o; else break;
+    }
+    return sm;
+  }
+  // ---- 길 따라 걷기: 사다리꼴 속도(출발·도착에서 부드럽게), 시선은 1.2 m 앞 길 방향, 마지막 1.5 m에서 도착 방향으로 ----
+  const WALK_V = 1.8, ACC = 0.7, MAX_WALK = 15;    // m/s, 가감속 초, 이보다 오래 걸리면 순간 이동
+  let route = null;
+  const skipBtn = el('button', 'v3d-skip', '건너뛰기 ▸'); skipBtn.type = 'button'; skipBtn.hidden = true;
+  skipBtn.addEventListener('click', () => { if (!route) return; const r = route; route = null; skipBtn.hidden = true; stage.classList.remove('v3d-traveling'); fadeTo({ pos: new THREE.Vector3(r.end.x, EYE, r.end.z), yaw: r.yaw ?? V.yaw, pitch: r.pitch ?? 0 }, () => r.resolve(true)); });
+  stage.append(skipBtn);
+  const routeTime = (L) => (L < WALK_V * ACC ? 2 * Math.sqrt(L * ACC / WALK_V) : L / WALK_V + ACC);
+  function sAt(r, t) {          // 걸은 거리(사다리꼴 속도)
+    const L = r.L, T_ = r.dur;
+    if (L < WALK_V * ACC) { const a = 4 * L / (T_ * T_); return t < T_ / 2 ? 0.5 * a * t * t : L - 0.5 * a * (T_ - t) ** 2; }
+    const a = WALK_V / ACC; if (t < ACC) return 0.5 * a * t * t; if (t > T_ - ACC) return L - 0.5 * a * (T_ - t) ** 2; return 0.5 * WALK_V * ACC + WALK_V * (t - ACC);
+  }
+  function pointAt(r, s) {
+    s = THREE.MathUtils.clamp(s, 0, r.L); let k = 1; while (k < r.cum.length - 1 && r.cum[k] < s) k++;
+    const a = r.pts[k - 1], b = r.pts[k], u = (s - r.cum[k - 1]) / Math.max(1e-6, r.cum[k] - r.cum[k - 1]);
+    return { x: a.x + (b.x - a.x) * u, z: a.z + (b.z - a.z) * u };
+  }
+  function endRoute(ok) { if (!route) return; const r = route; route = null; skipBtn.hidden = true; stage.classList.remove('v3d-traveling'); r.resolve(ok); }
+  const wrapYaw = (y) => V.yaw + (((y - V.yaw) % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+  // 목적 자세까지 길 따라 이동. 길이 없거나 너무 길면 잠깐 어두워졌다 이동. Promise: 도착(true) / 사용자가 끊음(false)
+  T.travelTo = (pose, { maxWalk = MAX_WALK } = {}) => new Promise((resolve) => {
+    endRoute(false); glide = null;
+    const c = camera.position, path = findPath(c.x, c.z, pose.pos.x, pose.pos.z);
+    let L = 0; const cum = [0];
+    if (path) for (let k = 1; k < path.length; k++) { L += Math.hypot(path[k].x - path[k - 1].x, path[k].z - path[k - 1].z); cum.push(L); }
+    if (!path || routeTime(L) > maxWalk) { fadeTo(pose, () => resolve(true)); return; }
+    if (L < 0.05) { V.yawT = wrapYaw(pose.yaw); V.pitchT = pose.pitch; dirty = true; setTimeout(() => resolve(true), 350); return; }
+    route = { pts: path, cum, L, dur: routeTime(L), t0: performance.now(), end: pose.pos, yaw: pose.yaw, pitch: pose.pitch, resolve };
+    skipBtn.hidden = route.dur < 2.5; stage.classList.add('v3d-traveling');
+  });
+  T.cancelTravel = () => endRoute(false);
+
   // ---- 포인터: 끌면 제자리에서 시선 회전, 짧게 누르면 그 바닥으로 걷기, 두 손가락은 화각 확대 ----
-  const ptrs = new Map(); let drag = null, pinch = null, lastHover = 0;
+  const ptrs = new Map(); let drag = null, pinch = null, lastHover = 0, lastTap = null;
   surface.addEventListener('pointerdown', (e) => {
     if (e.target.closest('.v3d-pin')) return;
-    surface.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { surface.setPointerCapture(e.pointerId); } catch (err) { /* 합성 이벤트 등 */ } ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (ptrs.size === 1) drag = { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, moved: false };
     if (ptrs.size === 2) { const [p1, p2] = [...ptrs.values()]; pinch = { d: Math.hypot(p1.x - p2.x, p1.y - p2.y), z: V.zoomT }; drag = null; }
   });
@@ -235,7 +317,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
     }
     if (drag && ptrs.has(e.pointerId)) {
       const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
-      if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) { drag.moved = true; zoneLock = null; }
+      if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) { if (!drag.moved && route) endRoute(false); drag.moved = true; zoneLock = null; }
       const k = THREE.MathUtils.degToRad(camera.fov) / surface.clientHeight;   // 화면을 잡고 끄는 느낌(1:1)
       V.yawT += dx * k; V.pitchT = THREE.MathUtils.clamp(V.pitchT + dy * k, -PITCH, PITCH);
       ring.visible = false; dirty = true; return;
@@ -247,7 +329,13 @@ export function createTour({ stage, plan, onZone, onPin }) {
     ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
     if (wasClick && T.ready) {
       const t = floorTarget(e.clientX, e.clientY);
-      if (t) { zoneLock = null; showRing(t); walkTo(t.x, t.z); if (e.pointerType !== 'mouse') setTimeout(() => showRing(null), 900); }
+      const go = () => { if (t) { endRoute(false); zoneLock = null; showRing(t); walkTo(t.x, t.z); if (e.pointerType !== 'mouse') setTimeout(() => showRing(null), 900); } };
+      if (e.pointerType !== 'touch') go();
+      else {        // 휴대폰: 두 번 눌러 이동 (한 번 누르면 갈 자리만 표시)
+        const now = performance.now();
+        if (lastTap && now - lastTap.t < 380 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 36) { lastTap = null; go(); }
+        else { lastTap = { t: now, x: e.clientX, y: e.clientY }; showRing(t); setTimeout(() => { if (lastTap?.t === now) { lastTap = null; showRing(null); } }, 700); }
+      }
     }
     if (!ptrs.size) { drag = null; queueOccl(); }
   };
@@ -269,11 +357,11 @@ export function createTour({ stage, plan, onZone, onPin }) {
   const KEYMAP = { KeyW: 'fwd', ArrowUp: 'fwd', KeyS: 'back', ArrowDown: 'back', KeyA: 'sl', KeyD: 'sr', ArrowLeft: 'tl', ArrowRight: 'tr' };
   addEventListener('keydown', (e) => {
     const k = KEYMAP[e.code]; if (!k || !T.ready || !active() || paused() || e.target.closest?.('input,textarea')) return;
-    e.preventDefault(); keys.add(k); glide = null; zoneLock = null;
+    e.preventDefault(); keys.add(k); glide = null; zoneLock = null; endRoute(false);
   });
   addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k && keys.delete(k) && !keys.size) afterMove(); });
   pad.addEventListener('click', (e) => {
-    const k = e.target.closest('button')?.dataset.k; if (!k || !T.ready) return; zoneLock = null;
+    const k = e.target.closest('button')?.dataset.k; if (!k || !T.ready) return; zoneLock = null; endRoute(false);
     if (k === 'left') V.yawT += Math.PI / 6; else if (k === 'right') V.yawT -= Math.PI / 6;
     else {
       const s = k === 'fwd' ? 1 : -1, p = camera.position;
@@ -353,17 +441,18 @@ export function createTour({ stage, plan, onZone, onPin }) {
   // ---- 구역 이동: 직선으로 막힘없이 갈 수 있으면 걸어서, 아니면 잠깐 어두워졌다가 이동 ----
   T.flyTo = (z, instant) => {
     const p = PRESETS[z]; if (!p) return;
-    if (!T.ready || instant) { setPose(p); setZone(z); return; }
-    const c = camera.position, r2 = reach(c.x, c.z, p.pos.x, p.pos.z), d = Math.hypot(p.pos.x - c.x, p.pos.z - c.z);
-    if (r2.clear && d < 10) walkTo(p.pos.x, p.pos.z, p.yaw, p.pitch); else fadeTo(p);
+    if (!T.ready || instant) { setPose(p); setZone(z); return Promise.resolve(true); }
     V.zoomT = 1; zoneLock = z; setZone(z);
+    return T.travelTo(p);
   };
   T.pending = 'corridor';
 
   // ---- 루프 ----
   let tPrev = performance.now();
+  // ?debug=timer: 화면에 안 보이는 점검용 탭에서도 돌도록 타이머로 프레임을 돌린다(평소에는 requestAnimationFrame)
+  const nextFrame = /[?&]debug=timer\b/.test(location.search) ? (f) => setTimeout(f, 16) : requestAnimationFrame;
   const tick = () => {
-    requestAnimationFrame(tick);
+    nextFrame(tick);
     const now = performance.now(), dt = Math.min(0.05, (now - tPrev) / 1000); tPrev = now;
     if (!T.ready) return;
     let moved = false;
@@ -373,6 +462,15 @@ export function createTour({ stage, plan, onZone, onPin }) {
       if (keys.has('tl')) V.yawT += 1.6 * dt; if (keys.has('tr')) V.yawT -= 1.6 * dt;
       const sy = Math.sin(V.yaw), cy = Math.cos(V.yaw);
       if (f || st) moved = tryMove((-sy * f + cy * st) * sp, (-cy * f - sy * st) * sp) || moved;
+      moved = true;
+    }
+    if (route) {
+      const r = route, t = Math.min(r.dur, (now - r.t0) / 1000), s = sAt(r, t), p = pointAt(r, s);
+      camera.position.x = p.x; camera.position.z = p.z;
+      const left = r.L - s;
+      if (left > 1.5) { const q = pointAt(r, s + 1.2); if (Math.hypot(q.x - p.x, q.z - p.z) > 0.05) V.yawT = wrapYaw(Math.atan2(-(q.x - p.x), -(q.z - p.z))); V.pitchT = 0; }
+      else if (r.yaw != null) { V.yawT = wrapYaw(r.yaw); V.pitchT = r.pitch ?? 0; }
+      if (t >= r.dur) { endRoute(true); afterMove(); }
       moved = true;
     }
     if (glide) {
@@ -386,13 +484,12 @@ export function createTour({ stage, plan, onZone, onPin }) {
     if (Math.abs(V.yawT - V.yaw) > 1e-5 || Math.abs(V.pitchT - V.pitch) > 1e-5) { V.yaw += (V.yawT - V.yaw) * a; V.pitch += (V.pitchT - V.pitch) * a; moved = true; }
     if (Math.abs(V.zoomT - V.zoom) > 1e-4) { V.zoom += (V.zoomT - V.zoom) * a; applyFov(); moved = true; }
     camera.rotation.set(V.pitch, V.yaw, 0); camera.position.y = EYE;
-    if (moved) { if (!zoneLock && !glide) { const z = regionOf(lookPoint()); if (z !== T.zone) setZone(z); } relight(); }
+    if (moved) { if (!zoneLock && !glide && !route) { const z = regionOf(lookPoint()); if (z !== T.zone) setZone(z); } relight(); }
     if (moved || dirty) { renderer.render(scene, camera); labelR.render(scene, camera); updateYou(); dirty = false; }
   };
 
   // ---- 도구 ----
-  bReset.addEventListener('click', () => { zoneLock = T.zone || 'corridor'; walkOrFade(PRESETS[zoneLock]); });
-  const walkOrFade = (p) => { const c = camera.position, r2 = reach(c.x, c.z, p.pos.x, p.pos.z); V.zoomT = 1; if (r2.clear) walkTo(p.pos.x, p.pos.z, p.yaw, p.pitch); else fadeTo(p); };
+  bReset.addEventListener('click', () => { zoneLock = T.zone || 'corridor'; V.zoomT = 1; T.travelTo(PRESETS[zoneLock]); });
   const isFull = () => stage.classList.contains('is-full') || document.fullscreenElement === stage;
   const setFullLabel = () => { bFull.textContent = isFull() ? '전체화면 닫기' : '전체화면'; };
   const exitPseudo = () => { stage.classList.remove('is-full'); document.body.classList.remove('v3d-lock'); setFullLabel(); };
@@ -433,14 +530,27 @@ export function createTour({ stage, plan, onZone, onPin }) {
     scene.add(room);
     grid = buildGrid(meshes.filter((m) => !m.material?.name?.startsWith('halo_')));
     bar.remove(); T.ready = true; plan.classList.add('live');
+    showOnboard();
     const z = T.pending; T.zone = null; T.flyTo(z, true); relight(true); dirty = true;
     return T;
   }).catch((err) => { pct.textContent = '3D 공간을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'; bar.classList.add('err'); console.warn(err); });
+  // ---- 처음 한 번 조작 안내(닫으면 이 브라우저에서는 다시 안 뜸) ----
+  const OB_KEY = 'ce-tour-onboard-v1';
+  function showOnboard() {
+    let seen = false; try { seen = localStorage.getItem(OB_KEY) === '1'; } catch (e) { /* 저장소 막힘: 매번 보여도 무방 */ }
+    if (seen && !/[?&]onboard\b/.test(location.search)) return;
+    const touch = matchMedia('(pointer: coarse)').matches;
+    const ob = el('div', 'v3d-onboard glass', `<p><b>둘러보는 방법</b><span>드래그로 둘러보기 · 바닥을 ${touch ? '두 번 ' : ''}눌러 이동 · 번호를 눌러 체험장치 보기</span></p><button type="button">확인</button>`);
+    ob.setAttribute('role', 'note');
+    const close = () => { ob.remove(); try { localStorage.setItem(OB_KEY, '1'); } catch (e) { /* 무시 */ } };
+    ob.querySelector('button').addEventListener('click', close);
+    stage.append(ob);
+  }
   // 점검용(?debug): 콘솔에서 시점 지정·캡처
-  if (/[?&]debug\b/.test(location.search)) window.__tour = { T, camera, V, renderer, scene, setPose: (x, z, yawDeg, pitchDeg = 0) => { camera.position.set(x, EYE, z); V.yaw = V.yawT = THREE.MathUtils.degToRad(yawDeg); V.pitch = V.pitchT = THREE.MathUtils.degToRad(pitchDeg); zoneLock = null; dirty = true; afterMove(); },
+  if (/[?&]debug\b/.test(location.search)) window.__tour = { T, camera, V, renderer, scene, findPath, PRESETS, routeTime, cellFree, setPose: (x, z, yawDeg, pitchDeg = 0) => { camera.position.set(x, EYE, z); V.yaw = V.yawT = THREE.MathUtils.degToRad(yawDeg); V.pitch = V.pitchT = THREE.MathUtils.degToRad(pitchDeg); zoneLock = null; dirty = true; afterMove(); },
     snap: (w = 1600, h = 1000) => { const s = new THREE.Vector2(); renderer.getSize(s); const a = camera.aspect; camera.rotation.set(V.pitch, V.yaw, 0); camera.position.y = EYE; relight(true); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.render(scene, camera); const u = renderer.domElement.toDataURL('image/jpeg', 0.9); renderer.setSize(s.x, s.y, false); camera.aspect = a; camera.updateProjectionMatrix(); dirty = true; return u; } };
   const prevFly = T.flyTo;
-  T.flyTo = (z, instant) => { if (!T.ready) { T.pending = z; plan.querySelectorAll('[data-zone]').forEach((e) => e.classList.toggle('on', e.dataset.zone === z)); onZone?.(z); return; } prevFly(z, instant); };
+  T.flyTo = (z, instant) => { if (!T.ready) { T.pending = z; plan.querySelectorAll('[data-zone]').forEach((e) => e.classList.toggle('on', e.dataset.zone === z)); onZone?.(z); return Promise.resolve(false); } return prevFly(z, instant); };
   tick();
   return T;
 }

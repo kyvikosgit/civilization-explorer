@@ -191,6 +191,36 @@ ol.flow span{color:var(--dim);font-size:15px}
   .ov-cap b{font-size:14px}
   .ov-cap span{display:none}
 }
+.v3d-skip{position:absolute;z-index:6;left:50%;bottom:16px;transform:translateX(-50%);height:36px;padding:0 16px;border:1px solid rgba(255,255,255,.2);background:rgba(20,20,19,.72);color:#F2F2F0;font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer}
+.v3d-skip:hover,.v3d-skip:focus-visible{background:var(--point)}
+.v3d-skip[hidden]{display:none}
+.v3d-onboard{position:absolute;z-index:7;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:14px;padding:14px 14px 14px 18px;width:max-content;max-width:min(560px,calc(100% - 24px))}
+.v3d-onboard p{display:grid;gap:2px}
+.v3d-onboard b{font-family:var(--display);font-weight:800;font-size:14px}
+.v3d-onboard span{font-size:14px;line-height:1.5;color:rgba(255,255,255,.88)}
+.v3d-onboard button{flex:none;height:40px;padding:0 16px;border:0;background:var(--point);color:#FFFFFF;font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer}
+.v3d-onboard button:hover,.v3d-onboard button:focus-visible{background:#FFFFFF;color:#111111}
+.v3d-stage.modal-open .v3d-onboard,.v3d-stage.modal-open .v3d-skip{visibility:hidden}
+.v3d-stage.v3d-traveling .v3d-pin{opacity:0;pointer-events:none}
+.ov-chips-t{display:none}
+@media (pointer:coarse){.v3d-pin{width:34px;height:34px;font-size:14px}.v3d-pin::after{content:"";position:absolute;inset:-10px;border-radius:50%}}
+@media (max-width:640px){
+  .ov-bar{background:rgba(20,20,19,.5)}
+  .zchips button,.ov-toggle,.ov-chips-t{height:32px;padding:0 9px;font-size:12px}
+  .zchips{padding:2px}
+  .ov-chips-t{display:block;flex:none;background:transparent;color:#F2F2F0;border:0;border-left:1px solid rgba(255,255,255,.18);font-family:var(--display);font-weight:600;cursor:pointer}
+  .ov-bar:not(.chips-open){width:auto}
+  .ov-bar:not(.chips-open) .zchips{flex:0 1 auto}
+  .ov-bar:not(.chips-open) .zchips button:not([aria-pressed="true"]){display:none}
+  .v3d-tools{background:rgba(20,20,19,.5);padding:2px}
+  .v3d-btn{height:30px;padding:0 9px;font-size:12px}
+  .v3d-pad{background:rgba(20,20,19,.4);bottom:52px;grid-template-columns:repeat(3,34px);grid-template-rows:34px 34px;gap:3px;padding:3px}
+  .v3d-pad button{width:34px;height:34px;background:rgba(255,255,255,.06)}
+  .v3d-skip{bottom:auto;top:52px}
+  .v3d-onboard{top:96px;transform:translateX(-50%);width:calc(100% - 16px);padding:10px 10px 10px 14px;gap:10px}
+  .v3d-onboard b{font-size:13px}.v3d-onboard span{font-size:13px}
+  .v3d-onboard button{height:36px;padding:0 12px;font-size:13px}
+}
 .v3d-load{position:absolute;z-index:3;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;font-size:13px;text-align:center;padding:20px}
 .v3d-load-track{width:min(240px,60vw);height:3px;background:rgba(255,255,255,.18)}
 .v3d-load-track i{display:block;height:100%;width:0;background:var(--point);transition:width .15s}
@@ -221,12 +251,13 @@ a{color:inherit}
 <!-- 4층 전체 3D: 화면을 채우는 캔버스 위에 평면도·구역 버튼·설명을 띄운다 -->
 <section class="tour" id="tour" aria-label="4층 3D 둘러보기">
   <div class="v3d-stage" id="tour-stage">
-    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=22)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 15MB</small></button></div>
+    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=23)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 15MB</small></button></div>
     <div class="ov ov-top">
       <div class="ov-bar glass">
         <div class="zchips" role="group" aria-label="공간 선택">
             <button type="button" data-zone="c0" aria-pressed="false">C0 살롱</button><button type="button" data-zone="corridor" aria-pressed="false">복도 전체</button><button type="button" data-zone="c1" aria-pressed="false">C1 시민사회</button><button type="button" data-zone="c2" aria-pressed="false">C2 산업혁명</button><button type="button" data-zone="c3" aria-pressed="false">C3 아틀리에</button><button type="button" data-zone="c4" aria-pressed="false">C4 나다르</button><button type="button" data-zone="c5" aria-pressed="false">C5 모네관</button>
           </div>
+        <button type="button" class="ov-chips-t" aria-expanded="false" aria-label="구역 버튼 펼치기">구역 ▾</button>
         <button type="button" class="ov-toggle" aria-controls="ov-plan" aria-expanded="true">평면도 접기</button>
       </div>
       <div class="ov-plan glass" id="ov-plan">
@@ -335,8 +366,8 @@ a{color:inherit}
   <figure class="viz">
     <div class="shot main">
       <div class="viz-row">
-        <img src="img/r_Cc_eye.jpg?v=22" alt="복도 눈높이에서 본 부스 네 개">
-        <img src="img/r_Cc_top.jpg?v=22" alt="위에서 내려다본 복도와 부스 배치">
+        <img src="img/r_Cc_eye.jpg?v=23" alt="복도 눈높이에서 본 부스 네 개">
+        <img src="img/r_Cc_top.jpg?v=23" alt="위에서 내려다본 복도와 부스 배치">
       </div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="corridor">3D에서 이 공간 보기</a><figcaption>복도 눈높이 / 위에서 본 배치</figcaption></div>
@@ -355,7 +386,7 @@ a{color:inherit}
   <p class="zintro">부스 안쪽은 바티뇰파가 모이던 카페 게르부아의 정면 세트이고, 창 안으로는 이 카페를 그린 것으로 알려진 마네의 석판화 〈카페에서〉(1869)의 손님들이 보입니다. 정면 오른쪽 끝에는 1876년 파리의 모리스 칼럼을 실물 비율 그대로 높이 약 3.4m로 줄여 세웁니다(실물 약 4.8m).</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C1.jpg?v=22" alt="시민사회 부스 공간 시각화">
+      <img src="img/r_C1.jpg?v=23" alt="시민사회 부스 공간 시각화">
       <ol class="pins" aria-hidden="true"><li data-n="1" style="left:18.85%;top:83.42%">1</li><li data-n="2" style="left:85.28%;top:59.15%">2</li><li data-n="3" style="left:63.69%;top:62.09%">3</li><li data-n="4" style="left:26.46%;top:64.75%">4</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c1">3D에서 이 공간 보기</a><figcaption>복도에서 본 시민사회 부스</figcaption></div>
@@ -569,7 +600,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=22' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
+    tourP = import('./js/tour.js?v=23' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
   }
   return tourP;
 }
@@ -579,7 +610,14 @@ plan.querySelectorAll('.z').forEach((g) => {
   g.addEventListener('click', () => go(g.dataset.zone));
   g.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(g.dataset.zone); } });
 });
-stage.querySelectorAll('.zchips button').forEach((b) => b.addEventListener('click', () => go(b.dataset.zone)));
+// 휴대폰: 구역 버튼 줄은 현재 구역 하나만 보이게 접어 두고 '구역 ▾'로 펼친다 (구역을 고르면 다시 접힘)
+const obar = stage.querySelector('.ov-bar'), chipT = stage.querySelector('.ov-chips-t');
+const setChips = (open) => { obar.classList.toggle('chips-open', open); chipT.setAttribute('aria-expanded', String(open)); chipT.textContent = open ? '접기 ▴' : '구역 ▾'; };
+chipT.addEventListener('click', () => setChips(!obar.classList.contains('chips-open')));
+stage.querySelectorAll('.zchips button').forEach((b) => b.addEventListener('click', () => {
+  if (matchMedia('(max-width: 640px)').matches && !obar.classList.contains('chips-open')) { setChips(true); return; }   // 접힌 상태의 현재 구역 버튼 = 펼치기
+  setChips(false); go(b.dataset.zone);
+}));
 // 평면도 접기/펼치기 — 좁은 화면은 접힌 상태(구역 버튼 줄만)로 시작
 const setPlan = (open) => { panel.hidden = !open; toggle.setAttribute('aria-expanded', String(open)); toggle.textContent = open ? '평면도 접기' : '평면도'; };
 setPlan(!matchMedia('(max-width: 640px)').matches);
