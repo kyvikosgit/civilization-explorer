@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=26';
+import SCENES from './scenes.js?v=30';
 
 const THREE_VER = '0.169.0';
 const MODEL = new URL('../models/floor.glb?v=26' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
@@ -167,7 +167,8 @@ export function createTour({ stage, plan, onZone, onPin }) {
   setPose(PRESETS.corridor);
 
   let baseFov = 60;
-  const applyFov = () => { camera.fov = THREE.MathUtils.clamp(baseFov * V.zoom, 35, 75); camera.updateProjectionMatrix(); };
+  const FOV_MAX = 86;     // 체험 따라하기에서 큰 장치를 한 화면에 담을 때만 이 근처까지 넓힌다(손가락·휠 확대는 75까지)
+  const applyFov = () => { camera.fov = THREE.MathUtils.clamp(baseFov * V.zoom, 35, FOV_MAX); camera.updateProjectionMatrix(); };
   const fit = () => {
     const w = canvasWrap.clientWidth, h = canvasWrap.clientHeight; if (!w || !h) return;
     renderer.setSize(w, h, false); labelR.setSize(w, h); camera.aspect = w / h;
@@ -228,7 +229,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
   };
   const fadeTo = (pose, done) => {
     glide = null; endRoute(false); fade.classList.add('on');
-    setTimeout(() => { setPose(pose); V.zoom = V.zoomT = 1; applyFov(); afterMove(); setTimeout(() => fade.classList.remove('on'), 40); done?.(); }, 260);
+    setTimeout(() => { setPose(pose); V.zoom = V.zoomT = pose.fov ? pose.fov / baseFov : 1; applyFov(); afterMove(); setTimeout(() => fade.classList.remove('on'), 40); done?.(); }, 260);
   };
 
   // ---- 길찾기: 충돌 격자(몸 반경만큼 부풀린 칸) 위 A* → 직선으로 이어도 막히지 않는 점만 남김 → 모서리를 둥글게 ----
@@ -307,8 +308,9 @@ export function createTour({ stage, plan, onZone, onPin }) {
     let L = 0; const cum = [0];
     if (path) for (let k = 1; k < path.length; k++) { L += Math.hypot(path[k].x - path[k - 1].x, path[k].z - path[k - 1].z); cum.push(L); }
     if (!path || routeTime(L) > maxWalk) { fadeTo(pose, () => resolve(true)); return; }
-    if (L < 0.05) { V.yawT = wrapYaw(pose.yaw); V.pitchT = pose.pitch; dirty = true; setTimeout(() => resolve(true), 350); return; }
-    route = { pts: path, cum, L, dur: routeTime(L), t0: performance.now(), end: pose.pos, yaw: pose.yaw, pitch: pose.pitch, resolve };
+    if (L < 0.05) { V.yawT = wrapYaw(pose.yaw); V.pitchT = pose.pitch; V.zoomT = pose.fov ? pose.fov / baseFov : 1; dirty = true; setTimeout(() => resolve(true), 350); return; }
+    V.zoomT = 1;
+    route = { pts: path, cum, L, dur: routeTime(L), t0: performance.now(), end: pose.pos, yaw: pose.yaw, pitch: pose.pitch, fov: pose.fov, resolve };
     skipBtn.hidden = route.dur < 2.5; stage.classList.add('v3d-traveling');
   });
   T.cancelTravel = () => endRoute(false);
@@ -482,6 +484,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
       const left = r.L - s;
       if (left > 1.5) { const q = pointAt(r, s + 1.2); if (Math.hypot(q.x - p.x, q.z - p.z) > 0.05) V.yawT = wrapYaw(Math.atan2(-(q.x - p.x), -(q.z - p.z))); V.pitchT = 0; }
       else if (r.yaw != null) { V.yawT = wrapYaw(r.yaw); V.pitchT = r.pitch ?? 0; }
+      if (left < 1.5 && r.fov) V.zoomT = r.fov / baseFov;
       if (t >= r.dur) { endRoute(true); afterMove(); }
       moved = true;
     }
@@ -558,23 +561,70 @@ export function createTour({ stage, plan, onZone, onPin }) {
     ob.querySelector('button').addEventListener('click', close);
     stage.append(ob);
   }
-  // ---- 체험 따라하기용: 장치마다 관람객이 서는 자리(scenes.js stands: [x, z] 눈높이 자리) → 그 자리에서 장치를 바라보는 자세 ----
-  // 장치가 화면 가운데보다 조금 위(세로 화각의 8%)에 오도록 살짝 내려다본다 — 아래쪽 설명 카드가 장치를 가리지 않게.
+  // ---- 체험 따라하기용: 장치마다 관람객이 서는 자리 → 그 자리에서 장치 전체를 화면에 담는 자세 ----
+  // scenes.js follow[z][n-1] = { d: [x, z, 세로화각], m: [...] } (d = 가로 화면, m = 세로 휴대폰 화면; tour.js computeFollow로 계산·검토).
+  // 장치 상자(box)의 중심이 화면 위쪽 39% 지점에 오게 내려다봐서 아래 설명 카드(화면 아래 약 25%)가 장치를 가리지 않는다.
+  const FIT_CY = 0.39;
+  const poseFor = (st, box, vfov) => {
+    const pos = new THREE.Vector3(st[0], EYE, st[1]), dx = box.c[0] - st[0], dz = box.c[2] - st[1], h = Math.hypot(dx, dz);
+    const v = THREE.MathUtils.degToRad(vfov), pitch = Math.atan2(box.c[1] - EYE, h) - Math.atan((1 - 2 * FIT_CY) * Math.tan(v / 2));
+    return { pos, yaw: Math.atan2(-dx, -dz), pitch: THREE.MathUtils.clamp(pitch, -1.0, 1.0), fov: vfov };
+  };
   T.devicePose = (z, n) => {
-    const d = SCENES[z], a = d?.anchors?.[n - 1], st = d?.stands?.[n - 1]; if (!a || !st) return null;
-    const pos = new THREE.Vector3(st[0], EYE, st[1]), dx = a[0] - st[0], dz = a[2] - st[1], h = Math.hypot(dx, dz);
-    const vfov = THREE.MathUtils.degToRad(baseFov);
-    const pitch = THREE.MathUtils.clamp(Math.atan2(a[1] - EYE, h) - vfov * 0.08, -0.6, 0.6);
-    return { pos, yaw: Math.atan2(-dx, -dz), pitch };
+    const d = SCENES[z], f = d?.follow?.[n - 1], box = d?.boxes?.[n - 1]; if (!f || !box) return null;
+    const portrait = camera.aspect < 1, st = portrait ? f.m : f.d;
+    // 저장된 세로 화각은 기준 화면비(1.6 / 0.563)에서 잰 값 → 지금 화면비에서 가로로 모자라면 더 넓힌다
+    const refA = portrait ? 0.563 : 1.6, a = camera.aspect, need = st[2];
+    const h = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(need) / 2) * refA), v = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(h / 2) / a));
+    return poseFor(st, box, THREE.MathUtils.clamp(Math.max(need, a < refA ? v : need, baseFov), 20, FOV_MAX));
   };
   T.markPin = (z, n) => { for (const o of pins) o.element.classList.toggle('cur', n != null && o.userData.zone === z && o.userData.n === n); };
   T.setFollow = (on) => stage.classList.toggle('v3d-follow', !!on);
   T.lockZone = (z) => { zoneLock = z; setZone(z); };
-  T.unlockZone = () => { zoneLock = null; afterMove(); };
+  T.unlockZone = () => { zoneLock = null; V.zoomT = 1; dirty = true; afterMove(); };
   // 점검용(?debug): 콘솔에서 시점 지정·캡처
   if (/[?&]debug\b/.test(location.search)) window.__tour = { THREE, meshes, T, camera, V, renderer, scene, findPath, PRESETS, routeTime, cellFree, SCENES,
     // 장치마다 설 자리 후보(반경 1.2–2.8 m, 15° 간격) 중: 빈 칸 · 그 구역 시작 자리에서 걸어갈 수 있음 · 눈에서 장치까지 막힘 없음 →
     // 거리 d0와 '시작 자리 쪽에서 다가가는 방향'에 가까운 것
+    // 장치 상자를 화면 [x 4–96%, y 8–70%] 안에 담을 수 있는 서는 자리 찾기: 빈 칸 · 복도에서 걸어갈 수 있음 · 눈에서 상자 중심·윗모서리까지 막힘 없음,
+    // 화각을 기본(가로 50° / 세로폰 72°)에서 최대(66° / 84°)까지만 넓혀서 들어가는 것 중 화각이 작고, 정면에 가깝고, 너무 멀지 않은 곳
+    computeFollow: (only) => {
+      const out = {}, ray = new THREE.Raycaster(), cam = new THREE.PerspectiveCamera(50, 1.6, 0.05, 100); cam.rotation.order = 'YXZ';
+      // 걸어갈 수 있는 칸(복도 시작 자리에서 채우기)
+      const reachable = new Set(); { const s = PRESETS.corridor.pos, q = [[Math.floor((s.x - GRID.x0) / GRID.s), Math.floor((s.z - GRID.z0) / GRID.s)]];
+        while (q.length) { const [i, j] = q.pop(); const k = j * GRID.nx + i; if (reachable.has(k) || i < 0 || j < 0 || i >= GRID.nx || j >= GRID.nz || grid.inf[k]) continue; reachable.add(k); q.push([i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]); } }
+      const reach = (x, z) => { const i = Math.floor((x - GRID.x0) / GRID.s), j = Math.floor((z - GRID.z0) / GRID.s); return reachable.has(j * GRID.nx + i); };
+      const corners = (b) => { const [nx, nz] = b.n, l = Math.hypot(nx, nz), Nx = nx / l, Nz = nz / l, Tx = -Nz, Tz = Nx, out_ = [], dp = b.d || 0.02;
+        for (const sw of [-1, 1]) for (const sh of [-1, 1]) for (const sd of [-1, 1]) out_.push(new THREE.Vector3(b.c[0] + Tx * b.w * sw + Nx * dp * sd, b.c[1] + b.h * sh, b.c[2] + Tz * b.w * sw + Nz * dp * sd)); return out_; };
+      const cover = (st, b, v, a, cs) => { const p = poseFor(st, b, v); cam.fov = v; cam.aspect = a; cam.updateProjectionMatrix(); cam.position.copy(p.pos); cam.rotation.set(p.pitch, p.yaw, 0); cam.updateMatrixWorld();
+        let n = 0; for (const c of cs) { const q = c.clone().project(cam); if (!(q.z > 1 || Math.abs(q.x) > 0.92 || q.y > 0.84 || q.y < -0.40)) n++; } return n / cs.length; };
+      const fits = (st, b, v, a, cs) => cover(st, b, v, a, cs) === 1;
+      const los = (st, b, cs) => { const eye = new THREE.Vector3(st[0], EYE, st[1]); const tg = [new THREE.Vector3(...b.c)];
+        const [nx, nz] = b.n, l = Math.hypot(nx, nz); for (const sw of [-0.6, 0.6]) for (const sh of (b.loLos ? [0.5, -0.5] : [0.5])) tg.push(new THREE.Vector3(b.c[0] - nz / l * b.w * sw + nx / l * (b.d || 0), b.c[1] + b.h * sh, b.c[2] + nx / l * b.w * sw + nz / l * (b.d || 0)));
+        return tg.every((t, i) => { const dir = t.clone().sub(eye), L = dir.length(); ray.set(eye, dir.normalize()); ray.far = L - (i === 0 ? (b.d || 0) + 0.25 : 0.25); return ray.intersectObjects(meshes, false).length === 0; }); };
+      const ASP = { d: [1.6, 50.2, 74], m: [0.563, 72, 86] };
+      for (const [z, d] of Object.entries(SCENES)) {
+        if (!d.boxes || (only && !only.includes(z))) continue; out[z] = [];
+        for (const b of d.boxes) {
+          const cs = corners(b), [nx, nz] = b.n, ln = Math.hypot(nx, nz), base = Math.atan2(nz / ln, nx / ln), res = {};
+          for (const [k, [a, v0, v1]] of Object.entries(ASP)) {
+            const cand = [];
+            for (let r = 1.0; r <= 5.01; r += 0.25) for (let da = -75; da <= 75; da += 7.5) {
+              const ang = base + da * Math.PI / 180, x = b.c[0] + Math.cos(ang) * r, zz = b.c[2] + Math.sin(ang) * r;
+              if (!cellFree(x, zz) || !reach(x, zz)) continue;
+              let v = null; if (fits([x, zz], b, v0, a, cs)) v = v0; else if (fits([x, zz], b, v1, a, cs)) { let lo = v0, hi = v1; for (let it = 0; it < 7; it++) { const m = (lo + hi) / 2; if (fits([x, zz], b, m, a, cs)) hi = m; else lo = m; } v = hi; }
+              const score = (v != null ? v - v0 : 100 + 200 * (1 - cover([x, zz], b, v1, a, cs))) + 3 * Math.max(0, r - 4) + 6 * (da / 75) ** 2 + 0.3 * r;
+              cand.push({ x, zz, v, score, r, da });
+            }
+            cand.sort((p, q) => p.score - q.score);
+            const pick = cand.find((c) => los([c.x, c.zz], b, cs));
+            res[k] = pick ? [+pick.x.toFixed(2), +pick.zz.toFixed(2), +(pick.v ?? v1).toFixed(1)] : null; if (pick && pick.v == null) (out._partial ||= []).push(`${z}${out[z].length + 1}${k}`);
+          }
+          out[z].push(res);
+        }
+      }
+      return out;
+    },
     computeStands: (d0 = 1.8) => {
       const out = {}, ray = new THREE.Raycaster(), eye = new THREE.Vector3(), tgt = new THREE.Vector3();
       for (const [z, d] of Object.entries(SCENES)) {
