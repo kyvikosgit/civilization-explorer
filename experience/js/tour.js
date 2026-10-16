@@ -6,10 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=10';
+import SCENES from './scenes.js?v=17';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=10', import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=17', import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -118,7 +118,7 @@ function fixHalo(mesh) {
 
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
 
-export function createTour({ stage, plan, onZone }) {
+export function createTour({ stage, plan, onZone, onPin }) {
   const T = { ready: false, zone: null };
   const canvasWrap = el('div', 'v3d-canvas');
   const bar = el('div', 'v3d-load', '<div class="v3d-load-track"><i></i></div><span>3D 공간 불러오는 중… 0%</span>');
@@ -264,10 +264,11 @@ export function createTour({ stage, plan, onZone }) {
   // ---- 키보드: 3D 위에 마우스가 있거나 전체화면일 때만 (페이지 스크롤 키를 빼앗지 않게) ----
   let hover = false; const keys = new Set();
   stage.addEventListener('pointerenter', () => { hover = true; }); stage.addEventListener('pointerleave', () => { hover = false; keys.clear(); });
+  const paused = () => stage.classList.contains('modal-open');   // 장치 카드·체험 화면이 떠 있으면 3D 입력 멈춤
   const active = () => hover || stage.classList.contains('is-full') || document.fullscreenElement === stage;
   const KEYMAP = { KeyW: 'fwd', ArrowUp: 'fwd', KeyS: 'back', ArrowDown: 'back', KeyA: 'sl', KeyD: 'sr', ArrowLeft: 'tl', ArrowRight: 'tr' };
   addEventListener('keydown', (e) => {
-    const k = KEYMAP[e.code]; if (!k || !T.ready || !active() || e.target.closest?.('input,textarea')) return;
+    const k = KEYMAP[e.code]; if (!k || !T.ready || !active() || paused() || e.target.closest?.('input,textarea')) return;
     e.preventDefault(); keys.add(k); glide = null; zoneLock = null;
   });
   addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k && keys.delete(k) && !keys.size) afterMove(); });
@@ -287,7 +288,7 @@ export function createTour({ stage, plan, onZone }) {
   for (const [z, d] of Object.entries(SCENES)) (d.anchors || []).forEach((p, i) => {
     if (!p) return;
     const b = el('button', 'v3d-pin', String(i + 1)); b.type = 'button'; b.setAttribute('aria-label', `${z.toUpperCase()} 장치 ${i + 1}`);
-    b.addEventListener('click', () => document.querySelector(`#${z} .devices li[data-n="${i + 1}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    b.addEventListener('click', (e) => { e.stopPropagation(); onPin?.(z, i + 1); });   // 3D 안 오버레이 카드로 (페이지 스크롤 없음)
     const o = new CSS2DObject(b); o.position.set(...p); o.userData.zone = z; o.visible = false; scene.add(o); pins.push(o);
   });
 
@@ -404,7 +405,7 @@ export function createTour({ stage, plan, onZone }) {
     stage.classList.add('is-full'); document.body.classList.add('v3d-lock'); setFullLabel();
   });
   document.addEventListener('fullscreenchange', () => { setFullLabel(); fit(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && stage.classList.contains('is-full')) exitPseudo(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && stage.classList.contains('is-full') && !paused()) exitPseudo(); });
 
   // ---- 불러오기 ----
   const draco = new DRACOLoader(); draco.setDecoderPath(`https://cdn.jsdelivr.net/npm/three@${THREE_VER}/examples/jsm/libs/draco/gltf/`);
