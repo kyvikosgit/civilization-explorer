@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <title>MONET 100 체험 구성안</title>
 <style>
-/* 레이아웃: 한 줄 본문 칼럼(최대 1080) — 체험마다 [번호·제목] → 공간 구성 → 체험 플로우 → 사료 그리드 */
+/* 레이아웃: 한 줄 본문 칼럼(최대 1080) — 체험마다 [번호·제목] → 공간 시각화(번호 표시 · 3D) → 체험장치 구성 → 체험 플로우 */
 @font-face{font-family:Paperlogy;font-weight:800;src:url(fonts/Paperlogy-8ExtraBold.woff2) format("woff2");font-display:swap}
 @font-face{font-family:Paperlogy;font-weight:600;src:url(fonts/Paperlogy-6SemiBold.woff2) format("woff2");font-display:swap}
 @font-face{font-family:Freesentation;font-weight:400;src:url(fonts/Freesentation-4Regular.woff2) format("woff2");font-display:swap}
@@ -22,6 +22,7 @@
 body{margin:0}
 img{max-width:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.7;word-break:keep-all;padding-inline:20px;padding-block:0 80px}
+body.v3d-lock{overflow:hidden}
 .wrap{max-width:1080px;margin:0 auto}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 p{margin:0}
@@ -36,17 +37,16 @@ p{margin:0}
 .toc span{font-size:15px;font-weight:600}
 .toc small{font-size:12px;color:var(--dim)}
 .toc a:hover span,.toc a:focus-visible span{color:var(--point)}
-.zone{padding-block:64px 8px;border-bottom:1px solid var(--line);display:grid;gap:28px}
+.zone{padding-block:64px 40px;border-bottom:1px solid var(--line);display:grid;gap:28px}
 .zhead{display:grid;gap:8px}
 .zhead h2{font-size:clamp(24px,3.4vw,34px);font-weight:800;line-height:1.25}
 .zhead h2 em{font-style:normal;color:var(--point);margin-right:10px}
 .meta{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--dim)}
 .meta b{color:var(--ink);font-weight:600;margin-right:6px}
-.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:40px}
-@media (max-width:820px){.cols{grid-template-columns:1fr;gap:28px}}
-h3{font-size:15px;font-weight:800;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:14px}
-.space p+p{margin-top:10px}
-.space p{color:var(--ink)}
+.zintro{max-width:68ch}
+.cols{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:40px}
+@media (max-width:820px){.cols{grid-template-columns:1fr;gap:32px}}
+h3{font-size:15px;font-weight:800;padding-bottom:10px;border-bottom:1px solid var(--ink);margin-bottom:4px}
 ol.flow{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:0}
 ol.flow li{counter-increment:s;display:grid;grid-template-columns:34px minmax(0,1fr);gap:0 6px;padding:12px 0;border-bottom:1px solid var(--line)}
 ol.flow li::before{content:counter(s,decimal-leading-zero);font-family:var(--display);font-weight:800;font-size:14px;color:var(--point);line-height:1.7}
@@ -54,28 +54,69 @@ ol.flow b{display:block;font-weight:600}
 ol.flow span{color:var(--dim);font-size:15px}
 .collect{margin-top:14px;font-size:14px;color:var(--dim)}
 .collect b{color:var(--ink);font-weight:600}
-.refs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:28px 22px}
-figure{margin:0;display:grid;gap:10px;align-content:start}
-figure .ph{background:var(--panel);aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden}
-figure img{width:100%;height:100%;object-fit:contain;display:block}
-figcaption{display:grid;gap:3px;font-size:13px;line-height:1.55}
-figcaption strong{font-size:14px;font-weight:600}
-figcaption .src{color:var(--dim)}
-figcaption .use{margin-top:4px}
 .tryrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:6px}
 .try{display:inline-flex;align-items:center;gap:6px;height:42px;padding:0 18px;background:var(--ink);color:var(--bg);font-family:var(--display);font-weight:600;font-size:14px;text-decoration:none}
 .try:hover,.try:focus-visible{background:var(--point);color:#FFFFFF}
 .tryhint{font-size:12px;color:var(--dim)}
-.note{font-size:12px;color:var(--point)}
+
+/* 공간 시각화 + 번호 표시 */
 .viz{display:grid;gap:10px;margin:0}
 .viz img{width:100%;height:auto;display:block;background:var(--panel)}
 .viz-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 .viz figcaption{font-size:13px;color:var(--dim)}
+.shot{position:relative;margin:0}
+.pins{list-style:none;margin:0;padding:0;position:absolute;inset:0;pointer-events:none}
+.pins li,.num,.v3d-pin{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--point);color:#FFFFFF;font-family:var(--display);font-weight:800;font-size:13px;line-height:1}
+.pins li{position:absolute;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #FFFFFF,0 2px 10px rgba(0,0,0,.4);pointer-events:auto;cursor:default;transition:transform .15s}
+.pins li.on{transform:translate(-50%,-50%) scale(1.25)}
+.viz-row .pins li{width:24px;height:24px;font-size:12px}
+@media (max-width:640px){.pins li{width:22px;height:22px;font-size:11px}.viz-row .pins li{width:20px;height:20px;font-size:10px}}
+.viztools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.v3d-open{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;background:transparent;color:var(--ink);border:1px solid var(--ink);font-family:var(--display);font-weight:600;font-size:14px;cursor:pointer}
+.v3d-open:hover,.v3d-open:focus-visible{background:var(--ink);color:var(--bg)}
+.v3d-open[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.v3d-open:disabled{opacity:.6;cursor:progress}
+
+/* 3D 뷰어 */
+.shot.is-3d>:not(.v3d-stage){display:none}
+.v3d-stage{position:relative;aspect-ratio:16/10;background:#1B1B1A;overflow:hidden;color:#F2F2F0}
+@media (max-width:640px){.v3d-stage{aspect-ratio:4/5}}
+.shot.is-full{position:fixed;inset:0;z-index:100;background:#000}
+.shot.is-full .v3d-stage,.shot:fullscreen .v3d-stage{aspect-ratio:auto;height:100%;width:100%}
+.shot:fullscreen{background:#000}
+.v3d-canvas{position:absolute;inset:0}
+.v3d-canvas canvas{display:block;width:100%!important;height:100%!important}
+.v3d-labels{position:absolute!important;inset:0;touch-action:none}
+.v3d-pin{border:0;padding:0;cursor:pointer;box-shadow:0 0 0 2px #FFFFFF,0 2px 10px rgba(0,0,0,.45);transition:opacity .2s}
+.v3d-pin.hid{opacity:.28}
+.v3d-tag{padding:3px 10px;background:rgba(17,17,17,.78);color:#FFFFFF;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.06em;pointer-events:none}
+.v3d-tools{position:absolute;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.v3d-btn{height:34px;padding:0 12px;background:rgba(17,17,17,.74);color:#FFFFFF;border:1px solid rgba(255,255,255,.18);font-family:var(--display);font-weight:600;font-size:13px;cursor:pointer}
+.v3d-btn:hover,.v3d-btn:focus-visible{background:var(--point)}
+.v3d-hint{position:absolute;left:12px;bottom:10px;right:12px;font-size:12px;color:rgba(255,255,255,.82);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.v3d-load{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:12px;font-size:13px;text-align:center;padding:20px}
+.v3d-load-track{width:min(240px,60vw);height:3px;background:rgba(255,255,255,.18)}
+.v3d-load-track i{display:block;height:100%;width:0;background:var(--point);transition:width .15s}
+.v3d-load.err .v3d-load-track{display:none}
+
+/* 체험장치 구성 */
+ol.devices{list-style:none;margin:0;padding:0;display:grid}
+ol.devices li{display:grid;grid-template-columns:28px minmax(0,1fr);gap:0 12px;padding:14px 0;border-bottom:1px solid var(--line)}
+ol.devices .num{margin-top:1px;transition:transform .15s}
+ol.devices li.on .num{transform:scale(1.18)}
+ol.devices b{display:block;font-weight:600;font-size:16px;line-height:1.5}
+ol.devices .where{display:block;font-size:13px;color:var(--dim);margin-top:1px}
+ol.devices dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;margin:8px 0 0;font-size:15px;line-height:1.6}
+ol.devices dt{font-family:var(--display);font-weight:600;font-size:12px;color:var(--point);padding-top:2px;white-space:nowrap}
+ol.devices dd{margin:0}
+ol.devices .tbd{font-size:12px;color:var(--dim)}
 .assume{font-size:13px;color:var(--dim);margin-top:12px}
-.foot{padding-top:40px;font-size:13px;color:var(--dim);display:grid;gap:6px}
 a{color:inherit}
 :focus-visible{outline:2px solid var(--point);outline-offset:2px}
 </style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
+</script>
 </head>
 <body>
 
@@ -84,7 +125,7 @@ a{color:inherit}
 <header class="cover">
   <div class="cap">MONET 100 · 4F 체험 구성</div>
   <h1>체험 구성안</h1>
-  <p class="lead">4층 여섯 개 체험의 공간 구성과 관람 흐름입니다. 공간의 틀은 전시 기획안의 4층 평면도와 존별 구성을 따랐고, 벽면 이미지와 소품은 각 장소가 실제로 존재했던 당시의 사진·회화·인쇄물로 채웠습니다. 체험별로 공간 시각화, 체험 플로우, 근거 자료와 소장처를 함께 정리했습니다.</p>
+  <p class="lead">4층 여섯 개 체험의 공간과 체험장치 구성입니다. 공간 시각화 위 번호는 아래 '체험장치 구성'의 번호와 같고, '3D로 둘러보기'를 누르면 같은 공간을 돌려보고 확대해 볼 수 있습니다.</p>
   <p class="assume">평면도에 축척 표기가 없어, 공간 치수는 에스컬레이터 길이를 기준으로 역산한 추정치입니다. 실측 도면을 받으면 같은 구성으로 치수만 갱신합니다.</p>
 </header>
 
@@ -105,39 +146,37 @@ a{color:inherit}
     <div class="meta"><span><b>유형</b>미션 체험</span><span><b>앱</b>QR · 그림 인식</span><span><b>수집품</b>올해의 그림</span></div>
     <p class="tryrow"><a class="try" href="https://kippu-app-prototype.vercel.app/mission-b/salon?demo=1" target="_blank" rel="noopener">앱 미션 체험해보기<span aria-hidden="true">↗</span></a><span class="tryhint">휴대폰에서 열면 실제 화면 크기로 볼 수 있습니다. 카메라 없이 데모로 진행됩니다.</span></p>
   </div>
+  <p class="zintro">4층 B 위치의 방(약 4.0×6.5m)을 1873년 살롱 전시장으로 꾸밉니다. 관람객은 심사위원이 되어 후보작 5점 중 '올해의 그림'을 고릅니다.</p>
   <figure class="viz">
-    <img src="img/r_C0_a.jpg" alt="아카데미 살롱 공간 시각화, 입구에서 본 전경">
-    <div class="viz-row">
-      <img src="img/r_C0_b.jpg" alt="후보작 5점이 걸린 벽 정면">
-      <img src="img/r_C0_c.jpg" alt="복도에서 본 살롱 입구와 안내판">
+    <div class="shot main">
+      <img src="img/r_C0_a.jpg" alt="아카데미 살롱 공간 시각화, 입구에서 본 전경">
+      <ol class="pins" aria-hidden="true"><li data-n="2" style="left:18.81%;top:44.78%">2</li><li data-n="3" style="left:81.3%;top:66.43%">3</li><li data-n="4" style="left:68.34%;top:84.81%">4</li></ol>
     </div>
-    <figcaption>공간 시각화 · 입구에서 본 전경 / 후보작 벽 / 살롱 입구</figcaption>
+    <div class="viz-row">
+      <div class="shot"><img src="img/r_C0_b.jpg" alt="후보작 5점이 걸린 벽 정면"><ol class="pins" aria-hidden="true"><li data-n="3" style="left:53.45%;top:56.8%">3</li><li data-n="4" style="left:50.04%;top:77.54%">4</li></ol></div>
+      <div class="shot"><img src="img/r_C0_c.jpg" alt="복도에서 본 살롱 입구와 안내판"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:65.41%;top:59.6%">1</li><li data-n="2" style="left:48.2%;top:47.35%">2</li></ol></div>
+    </div>
+    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c0" aria-pressed="false">3D로 둘러보기</button><figcaption>입구에서 본 전경 / 후보작 벽 / 살롱 입구</figcaption></div>
   </figure>
   <div class="cols">
-    <div class="space">
-      <h3>공간 구성</h3>
-      <p>4층 B 위치의 방(약 4.0×6.5m, 천장 4.2m 추정)을 1873년 살롱이 열린 팔레 드 랭뒤스트리의 전시벽으로 꾸밉니다. 버건디 벽, 바닥부터 천장까지 2~3단으로 액자를 촘촘히 거는 살롱식 걸기, 상단의 천 차양, 금박 액자가 기준입니다. 벽에는 1873년 살롱 실제 출품작을 함께 겁니다.</p>
-      <p>후보작 5점은 한 벽에 나란히 걸고, 특별 액자와 1~5 번호, 작품 라벨, 스포트라이트로 구분합니다. 입구에는 "LE SALON DE 1873" 안내판을 둡니다.</p>
+    <div>
+      <h3>체험장치 구성</h3>
+      <ol class="devices">
+        <li data-n="1"><span class="num">1</span><div><b>입구 소개 안내판 · QR</b><span class="where">살롱 입구 옆 복도 벽</span><dl><dt>관람객</dt><dd>안내판을 읽고 QR을 찍습니다.</dd><dt>앱</dt><dd>"당신은 오늘의 심사위원입니다" 화면과 당시 심사 기준 7가지가 열립니다.</dd></dl></div></li>
+        <li data-n="2"><span class="num">2</span><div><b>살롱 벽</b><span class="where">입구 맞은편 벽과 왼쪽 벽</span><dl><dt>관람객</dt><dd>바닥부터 천장까지 2~3단으로 촘촘히 건 살롱식 걸기를 둘러봅니다. 1873년 살롱 실제 출품작이 함께 걸립니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>후보작 5점 특별 액자</b><span class="where">입구에서 오른쪽 벽, 한 줄로</span><dl><dt>관람객</dt><dd>1~5 번호, 작품 라벨, 스포트라이트로 구분된 후보작을 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>그림이 인식되고 해설과 함께 심사 기준에 맞는 점·어긋나는 점이 나옵니다.</dd></dl></div></li>
+        <li data-n="4"><span class="num">4</span><div><b>관람 동선 로프</b><span class="where">후보작 벽 앞</span><dl><dt>관람객</dt><dd>로프를 따라 후보작 앞을 차례로 지나갑니다.</dd></dl></div></li>
+      </ol>
     </div>
     <div>
       <h3>체험 플로우</h3>
       <ol class="flow">
-        <li><div><b>심사위원 입장</b><span>살롱 입구의 QR을 찍으면 "당신은 오늘의 심사위원입니다" 화면과 당시 심사 기준 7가지가 열립니다.</span></div></li>
-        <li><div><b>후보작 비추기</b><span>특별 액자의 그림을 앱 카메라로 비추면 그림이 인식되고, 화면 아래에 해설과 심사 기준에 맞는 점·어긋나는 점이 나옵니다.</span></div></li>
+        <li><div><b>심사위원 입장</b><span>입구 QR을 찍으면 심사위원 화면과 심사 기준 7가지가 열립니다.</span></div></li>
+        <li><div><b>후보작 비추기</b><span>특별 액자의 그림을 앱 카메라로 비추면 해설과 심사 기준에 맞는 점·어긋나는 점이 나옵니다.</span></div></li>
         <li><div><b>올해의 그림 선정</b><span>한 점을 선정합니다. 다른 그림을 고르면 실제 심사평이 나오고 다시 고를 수 있습니다.</span></div></li>
         <li><div><b>결과</b><span>메르송 〈환상〉을 고르면 이 그림이 1873년 살롱 1등급 메달작이었다는 사실이 공개됩니다.</span></div></li>
       </ol>
       <p class="collect"><b>수집품</b> 올해의 그림 — 메르송 〈환상〉, 1872</p>
-    </div>
-  </div>
-  <div>
-    <h3>공간 근거 자료</h3>
-    <div class="refs">
-      <figure><div class="ph"><img src="img/C0_salon1861_nave_richebourg.jpg" alt="1861년 살롱 조각 홀과 전시벽 사진" loading="lazy"></div><figcaption><strong>1861년 살롱 중앙 홀</strong><span class="src">리슈부르 사진 · 1861 · 프랑스 국립도서관</span><span class="use">1873년 살롱과 같은 건물의 실사진. 철골·유리 천장과 2층 회랑 구조.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C0_salon1861_wall_richebourg.jpg" alt="1861년 살롱 전시벽 사진" loading="lazy"></div><figcaption><strong>1861년 살롱 전시벽</strong><span class="src">리슈부르 사진 · 1861 · 프랑스 국립도서관</span><span class="use">액자 간격, 2~3단 걸기, 상단 천 차양의 실제 모습.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C0_salon1787_martini.jpg" alt="1787년 루브르 살롱 전시 판화" loading="lazy"></div><figcaption><strong>1787년 루브르 살롱 전시</strong><span class="src">마르티니 판화 · 1787 · 메트로폴리탄 미술관</span><span class="use">바닥에서 천장까지 채우는 살롱식 걸기의 원형.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C0_salon1847_biard.jpg" alt="비아르, 살롱의 4시" loading="lazy"></div><figcaption><strong>살롱의 4시</strong><span class="src">비아르 · 1847년경 · 루브르 박물관</span><span class="use">금박 액자, 관람객 동선과 복식.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C0_merson_vision1872.jpg" alt="메르송, 환상" loading="lazy"></div><figcaption><strong>환상, 14세기의 전설</strong><span class="src">메르송 · 1872 · 릴 미술관</span><span class="use">1873년 살롱 1등급 메달작(릴 미술관 기록, 1874년 『르 몽드 일뤼스트레』로 확인). 퀴즈 정답.</span></figcaption></figure>
     </div>
   </div>
 </section>
@@ -150,15 +189,15 @@ a{color:inherit}
     <div class="meta"><span><b>구성</b>앞면이 열린 부스 4개 (C1 시민사회 · C2 산업혁명 · C3 화가의 아틀리에 · C4 나다르 사진관)</span></div>
   </div>
   <figure class="viz">
-    <div class="viz-row">
-      <img src="img/r_Cc_eye.jpg" alt="복도 눈높이에서 본 부스 네 개">
-      <img src="img/r_Cc_top.jpg" alt="위에서 내려다본 복도와 부스 배치">
+    <div class="shot main">
+      <div class="viz-row">
+        <img src="img/r_Cc_eye.jpg" alt="복도 눈높이에서 본 부스 네 개">
+        <img src="img/r_Cc_top.jpg" alt="위에서 내려다본 복도와 부스 배치">
+      </div>
     </div>
-    <figcaption>공간 시각화 · 복도 눈높이 / 위에서 본 배치</figcaption>
+    <div class="viztools"><button class="v3d-open" type="button" data-v3d="corridor" aria-pressed="false">3D로 둘러보기</button><figcaption>복도 눈높이 / 위에서 본 배치</figcaption></div>
   </figure>
-  <div class="space">
-    <p>헤리티지 건물의 흰 홀을 따라 부스 네 개가 가벽을 공유하며 나란히 섭니다. 부스는 복도 쪽 앞면이 열려 있어 관람객이 걸으며 안을 들여다보고, 가벽은 관람객 시선보다 높게 세워 한 섹션을 다 본 뒤 다음 부스로 넘어가게 합니다. 부스마다 색감, 가구, 조명을 다르게 합니다(부스 약 4.25×2.8m, 가벽 3.6m 추정).</p>
-  </div>
+  <p class="zintro">헤리티지 건물의 흰 홀을 따라 부스 네 개가 가벽을 공유하며 나란히 섭니다. 부스는 복도 쪽 앞면이 열려 있어 걸으며 안을 들여다보고, 가벽은 시선보다 높게 세워 한 섹션을 다 본 뒤 다음 부스로 넘어가게 합니다(부스 약 4.25×2.8m, 가벽 3.6m 추정).</p>
 </section>
 
 <!-- C1 -->
@@ -169,31 +208,33 @@ a{color:inherit}
     <div class="meta"><span><b>유형</b>미션 체험</span><span><b>앱</b>칼럼 인식 · 3D</span><span><b>수집품</b>모리스 칼럼 전단지</span></div>
     <p class="tryrow"><a class="try" href="https://kippu-homepage.vercel.app/booth/c1.html" target="_blank" rel="noopener">체험해보기<span aria-hidden="true">↗</span></a><span class="tryhint">휴대폰에서 열면 실제 화면 크기로 볼 수 있습니다. 카메라 없이 데모로 진행됩니다.</span></p>
   </div>
-  <figure class="viz"><img src="img/r_C1.jpg" alt="시민사회 부스 공간 시각화"><figcaption>공간 시각화 · 복도에서 본 시민사회 부스</figcaption></figure>
+  <p class="zintro">부스 안쪽은 바티뇰파가 모이던 카페 게르부아의 정면 세트, 앞 모서리에는 1876년 파리의 모리스 칼럼을 실물 비율(높이 약 4.8m)로 세웁니다.</p>
+  <figure class="viz">
+    <div class="shot main">
+      <img src="img/r_C1.jpg" alt="시민사회 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="2" style="left:65.86%;top:48.13%">2</li><li data-n="3" style="left:89.61%;top:64.56%">3</li><li data-n="4" style="left:42.52%;top:69.43%">4</li></ol>
+    </div>
+    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c1" aria-pressed="false">3D로 둘러보기</button><figcaption>복도에서 본 시민사회 부스</figcaption></div>
+  </figure>
   <div class="cols">
-    <div class="space">
-      <h3>공간 구성</h3>
-      <p>부스 안쪽 벽은 카페 게르부아의 정면 세트입니다. 줄무늬 차양, 따뜻한 빛이 새는 유리창, 앞쪽의 대리석 테이블과 의자로 바티뇰파가 모이던 카페를 재현합니다. 옆 벽은 1867년 만국박람회 그림(마네)을 크게 출력해 채웁니다.</p>
-      <p>부스 앞 모서리에는 1876년 파리의 실물 모리스 칼럼을 실제 비율로 세웁니다. 짙은 녹색 도장, 상부 돔과 첨탑, 공연 포스터가 겹겹이 붙은 몸체가 기준이며, 앱에서 열어볼 수 있는 전단지 6장을 앱과 같은 위치에 실물로 붙입니다. 칼럼 높이는 실물 비율로 약 4.8m입니다.</p>
+    <div>
+      <h3>체험장치 구성</h3>
+      <ol class="devices">
+        <li data-n="1"><span class="num">1</span><div><b>섹션 입구 미션 안내판</b><span class="where">부스 입구, 스탠드형 <span class="tbd">· 시각화에는 아직 넣지 않음</span></span><dl><dt>관람객</dt><dd>부스에 들어서며 미션을 확인합니다.</dd></dl></div></li>
+        <li data-n="2"><span class="num">2</span><div><b>모리스 칼럼</b><span class="where">부스 앞 오른쪽 모서리 · 실물 크기, 전단지 6장을 압정으로 고정</span><dl><dt>관람객</dt><dd>앱 카메라 화면의 점선 가이드에 실제 칼럼을 맞춥니다.</dd><dt>앱</dt><dd>칼럼이 인식되면 3D 칼럼으로 바뀌고, 전단지를 떼어 보면 삽화에 색이 입혀지며 인물이 움직입니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>카페 게르부아 벽</b><span class="where">부스 안쪽 벽 · 정보 체험</span><dl><dt>관람객</dt><dd>벽면을 앱으로 스캔합니다.</dd><dt>앱</dt><dd>이 카페에서 바티뇰파가 나누던 대화 내용이 나옵니다.</dd></dl></div></li>
+        <li data-n="4"><span class="num">4</span><div><b>1867 만국박람회 벽</b><span class="where">부스 왼쪽 벽 · 정보 체험</span><dl><dt>관람객</dt><dd>마네의 만국박람회 그림을 크게 출력한 벽면을 스캔합니다.</dd><dt>앱</dt><dd>1867년 만국박람회 정보가 나옵니다.</dd></dl></div></li>
+      </ol>
     </div>
     <div>
       <h3>체험 플로우</h3>
       <ol class="flow">
-        <li><div><b>칼럼 스캔</b><span>앱 카메라 화면에 모리스 칼럼의 외곽선이 점선으로 나옵니다. 실제 칼럼을 점선에 맞추면 인식되고, 화면이 3D 칼럼으로 바뀝니다.</span></div></li>
-        <li><div><b>칼럼 둘러보기</b><span>3D 칼럼을 손으로 돌리고 확대합니다. 열어볼 수 있는 전단지 6장(카페 게르부아, 봉 마르셰, 만국박람회, 도미에 풍자화 3장)은 압정과 테두리로 구분됩니다.</span></div></li>
-        <li><div><b>전단지 떼어보기</b><span>전단지를 누르면 칼럼에서 떼어져 화면 가운데에 떠오릅니다. 종이를 돌려보고 확대할 수 있습니다.</span></div></li>
-        <li><div><b>삽화 애니메이션</b><span>떠 있는 전단지 위에서 삽화에 색이 서서히 입혀지고 인물이 움직입니다. 닫으면 전단지가 칼럼으로 돌아가고 다른 전단지를 이어서 볼 수 있습니다.</span></div></li>
+        <li><div><b>칼럼 스캔</b><span>앱 카메라 화면의 점선 외곽선에 실제 칼럼을 맞추면 인식되고, 화면이 3D 칼럼으로 바뀝니다.</span></div></li>
+        <li><div><b>칼럼 둘러보기</b><span>3D 칼럼을 돌리고 확대합니다. 열어볼 수 있는 전단지 6장(카페 게르부아, 봉 마르셰, 만국박람회, 도미에 풍자화 3장)은 압정과 테두리로 구분됩니다.</span></div></li>
+        <li><div><b>전단지 떼어보기</b><span>전단지를 누르면 칼럼에서 떼어져 화면 가운데에 떠오르고, 돌려보고 확대할 수 있습니다.</span></div></li>
+        <li><div><b>삽화 애니메이션</b><span>삽화에 색이 서서히 입혀지고 인물이 움직입니다. 닫으면 전단지가 칼럼으로 돌아갑니다.</span></div></li>
       </ol>
       <p class="collect"><b>수집품</b> 모리스 칼럼 전단지</p>
-    </div>
-  </div>
-  <div>
-    <h3>공간 근거 자료</h3>
-    <div class="refs">
-      <figure><div class="ph"><img src="img/C1_morris_column_marville1876.jpg" alt="마르빌이 찍은 모리스 칼럼" loading="lazy"></div><figcaption><strong>모리스 칼럼, 옵세르바투아르 대로</strong><span class="src">마르빌 사진 · 1876 · 카르나발레 박물관</span><span class="use">1870년대 실물 칼럼의 비율, 돔 장식, 포스터가 겹쳐 붙은 모습.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C1_morris_column_beraud1885.jpg" alt="베로, 모리스 칼럼" loading="lazy"></div><figcaption><strong>모리스 칼럼</strong><span class="src">베로 · 1885년경 · 카르나발레 박물관</span><span class="use">칼럼의 도장 색과 포스터 색감 참고.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C1_manet_au_cafe1869.jpg" alt="마네, 카페에서" loading="lazy"></div><figcaption><strong>카페에서 (카페 게르부아)</strong><span class="src">마네 석판화 · 1869 · 워싱턴 내셔널 갤러리</span><span class="use">대리석 테이블, 벤치석, 신문 읽는 손님.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C1_fantin_batignolles1870.jpg" alt="팡탱라투르, 바티뇰의 아틀리에" loading="lazy"></div><figcaption><strong>바티뇰의 아틀리에</strong><span class="src">팡탱라투르 · 1870 · 오르세 미술관</span><span class="use">마네, 르누아르, 모네 등 모임 인물의 얼굴과 복식.</span></figcaption></figure>
     </div>
   </div>
 </section>
@@ -206,33 +247,34 @@ a{color:inherit}
     <div class="meta"><span><b>유형</b>미션 체험</span><span><b>앱</b>QR · 지도 퀴즈</span><span><b>수집품</b>노르망디행 기차표</span></div>
     <p class="tryrow"><a class="try" href="https://kippu-homepage.vercel.app/booth/c2.html" target="_blank" rel="noopener">체험해보기<span aria-hidden="true">↗</span></a><span class="tryhint">휴대폰에서 열면 실제 화면 크기로 볼 수 있습니다. 카메라 없이 데모로 진행됩니다.</span></p>
   </div>
-  <figure class="viz"><img src="img/r_C2.jpg" alt="산업혁명 부스 공간 시각화"><figcaption>공간 시각화 · 사업가의 방</figcaption></figure>
+  <p class="zintro">나무 판넬로 마감한 사업가의 방입니다. 방 곳곳의 단서로 모네가 향한 다음 목적지를 찾습니다.</p>
+  <figure class="viz">
+    <div class="shot main">
+      <img src="img/r_C2.jpg" alt="산업혁명 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:14.09%;top:78.1%">1</li><li data-n="2" style="left:46.7%;top:78.59%">2</li><li data-n="3" style="left:29.83%;top:48.73%">3</li><li data-n="4" style="left:92.64%;top:41.75%">4</li><li data-n="5" style="left:51.49%;top:36.04%">5</li></ol>
+    </div>
+    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c2" aria-pressed="false">3D로 둘러보기</button><figcaption>사업가의 방</figcaption></div>
+  </figure>
   <div class="cols">
-    <div class="space">
-      <h3>공간 구성</h3>
-      <p>나무 판넬로 마감한 사업가의 방입니다. 정면 아치창 너머로 모네 〈생라자르역〉이 창밖 풍경처럼 보이고, 그 앞에 녹색 가죽 책상을 둡니다. 책상 위에는 지구본, 램프, 시계, 책과 함께 단서 소품인 서부철도 시간표(파리–루앙–르아브르), 신문 광고, 에트르타 엽서를 놓습니다.</p>
-      <p>벽에는 1879년 서부철도 해수욕 열차 포스터(운임표 포함)와 1887년 디에프 포스터를 핀으로 꽂고, 옆 벽에는 1870년 서부철도 노선도를 크게 겁니다. 입구 쪽 벽에는 설명 텍스트와 미션 QR을 둡니다.</p>
+    <div>
+      <h3>체험장치 구성</h3>
+      <ol class="devices">
+        <li data-n="1"><span class="num">1</span><div><b>A벽 설명 텍스트 · 미션 QR</b><span class="where">부스 왼쪽 벽</span><dl><dt>관람객</dt><dd>산업혁명 설명을 읽고 QR을 찍습니다.</dd><dt>앱</dt><dd>지도 퀴즈가 열립니다.</dd></dl></div></li>
+        <li data-n="2"><span class="num">2</span><div><b>책상 위 단서 소품</b><span class="where">아치창 앞 녹색 가죽 책상 · 서부철도 시간표, 신문 광고, 에트르타 엽서</span><dl><dt>관람객</dt><dd>소품에서 다음 목적지에 대한 단서를 찾습니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>벽 포스터</b><span class="where">안쪽 벽, 아치창 왼쪽 · 서부철도 해수욕 열차 포스터</span><dl><dt>관람객</dt><dd>생라자르 출발 안내와 운임표에서 단서를 찾습니다.</dd></dl></div></li>
+        <li data-n="4"><span class="num">4</span><div><b>벽면 지도</b><span class="where">부스 오른쪽 벽 · 1870년 서부철도 노선도</span><dl><dt>관람객</dt><dd>파리–루앙–르아브르로 이어지는 노선을 확인합니다.</dd></dl></div></li>
+        <li data-n="5"><span class="num">5</span><div><b>아치창 속 〈생라자르역〉</b><span class="where">안쪽 벽 가운데</span><dl><dt>관람객</dt><dd>창밖 풍경처럼 걸린 모네의 〈생라자르역〉을 봅니다.</dd></dl></div></li>
+      </ol>
     </div>
     <div>
       <h3>체험 플로우</h3>
       <ol class="flow">
-        <li><div><b>체험존 관람</b><span>산업혁명 시대를 재현한 공간을 자유롭게 관람합니다.</span></div></li>
-        <li><div><b>단서 찾기</b><span>벽면 그림, 신문 광고, 시간표, 엽서에서 다음 목적지에 대한 단서를 찾습니다.</span></div></li>
-        <li><div><b>출발역 고르기</b><span>QR로 퀴즈를 열고, 파리 지도 위 실제 위치에 놓인 출발역 5곳(생라자르·북역·동역·리옹역·몽파르나스) 중 하나를 고릅니다.</span></div></li>
-        <li><div><b>도착 지역 고르기</b><span>도착 지역 5곳(노르망디·북부·샹파뉴·프로방스·브르타뉴) 중 하나를 고르면 노선이 지도에 그려집니다. 앱에서도 현장 단서를 다시 펼쳐볼 수 있습니다.</span></div></li>
+        <li><div><b>단서 찾기</b><span>벽면 그림, 포스터, 지도, 책상 위 시간표·신문 광고·엽서에서 단서를 찾습니다.</span></div></li>
+        <li><div><b>출발역 고르기</b><span>QR로 퀴즈를 열고, 파리 지도 위 출발역 5곳(생라자르·북역·동역·리옹역·몽파르나스) 중 하나를 고릅니다.</span></div></li>
+        <li><div><b>도착 지역 고르기</b><span>도착 지역 5곳(노르망디·북부·샹파뉴·프로방스·브르타뉴) 중 하나를 고르면 노선이 지도에 그려집니다.</span></div></li>
         <li><div><b>결과</b><span>생라자르 → 노르망디가 정답입니다. 다른 조합을 고르면 그 역이 실제로 어디로 가는 노선이었는지 알려주고 다시 고를 수 있습니다.</span></div></li>
       </ol>
       <p class="collect"><b>수집품</b> 노르망디행 기차표</p>
-    </div>
-  </div>
-  <div>
-    <h3>공간 근거 자료</h3>
-    <div class="refs">
-      <figure><div class="ph"><img src="img/C2_monet_gare_saint_lazare1877_orsay.jpg" alt="모네, 생라자르역" loading="lazy"></div><figcaption><strong>생라자르역</strong><span class="src">모네 · 1877 · 오르세 미술관</span><span class="use">역사 지붕 구조, 증기와 역광. 벽면 단서 그림.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C2_monet_normandy_train1877_aic.jpg" alt="모네, 노르망디 열차의 도착" loading="lazy"></div><figcaption><strong>노르망디 열차의 도착, 생라자르역</strong><span class="src">모네 · 1877 · 시카고 미술관</span><span class="use">파리에서 노르망디로 이어지는 체험 서사와 직결.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C2_poster_ouest_bains_de_mer1879.jpg" alt="서부철도 해수욕 여행 포스터" loading="lazy"></div><figcaption><strong>서부철도 노르망디·브르타뉴 해수욕 여행</strong><span class="src">포스터 · 1879 · 프랑스 국립도서관</span><span class="use">생라자르 출발 안내, 디에프·트루빌 삽화, 1·2등석 운임표. 신문 광고 단서의 원형.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C2_poster_dieppe_cheret1887.jpg" alt="셰레, 디에프 해수욕 포스터" loading="lazy"></div><figcaption><strong>1887년 시즌, 디에프 해수욕</strong><span class="src">셰레 포스터 · 1887 · 프랑스 국립도서관</span><span class="use">같은 노선 광고의 컬러 포스터 형식.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C2_map_ouest_chaix1870.jpg" alt="서부철도 노선도" loading="lazy"></div><figcaption><strong>서부철도 노선도</strong><span class="src">샤 출판사 · 1870 · 프랑스 국립도서관</span><span class="use">파리–루앙–르아브르–디에프 노선망. 벽면 지도와 퀴즈 지도의 근거.</span></figcaption></figure>
     </div>
   </div>
 </section>
@@ -245,30 +287,32 @@ a{color:inherit}
     <div class="meta"><span><b>유형</b>미션 · 정보 체험</span><span><b>앱</b>QR · 오브제 인식</span><span><b>수집품</b>튜브물감</span></div>
     <p class="tryrow"><a class="try" href="https://kippu-app-prototype.vercel.app/mission-b/paint?demo=1" target="_blank" rel="noopener">앱 미션 체험해보기<span aria-hidden="true">↗</span></a><span class="tryhint">휴대폰에서 열면 실제 화면 크기로 볼 수 있습니다. 카메라 없이 데모로 진행됩니다.</span></p>
   </div>
-  <figure class="viz"><img src="img/r_C3.jpg" alt="화가의 아틀리에 부스 공간 시각화"><figcaption>공간 시각화 · 야외(왼쪽)와 실내 아틀리에(오른쪽)</figcaption></figure>
+  <p class="zintro">부스를 반으로 나눠 왼쪽은 햇빛이 드는 야외 작업 공간, 오른쪽은 어두운 실내 아틀리에로 꾸밉니다. 두 공간의 오브제를 비교하며 화가를 야외로 이끈 물건을 찾습니다.</p>
+  <figure class="viz">
+    <div class="shot main">
+      <img src="img/r_C3.jpg" alt="화가의 아틀리에 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:50%;top:51.09%">1</li><li data-n="2" style="left:76.17%;top:48.19%">2</li><li data-n="3" style="left:20.97%;top:49.47%">3</li></ol>
+    </div>
+    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c3" aria-pressed="false">3D로 둘러보기</button><figcaption>야외(왼쪽)와 실내 아틀리에(오른쪽)</figcaption></div>
+  </figure>
   <div class="cols">
-    <div class="space">
-      <h3>공간 구성</h3>
-      <p>부스를 반으로 나눠 왼쪽은 햇빛이 드는 야외 작업 공간, 오른쪽은 어두운 실내 아틀리에로 꾸밉니다. 야외 쪽 벽은 르누아르가 그린 1873년 모네의 작업 장면과 모네의 1865~66년 야외 대작으로, 실내 쪽은 짙은 벽과 나무 마루로 구분합니다.</p>
-      <p>오브제는 9종입니다. 실내 쪽에 돼지방광 물감, 대형 이젤과 실내 캔버스, 안료병과 절구, 오일램프, 일기장(힌트)을, 야외 쪽에 접이식 의자, 휴대용 이젤, 튜브물감 박스를 둡니다. 튜브물감 박스는 1870년대 실물 물감 상자를 기준으로 재현합니다. 두 공간 사이에 미션 안내판을 세웁니다.</p>
+    <div>
+      <h3>체험장치 구성</h3>
+      <ol class="devices">
+        <li data-n="1"><span class="num">1</span><div><b>미션 안내판 · QR</b><span class="where">두 공간 사이 가벽 앞</span><dl><dt>관람객</dt><dd>QR을 찍습니다.</dd><dt>앱</dt><dd>"화가를 야외로 이끈 것은 무엇이었을까요?"라는 질문이 열립니다.</dd></dl></div></li>
+        <li data-n="2"><span class="num">2</span><div><b>실내 오브제</b><span class="where">오른쪽 실내 아틀리에 · 돼지방광 물감, 대형 이젤과 실내 캔버스, 안료병·절구, 오일램프, 일기장</span><dl><dt>관람객</dt><dd>오브제를 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>그 물건이 화가의 작업에 어떤 의미였는지 나옵니다. 일기장은 힌트로, 실내에서 기억에 의지해 그리던 한계를 알려줍니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>야외 오브제</b><span class="where">왼쪽 야외 공간 · 접이식 의자, 휴대용 이젤, 튜브물감 박스</span><dl><dt>관람객</dt><dd>오브제를 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>튜브물감 박스가 정답입니다. 금속 튜브 덕분에 물감을 들고 야외로 나갈 수 있게 된 이야기가 공개되고 수집품을 받습니다.</dd></dl></div></li>
+      </ol>
     </div>
     <div>
       <h3>체험 플로우</h3>
       <ol class="flow">
         <li><div><b>질문 열기</b><span>QR을 찍으면 "화가를 야외로 이끈 것은 무엇이었을까요?"라는 질문이 열립니다.</span></div></li>
-        <li><div><b>오브제 비추기</b><span>오브제를 앱 카메라로 비추면 인식되고, 그 물건이 화가의 작업에 어떤 의미였는지 정보가 나옵니다.</span></div></li>
-        <li><div><b>일기장 힌트</b><span>일기장을 비추면 1870년 화가의 일기가 열려, 실내에서 기억에 의지해 그리던 한계를 알려줍니다.</span></div></li>
-        <li><div><b>정답</b><span>튜브물감 박스를 찾으면 정답입니다. 금속 튜브 덕분에 물감을 들고 야외로 나갈 수 있게 된 이야기가 공개됩니다.</span></div></li>
+        <li><div><b>오브제 비추기</b><span>오브제를 앱 카메라로 비추면 인식되고, 그 물건이 화가의 작업에 어떤 의미였는지 나옵니다.</span></div></li>
+        <li><div><b>일기장 힌트</b><span>일기장을 비추면 1870년 화가의 일기가 열립니다.</span></div></li>
+        <li><div><b>정답</b><span>튜브물감 박스를 찾으면 정답입니다.</span></div></li>
       </ol>
       <p class="collect"><b>수집품</b> 튜브물감</p>
-    </div>
-  </div>
-  <div>
-    <h3>공간 근거 자료</h3>
-    <div class="refs">
-      <figure><div class="ph"><img src="img/C3_paintbox_tubes_ca1871_met_open.jpg" alt="1871년경 물감 상자" loading="lazy"></div><figcaption><strong>휴대용 물감 상자</strong><span class="src">1871년경 · 메트로폴리탄 미술관</span><span class="use">짜다 만 금속 튜브와 팔레트가 든 실물. 튜브물감 박스 재현 기준.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C3_rand_patent_us2252_1841_drawing.jpg" alt="랜드 튜브물감 특허 도면" loading="lazy"></div><figcaption><strong>금속 튜브물감 특허 도면</strong><span class="src">존 고프 랜드 · 1841 · 미국 특허 No. 2,252</span><span class="use">짜서 쓰는 주석 튜브의 원형. 특허 문서 소품.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C3_renoir_monet_painting_argenteuil1873.jpg" alt="르누아르, 아르장퇴유 정원에서 그림 그리는 모네" loading="lazy"></div><figcaption><strong>아르장퇴유 정원에서 그림 그리는 모네</strong><span class="src">르누아르 · 1873 · 워즈워스 아테니움</span><span class="use">야외 이젤, 팔레트를 든 자세. 야외 작업 공간 구성.</span></figcaption></figure>
     </div>
   </div>
 </section>
@@ -281,31 +325,33 @@ a{color:inherit}
     <div class="meta"><span><b>유형</b>현장 체험</span><span><b>앱</b>QR로 사진 받기</span><span><b>수집품</b>없음</span></div>
     <p class="tryrow"><a class="try" href="https://kippu-homepage.vercel.app/booth/c4.html" target="_blank" rel="noopener">앱 화면 체험해보기<span aria-hidden="true">↗</span></a><span class="tryhint">휴대폰에서 열면 실제 화면 크기로 볼 수 있습니다. 카메라 없이 데모로 진행됩니다.</span></p>
   </div>
-  <figure class="viz"><img src="img/r_C4.jpg" alt="나다르 사진관 부스 공간 시각화"><figcaption>공간 시각화 · 나다르 사진관 정면, 촬영 카메라, 액자형 디스플레이</figcaption></figure>
+  <p class="zintro">안쪽 벽은 카퓌신 대로 35번지 나다르 사진관의 정면입니다. 1874년 첫 인상파 전시가 열린 건물이라 모네 전시관(C5)으로 이어지는 연결 고리가 됩니다.</p>
+  <figure class="viz">
+    <div class="shot main">
+      <img src="img/r_C4.jpg" alt="나다르 사진관 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:26.45%;top:39.16%">1</li><li data-n="2" style="left:41.76%;top:68.81%">2</li><li data-n="3" style="left:81.15%;top:85.5%">3</li><li data-n="4" style="left:8.63%;top:59.91%">4</li></ol>
+    </div>
+    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c4" aria-pressed="false">3D로 둘러보기</button><figcaption>나다르 사진관 정면, 촬영 카메라, 액자형 디스플레이</figcaption></div>
+  </figure>
   <div class="cols">
-    <div class="space">
-      <h3>공간 구성</h3>
-      <p>안쪽 벽은 카퓌신 대로 35번지 나다르 사진관의 정면입니다. 아치창 세 칸과 'Nadar' 간판, 주소 명판을 달고, 창 안쪽은 배경막과 커튼이 비치는 스튜디오로 꾸밉니다. 이 건물은 1874년 첫 인상파 전시가 열린 곳이기도 해서, 모네 전시관(C5)으로 이어지는 연결 고리가 됩니다.</p>
-      <p>부스 안에는 당시 형태의 목제 주름 카메라를 삼각대에 올리고 그 안에 촬영 기기를 넣습니다. 카메라 앞에는 의자와 배경막이 있는 포즈 자리를 두고, 옆 벽에는 촬영 결과가 초상화에서 사진으로 바뀌는 액자형 디스플레이와 사진 받기 QR을 겁니다. 결과 사진은 나다르 사진관의 초상 마운트 카드 형식을 따릅니다.</p>
+    <div>
+      <h3>체험장치 구성</h3>
+      <ol class="devices">
+        <li data-n="1"><span class="num">1</span><div><b>사진관 파사드</b><span class="where">부스 안쪽 벽 · 포토존 배경</span><dl><dt>관람객</dt><dd>아치창과 'Nadar' 간판이 있는 사진관 정면을 배경으로 섭니다.</dd></dl></div></li>
+        <li data-n="2"><span class="num">2</span><div><b>촬영 카메라</b><span class="where">부스 가운데 · 목제 주름 카메라 안에 촬영 기기</span><dl><dt>관람객</dt><dd>카메라 앞에 서면 현장에 설치된 기기로 촬영됩니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>포즈 자리</b><span class="where">카메라 맞은편 · 의자와 배경막</span><dl><dt>관람객</dt><dd>의자에 앉거나 배경막 앞에서 포즈를 잡습니다.</dd></dl></div></li>
+        <li data-n="4"><span class="num">4</span><div><b>액자형 디스플레이</b><span class="where">부스 왼쪽 벽</span><dl><dt>화면</dt><dd>촬영한 이미지가 옛 초상화로 먼저 나타났다가 19세기 사진으로 바뀝니다.</dd></dl></div></li>
+        <li data-n="5"><span class="num">5</span><div><b>사진 받기 QR</b><span class="where">왼쪽 벽, 디스플레이 옆 <span class="tbd">· 위 시각화 화면 밖, 3D에서 보임</span></span><dl><dt>관람객</dt><dd>QR을 앱으로 찍습니다.</dd><dt>앱</dt><dd>내 사진을 받아 초상화와 19세기 사진을 비교하고 원하는 쪽을 저장합니다.</dd></dl></div></li>
+      </ol>
     </div>
     <div>
       <h3>체험 플로우</h3>
       <ol class="flow">
         <li><div><b>촬영</b><span>사진관 세트 앞에 서면 현장에 설치된 카메라로 촬영합니다.</span></div></li>
         <li><div><b>액자 연출</b><span>액자형 디스플레이에 촬영 이미지가 옛 초상화로 먼저 나타났다가 19세기 사진으로 넘어갑니다.</span></div></li>
-        <li><div><b>QR로 받기</b><span>액자 화면의 QR을 앱으로 찍으면 내 사진을 받습니다. 개인이 각자 받아가는 방식입니다.</span></div></li>
+        <li><div><b>QR로 받기</b><span>액자 옆 QR을 앱으로 찍으면 내 사진을 받습니다. 개인이 각자 받아가는 방식입니다.</span></div></li>
         <li><div><b>앱에서 보기</b><span>초상화와 19세기 사진을 슬라이드로 비교하고 원하는 쪽을 저장합니다.</span></div></li>
       </ol>
-    </div>
-  </div>
-  <div>
-    <h3>공간 근거 자료</h3>
-    <div class="refs">
-      <figure><div class="ph"><img src="img/C4_nadar_facade_35capucines_1861-72.jpg" alt="카퓌신 대로 35번지 나다르 아틀리에 정면" loading="lazy"></div><figcaption><strong>나다르 아틀리에 정면, 카퓌신 대로 35번지</strong><span class="src">나다르 · 1861~1872 · 프랑스 국립도서관</span><span class="use">입구 파사드 재현 기준. 1874년 첫 인상파 전시 장소(프랑스 문화부 자료로 확인).</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C4_pierrot_photographe_1854-55.jpg" alt="사진가 피에로" loading="lazy"></div><figcaption><strong>사진가 피에로로 분한 드뷔로</strong><span class="src">아드리앵 투르나숑 · 1854~1855 · 카르나발레 박물관</span><span class="use">나다르 형제 스튜디오의 대형 삼각대 카메라와 배경 천.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C4_monet_portrait_atelier_nadar_front.jpg" alt="아틀리에 나다르가 찍은 모네 초상" loading="lazy"></div><figcaption><strong>화가 클로드 모네</strong><span class="src">아틀리에 나다르(폴 나다르) · 1899년경 · 프랑스 국립도서관</span><span class="use">조명 방향, 배경 톤, 마운트 카드. 결과 사진 템플릿.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C4_monet_boulevard_capucines1873-74_nelson.jpg" alt="모네, 카퓌신 대로" loading="lazy"></div><figcaption><strong>카퓌신 대로</strong><span class="src">모네 · 1873~74 · 넬슨앳킨스 미술관</span><span class="use">사진관 창밖으로 내려다본 대로. 창문 영상·패널 연출.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C4_dubroni_camera1864_artsetmetiers.jpg" alt="뒤브로니 카메라" loading="lazy"></div><figcaption><strong>뒤브로니 카메라</strong><span class="src">1864 · 파리 국립기술공예박물관 · 사진 Roi Boshi, CC BY-SA 3.0</span><span class="use">1860년대 습판 카메라 실물. 진열 소품.</span></figcaption></figure>
     </div>
   </div>
 </section>
@@ -318,19 +364,27 @@ a{color:inherit}
     <div class="meta"><span><b>유형</b>미션 · 정보 체험</span><span><b>앱</b>QR · 그림 인식</span><span><b>수집품</b>인상, 해돋이</span></div>
     <p class="tryrow"><a class="try" href="https://kippu-app-prototype.vercel.app/mission-b/sunrise?demo=1" target="_blank" rel="noopener">앱 미션 체험해보기<span aria-hidden="true">↗</span></a><span class="tryhint">휴대폰에서 열면 실제 화면 크기로 볼 수 있습니다. 카메라 없이 데모로 진행됩니다.</span></p>
   </div>
+  <p class="zintro">1874년 『르 샤리바리』에 실린 루이 르루아의 혹평에서 '인상주의'라는 이름이 나왔다는 이야기가 전시관의 중심입니다.</p>
   <figure class="viz">
-    <img src="img/r_C5_a.jpg" alt="모네 전시관 진입 가벽의 인상, 해돋이">
-    <div class="viz-row">
-      <img src="img/r_C5_c.jpg" alt="모네 연작이 걸린 벽">
-      <img src="img/r_C5_b.jpg" alt="모네 전시관 출구 쪽 벽">
+    <div class="shot main">
+      <img src="img/r_C5_a.jpg" alt="모네 전시관 진입 가벽의 인상, 해돋이">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:48.51%;top:54.6%">1</li><li data-n="3" style="left:90.96%;top:61.27%">3</li></ol>
     </div>
-    <figcaption>공간 시각화 · 진입 가벽 / 연작 벽 / 출구</figcaption>
+    <div class="viz-row">
+      <div class="shot"><img src="img/r_C5_c.jpg" alt="모네 연작이 걸린 벽"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:82.01%;top:52.03%">1</li><li data-n="3" style="left:27.9%;top:58.42%">3</li></ol></div>
+      <div class="shot"><img src="img/r_C5_b.jpg" alt="모네 전시관 출구 쪽 벽"><ol class="pins" aria-hidden="true"><li data-n="4" style="left:66.3%;top:55.85%">4</li></ol></div>
+    </div>
+    <div class="viztools"><button class="v3d-open" type="button" data-v3d="c5" aria-pressed="false">3D로 둘러보기</button><figcaption>진입 가벽 / 연작 벽 / 출구</figcaption></div>
   </figure>
   <div class="cols">
-    <div class="space">
-      <h3>공간 구성</h3>
-      <p>전시관 입구에 가벽을 세우고 〈인상, 해돋이〉 한 점만 겁니다. 가벽 뒤 세 면에는 모네의 연작을 액자 없이 캔버스로 걸고 뒤에서 은은하게 빛이 번지게 합니다. 출구 쪽 벽에는 "왜 같은 풍경을 계속 그렸을까?"를 두어 3층으로 이어지게 합니다. 〈인상, 해돋이〉 옆에는 1874년 전시 카탈로그의 실제 항목 번호 "98. Impression, Soleil levant"를 살린 작품 라벨을 둡니다.</p>
-      <p>미션 문구는 1874년 4월 25일 『르 샤리바리』에 실린 루이 르루아의 비평에서 가져옵니다. 이 조롱에서 '인상주의'라는 이름이 나왔다는 이야기가 전시관의 중심입니다.</p>
+    <div>
+      <h3>체험장치 구성</h3>
+      <ol class="devices">
+        <li data-n="1"><span class="num">1</span><div><b>진입 가벽 〈인상, 해돋이〉</b><span class="where">입구 정면 가벽 · 그림 한 점과 문구</span><dl><dt>관람객</dt><dd>들어서자마자 〈인상, 해돋이〉 한 점과 마주합니다. 옆에는 1874년 카탈로그 항목 번호 "98. Impression, Soleil levant"를 살린 라벨이 붙습니다.</dd></dl></div></li>
+        <li data-n="2"><span class="num">2</span><div><b>입구 미션 QR</b><span class="where">입구 옆 스탠드 <span class="tbd">· 위 시각화 화면 밖, 3D에서 보임</span></span><dl><dt>관람객</dt><dd>QR을 찍습니다.</dd><dt>앱</dt><dd>1874년 비평가의 혹평 문구가 뜹니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>연작 벽</b><span class="where">가벽 뒤 세 면 · 액자 없는 캔버스, 뒤에서 번지는 은은한 빛</span><dl><dt>관람객</dt><dd>모네의 연작을 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>그림이 인식되고 그 그림의 정보가 나옵니다.</dd></dl></div></li>
+        <li data-n="4"><span class="num">4</span><div><b>출구 벽 문구</b><span class="where">출구 옆 벽</span><dl><dt>관람객</dt><dd>"왜 같은 풍경을 계속 그렸을까?"라는 질문을 안고 3층으로 이어집니다.</dd></dl></div></li>
+      </ol>
     </div>
     <div>
       <h3>체험 플로우</h3>
@@ -342,21 +396,26 @@ a{color:inherit}
       <p class="collect"><b>수집품</b> 인상, 해돋이</p>
     </div>
   </div>
-  <div>
-    <h3>공간 근거 자료</h3>
-    <div class="refs">
-      <figure><div class="ph"><img src="img/C5_monet_impression_soleil_levant1872.jpg" alt="모네, 인상, 해돋이" loading="lazy"></div><figcaption><strong>인상, 해돋이</strong><span class="src">모네 · 1872 · 마르모탕 모네 미술관</span><span class="use">전시관의 중심 작품이자 퀴즈 정답.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C5_catalogue1874_cover.jpg" alt="1874년 첫 전시 카탈로그 표지" loading="lazy"></div><figcaption><strong>1874년 첫 전시 카탈로그 표지</strong><span class="src">무명예술가협회 · 1874 · 프랑스 국립도서관</span><span class="use">전시 장소 카퓌신 대로 35번지와 기간, 운영 시간이 적힌 원본.</span></figcaption></figure>
-      <figure><div class="ph"><img src="img/C5_catalogue1874_monet_page.jpg" alt="1874년 카탈로그 모네 항목" loading="lazy"></div><figcaption><strong>카탈로그 15쪽, 모네 항목</strong><span class="src">1874 · 프랑스 국립도서관</span><span class="use">"98. Impression, Soleil levant" 출품 기록. 작품 라벨 디자인의 원본.</span></figcaption></figure>
-    </div>
-  </div>
 </section>
-
-<footer class="foot">
-  <p>모든 근거 자료는 소장 기관의 공개 디지털본(퍼블릭 도메인·CC0)이며, 뒤브로니 카메라 사진만 CC BY-SA 3.0(Roi Boshi)입니다.</p>
-  <p>자료별 소장 번호와 원본 주소는 별도 출처 목록으로 정리해 두었습니다.</p>
-</footer>
 </div>
 
+<script type="module">
+// 3D 뷰어는 버튼을 누를 때만 불러온다 (three.js · glb 모두 지연 로드)
+let mod = null;
+for (const b of document.querySelectorAll('[data-v3d]')) {
+  b.addEventListener('click', async () => {
+    if (!mod) { b.disabled = true; try { mod = await import('./js/viewer.js?v=5'); } finally { b.disabled = false; } }
+    mod.openViewer(b.closest('.viz').querySelector('.shot.main'), b.dataset.v3d, b);
+  });
+}
+// 장치 목록 ↔ 사진 번호 강조
+for (const z of document.querySelectorAll('.zone')) {
+  const set = (n, on) => z.querySelectorAll(`.pins [data-n="${n}"], .devices [data-n="${n}"]`).forEach((e) => e.classList.toggle('on', on));
+  z.querySelectorAll('.devices li, .pins li').forEach((e) => {
+    e.addEventListener('mouseenter', () => set(e.dataset.n, true));
+    e.addEventListener('mouseleave', () => set(e.dataset.n, false));
+  });
+}
+</script>
 </body>
 </html>
