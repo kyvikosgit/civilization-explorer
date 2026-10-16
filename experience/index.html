@@ -221,7 +221,7 @@ a{color:inherit}
 <!-- 4층 전체 3D: 화면을 채우는 캔버스 위에 평면도·구역 버튼·설명을 띄운다 -->
 <section class="tour" id="tour" aria-label="4층 3D 둘러보기">
   <div class="v3d-stage" id="tour-stage">
-    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=2)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 10MB</small></button></div>
+    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=3)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 10MB</small></button></div>
     <div class="ov ov-top">
       <div class="ov-bar glass">
         <div class="zchips" role="group" aria-label="공간 선택">
@@ -335,8 +335,8 @@ a{color:inherit}
   <figure class="viz">
     <div class="shot main">
       <div class="viz-row">
-        <img src="img/r_Cc_eye.jpg?v=2" alt="복도 눈높이에서 본 부스 네 개">
-        <img src="img/r_Cc_top.jpg?v=2" alt="위에서 내려다본 복도와 부스 배치">
+        <img src="img/r_Cc_eye.jpg?v=3" alt="복도 눈높이에서 본 부스 네 개">
+        <img src="img/r_Cc_top.jpg?v=3" alt="위에서 내려다본 복도와 부스 배치">
       </div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="corridor">3D에서 이 공간 보기</a><figcaption>복도 눈높이 / 위에서 본 배치</figcaption></div>
@@ -355,8 +355,8 @@ a{color:inherit}
   <p class="zintro">부스 안쪽은 바티뇰파가 모이던 카페 게르부아의 정면 세트, 앞 모서리에는 1876년 파리의 모리스 칼럼을 실물 비율 그대로 높이 약 3.4m로 줄여 세웁니다(실물 약 4.8m).</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C1.jpg?v=2" alt="시민사회 부스 공간 시각화">
-      <ol class="pins" aria-hidden="true"><li data-n="2" style="left:65.86%;top:67.57%">2</li><li data-n="3" style="left:89.61%;top:64.56%">3</li><li data-n="4" style="left:42.52%;top:69.43%">4</li></ol>
+      <img src="img/r_C1.jpg?v=3" alt="시민사회 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:35.34%;top:81.64%">1</li><li data-n="2" style="left:65.86%;top:66.33%">2</li><li data-n="3" style="left:89.61%;top:64.56%">3</li><li data-n="4" style="left:42.39%;top:69.17%">4</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c1">3D에서 이 공간 보기</a><figcaption>복도에서 본 시민사회 부스</figcaption></div>
   </figure>
@@ -364,7 +364,7 @@ a{color:inherit}
     <div>
       <h3>체험장치 구성</h3>
       <ol class="devices">
-        <li data-n="1"><span class="num">1</span><div><b>섹션 입구 미션 안내판</b><span class="where">부스 입구, 스탠드형 <span class="tbd">· 시각화에는 아직 넣지 않음</span></span><dl><dt>관람객</dt><dd>부스에 들어서며 미션을 확인합니다.</dd></dl></div></li>
+        <li data-n="1"><span class="num">1</span><div><b>섹션 입구 미션 안내판</b><span class="where">부스 입구 왼쪽(만국박람회 벽 앞), 스탠드형 · 문구는 체험장치 기획서 그대로</span><dl><dt>관람객</dt><dd>부스에 들어서며 미션을 확인합니다.</dd></dl></div></li>
         <li data-n="2"><span class="num">2</span><div><b>모리스 칼럼</b><span class="where">부스 앞 오른쪽 모서리 · 높이 약 3.4m(실물의 약 70%), 전단지 6장을 압정으로 고정</span><dl><dt>관람객</dt><dd>앱 카메라 화면의 점선 가이드에 실제 칼럼을 맞춥니다.</dd><dt>앱</dt><dd>칼럼이 인식되면 3D 칼럼으로 바뀌고, 전단지를 떼어 보면 삽화에 색이 서서히 입혀집니다.</dd></dl></div></li>
         <li data-n="3"><span class="num">3</span><div><b>카페 게르부아 벽</b><span class="where">부스 안쪽 벽 · 정보 체험</span><dl><dt>관람객</dt><dd>벽면을 앱으로 스캔합니다.</dd><dt>앱</dt><dd>이 카페에서 바티뇰파가 나누던 대화 내용이 나옵니다.</dd></dl></div></li>
         <li data-n="4"><span class="num">4</span><div><b>1867 만국박람회 벽</b><span class="where">부스 왼쪽 벽 · 정보 체험</span><dl><dt>관람객</dt><dd>마네의 만국박람회 그림을 크게 출력한 벽면을 스캔합니다.</dd><dt>앱</dt><dd>1867년 만국박람회 정보가 나옵니다.</dd></dl></div></li>
@@ -568,7 +568,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=17').then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
+    tourP = import('./js/tour.js?v=18').then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
   }
   return tourP;
 }
