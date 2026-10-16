@@ -1,6 +1,9 @@
-/* KIPPU GNB — 홈페이지·전시 페이지 공통 상단 바.
+/* 문명탐험가 GNB — 홈페이지·전시 페이지 공통 상단 바.
    단일 출처: /gnb.css(스타일) + /gnb.js(마크업·검색). 페이지에서 따로 헤더를 그리지 말 것.
    다른 페이지 고정 요소는 높이를 var(--gnb-h)로 참조한다. */
+/* 로고 = 텍스트 로고 '문명탐험가' (Paperlogy 800) — 쓰는 페이지마다 따로 불러오지 않도록 여기서 선언 */
+@font-face{font-family:'GNB Paperlogy';font-weight:800;font-style:normal;font-display:swap;
+  src:url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2')}
 :root{--gnb-h:64px}
 @media (max-width:860px){:root{--gnb-h:56px}}
 
@@ -11,7 +14,8 @@
 .kgnb .in{max-width:1120px;height:100%;margin:0 auto;padding:0 24px;
   display:flex;align-items:center;gap:22px;white-space:nowrap}
 .kgnb a{text-decoration:none}
-.kgnb .logo{flex:none;font-size:24px;font-weight:900;letter-spacing:.02em;color:#111111}
+.kgnb .logo{flex:none;font-family:'GNB Paperlogy',Paperlogy,Freesentation,-apple-system,sans-serif;
+  font-size:22px;font-weight:800;letter-spacing:-.01em;color:#111111}
 
 .kgnb .search{flex:1;max-width:440px;display:flex;align-items:center;gap:10px;background:#F5F3EE;
   border:1.5px solid transparent;border-radius:999px;padding:0 18px;height:42px;color:#9C9C96}
@@ -33,7 +37,7 @@
 
 @media (max-width:860px){
   .kgnb .in{padding:0 20px}
-  .kgnb .logo{font-size:22px}
+  .kgnb .logo{font-size:20px}
   .kgnb .search{display:none}
   .kgnb nav a:not(.app){display:none}
   .kgnb nav a.app{padding:9px 15px;font-size:13px}

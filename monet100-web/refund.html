@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>취소·환불 규정 — KIPPU</title>
+<title>취소·환불 규정 — 문명탐험가</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='12' y='30' width='76' height='40' rx='6' fill='%23CC4725'/><circle cx='12' cy='50' r='6' fill='%23FFFFFF'/><circle cx='88' cy='50' r='6' fill='%23FFFFFF'/></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#FFFFFF;color:#111;font-family:Pretendard,-apple-system,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 header{position:sticky;top:0;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid #ECE9E2}
 .nav{max-width:720px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-size:21px;font-weight:900;letter-spacing:.02em;color:#CC4725}
+.logo{font-family:Paperlogy,Pretendard,sans-serif;font-size:21px;font-weight:800;letter-spacing:-.01em;color:#CC4725}
 .back{font-size:13px;font-weight:600;color:#77776F}
 .back:hover{color:#111}
 main{max-width:720px;margin:0 auto;padding:40px 24px 80px}
@@ -25,12 +26,12 @@ h1{font-size:26px;font-weight:900;letter-spacing:-.02em}
 </head>
 <body>
 <header><div class="nav">
-  <a class="logo" href="/">KIPPU</a>
+  <a class="logo" href="/">문명탐험가</a>
   <a class="back" href="javascript:history.length>1?history.back():location.href='/'">돌아가기</a>
 </div></header>
 <main>
   <h1 id="title">취소·환불 규정</h1>
-  <div class="meta">KIPPU 서비스 공통 문서</div>
+  <div class="meta">문명탐험가 서비스 공통 문서</div>
   <div id="doc"></div>
 </main>
 <script>
@@ -41,7 +42,7 @@ fetch('https://bttjtkhfyzapcsqocick.supabase.co/rest/v1/legal_docs?slug=eq.refun
   const el = document.getElementById('doc');
   if (!d) { el.innerHTML = '<p class="err">문서를 불러오지 못했습니다. info@kyvikos.com으로 문의해주세요.</p>'; return; }
   document.getElementById('title').textContent = d.title;
-  document.title = d.title + ' — KIPPU';
+  document.title = d.title + ' — 문명탐험가';
   d.body.split('\n\n').forEach(t => {
     const p = document.createElement('p');
     p.textContent = t;

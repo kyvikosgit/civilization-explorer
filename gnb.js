@@ -1,4 +1,4 @@
-// KIPPU GNB — 홈페이지·전시 페이지 공통 상단 바 (마크업·검색 동작 단일 출처)
+// 문명탐험가 GNB — 홈페이지·전시 페이지 공통 상단 바 (마크업·검색 동작 단일 출처)
 // 사용: <div class="kgnb" data-current="exhibition"></div><script src="/gnb.js"></script>
 //       data-current — 현재 메뉴 강조 (exhibition | feature), 없으면 강조 없음
 (function () {
@@ -14,7 +14,7 @@
     el.setAttribute('role', 'banner');
     el.innerHTML =
       '<div class="in">' +
-        '<a class="logo" href="/">KIPPU</a>' +
+        '<a class="logo" href="/">문명탐험가</a>' +
         '<form class="search" role="search">' + ICON +
           '<input type="search" placeholder="전시 검색" autocomplete="off" aria-label="전시 검색">' +
         '</form>' +

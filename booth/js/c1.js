@@ -1,6 +1,6 @@
 // C-1 시민사회 체험 부스 — Step1 모리스칼럼 스캔 → Step2 전단지 선택 → Step3 전단지 확대 · 삽화 애니메이션
 // (2026-10-15 클라이언트 피드백: 활성 전단지 외 전부 어둡게 / 선택 즉시 화면 가득 확대 → 그 자리에서 애니메이션, 설명 카드 없음)
-// 3D 칼럼 = kippu-app 모리스 칼럼 뷰어 이식본 (js/morris-viewer.js)
+// 3D 칼럼 = 앱 모리스 칼럼 뷰어 이식본 (js/morris-viewer.js)
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, ICON, createFlow, toast, sleep, startCamera, stopCamera, cameraErrorText, cameraSupported } from './common.js';
@@ -60,7 +60,7 @@ function setMode(m) {
   modeTag.textContent = m === 'demo' ? '데모' : m === 'camera' ? '카메라' : '';
 }
 
-// ── MindAR (Step1 인식 전용 — 칼럼에 붙은 전단지 이미지 타깃: kippu_flyer.mind, 0 바티뇰파 · 1 봉 마르셰 · 2 만국 박람회)
+// ── MindAR (Step1 인식 전용 — 칼럼에 붙은 전단지 이미지 타깃: civilization_explorer_flyer.mind, 0 바티뇰파 · 1 봉 마르셰 · 2 만국 박람회)
 async function startAR() {
   $('#camLoadingText').textContent = '카메라 준비 중';
   camLoading.hidden = false;
@@ -69,7 +69,7 @@ async function startAR() {
     const { MindARThree } = await import('mindar-image-three');
     arLayer.innerHTML = '';
     const mindar = new MindARThree({
-      container: arLayer, imageTargetSrc: 'assets/mind/kippu_flyer.mind',
+      container: arLayer, imageTargetSrc: 'assets/mind/civilization_explorer_flyer.mind',
       maxTrack: 1, uiScanning: 'no', uiLoading: 'no', uiError: 'no', filterMinCF: 0.0001, filterBeta: 0.003,
     });
     const { renderer, scene, camera } = mindar;

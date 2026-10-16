@@ -1,6 +1,6 @@
 /* MONET 100 · 4층 체험 부스 프로토타입 — 공용 스타일
-   KIPPU 앱 MONET 100 테마와 같은 가족: 흰 바탕 · 검정 글자 · 포인트 한 색(해돋이 주황 #D9672F) · 헤어라인
-   (kippu-app/src/lib/monet.tsx MT 토큰 · ui.tsx TopBar/버튼 · MHead 패턴)
+   문명탐험가 앱 MONET 100 테마와 같은 가족: 흰 바탕 · 검정 글자 · 포인트 한 색(해돋이 주황 #D9672F) · 헤어라인
+   (앱 소스 src/lib/monet.tsx MT 토큰 · ui.tsx TopBar/버튼 · MHead 패턴)
    빈티지 이미지(포스터·지도·사진)는 콘텐츠일 뿐, 화면 크롬은 단정하게
    타이포: Freesentation(본문) · Paperlogy(디스플레이) */
 @font-face { font-family: 'Paperlogy'; font-weight: 800; font-display: swap;
@@ -43,7 +43,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 a { color: inherit; }
 h1, h2, h3 { font-family: var(--display); font-weight: 800; margin: 0; letter-spacing: -0.02em; line-height: 1.22; }
 
-/* ── 상단 바 (KIPPU TopBar: 52px, 뒤로 셰브론, 좌우 20px) */
+/* ── 상단 바 (앱 TopBar: 52px, 뒤로 셰브론, 좌우 20px) */
 .topbar {
   position: sticky; top: 0; z-index: 30; background: var(--bg);
   display: grid; grid-template-columns: 40px 1fr 40px; align-items: center;

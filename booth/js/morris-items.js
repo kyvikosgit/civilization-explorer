@@ -1,4 +1,4 @@
-// C-1 모리스 칼럼 인쇄물 데이터 — kippu-app/src/lib/morrisColumn.ts 에서 복사 (읽기 전용 원본, 수정 금지)
+// C-1 모리스 칼럼 인쇄물 데이터 — 앱 소스 src/lib/morrisColumn.ts 에서 복사 (읽기 전용 원본, 수정 금지)
 // 상호작용 6장: 전단지 3 (missions.ts 'flyer' 실제 이미지·문구) + 살롱 비판 풍자화 3
 //   Honoré Daumier, 'Croquis pris au Salon', Le Charivari 1865 — The Met Open Access (Public Domain / CC0)
 //   754603 → sat_venus_1865.jpg · 393322 → sat_critic_1865.jpg · 754581 → sat_quality_1865.jpg

@@ -40,7 +40,7 @@ const REGIONS = [
   { id: 'bretagne', ko: '브르타뉴', fr: 'Bretagne' },
 ];
 const ANSWER = { station: 'lazare', region: 'normandie' };
-// 정답 결과 원고 — kippu-app missions.ts 'ticket'(4F · C-2 산업혁명) 확정 원고 재사용
+// 정답 결과 원고 — 앱 소스 missions.ts 'ticket'(4F · C-2 산업혁명) 확정 원고 재사용
 const RESULT_OK = {
   title: '정답입니다',
   route: '파리(생라자르) → 노르망디',
@@ -48,7 +48,7 @@ const RESULT_OK = {
 };
 
 // ── 현장 단서 (부스 소품과 같은 것: 벽면 그림 · 신문 · 책상 위 시간표 · 엽서)
-//   그림 2점은 퍼블릭 도메인(kippu-app 에셋과 같은 이미지), 신문·시간표는 1870년대 양식으로 다시 짠 재현 카드 — 실존 인물의 말은 넣지 않았다
+//   그림 2점은 퍼블릭 도메인(앱 에셋과 같은 이미지), 신문·시간표는 1870년대 양식으로 다시 짠 재현 카드 — 실존 인물의 말은 넣지 않았다
 const CLUES = [
   { kind: 'img', img: 'assets/clue/monet_gare_saint_lazare_1877.jpg', k: '벽면의 그림',
     t: '증기를 뿜는 기관차와 철골 유리 지붕 — 파리의 한 기차역입니다.',

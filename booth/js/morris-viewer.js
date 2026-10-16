@@ -1,4 +1,4 @@
-// C-1 모리스 칼럼 3D — kippu-app/src/lib/morrisViewerHtml.ts (MORRIS_VIEWER_VERSION 4) 이식본 (읽기 전용 복사 후 모듈화)
+// C-1 모리스 칼럼 3D — 앱 소스 src/lib/morrisViewerHtml.ts (MORRIS_VIEWER_VERSION 4) 이식본 (읽기 전용 복사 후 모듈화)
 //
 // 원본에서 그대로 가져온 것
 //   · 형태: 체험장치 기획안 260928 p15 모리스 칼럼 레플리카 이미지 실측 프로파일 (녹흑색 주철 + 금색 장식, 로브 돔, 다단 첨탑)
@@ -805,7 +805,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   }
   raf = requestAnimationFrame(frame);
 
-  // ── 초기화 (원본의 __kippuMorrisInit 처리)
+  // ── 초기화 (원본 뷰어 HTML의 전역 초기화 함수 처리)
   if (backdrop) setBackdrop(backdrop);
   pending = items.length + (filler ? 1 : 0);
   if (pending === 0) post('loaded');
