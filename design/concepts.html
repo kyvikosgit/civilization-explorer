@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>웹 시안 A·B·C — 문명탐험가</title>
+<link rel="stylesheet" href="base.css">
+<style>
+/* 시안 비교 페이지 — 레퍼런스 → 컨셉 3개 → 선택. 화면은 실제 HTML을 1440·390에서 헤드리스로 찍은 전체 길이 캡처 */
+:root{--max:1560px;--gut:32px}
+@media (max-width:860px){:root{--gut:20px}}
+body{background:#F5F5F3}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gut)}
+.top{position:sticky;top:0;z-index:20;background:#FFFFFF;border-bottom:1px solid var(--ink)}
+.top .wrap{display:flex;align-items:center;gap:28px;height:60px}
+.top-title{font-family:var(--display);font-weight:800;font-size:18px;white-space:nowrap}
+.top nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.top nav a{display:inline-flex;align-items:center;height:36px;padding:0 14px;border:1px solid var(--line-strong);font-size:14px;font-weight:700;white-space:nowrap}
+.top nav a:hover{border-color:var(--ink)}
+.intro{padding:48px 0 32px}
+.intro h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,3vw,40px);line-height:1.2}
+.intro p{margin-top:10px;max-width:72ch;color:var(--body)}
+.rules{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+.rules li{height:30px;display:inline-flex;align-items:center;padding:0 10px;background:#FFFFFF;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--body)}
+.block{padding:40px 0 56px;border-top:1px solid var(--line-strong)}
+.block-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.block-title{font-family:var(--display);font-weight:800;font-size:26px}
+.block-note{font-size:14px;color:var(--sub)}
+
+/* 현재 */
+.now{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.now a{display:block;background:#FFFFFF;border:1px solid var(--line)}
+.now img{width:100%;height:340px;object-fit:cover;object-position:top}
+.now span{display:block;padding:10px 12px;font-size:13.5px;font-weight:700}
+
+/* 레퍼런스 */
+.refs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.ref{background:#FFFFFF;border:1px solid var(--line);display:flex;flex-direction:column}
+.ref-img{display:block;aspect-ratio:4/3;overflow:hidden;border-bottom:1px solid var(--line)}
+.ref-img img{width:100%;height:100%;object-fit:cover;object-position:top}
+.ref-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.ref-name{font-family:var(--display);font-weight:800;font-size:16px;line-height:1.35}
+.ref-use{font-size:14px;color:var(--body);line-height:1.6}
+.ref-links{margin-top:auto;padding-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.ref-links a{display:inline-flex;align-items:center;height:28px;padding:0 9px;border:1px solid var(--line-strong);font-size:12.5px;font-weight:700;color:var(--body)}
+.ref-links a:hover{border-color:var(--ink);color:var(--ink)}
+.ref-for{font-size:12.5px;font-weight:700;color:var(--sub)}
+
+/* 시안 */
+.concept-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 24px;align-items:start;margin-bottom:28px}
+.concept-letter{grid-row:span 3;font-family:var(--display);font-weight:800;font-size:72px;line-height:.9}
+.concept-name{font-family:var(--display);font-weight:800;font-size:28px;line-height:1.2}
+.concept-why{font-size:17px;font-weight:600}
+.concept-refs{font-size:14px;color:var(--sub)}
+.concept-points{grid-column:2;margin-top:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px 24px}
+.concept-points li{font-size:14px;color:var(--body);padding-left:12px;border-left:2px solid var(--line-strong)}
+.pair{margin-top:20px}
+.pair-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.pair-title{font-family:var(--display);font-weight:800;font-size:18px}
+.pair-links{display:flex;gap:6px}
+.pair-links a{display:inline-flex;align-items:center;height:32px;padding:0 12px;background:var(--ink);color:#FFFFFF;font-size:13px;font-weight:700}
+.pair-links a + a{background:#FFFFFF;color:var(--ink);border:1px solid var(--ink)}
+.pair-shots{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.shot{background:#FFFFFF;border:1px solid var(--line-strong);max-height:1400px;overflow-y:auto;overscroll-behavior:contain}
+.shot img{width:100%;height:auto}
+.shot-cap{margin-top:6px;font-size:12.5px;font-weight:600;color:var(--sub)}
+.notes{margin-top:8px;display:grid;gap:8px}
+.notes li{font-size:14.5px;color:var(--body);padding:12px 14px;background:#FFFFFF;border:1px solid var(--line)}
+.notes b{color:var(--ink)}
+
+@media (max-width:1100px){
+  .refs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .now{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:860px){
+  .top-title{display:none}
+  .refs{grid-template-columns:1fr}
+  .now img{height:240px}
+  .concept-head{grid-template-columns:1fr}
+  .concept-letter{grid-row:auto;font-size:48px}
+  .concept-points{grid-column:1}
+  .pair-shots{grid-template-columns:minmax(0,1fr) minmax(0,.6fr);gap:10px}
+  .shot{max-height:720px}
+  .pair-head{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <p class="top-title">웹 시안 비교</p>
+    <nav aria-label="바로가기">
+      <a href="#refs">레퍼런스</a>
+      <a href="#A">A 지면</a>
+      <a href="#B">B 인덱스</a>
+      <a href="#C">C 몰입</a>
+      <a href="#notes">확인할 것</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="section intro">
+    <div class="wrap">
+      <h1>문명탐험가 홈 · MONET 100 전시 상세 시안 3개</h1>
+      <p>전시 도메인 레퍼런스 12곳을 먼저 수집하고, 그 문법으로 홈과 전시 상세를 각각 실제 HTML로 만들었습니다. 아래 화면은 1440·390에서 헤드리스로 찍은 전체 길이 캡처이고, 각 시안의 실제 페이지도 열어볼 수 있습니다. 시안마다 GNB·푸터는 하나의 공통 컴포넌트(kit.js)로 두 페이지가 같은 것을 씁니다. 전시 히어로는 승인된 키비주얼 A를 그대로 씁니다.</p>
+      <ul class="rules">
+        <li>Paperlogy + Freesentation</li><li>흑백 플랫폼 + 전시 포인트 #D9672F</li><li>기존 페이지·앱 문구만 사용</li><li>이모지·밑줄 링크·한글 자간 없음</li><li>GNB 단일 컴포넌트</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section block" aria-labelledby="now-title">
+    <div class="wrap">
+      <header class="block-head"><h2 class="block-title" id="now-title">지금 페이지</h2><p class="block-note">2026-10-19 라이브 캡처</p></header>
+      <div class="now">
+        <a href="refs/00_current_home_1440.png"><img src="refs/thumb/00_current_home_1440.jpg" alt="현재 홈 1440"><span>홈 · 1440</span></a>
+        <a href="refs/00_current_home_390.png"><img src="refs/thumb/00_current_home_390.jpg" alt="현재 홈 390"><span>홈 · 390</span></a>
+        <a href="refs/00_current_monet_1440.png"><img src="refs/thumb/00_current_monet_1440.jpg" alt="현재 전시 1440"><span>MONET 100 · 1440</span></a>
+        <a href="refs/00_current_monet_390.png"><img src="refs/thumb/00_current_monet_390.jpg" alt="현재 전시 390"><span>MONET 100 · 390</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section block" id="refs" aria-labelledby="refs-title">
+    <div class="wrap">
+      <header class="block-head"><h2 class="block-title" id="refs-title">레퍼런스 12</h2><p class="block-note">전시·미술관·컬처 티켓·컬처 앱 · 헤드리스 캡처, 쿠키 배너는 거부</p></header>
+      <div class="refs">
+
+        <article class="ref">
+          <a class="ref-img" href="refs/01_groundseesaw_detail_1440.png"><img src="refs/thumb/01_groundseesaw_detail_1440.jpg" alt="그라운드시소 전시 상세" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">그라운드시소 · 전시 상세</h3>
+            <p class="ref-use">왼쪽 고정 칼럼에 제목·예매 버튼·목차, 오른쪽은 이미지와 본문만 흐른다.</p>
+            <p class="ref-for">A 전시 상세의 골격</p>
+            <p class="ref-links"><a href="https://groundseesaw.co.kr/product/detail.html?product_no=1354">사이트</a><a href="refs/01_groundseesaw_detail_1440.png">1440</a><a href="refs/01_groundseesaw_detail_390.png">390</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/02_tate_monet_1440.png"><img src="refs/thumb/02_tate_monet_1440.jpg" alt="Tate Monet: Painting Time" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">Tate · Monet: Painting Time</h3>
+            <p class="ref-use">이미지 옆 큰 제목과 기간, 본문 오른쪽에 장소·기간·시간·요금 사실 블록과 예매 버튼.</p>
+            <p class="ref-for">A 고정 칼럼 · B 사이드 정보 카드</p>
+            <p class="ref-links"><a href="https://www.tate.org.uk/whats-on/tate-modern/monet">사이트</a><a href="refs/02_tate_monet_1440.png">1440</a><a href="refs/02_tate_monet_390.png">390</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/03_orangerie_monet_1440.png"><img src="refs/thumb/03_orangerie_monet_1440.jpg" alt="오랑주리 Monet, painting time" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">오랑주리 · Monet, painting time</h3>
+            <p class="ref-use">같은 모네 서거 100주년 전시. 제목, 풀폭 작품 이미지, 본문 + 스케줄·요금 카드.</p>
+            <p class="ref-for">B 전시 상세 · 직접 비교 대상</p>
+            <p class="ref-links"><a href="https://www.musee-orangerie.fr/en/whats-on/exhibitions/monet-painting-time">사이트</a><a href="refs/03_orangerie_monet_1440.png">1440</a><a href="refs/03_orangerie_monet_390.png">390</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/04_orsay_cassatt_1440.png"><img src="refs/thumb/04_orsay_cassatt_1440.jpg" alt="오르세 Mary Cassatt" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">오르세 · Mary Cassatt</h3>
+            <p class="ref-use">전시마다 같은 템플릿, 바뀌는 건 작품 이미지뿐. 색은 그림이 담당한다.</p>
+            <p class="ref-for">세 시안 공통: 전시 상세 = 고정 템플릿</p>
+            <p class="ref-links"><a href="https://www.musee-orsay.fr/en/program/whats-on/exhibitions/mary-cassatt-being-independent">사이트</a><a href="refs/04_orsay_cassatt_1440.png">1440</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/05_mmca_detail_1440.png"><img src="refs/thumb/05_mmca_detail_1440.jpg" alt="국립현대미술관 서도호 전시 상세" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">국립현대미술관 · 서도호 상세</h3>
+            <p class="ref-use">제목과 예약 버튼 한 줄, 사실 표, 전시정보·관련자료·오디오가이드 탭.</p>
+            <p class="ref-for">B 제목 줄 + 고정 탭</p>
+            <p class="ref-links"><a href="https://www.mmca.go.kr/exhibitions/progressList.do">사이트</a><a href="refs/05_mmca_detail_1440.png">1440</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/06_mmca_home_1440.png"><img src="refs/thumb/06_mmca_home_1440.jpg" alt="국립현대미술관 홈" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">국립현대미술관 · 홈</h3>
+            <p class="ref-use">대표 전시 와이드 배너 아래 제목·기간·바로가기, 그 아래 필터 탭 달린 전시 목록.</p>
+            <p class="ref-for">B 홈</p>
+            <p class="ref-links"><a href="https://www.mmca.go.kr/">사이트</a><a href="refs/06_mmca_home_1440.png">1440</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/07_sema_home_1440.png"><img src="refs/thumb/07_sema_home_1440.jpg" alt="서울시립미술관 홈" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">서울시립미술관 · 홈</h3>
+            <p class="ref-use">포스터 카드 아래 분류·제목·장소·기간을 한 줄씩. 정보는 표로 정리.</p>
+            <p class="ref-for">B 전시 카드 · 정보 표</p>
+            <p class="ref-links"><a href="https://sema.seoul.go.kr/">사이트</a><a href="refs/07_sema_home_1440.png">1440</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/08_artemuseum_1440.png"><img src="refs/thumb/08_artemuseum_1440.jpg" alt="아르떼뮤지엄 홈" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">아르떼뮤지엄 · 홈</h3>
+            <p class="ref-use">풀블리드 이미지 슬라이드, 중앙 정렬 대형 선언 문구, 검은 지면.</p>
+            <p class="ref-for">C 홈</p>
+            <p class="ref-links"><a href="https://www.artemuseum.com/">사이트</a><a href="refs/08_artemuseum_1440.png">1440</a><a href="refs/08_artemuseum_390.png">390</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/09_fever_seoul_1440.png"><img src="refs/thumb/09_fever_seoul_1440.jpg" alt="Fever 서울" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">Fever · 서울</h3>
+            <p class="ref-use">컬처 커머스 카드: 포스터, 장소, 기간, 가격이 같은 순서로 반복된다.</p>
+            <p class="ref-for">B 카드 메타 · C 예매 바</p>
+            <p class="ref-links"><a href="https://feverup.com/en/seoul">사이트</a><a href="refs/09_fever_seoul_1440.png">1440</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/10_bloombergconnects_1440.png"><img src="refs/thumb/10_bloombergconnects_1440.jpg" alt="Bloomberg Connects" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">Bloomberg Connects</h3>
+            <p class="ref-use">컬처 앱 랜딩: 짧은 헤드라인과 기능 블록, 다운로드 안내를 반복해서 노출.</p>
+            <p class="ref-for">세 시안 공통: 앱 공개 밴드</p>
+            <p class="ref-links"><a href="https://www.bloombergconnects.org/">사이트</a><a href="refs/10_bloombergconnects_1440.png">1440</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/11_teamlab_1440.png"><img src="refs/thumb/11_teamlab_1440.jpg" alt="teamLab" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">teamLab</h3>
+            <p class="ref-use">검은 지면 위 이미지 그리드. 장식 없이 공간 사진이 색과 분위기를 낸다.</p>
+            <p class="ref-for">C 공간 그리드</p>
+            <p class="ref-links"><a href="https://www.teamlab.art/">사이트</a><a href="refs/11_teamlab_1440.png">1440</a></p>
+          </div>
+        </article>
+
+        <article class="ref">
+          <a class="ref-img" href="refs/12_nol_ticket_1440.png"><img src="refs/thumb/12_nol_ticket_1440.jpg" alt="NOL 티켓" loading="lazy"></a>
+          <div class="ref-body">
+            <h3 class="ref-name">NOL 티켓</h3>
+            <p class="ref-use">실제 판매처. 포스터·기간·가격 문법과 화면 아래 고정 예매 버튼.</p>
+            <p class="ref-for">A·B·C 모바일 예매 바</p>
+            <p class="ref-links"><a href="https://nol.interpark.com/ticket">사이트</a><a href="refs/12_nol_ticket_1440.png">1440</a></p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section block" id="A" aria-labelledby="A-title">
+    <div class="wrap">
+      <header class="concept-head">
+        <p class="concept-letter">A</p>
+        <h2 class="concept-name" id="A-title">지면</h2>
+        <p class="concept-why">작품 이미지가 지면을 차지하고, 정보는 고정 칼럼 하나에 모은다.</p>
+        <p class="concept-refs">레퍼런스: 그라운드시소 전시 상세 · Tate · 오랑주리</p>
+        <ul class="concept-points">
+          <li>홈: 큰 선언 헤드라인 → 진행 중 전시(넓게) + 다음 전시 같은 템플릿 → 풀블리드 블랙 밴드 특징 5행 → 앱 공개</li>
+          <li>전시: 승인 히어로 → 왼쪽 고정 칼럼(상태·D-day·사실 4줄·예매·목차) + 오른쪽 소개·공간·관람 정보·티켓</li>
+          <li>공간은 체험 구성안 렌더 3장(살롱 · 변화의 복도 · 모네 전시관)</li>
+          <li>모바일: 고정 칼럼이 위로 오고, 화면 아래 예매 바</li>
+        </ul>
+      </header>
+      <div class="pair">
+        <div class="pair-head"><h3 class="pair-title">홈</h3><p class="pair-links"><a href="A-home.html">페이지 열기</a></p></div>
+        <div class="pair-shots">
+          <div><div class="shot"><img src="shots/A-home-1440.jpg" alt="시안 A 홈 1440" loading="lazy"></div><p class="shot-cap">1440 · 전체 길이</p></div>
+          <div><div class="shot"><img src="shots/A-home-390.jpg" alt="시안 A 홈 390" loading="lazy"></div><p class="shot-cap">390 · 전체 길이</p></div>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="pair-head"><h3 class="pair-title">전시 상세 · MONET 100</h3><p class="pair-links"><a href="A-exhibit.html">페이지 열기</a><a href="shots/A-exhibit-390-view.jpg">모바일 실화면</a></p></div>
+        <div class="pair-shots">
+          <div><div class="shot"><img src="shots/A-exhibit-1440.jpg" alt="시안 A 전시 1440" loading="lazy"></div><p class="shot-cap">1440 · 전체 길이</p></div>
+          <div><div class="shot"><img src="shots/A-exhibit-390.jpg" alt="시안 A 전시 390" loading="lazy"></div><p class="shot-cap">390 · 전체 길이</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section block" id="B" aria-labelledby="B-title">
+    <div class="wrap">
+      <header class="concept-head">
+        <p class="concept-letter">B</p>
+        <h2 class="concept-name" id="B-title">인덱스</h2>
+        <p class="concept-why">미술관 홈페이지처럼 대표 전시 배너, 목록, 정보 표. 전시가 늘어나도 같은 틀로 쌓인다.</p>
+        <p class="concept-refs">레퍼런스: 국립현대미술관 홈·상세 · 서울시립미술관 · Tate · 오랑주리</p>
+        <ul class="concept-points">
+          <li>홈: 한 줄 선언 → 대표 전시 와이드 배너 + 제목 줄 → 상태 필터(전체·예매 중·오픈 예정) + 포스터 카드 → 특징 5칸 인덱스 → 앱 정보 표</li>
+          <li>전시: 승인 히어로 → 제목 줄 → 고정 탭(소개·공간·정보·티켓) + 예매 버튼 → 본문 + 오른쪽 고정 정보 카드</li>
+          <li>공간은 6개 존 전부 목록으로(썸네일 + 위치 + 한 줄)</li>
+          <li>GNB에 검색 필드를 상시 노출, 각진 버튼</li>
+        </ul>
+      </header>
+      <div class="pair">
+        <div class="pair-head"><h3 class="pair-title">홈</h3><p class="pair-links"><a href="B-home.html">페이지 열기</a></p></div>
+        <div class="pair-shots">
+          <div><div class="shot"><img src="shots/B-home-1440.jpg" alt="시안 B 홈 1440" loading="lazy"></div><p class="shot-cap">1440 · 전체 길이</p></div>
+          <div><div class="shot"><img src="shots/B-home-390.jpg" alt="시안 B 홈 390" loading="lazy"></div><p class="shot-cap">390 · 전체 길이</p></div>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="pair-head"><h3 class="pair-title">전시 상세 · MONET 100</h3><p class="pair-links"><a href="B-exhibit.html">페이지 열기</a><a href="shots/B-exhibit-390-view.jpg">모바일 실화면</a></p></div>
+        <div class="pair-shots">
+          <div><div class="shot"><img src="shots/B-exhibit-1440.jpg" alt="시안 B 전시 1440" loading="lazy"></div><p class="shot-cap">1440 · 전체 길이</p></div>
+          <div><div class="shot"><img src="shots/B-exhibit-390.jpg" alt="시안 B 전시 390" loading="lazy"></div><p class="shot-cap">390 · 전체 길이</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section block" id="C" aria-labelledby="C-title">
+    <div class="wrap">
+      <header class="concept-head">
+        <p class="concept-letter">C</p>
+        <h2 class="concept-name" id="C-title">몰입</h2>
+        <p class="concept-why">미디어 체험 전시의 검은 지면. 이미지가 빛나고, 예매는 늘 화면 아래에 있다.</p>
+        <p class="concept-refs">레퍼런스: 아르떼뮤지엄 · teamLab · Fever · NOL 티켓</p>
+        <ul class="concept-points">
+          <li>홈: 전시 슬라이드 풀스크린(키비주얼 + 공식 락업) → 중앙 선언 → 특징 타일 5개 → 흰 밴드 앱 공개</li>
+          <li>전시: 승인 히어로 → 소개 + 자화상 → 6개 존 이미지 그리드 → 생라자르 역 풀블리드 → 큰 숫자 사실 4칸 → 티켓</li>
+          <li>데스크톱·모바일 모두 하단 고정 예매 바(가격 + 예매하기)</li>
+          <li>버튼은 알약형, GNB는 검정 반투명</li>
+        </ul>
+      </header>
+      <div class="pair">
+        <div class="pair-head"><h3 class="pair-title">홈</h3><p class="pair-links"><a href="C-home.html">페이지 열기</a></p></div>
+        <div class="pair-shots">
+          <div><div class="shot"><img src="shots/C-home-1440.jpg" alt="시안 C 홈 1440" loading="lazy"></div><p class="shot-cap">1440 · 전체 길이</p></div>
+          <div><div class="shot"><img src="shots/C-home-390.jpg" alt="시안 C 홈 390" loading="lazy"></div><p class="shot-cap">390 · 전체 길이</p></div>
+        </div>
+      </div>
+      <div class="pair">
+        <div class="pair-head"><h3 class="pair-title">전시 상세 · MONET 100</h3><p class="pair-links"><a href="C-exhibit.html">페이지 열기</a><a href="shots/C-exhibit-390-view.jpg">모바일 실화면</a></p></div>
+        <div class="pair-shots">
+          <div><div class="shot"><img src="shots/C-exhibit-1440.jpg" alt="시안 C 전시 1440" loading="lazy"></div><p class="shot-cap">1440 · 전체 길이 (하단 예매 바는 캡처용으로 맨 끝에 둠)</p></div>
+          <div><div class="shot"><img src="shots/C-exhibit-390.jpg" alt="시안 C 전시 390" loading="lazy"></div><p class="shot-cap">390 · 전체 길이</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section block" id="notes" aria-labelledby="notes-title">
+    <div class="wrap">
+      <header class="block-head"><h2 class="block-title" id="notes-title">확인할 것</h2></header>
+      <ul class="notes">
+        <li><b>공간 이미지</b> 세 시안의 공간 섹션은 내부용 체험 구성안(/experience, noindex)의 3D 공간 시각화와 설명 문장을 씁니다. 공개 페이지에 써도 되는지 확인이 필요합니다.</li>
+        <li><b>히어로 서체</b> 승인된 히어로 A의 기간 숫자는 포스터 재현을 위해 Song Myung을 그대로 둡니다. 서체 규칙(Paperlogy·Freesentation만)과 충돌하므로 유지할지 정해야 합니다.</li>
+        <li><b>예매 링크</b> NOL 상품 주소가 없어 예매 버튼은 페이지 안 '티켓과 앱'으로 연결했습니다. 판매 페이지 주소가 나오면 교체합니다.</li>
+        <li><b>앱 문구</b> '미션'은 기존 페이지 문구 그대로입니다. '다섯 조각 수집', '관람 등급이 오릅니다'는 게임 어투라 '해설과 수집품이 열립니다'(스토어 설명문)로 바꿨습니다.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>

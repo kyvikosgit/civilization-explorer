@@ -1,0 +1,58 @@
+/* 문명탐험가 웹 시안 공통 — 서체·리셋·토큰·승인된 전시 히어로(시안 A 키비주얼)
+   서체: 디스플레이 Paperlogy, 본문·UI Freesentation. (히어로 기간 숫자만 포스터 재현 예외 Song Myung — 기존 승인안 그대로) */
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css');
+
+:root{
+  --ink:#111111; --body:#3D3D3A; --sub:#6B6B68; --meta:#9A9A96;
+  --line:#E5E4E0; --line-strong:#CFCFCA; --fill:#F5F5F3; --bg:#FFFFFF;
+  --point:#D9672F;               /* MONET 100 월드 포인트 — 전시 페이지 CTA·D-day에만 */
+  --display:Paperlogy,Freesentation,-apple-system,sans-serif;
+  --text:Freesentation,-apple-system,sans-serif;
+  --gnb-h:64px;
+}
+@media (max-width:860px){:root{--gnb-h:56px}}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--gnb-h) + 56px);-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--text);font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+ul,ol{list-style:none}
+em,i{font-style:normal}
+address{font-style:normal}
+button,input{font:inherit;color:inherit;border:0;background:none}
+button{cursor:pointer}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+svg.ic{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ── 승인된 전시 히어로(kvhero) — 공식 포스터(261008) 실측 좌표, 락업 폭 기준 단위 --u = 락업폭/6200 */
+.kvhero{position:relative;overflow:hidden;height:calc(100svh - var(--gnb-h));min-height:560px;max-height:1000px;background:#0E0E0E;color:#FFFFFF}
+.kvhero picture,.kvhero picture img{position:absolute;inset:0;width:100%;height:100%}
+.kvhero picture img{object-fit:cover;object-position:50% 22%}
+.kvhero::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%)}
+.kvhero .in{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:space-between;padding:56px 4vw 48px}
+.kvhero .foot{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.kv{--L:clamp(360px,48vw,760px);--u:calc(var(--L) / 6200)}
+.kv-kicker{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 213);line-height:1.286;margin-left:calc(var(--u) * 40);white-space:nowrap}
+.kv-block{position:relative;width:var(--L);height:calc(var(--u) * 3000)}
+.kv-block > *{position:absolute;margin:0;line-height:1;white-space:nowrap}
+.kv-block h1{left:0;top:0;width:100%;font-size:0}
+.kv-lockup{width:100%;height:auto}
+.kv-d{font-family:"Song Myung",serif;font-weight:400;font-size:calc(var(--u) * 398);top:calc(var(--u) * 2269)}
+.kv-rule{left:calc(var(--u) * 2094);top:calc(var(--u) * 2492);width:calc(var(--u) * 2028);height:max(1px,calc(var(--u) * 8));background:#FFFFFF}
+.kv-venue{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 168);top:calc(var(--u) * 2820);left:calc(var(--u) * 42)}
+.kv-credit{display:flex;align-items:center;margin:0;line-height:1;white-space:nowrap;flex:none}
+.kv-cl{font-family:Paperlogy,sans-serif;font-weight:500;font-size:max(10px,calc(var(--u) * 90.4));opacity:.85;margin-right:max(8px,calc(var(--u) * 90))}
+.kv-cl--2{margin-left:max(20px,calc(var(--u) * 260))}
+.kv-cn{font-family:Paperlogy,sans-serif;font-weight:500;font-size:max(12px,calc(var(--u) * 119.4))}
+.kv-kyv{width:max(66px,calc(var(--u) * 769));height:auto}
+@media (max-width:860px){
+  .kvhero{min-height:0;max-height:none}
+  .kvhero .in{padding:40px calc(100vw * 400 / 7016) 24px}
+  .kvhero .foot{flex-direction:column;align-items:stretch;gap:18px}
+  .kv-credit{align-self:flex-end}
+  .kv{--L:calc(100vw * 6200 / 7016)}
+}
