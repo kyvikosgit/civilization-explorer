@@ -100,7 +100,10 @@ body{background:var(--bg);color:var(--on)}
 .app-side{display:flex;flex-direction:column;align-items:flex-end;gap:14px}
 .app-date{font-family:var(--display);font-weight:800;font-size:20px}
 .store{display:flex;gap:8px}
-.store span{display:inline-flex;align-items:center;height:48px;padding:0 22px;border-radius:999px;border:1px solid var(--ink);font-size:15px;font-weight:700}
+.store a,.store span{display:inline-flex;align-items:center;height:48px;padding:0 22px;border-radius:999px;border:1px solid var(--ink);font-size:15px;font-weight:700}
+.store a{background:var(--ink);color:#FFFFFF}
+.store a:hover{opacity:.85}
+.store span{color:var(--meta);border-color:var(--line-strong)}
 
 /* ── 푸터 (C) */
 .site-footer{background:#000000;color:var(--on-meta);font-size:12.5px;line-height:1.9}
