@@ -9,7 +9,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import SCENES from './scenes.js?v=39';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=26' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=41' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 

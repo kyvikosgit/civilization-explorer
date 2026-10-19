@@ -643,7 +643,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=29' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
+    tourP = import('./js/tour.js?v=30' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
   }
   return tourP;
 }
