@@ -6,327 +6,176 @@
 <title>MONET 100 — 시대를 읽는 감각의 계보</title>
 <meta property="og:image" content="https://civilization-explorer.vercel.app/monet100-web/img/poster.jpg">
 <meta name="description" content="클로드 모네 서거 100주년 기념 미디어 체험 전시 MONET 100 — 시대를 읽는 감각의 계보. 2026. 12. 5 – 2027. 2. 28, 신세계본점 더 헤리티지 4F 뮤지엄.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=Noto+Serif+KR:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<meta property="og:title" content="MONET 100 — 시대를 읽는 감각의 계보">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23111111'/><path fill='%23F7EFE2' d='M33 20a4 4 0 0 1 4-4h26a4 4 0 0 1 4 4v24a6 6 0 0 0 0 12v24a4 4 0 0 1-4 4H37a4 4 0 0 1-4-4V56a6 6 0 0 0 0-12Z'/></svg>">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&display=swap">
-<link rel="stylesheet" href="/gnb.css">
-<style>
-:root{
-  --deep:#121b1a; --sea:#1c2927; --cream:#ece3d2; --dim:#93a19c;
-  --rust:#c14b2a; --hair:rgba(236,227,210,.16);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--deep);color:var(--cream);font-family:Freesentation,-apple-system,sans-serif;
-  font-weight:300;line-height:1.85;-webkit-font-smoothing:antialiased}
-::selection{background:var(--rust);color:var(--cream)}
-a{color:inherit;text-decoration:none}
-img{display:block;max-width:100%}
-
-/* ── 문명탐험가 상단 바 — 공통 GNB(/gnb.css·/gnb.js). 전시 nav는 그 아래 var(--gnb-h)에 붙는다 */
-
-/* ── nav — 스크롤하면 불투명 배경 + 헤어라인 */
-header{position:fixed;top:var(--gnb-h);left:0;right:0;z-index:10;
-  background:transparent;border-bottom:1px solid transparent;
-  transition:background .35s,border-color .35s}
-header.scrolled{background:rgba(18,27,26,.92);border-color:var(--hair);
-  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-.nav{display:flex;justify-content:space-between;align-items:center;padding:26px 4vw;
-  transition:padding .35s}
-header.scrolled .nav{padding:15px 4vw}
-.wordmark img{height:34px;width:auto;display:block}
-nav a{font-size:12px;letter-spacing:.22em;margin-left:34px;position:relative;padding-bottom:3px}
-nav a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:1px;background:currentColor;transition:width .3s}
-nav a:hover::after{width:100%}
-
-/* ── hero (시안 A) — 포스터 그림 풀블리드 + 포스터 문구 전부를 포스터와 같은 구조·비율로.
-   좌표는 공식 포스터(261008, 7016px) 실측값을 락업 폭 기준 단위(--u = 락업폭/6200)로 환산.
-   서체(포스터 재현 예외): 상단 2줄·장소·크레딧 = Paperlogy 500, 기간 = Song Myung, 락업 = 공식 PNG */
-.kvhero{position:relative;overflow:hidden;height:calc(100svh - var(--gnb-h));min-height:560px;padding:0;background:#0E0E0E;color:#FFFFFF}
-.kvhero picture,.kvhero picture img{position:absolute;inset:0;width:100%;height:100%}
-.kvhero picture img{object-fit:cover;object-position:50% 22%}  /* 가로 키비주얼: 포스터 원화 + 왼쪽은 〈인상, 해돋이〉 원작으로 이어 붙임(얼굴 비중 축소) */
-.kvhero::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:linear-gradient(180deg,rgba(0,0,0,.38) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,0) 48%,rgba(0,0,0,.62) 100%)}
-.kvhero .in{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:space-between;
-  padding:112px 4vw 48px}  /* 고정 메뉴(투명, 약 86px) 아래에서 시작 */
-.kvhero .foot{display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
-.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.kv{--L:clamp(360px,48vw,760px);--u:calc(var(--L) / 6200)}
-.kv-kicker{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 213);line-height:1.286;
-  margin-left:calc(var(--u) * 40);white-space:nowrap}
-.kv-block{position:relative;width:var(--L);height:calc(var(--u) * 3000)}
-.kv-block > *{position:absolute;margin:0;line-height:1;white-space:nowrap}
-.kv-block h1{left:0;top:0;width:100%;font-size:0}
-.kv-lockup{width:100%;height:auto}
-.kv-d{font-family:"Song Myung",serif;font-weight:400;font-size:calc(var(--u) * 398);top:calc(var(--u) * 2269)}
-.kv-rule{left:calc(var(--u) * 2094);top:calc(var(--u) * 2492);width:calc(var(--u) * 2028);height:max(1px,calc(var(--u) * 8));background:#FFFFFF}
-.kv-venue{font-family:Paperlogy,sans-serif;font-weight:500;font-size:calc(var(--u) * 168);top:calc(var(--u) * 2820);left:calc(var(--u) * 42)}
-/* 주최·주관 — 히어로 오른쪽 아래 (포스터의 크레딧 줄과 같은 서체·비율, 작은 화면에서도 읽히는 최소 크기) */
-.kv-credit{display:flex;align-items:center;margin:0;line-height:1;white-space:nowrap;flex:none}
-.kv-cl{font-family:Paperlogy,sans-serif;font-weight:500;font-size:max(10px,calc(var(--u) * 90.4));opacity:.85;margin-right:max(8px,calc(var(--u) * 90))}
-.kv-cl--2{margin-left:max(20px,calc(var(--u) * 260))}
-.kv-cn{font-family:Paperlogy,sans-serif;font-weight:500;font-size:max(12px,calc(var(--u) * 119.4))}
-.kv-kyv{width:max(66px,calc(var(--u) * 769));height:auto}
-.hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,42vw,720px);min-height:calc(100svh - 60px)}
-.hero-vis{position:relative;overflow:hidden}
-.hero-vis .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 24%}
-.hero-vis::after{content:"";position:absolute;inset:0;
-  background:linear-gradient(90deg,rgba(18,27,26,.28) 0%,rgba(18,27,26,0) 30%)}
-.hero-in{display:flex;flex-direction:column;justify-content:flex-end;padding:120px 4vw 7vh}
-.overline{font-size:11px;letter-spacing:.5em;color:var(--cream);opacity:.75;text-transform:uppercase}
-.overline.ko{font-size:13px;letter-spacing:.04em;line-height:1.6;text-transform:none;font-weight:600}
-.herocopy{font-family:"Noto Serif KR",serif;font-weight:300;font-size:clamp(16px,1.9vw,22px);
-  line-height:1.9;margin:8vh 0 5vh}
-.lockup{width:min(100%,560px);height:auto;
-  filter:drop-shadow(0 2px 24px rgba(0,0,0,.35))}
-.hero-foot{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px 44px;margin-top:7vh;
-  border-top:1px solid var(--hair);padding-top:26px}
-.hero-foot .dates{font-family:"Fraunces",serif;font-size:clamp(17px,2.2vw,24px);letter-spacing:.04em}
-.hero-foot .venue{font-size:13px;color:var(--dim)}
-.hero-foot .cta{margin-left:auto;display:inline-flex;align-items:center;background:var(--rust);color:#F7EFE2;
-  font-size:12.5px;font-weight:700;letter-spacing:.2em;padding:13px 24px;border-radius:8px;transition:opacity .2s}
-.hero-foot .cta:hover{opacity:.9}
-.credit{position:absolute;z-index:2;right:18px;top:50%;transform:rotate(90deg) translateX(50%);transform-origin:right center;
-  font-size:10px;letter-spacing:.28em;color:rgba(236,227,210,.55);white-space:nowrap}
-
-/* ── sections */
-section{padding:clamp(90px,14vh,160px) 4vw}
-.sec-head{display:flex;align-items:baseline;gap:26px;margin-bottom:clamp(44px,7vh,80px);
-  max-width:1280px;margin-left:auto;margin-right:auto}
-.sec-no{font-family:"Fraunces",serif;font-style:italic;font-weight:300;font-size:15px;color:var(--rust);letter-spacing:.1em}
-.sec-title{font-family:"Noto Serif KR",serif;font-weight:400;font-size:clamp(22px,3vw,30px)}
-.sec-rule{flex:1;height:1px;background:var(--hair)}
-
-/* about */
-.about{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(40px,6vw,110px);align-items:start;max-width:1280px;margin:0 auto}
-.about .lead{font-family:"Noto Serif KR",serif;font-weight:300;font-size:clamp(17px,1.7vw,21px);line-height:2.25}
-.about .lead b{font-weight:600;color:var(--cream)}
-.about .lead .accent{color:var(--rust)}
-.about .body{margin-top:38px;color:var(--dim);font-size:14.5px;max-width:52ch}
-.figure{position:relative}
-.figure img{width:100%;filter:saturate(.92)}
-.figcap{margin-top:12px;font-size:11px;letter-spacing:.14em;color:var(--dim)}
-.figcap i{font-family:"Fraunces",serif;letter-spacing:.02em}
-
-/* info — hairline table */
-.info{max-width:1280px;margin:0 auto}
-.row{display:grid;grid-template-columns:minmax(120px,240px) 1fr;gap:24px;
-  padding:26px 0;border-top:1px solid var(--hair)}
-.row:last-child{border-bottom:1px solid var(--hair)}
-.row dt{font-size:11px;letter-spacing:.4em;color:var(--dim);padding-top:6px}
-.row dd{font-family:"Noto Serif KR",serif;font-weight:300;font-size:clamp(16px,1.8vw,20px)}
-.row dd small{display:block;font-family:Freesentation,sans-serif;font-size:13px;color:var(--dim);margin-top:6px}
-
-/* banner */
-.banner{position:relative;margin:0;padding:0}
-.banner img{width:100%;height:56vh;object-fit:cover;object-position:center 62%;filter:saturate(.95)}
-.banner .figcap{position:absolute;right:4vw;bottom:18px;color:rgba(236,227,210,.75)}
-
-/* tickets */
-.tix{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:clamp(40px,6vw,110px)}
-.tix h3{font-family:"Noto Serif KR",serif;font-weight:400;font-size:19px;margin-bottom:22px}
-.tix ol{list-style:none;counter-reset:n}
-.tix li{counter-increment:n;display:flex;gap:20px;padding:17px 0;border-top:1px solid var(--hair);
-  font-size:14.5px;color:var(--dim)}
-.tix li::before{content:counter(n,decimal-leading-zero);font-family:"Fraunces",serif;font-style:italic;
-  color:var(--rust);font-size:15px;min-width:30px;padding-top:1px}
-.tix li b{color:var(--cream);font-weight:500}
-.tix .note{margin-top:26px;font-size:12.5px;color:var(--dim);line-height:2}
-.tix .note a{border-bottom:1px solid var(--dim);padding-bottom:2px}
-.tix .note a:hover{color:var(--rust);border-color:var(--rust)}
-
-/* footer — 문명탐험가 플랫폼 푸터 (라이트, 홈과 동일 톤) */
-footer{background:#FFFFFF;color:#9C9C96;padding:0 4vw;
-  font-family:Freesentation,-apple-system,sans-serif;font-size:12px;line-height:2}
-footer .fin{max-width:1280px;margin:0 auto}
-footer .ftop{display:flex;flex-wrap:wrap;align-items:flex-start;gap:18px 60px;
-  padding:40px 0 30px;border-bottom:1px solid #ECE9E2}
-footer .fplat{display:block;font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;letter-spacing:-.01em;color:#CC4725;line-height:1.4}
-footer .fplat small{display:none}
-footer .fnote{margin-top:8px;font-size:12.5px;color:#77776F}
-footer .fnote b{color:#111111;font-weight:700}
-footer .flinks{margin-left:auto;display:flex;flex-wrap:wrap;gap:4px 24px;font-size:12.5px}
-footer .flinks a{color:#454541;font-weight:600}
-footer .flinks a:hover{color:#111111}
-footer .fbot{display:flex;flex-wrap:wrap;gap:14px 60px;justify-content:space-between;padding:24px 0 44px}
-footer .legal{display:flex;flex-wrap:wrap;gap:0 20px;align-self:flex-start}
-footer .legal a{color:#77776F;font-weight:500}
-footer .legal a:hover{color:#111111}
-
-@media (max-width:820px){
-  /* 모바일 — 세로 뷰포트는 포스터 비율과 맞으므로 풀블리드 오버레이로 복귀 */
-  .hero{display:flex;position:relative;align-items:flex-end;overflow:hidden}
-  .hero-vis{position:absolute;inset:0}
-  .hero-vis::after{background:linear-gradient(180deg,rgba(18,27,26,.45) 0%,rgba(18,27,26,.1) 40%,rgba(18,27,26,.88) 92%)}
-  .hero-in{position:relative;z-index:2;width:100%;padding:0 4vw 7vh}
-  .lockup{width:min(88vw,560px)}
-  .about,.tix{grid-template-columns:1fr}
-  .figure{order:-1;max-width:420px}
-  .credit{display:none}
-  nav a{margin-left:18px;letter-spacing:.14em}
-  /* 히어로 — 포스터와 같은 비율: 락업 폭 = 화면폭 × 6200/7016, 좌우 여백 = 화면폭 × 400/7016 */
-  .kvhero{min-height:0}
-  .kvhero .in{padding:100px calc(100vw * 400 / 7016) 24px}
-  .kvhero .foot{flex-direction:column;align-items:stretch;gap:18px}
-  .kv-credit{align-self:flex-end}
-  .kv{--L:calc(100vw * 6200 / 7016)}
-}
-</style>
+<link rel="stylesheet" href="/web/base.css">
+<link rel="stylesheet" href="/web/exhibit.css">
 </head>
 <body>
 
-<div class="kgnb" data-current="exhibition"></div><script src="/gnb.js"></script>
+<header class="gnb" data-current="exhibition"></header>
 
+<main>
 
-<header>
-  <div class="nav">
-    <a class="wordmark" href="#"><img src="img/logo_mark.png" alt="Monet 100"></a>
-    <nav>
-      <a href="#about">전시</a>
-      <a href="#info">관람 정보</a>
-      <a href="#tickets">티켓</a>
-    </nav>
-  </div>
-</header>
-
-<section class="kvhero" aria-label="MONET 100">
-  <picture>
-    <source media="(max-width:820px)" srcset="img/keyvisual.jpg">
-    <img src="img/hero_kv_land.jpg" alt="클로드 모네의 자화상(1886)과 인상, 해돋이(1872)를 겹친 MONET 100 키비주얼" fetchpriority="high">
-  </picture>
-  <div class="in kv">
-    <p class="kv-kicker">클로드 모네 서거 100주년 기념<br>미디어 체험 전시</p>
-    <div class="foot">
-      <div class="kv-block">
-        <h1><img class="kv-lockup" src="img/logo_lockup.png" alt="Monet 100 시대를 읽는 감각의 계보"></h1>
-        <p class="sr">2026. 12. 5 – 2027. 2. 28</p>
-        <span class="kv-d" style="left:calc(var(--u) * 27)" aria-hidden="true">2026.</span>
-        <span class="kv-d" style="left:calc(var(--u) * 1051)" aria-hidden="true">12.</span>
-        <span class="kv-d" style="left:calc(var(--u) * 1680)" aria-hidden="true">5</span>
-        <span class="kv-rule" aria-hidden="true"></span>
-        <span class="kv-d" style="left:calc(var(--u) * 4319)" aria-hidden="true">2027.</span>
-        <span class="kv-d" style="left:calc(var(--u) * 5344)" aria-hidden="true">2.</span>
-        <span class="kv-d" style="left:calc(var(--u) * 5782)" aria-hidden="true">28</span>
-        <p class="kv-venue">신세계본점 더 헤리티지 4F 뮤지엄</p>
-      </div>
-      <p class="kv-credit">
-        <span class="kv-cl">주최</span><span class="kv-cn">SONG DONG HUN Inc.</span>
-        <span class="kv-cl kv-cl--2">주관</span><img class="kv-kyv" src="img/kyvikos_wordmark.png" alt="KYVIKOS">
-      </p>
-    </div>
-  </div>
-</section>
-
-<section id="about">
-  <div class="sec-head">
-    <span class="sec-no">No.01</span><span class="sec-title">전시 소개</span><span class="sec-rule"></span>
-  </div>
-  <div class="about">
-    <div>
-      <p class="lead">
-        1874년, 파리의 심사위원들은 모네를 비웃었습니다.<br>
-        그러나 시대는 이미 그 기준을 넘어<br>움직이고 있었습니다.<br><br>
-        <b>MONET 100</b>은 인상주의 이후 100년,<br>
-        시대의 다음을 가장 먼저 감각한 이들의<br>
-        계보를 따라갑니다.
-      </p>
-      <p class="body">
-        관람객은 1874년 파리행 승차권을 쥔 여행자가 되어,
-        살롱의 심사석과 화가의 아틀리에를 지나
-        생라자르 역에서 노르망디행 열차에 오릅니다.
-      </p>
-    </div>
-    <figure class="figure">
-      <img src="img/portrait.jpg" alt="클로드 모네, 베레모를 쓴 자화상, 1886">
-      <figcaption class="figcap"><i>Self-portrait with a Beret</i> — 클로드 모네, 1886</figcaption>
-    </figure>
-  </div>
-</section>
-
-<section id="info" style="padding-top:0">
-  <div class="sec-head">
-    <span class="sec-no">No.02</span><span class="sec-title">관람 정보</span><span class="sec-rule"></span>
-  </div>
-  <dl class="info">
-    <div class="row"><dt>기간</dt><dd>2026년 12월 5일 (토) — 2027년 2월 28일 (일)</dd></div>
-    <div class="row"><dt>시간</dt><dd>10:00 — 19:00<small>매 정시 입장 · 회차당 60분 관람 · 회차별 정원제</small></dd></div>
-    <div class="row"><dt>장소</dt><dd>신세계본점 더 헤리티지 4F 뮤지엄<small>서울특별시 중구 소공로 63</small></dd></div>
-    <div class="row"><dt>관람권</dt><dd>성인 22,000원 · 청소년 16,000원<small>만 4세 미만 무료 · 회차 지정 예매</small></dd></div>
-    <div class="row"><dt>주최</dt><dd>SONG DONG HUN Inc.</dd></div>
-    <div class="row"><dt>주관</dt><dd>KYVIKOS<small>후원 SHINSEGAE · LVMH · 주한 프랑스문화원</small></dd></div>
-  </dl>
-</section>
-
-<figure class="banner">
-  <img src="img/lazare.jpg" alt="클로드 모네, 생라자르 역, 1877">
-  <figcaption class="figcap"><i>La Gare Saint-Lazare</i> — 클로드 모네, 1877 · 전시 제1막의 무대</figcaption>
-</figure>
-
-<section id="tickets">
-  <div class="sec-head">
-    <span class="sec-no">No.03</span><span class="sec-title">티켓과 앱</span><span class="sec-rule"></span>
-  </div>
-  <div class="tix">
-    <div>
-      <h3>관람권 구매</h3>
-      <ol>
-        <li><span><b>NOL(놀티켓)</b>에서 관람일·회차를 선택해 구매</span></li>
-        <li><span><b>문명탐험가 앱</b>에 예매번호를 등록하면 QR 입장권으로 바뀝니다</span></li>
-        <li><span>전시장에서 QR 제시 후 입장</span></li>
-      </ol>
-      <p class="note">티켓은 앱 계정에 보관되어 어느 기기에서든 유지됩니다.<br>
-      취소·환불은 구매처(NOL) 규정을 따릅니다. <a href="refund.html">취소·환불 규정</a></p>
-    </div>
-    <div>
-      <h3>앱과 함께하는 관람</h3>
-      <ol>
-        <li><span>존 입구의 QR을 스캔하면 <b>미션</b>이 시작됩니다</span></li>
-        <li><span>전시물을 찾아 <b>다섯 조각</b>을 수집하세요</span></li>
-        <li><span>완주하면 <b>관람 등급</b>이 오릅니다</span></li>
-      </ol>
-      <p class="note">오디오 도슨트 · 작품 도감 · 수집품 보관함 제공<br>
-      <a href="/#app">문명탐험가 앱 · 2026년 11월 공개 ›</a></p>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="fin">
-    <div class="ftop">
-      <div>
-        <a class="fplat" href="/">문명탐험가</a>
-        <p class="fnote"><b>MONET 100 — 시대를 읽는 감각의 계보</b>는 문명탐험가의 전시입니다.</p>
-      </div>
-      <nav class="flinks">
-        <a href="/">플랫폼 홈</a>
-        <a href="/#now">다른 전시</a>
-        <a href="/#app">앱 다운로드</a>
-      </nav>
-    </div>
-    <div class="fbot">
-      <div>
-        상호: 주식회사 큐비크스 (Kyvikos Co., Ltd.) · 대표: 김지희 · 사업자등록번호: 319-86-02250<br>
-        주소: 서울특별시 종로구 자하문로7길 43, 4층 (누하동)<br>
-        문의: info@kyvikos.com · 010-9082-2190 · www.kyvikos.com<br>
-        © 2026 Kyvikos Co., Ltd. All rights reserved.
-      </div>
-      <div class="legal">
-        <a href="terms.html">이용약관</a>
-        <a href="privacy.html">개인정보처리방침</a>
-        <a href="refund.html">취소·환불 규정</a>
+  <section class="kvhero" aria-label="MONET 100">
+    <picture>
+      <source media="(max-width:860px)" srcset="/monet100-web/img/keyvisual.jpg">
+      <img src="/monet100-web/img/hero_kv_land.jpg" alt="클로드 모네의 자화상(1886)과 인상, 해돋이(1872)를 겹친 MONET 100 키비주얼" fetchpriority="high">
+    </picture>
+    <div class="in kv">
+      <p class="kv-kicker">클로드 모네 서거 100주년 기념<br>미디어 체험 전시</p>
+      <div class="foot">
+        <div class="kv-block">
+          <h1><img class="kv-lockup" src="/monet100-web/img/logo_lockup.png" alt="Monet 100 시대를 읽는 감각의 계보"></h1>
+          <p class="sr">2026. 12. 5 – 2027. 2. 28</p>
+          <span class="kv-d" style="left:calc(var(--u) * 27)" aria-hidden="true">2026.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 1051)" aria-hidden="true">12.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 1680)" aria-hidden="true">5</span>
+          <span class="kv-rule" aria-hidden="true"></span>
+          <span class="kv-d" style="left:calc(var(--u) * 4319)" aria-hidden="true">2027.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 5344)" aria-hidden="true">2.</span>
+          <span class="kv-d" style="left:calc(var(--u) * 5782)" aria-hidden="true">28</span>
+          <p class="kv-venue">신세계본점 더 헤리티지 4F 뮤지엄</p>
+        </div>
+        <p class="kv-credit">
+          <span class="kv-cl">주최</span><span class="kv-cn">SONG DONG HUN Inc.</span>
+          <span class="kv-cl kv-cl--2">주관</span><img class="kv-kyv" src="/monet100-web/img/kyvikos_wordmark.png" alt="KYVIKOS">
+        </p>
       </div>
     </div>
-  </div>
-</footer>
+  </section>
 
-<script>
-const hd = document.querySelector('header');
-const onScroll = () => hd.classList.toggle('scrolled', window.scrollY > 40);
-addEventListener('scroll', onScroll, { passive: true });
-onScroll();
-</script>
+  <section class="section detail" aria-label="전시 상세">
+    <div class="wrap">
+
+      <aside class="aside" aria-label="전시 요약">
+        <p class="aside-status">예매 중 <b data-dday>D-47</b></p>
+        <h2 class="aside-title">MONET 100</h2>
+        <p class="aside-sub">시대를 읽는 감각의 계보</p>
+        <p class="aside-kicker">클로드 모네 서거 100주년 기념 미디어 체험 전시</p>
+        <dl class="aside-meta">
+          <div><dt>기간</dt><dd>2026. 12. 5 — 2027. 2. 28</dd></div>
+          <div><dt>시간</dt><dd>10:00 — 19:00 · 매 정시 입장</dd></div>
+          <div><dt>장소</dt><dd>신세계본점 더 헤리티지 4F 뮤지엄</dd></div>
+          <div><dt>관람권</dt><dd>성인 22,000원 · 청소년 16,000원</dd></div>
+        </dl>
+        <div class="aside-actions">
+          <a class="btn btn--point" href="#tickets">예매하기</a>
+          <a class="btn btn--line" href="#tickets">앱과 함께 관람하기</a>
+        </div>
+        <nav class="toc" aria-label="페이지 목차">
+          <a href="#about">전시 소개<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+          <a href="#space">공간<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+          <a href="#info">관람 정보<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+          <a href="#tickets">티켓과 앱<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+        </nav>
+      </aside>
+
+      <div class="detail-main">
+
+        <article class="block" id="about">
+          <header class="block-head"><h3 class="block-title">전시 소개</h3></header>
+          <p class="lead">1874년, 파리의 심사위원들은 모네를 비웃었습니다.<br>
+            그러나 시대는 이미 그 기준을 넘어 움직이고 있었습니다.<br><br>
+            <b>MONET 100</b>은 인상주의 이후 100년, 시대의 다음을 가장 먼저 감각한 이들의 계보를 따라갑니다.</p>
+          <p class="body">관람객은 1874년 파리행 승차권을 쥔 여행자가 되어, 살롱의 심사석과 화가의 아틀리에를 지나 생라자르 역에서 노르망디행 열차에 오릅니다.</p>
+          <figure class="fig fig--portrait">
+            <img src="/monet100-web/img/portrait.jpg" alt="클로드 모네, 베레모를 쓴 자화상, 1886" loading="lazy">
+            <figcaption>Self-portrait with a Beret · 클로드 모네, 1886</figcaption>
+          </figure>
+        </article>
+
+        <article class="block" id="space">
+          <header class="block-head"><h3 class="block-title">공간</h3><p class="block-note">4F · 공간 시각화</p></header>
+          <section class="space">
+            <div class="space-img"><img src="/experience/img/r_C0_a.jpg" alt="아카데미 살롱 공간 시각화" loading="lazy"></div>
+            <div class="space-cap">
+              <p class="space-no">01 · 4F</p>
+              <div>
+                <h4 class="space-name">아카데미 살롱</h4>
+                <p class="space-desc">1873년 살롱 전시장. 후보작 다섯 점 가운데 올해의 그림을 고릅니다.</p>
+              </div>
+            </div>
+          </section>
+          <section class="space">
+            <div class="space-img"><img src="/experience/img/r_Cc_eye.jpg" alt="변화의 복도 공간 시각화, 복도 눈높이에서 본 부스" loading="lazy"></div>
+            <div class="space-cap">
+              <p class="space-no">02 · 4F</p>
+              <div>
+                <h4 class="space-name">변화의 복도</h4>
+                <p class="space-desc">앞면이 열린 부스 네 개가 흰 홀을 따라 이어집니다.</p>
+                <ul class="space-booths"><li>시민사회</li><li>산업혁명</li><li>화가의 아틀리에</li><li>나다르 사진관</li></ul>
+              </div>
+            </div>
+          </section>
+          <section class="space">
+            <div class="space-img"><img src="/experience/img/r_C5_a.jpg" alt="모네 전시관 공간 시각화, 진입 정면의 인상, 해돋이" loading="lazy"></div>
+            <div class="space-cap">
+              <p class="space-no">03 · 4F</p>
+              <div>
+                <h4 class="space-name">모네 전시관</h4>
+                <p class="space-desc">들어서자마자 〈인상, 해돋이〉 한 점과 마주합니다.</p>
+              </div>
+            </div>
+          </section>
+          <figure class="fig">
+            <img src="/monet100-web/img/lazare.jpg" alt="클로드 모네, 생라자르 역, 1877" loading="lazy">
+            <figcaption>La Gare Saint-Lazare · 클로드 모네, 1877</figcaption>
+          </figure>
+        </article>
+
+        <article class="block" id="info">
+          <header class="block-head"><h3 class="block-title">관람 정보</h3></header>
+          <dl class="info">
+            <div><dt>기간</dt><dd>2026년 12월 5일 (토) — 2027년 2월 28일 (일)</dd></div>
+            <div><dt>시간</dt><dd>10:00 — 19:00<small>매 정시 입장 · 회차당 60분 관람 · 회차별 정원제</small></dd></div>
+            <div><dt>장소</dt><dd>신세계본점 더 헤리티지 4F 뮤지엄<small>서울특별시 중구 소공로 63</small></dd></div>
+            <div><dt>관람권</dt><dd>성인 22,000원 · 청소년 16,000원<small>만 4세 미만 무료 · 회차 지정 예매</small></dd></div>
+            <div><dt>주최</dt><dd>SONG DONG HUN Inc.</dd></div>
+            <div><dt>주관</dt><dd>KYVIKOS<small>후원 SHINSEGAE · LVMH · 주한 프랑스문화원</small></dd></div>
+          </dl>
+        </article>
+
+        <article class="block" id="tickets">
+          <header class="block-head"><h3 class="block-title">티켓과 앱</h3></header>
+          <div class="steps">
+            <div>
+              <h4>관람권 구매</h4>
+              <ol>
+                <li><span><b>NOL(놀티켓)</b>에서 관람일·회차를 선택해 구매</span></li>
+                <li><span><b>문명탐험가 앱</b>에 예매번호를 등록하면 QR 입장권으로 바뀝니다</span></li>
+                <li><span>전시장에서 QR 제시 후 입장</span></li>
+              </ol>
+              <p class="steps-note">티켓은 앱 계정에 보관되어 어느 기기에서든 유지됩니다. 취소·환불은 구매처(NOL) 규정을 따릅니다.</p>
+              <a class="more" href="/monet100-web/refund.html">취소·환불 규정<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+            </div>
+            <div>
+              <h4>앱과 함께하는 관람</h4>
+              <ol>
+                <li><span>존 입구의 QR을 스캔하면 <b>미션</b>이 시작됩니다</span></li>
+                <li><span>전시물을 카메라로 비추면 <b>해설과 수집품</b>이 열립니다</span></li>
+                <li><span>오디오 도슨트 · 작품 도감 · 수집품 보관함</span></li>
+              </ol>
+              <p class="steps-note">문명탐험가 앱 · 2026년 11월 공개</p>
+              <a class="more" href="/#app">앱 다운로드<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="buybar">
+        <p><b>MONET 100</b>성인 22,000원 · 매 정시 입장</p>
+        <a class="btn btn--point" href="#tickets">예매하기</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer"></footer>
+<script src="/web/kit.js" data-home="/" data-exhibit="/monet100-web/"></script>
 </body>
 </html>
