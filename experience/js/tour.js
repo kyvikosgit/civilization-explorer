@@ -6,24 +6,26 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=40';
+import SCENES from './scenes.js?v=41';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=42' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=43' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
 // 걸을 수 있는 바닥: 4층 평면 좌표(m, Blender x/y — 고객 DWG 2026.10 기준, experience-doc/render/plan4f.py) 직사각형 합집합 [x0, y0, x1, y1].
 // 이 안에서도 벽·가벽·가구 자리는 막힌다(헤리티지 실측 셸 포함).
 const WALK = [
-  [-21.15, -4.40, 8.36, 0.55],   // 전시 복도 띠: 모네연작 ~ 부스 4개 ~ 살롱 앞 (창 쪽 벽 ~ 전시실7 벽 기둥)
+  [-21.15, -4.40, 8.36, 0.55],   // 전시 복도 띠: 모네작품 입구 ~ 부스 4개 ~ 살롱 앞 (창 쪽 벽 ~ 전시실7 벽 기둥)
+  [-21.95, -1.95, -21.10, -1.00], // 모네작품 출입구 (950, 기존 벽 개구부 안)
+  [-26.30, -2.55, -21.86, 0.35],  // 모네작품 (전기·천장 4F PLAN의 닫힌 방: 4,450 / 3,800 × 2,900, 먼 벽은 사선)
   [8.30, -1.95, 9.10, -1.01],    // 살롱 출입구 (950)
   [9.03, -4.23, 12.40, 0.35],    // 전시실5 아카데미 살롱 (3,370 × 4,580)
   [4.88, -16.50, 8.36, -4.30],   // 서쪽 복도: 리셉션 데스크 ~ 박물관 입구 쪽
 ];
 // 현재 구역 판정(시선 앞 2.5 m 지점, Blender x/y): 평면도 강조와 번호 표시에 씀
 const REGIONS = [
-  ['c0', 9.0, -4.25, 12.45, 0.40], ['c0', 6.6, -4.40, 9.0, 0.60], ['c5', -21.2, -4.40, -17.55, 0.60],
+  ['c0', 9.0, -4.25, 12.45, 0.40], ['c0', 6.6, -4.40, 9.0, 0.60], ['c5', -26.6, -2.75, -21.10, 0.60], ['c5', -21.10, -4.40, -17.80, 0.60],
   ['c1', -2.20, -2.75, 2.20, 0.30], ['c2', -6.45, -2.75, -2.20, 0.30], ['c3', -10.70, -2.75, -6.45, 0.30], ['c4', -14.95, -2.75, -10.70, 0.30],
 ];
 const EYE = 1.6;
@@ -36,7 +38,7 @@ for (const [z, d] of Object.entries(SCENES)) {
 }
 
 // ---- 충돌 격자: 불러온 장면의 삼각형 중 무릎~머리 높이(0.2–1.8 m)에 걸친 것을 10 cm 격자에 찍고, 몸 반경만큼 부풀린다 ----
-const GRID = { x0: -22, z0: -1.0, x1: 13.5, z1: 17.2, s: 0.1 };
+const GRID = { x0: -26.8, z0: -1.0, x1: 13.5, z1: 17.2, s: 0.1 };
 GRID.nx = Math.ceil((GRID.x1 - GRID.x0) / GRID.s); GRID.nz = Math.ceil((GRID.z1 - GRID.z0) / GRID.s);
 function buildGrid(meshes) {
   const { nx, nz, s, x0, z0 } = GRID, raw = new Uint8Array(nx * nz);
@@ -152,7 +154,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x1b1b1a);
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = ENV_INTENSITY;
-  const camera = new THREE.PerspectiveCamera(60, 1.6, 0.05, 150);
+  const camera = new THREE.PerspectiveCamera(60, 1.6, 0.06, 90);      // near/far 좁혀 깊이 정밀도 확보(z-fighting 방지)
   camera.rotation.order = 'YXZ';
 
   // ---- 시선·위치 상태 ----
