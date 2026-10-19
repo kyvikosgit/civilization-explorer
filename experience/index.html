@@ -114,7 +114,10 @@ ol.flow span{color:var(--dim);font-size:15px}
 .ov-plan[hidden]{display:none}
 .ov-plan .ttl{display:block;font-family:var(--display);font-weight:600;font-size:11px;letter-spacing:.12em;color:rgba(255,255,255,.6);margin:0 2px 4px}
 .plan{display:block;width:100%;height:auto}
+.plan .bld{fill:rgba(255,255,255,.03);stroke:rgba(255,255,255,.35);stroke-width:1px;vector-effect:non-scaling-stroke}
 .plan .ctx{fill:none;stroke:rgba(255,255,255,.22);stroke-width:1px;vector-effect:non-scaling-stroke}
+.plan .ent{fill:rgba(255,255,255,.45)}
+.plan .led{fill:none;stroke:#F0A27A;stroke-width:1px;vector-effect:non-scaling-stroke}
 .plan .ctxt{fill:rgba(255,255,255,.45);font-family:var(--body);font-size:1.2px}
 .plan .z{cursor:pointer;outline:none}
 .plan .z>rect,.plan .z>polygon{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.75);stroke-width:1px;vector-effect:non-scaling-stroke;transition:fill .15s}
@@ -286,7 +289,7 @@ a{color:inherit}
 <!-- 4층 전체 3D: 화면을 채우는 캔버스 위에 평면도·구역 버튼·설명을 띄운다 -->
 <section class="tour" id="tour" aria-label="4층 3D 둘러보기">
   <div class="v3d-stage" id="tour-stage">
-    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=26)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 15MB</small></button></div>
+    <div class="poster" style="background-image:url(img/r_Cc_eye.jpg?v=27)"><button type="button" id="tour-start">3D로 보기<small>4층 전체 · 약 15MB</small></button></div>
     <div class="ov ov-top">
       <div class="ov-bar glass">
         <div class="zchips" role="group" aria-label="공간 선택">
@@ -297,19 +300,22 @@ a{color:inherit}
       </div>
       <div class="ov-plan glass" id="ov-plan">
         <span class="ttl">4F 평면도 · 누르면 그 공간으로 이동</span>
-        <svg class="plan" viewBox="-26 -1.9 37.6 11.4" role="group" aria-label="4층 평면도">
-    <rect class="ctx" x="-17.5" y="4.8" width="20.1" height="4.7"/><text class="ctxt" x="-7.6" y="7.6" text-anchor="middle">E 미디어 전시</text>
-    <rect class="ctx" x="3.9" y="4.8" width="2.35" height="4.7"/><text class="ctxt" x="5.07" y="7.6" text-anchor="middle">A</text>
-    <g class="z corr" data-zone="corridor" role="button" tabindex="0" aria-label="복도 전체 보기"><rect x="-19.25" y="-0.7" width="25.35" height="5.2"/><text class="cl" x="-6.6" y="4.05">C 변화의 복도 · 전체</text></g>
-    <g class="z" data-zone="c4" role="button" tabindex="0" aria-label="C4 나다르 사진관"><rect x="-15.4" y="0" width="4.4" height="2.8"/><text x="-13.2" y="1.3">C4</text><text class="nm" x="-13.2" y="2.3">나다르 사진관</text></g>
-    <g class="z" data-zone="c3" role="button" tabindex="0" aria-label="C3 화가의 아틀리에"><rect x="-11" y="0" width="4.4" height="2.8"/><text x="-8.8" y="1.3">C3</text><text class="nm" x="-8.8" y="2.3">화가의 아틀리에</text></g>
-    <g class="z" data-zone="c2" role="button" tabindex="0" aria-label="C2 산업혁명"><rect x="-6.6" y="0" width="4.4" height="2.8"/><text x="-4.4" y="1.3">C2</text><text class="nm" x="-4.4" y="2.3">산업혁명</text></g>
-    <g class="z" data-zone="c1" role="button" tabindex="0" aria-label="C1 시민사회"><rect x="-2.2" y="0" width="4.4" height="2.8"/><text x="0" y="1.3">C1</text><text class="nm" x="0" y="2.3">시민사회</text></g>
-    <g class="z" data-zone="c0" role="button" tabindex="0" aria-label="C0 아카데미 살롱"><rect x="6.25" y="-0.7" width="4" height="6.5"/><text x="8.25" y="2.3">C0</text><text class="nm" x="8.25" y="3.3">아카데미 살롱</text></g>
-    <g class="z" data-zone="c5" role="button" tabindex="0" aria-label="C5 모네 전시관"><polygon points="-25.2,6.3 -19.4,6.3 -19.4,-0.7 -24.4,-0.7"/><text x="-22.2" y="2.3">C5</text><text class="nm" x="-22.2" y="3.3">모네 전시관</text></g>
-    <line class="win" x1="-17.9" y1="-0.85" x2="-15.5" y2="-0.85"/><line class="win" x1="-12.75" y1="-0.85" x2="-10.35" y2="-0.85"/><line class="win" x1="-7.5" y1="-0.85" x2="-5.1" y2="-0.85"/><line class="win" x1="-2.15" y1="-0.85" x2="0.25" y2="-0.85"/><line class="win" x1="3.2" y1="-0.85" x2="5.6" y2="-0.85"/>
-    <line class="curtain" x1="3.9" y1="-0.7" x2="3.9" y2="4.5"/>
-    <line class="door" x1="6.17" y1="-0.1" x2="6.17" y2="1.0"/><line class="door" x1="-19.33" y1="0.7" x2="-19.33" y2="2.3"/>
+        <svg class="plan" viewBox="-13.8 -27.6 47.2 31.0" role="group" aria-label="4층 평면도 (고객 DWG 2026.10 기준, 도면과 같은 방향)">
+    <polygon class="bld" points="-13.12,2.47 25.98,2.47 32.38,-26.74 -13.12,-26.74"/>
+    <rect class="ctx" x="-4.24" y="-16.53" width="20.76" height="11.60"/><text class="ctxt" x="6.10" y="-10.60" text-anchor="middle">전시실7 미디어아트</text>
+    <rect class="ctx" x="1.59" y="-20.10" width="14.45" height="2.60"/><text class="ctxt" x="8.80" y="-21.60" text-anchor="middle">에스컬레이터</text>
+    <rect class="ctx" x="-8.37" y="-16.52" width="3.50" height="12.10"/><text class="ctxt" x="-6.62" y="-10.40" text-anchor="middle" transform="rotate(-90 -6.62 -10.4)">리셉션 · 서쪽 복도</text>
+    <g class="z corr" data-zone="corridor" role="button" tabindex="0" aria-label="복도 전체 보기"><rect x="-8.37" y="-4.42" width="29.55" height="5.00"/><text class="cl" x="6.40" y="-3.60">C 변화의 복도 · 전체</text></g>
+    <g class="z" data-zone="c4" role="button" tabindex="0" aria-label="C4 나다르 사진관"><rect x="10.85" y="-2.70" width="4.10" height="2.70"/><text x="12.90" y="-1.35">C4</text><text class="nm" x="12.90" y="-2.35">나다르 사진관</text></g>
+    <g class="z" data-zone="c3" role="button" tabindex="0" aria-label="C3 화가의 아틀리에"><rect x="6.60" y="-2.70" width="3.95" height="2.70"/><text x="8.57" y="-1.35">C3</text><text class="nm" x="8.57" y="-2.35">화가의 아틀리에</text></g>
+    <g class="z" data-zone="c2" role="button" tabindex="0" aria-label="C2 산업혁명"><rect x="2.35" y="-2.70" width="3.95" height="2.70"/><text x="4.33" y="-1.35">C2</text><text class="nm" x="4.33" y="-2.35">산업혁명</text></g>
+    <g class="z" data-zone="c1" role="button" tabindex="0" aria-label="C1 시민사회"><rect x="-2.05" y="-2.70" width="4.10" height="2.70"/><text x="-0.00" y="-1.35">C1</text><text class="nm" x="-0.00" y="-2.35">시민사회</text></g>
+    <g class="z" data-zone="c0" role="button" tabindex="0" aria-label="C0 아카데미 살롱"><rect x="-12.40" y="-4.23" width="3.37" height="4.58"/><text x="-10.71" y="-1.94">C0</text><text class="nm" x="-10.71" y="-2.94">아카데미 살롱</text></g>
+    <g class="z" data-zone="c5" role="button" tabindex="0" aria-label="C5 모네 연작"><rect x="17.61" y="-3.80" width="3.00" height="3.80"/><text x="19.11" y="-1.90">C5</text><text class="nm" x="19.11" y="-2.90">모네 연작</text></g>
+    <rect class="ent" x="-8.07" y="-4.46" width="0.60" height="1.50"/><rect class="ent" x="-4.88" y="-2.68" width="0.60" height="1.50"/>
+    <polyline class="led" points="15.95,-1.16 17.01,-2.22 16.23,-2.99 16.51,-3.28 17.57,-2.22 16.23,-0.87 15.95,-1.16"/>
+    <line class="win" x1="-4.07" y1="0.72" x2="-7.17" y2="0.72"/><line class="win" x1="1.93" y1="0.72" x2="-1.17" y2="0.72"/><line class="win" x1="7.93" y1="0.72" x2="4.83" y2="0.72"/><line class="win" x1="13.93" y1="0.72" x2="10.83" y2="0.72"/><line class="win" x1="19.93" y1="0.72" x2="16.83" y2="0.72"/>
+    <line class="door" x1="-8.93" y1="-1.01" x2="-8.93" y2="-1.96"/><line class="door" x1="14.10" y1="-4.42" x2="10.60" y2="-4.42"/><line class="door" x1="8.10" y1="-4.42" x2="4.60" y2="-4.42"/><line class="door" x1="2.10" y1="-4.42" x2="-1.40" y2="-4.42"/>
     <g class="you"><path d="M0 0 L2.4 -1.3 L2.4 1.3 Z"/><circle r="0.45"/></g>
   </svg>
       </div>
@@ -341,7 +347,7 @@ a{color:inherit}
   <div class="cap">MONET 100 · 4F 체험 구성</div>
   <h1>체험 구성안</h1>
   <p class="lead">4층 여섯 개 체험의 공간과 체험장치 구성입니다. 공간 시각화 위 번호는 아래 '체험장치 구성'의 번호와 같고, 맨 위 3D 화면에서 평면도나 구역 버튼을 누르면 그 공간으로 이동해 돌려보고 확대해 볼 수 있습니다.</p>
-  <p class="assume">평면도에 축척 표기가 없어, 공간 치수는 에스컬레이터 길이를 기준으로 역산한 추정치입니다. 실측 도면을 받으면 같은 구성으로 치수만 갱신합니다.</p>
+  <p class="assume">공간 치수는 고객 도면(4F PLAN·전개도 12, 2026.10, DWG)을 그대로 따르고, 건물 내부는 고객이 준 헤리티지 4층 실측 3D 모델입니다. 도면에 표기가 없는 부스 가벽 높이(3.0m), 입구벽 높이(2.4m), 모네 연작 벽 높이(3.0m)는 가정값입니다.</p>
 </header>
 
 <nav class="toc" aria-label="체험 목록">
@@ -363,15 +369,15 @@ a{color:inherit}
     <div class="meta"><span><b>유형</b>미션 체험</span><span><b>앱</b>QR · 그림 인식</span><span><b>수집품</b>올해의 그림</span></div>
     <p class="tryrow"><a class="try" href="https://civilization-explorer-app.vercel.app/mission-b/salon?demo=1" target="_blank" rel="noopener">앱 미션 체험해보기<span aria-hidden="true">↗</span></a><span class="tryhint">휴대폰에서 열면 실제 화면 크기로 볼 수 있습니다. 카메라 없이 데모로 진행됩니다.</span></p>
   </div>
-  <p class="zintro">4층 B 위치의 방(약 4.0×6.5m)을 1873년 살롱 전시장으로 꾸밉니다. 관람객은 심사위원이 되어 후보작 5점 중 '올해의 그림'을 고릅니다.</p>
+  <p class="zintro">전시실5(안목 3.37×4.58m, 벽 높이 3.0m)를 1873년 살롱 전시장으로 꾸밉니다. 관람객은 심사위원이 되어 후보작 5점 중 '올해의 그림'을 고릅니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C0_a.jpg?v=26" alt="아카데미 살롱 공간 시각화, 입구에서 본 전경">
-      <ol class="pins" aria-hidden="true"><li data-n="2" style="left:18.81%;top:44.78%">2</li><li data-n="3" style="left:81.3%;top:66.43%">3</li><li data-n="4" style="left:68.34%;top:84.81%">4</li></ol>
+      <img src="img/r_C0_a.jpg?v=27" alt="아카데미 살롱 공간 시각화, 입구에서 본 전경">
+      <ol class="pins" aria-hidden="true"><li data-n="2" style="left:40.05%;top:65.91%">2</li><li data-n="3" style="left:85.32%;top:69.67%">3</li><li data-n="4" style="left:62.53%;top:91.58%">4</li></ol>
     </div>
     <div class="viz-row">
-      <div class="shot"><img src="img/r_C0_b.jpg?v=26" alt="후보작 5점이 걸린 벽 정면"><ol class="pins" aria-hidden="true"><li data-n="3" style="left:53.45%;top:56.8%">3</li><li data-n="4" style="left:50.04%;top:77.54%">4</li></ol></div>
-      <div class="shot"><img src="img/r_C0_c.jpg?v=26" alt="복도에서 본 살롱 입구와 안내판"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:18.38%;top:59.6%">1</li><li data-n="2" style="left:48.2%;top:47.35%">2</li></ol></div>
+      <div class="shot"><img src="img/r_C0_b.jpg?v=27" alt="후보작 5점이 걸린 벽 정면"><ol class="pins" aria-hidden="true"><li data-n="3" style="left:52.96%;top:59.54%">3</li><li data-n="4" style="left:37.07%;top:83.71%">4</li></ol></div>
+      <div class="shot"><img src="img/r_C0_c.jpg?v=27" alt="복도에서 본 살롱 입구와 안내판"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:3.89%;top:59.6%">1</li><li data-n="3" style="left:33.66%;top:60.81%">3</li><li data-n="4" style="left:35.2%;top:68.62%">4</li></ol></div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c0">3D에서 이 공간 보기</a><figcaption>입구에서 본 전경 / 후보작 벽 / 살롱 입구</figcaption></div>
   </figure>
@@ -379,9 +385,9 @@ a{color:inherit}
     <div>
       <h3>체험장치 구성</h3>
       <ol class="devices">
-        <li data-n="1"><span class="num">1</span><div><b>입구 소개 안내판 · QR</b><span class="where">살롱 입구 옆 복도 벽</span><dl><dt>관람객</dt><dd>안내판을 읽고 QR을 찍습니다.</dd><dt>앱</dt><dd>"당신은 오늘의 심사위원입니다" 화면과 당시 심사 기준 7가지가 열립니다.</dd></dl></div></li>
-        <li data-n="2"><span class="num">2</span><div><b>살롱 벽</b><span class="where">입구 맞은편 벽과 왼쪽 벽</span><dl><dt>관람객</dt><dd>바닥부터 천장까지 2~3단으로 촘촘히 건 살롱식 걸기를 둘러봅니다. 1873년 살롱 실제 출품작이 함께 걸립니다.</dd></dl></div></li>
-        <li data-n="3"><span class="num">3</span><div><b>후보작 5점 특별 액자</b><span class="where">입구에서 오른쪽 벽, 한 줄로</span><dl><dt>관람객</dt><dd>1~5 번호, 작품 라벨, 스포트라이트로 구분된 후보작을 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>그림이 인식되고 해설과 함께 심사 기준에 맞는 점·어긋나는 점이 나옵니다.</dd></dl></div></li>
+        <li data-n="1"><span class="num">1</span><div><b>입구 소개 안내판 · QR</b><span class="where">살롱 입구 옆 벽(QR 안내판) · 행사 안내문은 입구 앞 입구벽 1</span><dl><dt>관람객</dt><dd>안내판을 읽고 QR을 찍습니다.</dd><dt>앱</dt><dd>"당신은 오늘의 심사위원입니다" 화면과 당시 심사 기준 7가지가 열립니다.</dd></dl></div></li>
+        <li data-n="2"><span class="num">2</span><div><b>살롱 벽</b><span class="where">좌우 벽과 입구 쪽 벽, 2단 걸기</span><dl><dt>관람객</dt><dd>바닥부터 천장까지 2~3단으로 촘촘히 건 살롱식 걸기를 둘러봅니다. 1873년 살롱 실제 출품작이 함께 걸립니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>후보작 5점 특별 액자</b><span class="where">입구 맞은편 벽(4.58m), 한 줄로</span><dl><dt>관람객</dt><dd>1~5 번호, 작품 라벨, 스포트라이트로 구분된 후보작을 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>그림이 인식되고 해설과 함께 심사 기준에 맞는 점·어긋나는 점이 나옵니다.</dd></dl></div></li>
         <li data-n="4"><span class="num">4</span><div><b>관람 동선 로프</b><span class="where">후보작 벽 앞</span><dl><dt>관람객</dt><dd>로프를 따라 후보작 앞을 차례로 지나갑니다.</dd></dl></div></li>
       </ol>
     </div>
@@ -408,13 +414,13 @@ a{color:inherit}
   <figure class="viz">
     <div class="shot main">
       <div class="viz-row">
-        <img src="img/r_Cc_eye.jpg?v=26" alt="복도 눈높이에서 본 부스 네 개">
-        <img src="img/r_Cc_top.jpg?v=26" alt="위에서 내려다본 복도와 부스 배치">
+        <img src="img/r_Cc_eye.jpg?v=27" alt="복도 눈높이에서 본 부스 네 개">
+        <img src="img/r_Cc_top.jpg?v=27" alt="위에서 내려다본 복도와 부스 배치">
       </div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="corridor">3D에서 이 공간 보기</a><figcaption>복도 눈높이 / 위에서 본 배치</figcaption></div>
   </figure>
-  <p class="zintro">헤리티지 건물의 흰 홀을 따라 부스 네 개가 가벽을 공유하며 나란히 섭니다. 부스는 복도 쪽 앞면이 열려 있어 걸으며 안을 들여다보고, 가벽은 시선보다 높게 세워 한 섹션을 다 본 뒤 다음 부스로 넘어가게 합니다(부스 약 4.25×2.8m, 가벽 3.6m 추정).</p>
+  <p class="zintro">헤리티지 건물의 흰 홀을 따라 부스 네 개가 가벽을 공유하며 나란히 섭니다. 부스는 복도 쪽 앞면이 열려 있어 걸으며 안을 들여다보고, 가벽은 시선보다 높게 세워 한 섹션을 다 본 뒤 다음 부스로 넘어가게 합니다(도면 기준 부스 폭 4.1·3.95·3.95·4.1m, 깊이 2.7m, 관람 통로 1.565m · 가벽 높이 3.0m는 가정).</p>
 </section>
 
 <!-- C1 -->
@@ -428,8 +434,8 @@ a{color:inherit}
   <p class="zintro">부스 안쪽은 바티뇰파가 모이던 카페 게르부아의 정면 세트이고, 창 안으로는 이 카페를 그린 것으로 알려진 마네의 석판화 〈카페에서〉(1869)의 손님들이 보입니다. 정면 오른쪽 끝에는 1876년 파리의 모리스 칼럼을 실물 비율 그대로 높이 약 3.4m로 줄여 세웁니다(실물 약 4.8m).</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C1.jpg?v=26" alt="시민사회 부스 공간 시각화">
-      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:18.85%;top:79.54%">1</li><li data-n="2" style="left:85.28%;top:59.15%">2</li><li data-n="3" style="left:63.69%;top:62.09%">3</li><li data-n="4" style="left:26.46%;top:64.75%">4</li></ol>
+      <img src="img/r_C1.jpg?v=27" alt="시민사회 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:20.81%;top:79.75%">1</li><li data-n="2" style="left:89.96%;top:56.35%">2</li><li data-n="3" style="left:64.85%;top:60.99%">3</li><li data-n="4" style="left:26.78%;top:71.96%">4</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c1">3D에서 이 공간 보기</a><figcaption>복도에서 본 시민사회 부스</figcaption></div>
   </figure>
@@ -468,8 +474,8 @@ a{color:inherit}
   <p class="zintro">나무 판넬로 마감한 사업가의 방입니다. 방 곳곳의 단서로 모네가 향한 다음 목적지를 찾습니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C2.jpg?v=21" alt="산업혁명 부스 공간 시각화">
-      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:15.82%;top:79.88%">1</li><li data-n="2" style="left:39.64%;top:78.77%">2</li><li data-n="3" style="left:29.81%;top:48.73%">3</li><li data-n="4" style="left:92.64%;top:41.75%">4</li><li data-n="5" style="left:51.49%;top:36.04%">5</li></ol>
+      <img src="img/r_C2.jpg?v=27" alt="산업혁명 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:14.9%;top:84.12%">1</li><li data-n="2" style="left:38.86%;top:80.39%">2</li><li data-n="3" style="left:28.72%;top:50.96%">3</li><li data-n="5" style="left:51.57%;top:37.6%">5</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c2">3D에서 이 공간 보기</a><figcaption>사업가의 방</figcaption></div>
   </figure>
@@ -508,8 +514,8 @@ a{color:inherit}
   <p class="zintro">부스를 반으로 나눠 왼쪽은 햇빛이 드는 야외 작업 공간, 오른쪽은 어두운 실내 아틀리에로 꾸밉니다. 두 공간의 오브제를 비교하며 화가를 야외로 이끈 물건을 찾습니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C3.jpg?v=21" alt="화가의 아틀리에 부스 공간 시각화">
-      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:50.0%;top:55.63%">1</li><li data-n="2" style="left:76.17%;top:47.88%">2</li><li data-n="3" style="left:20.97%;top:50.15%">3</li></ol>
+      <img src="img/r_C3.jpg?v=27" alt="화가의 아틀리에 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:50.0%;top:57.18%">1</li><li data-n="2" style="left:78.13%;top:48.56%">2</li><li data-n="3" style="left:18.59%;top:51.09%">3</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c3">3D에서 이 공간 보기</a><figcaption>야외(왼쪽)와 실내 아틀리에(오른쪽)</figcaption></div>
   </figure>
@@ -546,8 +552,8 @@ a{color:inherit}
   <p class="zintro">안쪽 벽은 카퓌신 대로 35번지 나다르 사진관의 정면입니다. 1874년 첫 인상파 전시가 열린 건물이라 모네 전시관(C5)으로 이어지는 연결 고리가 됩니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C4.jpg?v=21" alt="나다르 사진관 부스 공간 시각화">
-      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:26.45%;top:39.16%">1</li><li data-n="2" style="left:41.88%;top:68.61%">2</li><li data-n="3" style="left:80.21%;top:84.67%">3</li><li data-n="4" style="left:3.8%;top:60.13%">4</li></ol>
+      <img src="img/r_C4.jpg?v=27" alt="나다르 사진관 부스 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:24.84%;top:37.87%">1</li><li data-n="2" style="left:59.05%;top:69.84%">2</li><li data-n="3" style="left:16.26%;top:87.78%">3</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c4">3D에서 이 공간 보기</a><figcaption>나다르 사진관 정면, 촬영 카메라, 액자형 디스플레이</figcaption></div>
   </figure>
@@ -558,8 +564,8 @@ a{color:inherit}
         <li data-n="1"><span class="num">1</span><div><b>사진관 파사드</b><span class="where">부스 안쪽 벽 · 포토존 배경</span><dl><dt>관람객</dt><dd>아치창과 'Nadar' 간판이 있는 사진관 정면을 배경으로 섭니다.</dd></dl></div></li>
         <li data-n="2"><span class="num">2</span><div><b>촬영 카메라</b><span class="where">부스 가운데 · 목제 주름 카메라 안에 촬영 기기</span><dl><dt>관람객</dt><dd>카메라 앞에 서면 현장에 설치된 기기로 촬영됩니다.</dd></dl></div></li>
         <li data-n="3"><span class="num">3</span><div><b>포즈 자리</b><span class="where">카메라 맞은편 · 의자와 배경막</span><dl><dt>관람객</dt><dd>의자에 앉거나 배경막 앞에서 포즈를 잡습니다.</dd></dl></div></li>
-        <li data-n="4"><span class="num">4</span><div><b>액자형 디스플레이</b><span class="where">부스 왼쪽 벽</span><dl><dt>화면</dt><dd>촬영한 이미지가 옛 초상화로 먼저 나타났다가 19세기 사진으로 바뀝니다.</dd></dl></div></li>
-        <li data-n="5"><span class="num">5</span><div><b>사진 받기 QR</b><span class="where">왼쪽 벽, 디스플레이 옆 <span class="tbd">· 위 시각화 화면 밖, 3D에서 보임</span></span><dl><dt>관람객</dt><dd>QR을 앱으로 찍습니다.</dd><dt>앱</dt><dd>내 사진을 받아 초상화와 19세기 사진을 비교하고 원하는 쪽을 저장합니다.</dd></dl></div></li>
+        <li data-n="4"><span class="num">4</span><div><b>액자형 디스플레이</b><span class="where">부스 오른쪽 가벽(도면에서 왼쪽 끝은 열린 면)</span><dl><dt>화면</dt><dd>촬영한 이미지가 옛 초상화로 먼저 나타났다가 19세기 사진으로 바뀝니다.</dd></dl></div></li>
+        <li data-n="5"><span class="num">5</span><div><b>사진 받기 QR</b><span class="where">오른쪽 가벽, 디스플레이 옆 <span class="tbd">· 위 시각화 화면 밖, 3D에서 보임</span></span><dl><dt>관람객</dt><dd>QR을 앱으로 찍습니다.</dd><dt>앱</dt><dd>내 사진을 받아 초상화와 19세기 사진을 비교하고 원하는 쪽을 저장합니다.</dd></dl></div></li>
       </ol>
     </div>
     <div>
@@ -585,12 +591,12 @@ a{color:inherit}
   <p class="zintro">1874년 『르 샤리바리』에 실린 루이 르루아의 혹평에서 '인상주의'라는 이름이 나왔다는 이야기가 전시관의 중심입니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C5_a.jpg?v=26" alt="모네 전시관 진입 가벽의 인상, 해돋이">
-      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:48.51%;top:54.6%">1</li><li data-n="3" style="left:90.96%;top:61.27%">3</li></ol>
+      <img src="img/r_C5_a.jpg?v=27" alt="모네 연작 진입 정면 끝벽의 인상, 해돋이">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:51.82%;top:55.69%">1</li><li data-n="3" style="left:73.63%;top:64.01%">3</li><li data-n="4" style="left:23.98%;top:58.92%">4</li></ol>
     </div>
     <div class="viz-row">
-      <div class="shot"><img src="img/r_C5_c.jpg?v=26" alt="모네 연작이 걸린 벽"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:82.01%;top:52.03%">1</li><li data-n="3" style="left:27.9%;top:58.42%">3</li></ol></div>
-      <div class="shot"><img src="img/r_C5_b.jpg?v=26" alt="모네 전시관 출구 쪽 벽"><ol class="pins" aria-hidden="true"><li data-n="4" style="left:66.3%;top:55.85%">4</li></ol></div>
+      <div class="shot"><img src="img/r_C5_c.jpg?v=27" alt="모네 연작이 걸린 벽"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:12.76%;top:53.3%">1</li><li data-n="3" style="left:35.0%;top:67.28%">3</li></ol></div>
+      <div class="shot"><img src="img/r_C5_b.jpg?v=27" alt="모네 전시관 출구 쪽 벽"><ol class="pins" aria-hidden="true"><li data-n="1" style="left:96.95%;top:44.61%">1</li><li data-n="4" style="left:53.55%;top:54.77%">4</li></ol></div>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c5">3D에서 이 공간 보기</a><figcaption>진입 가벽 / 연작 벽 / 출구</figcaption></div>
   </figure>
@@ -598,10 +604,10 @@ a{color:inherit}
     <div>
       <h3>체험장치 구성</h3>
       <ol class="devices">
-        <li data-n="1"><span class="num">1</span><div><b>진입 가벽 〈인상, 해돋이〉</b><span class="where">입구 정면 가벽 · 그림 한 점과 문구</span><dl><dt>관람객</dt><dd>들어서자마자 〈인상, 해돋이〉 한 점과 마주합니다. 옆에는 1874년 카탈로그 항목 번호 "98. Impression, Soleil levant"를 살린 라벨이 붙습니다.</dd></dl></div></li>
+        <li data-n="1"><span class="num">1</span><div><b>진입 정면 〈인상, 해돋이〉</b><span class="where">입구 정면 끝벽 · 그림 한 점과 문구</span><dl><dt>관람객</dt><dd>들어서자마자 〈인상, 해돋이〉 한 점과 마주합니다. 옆에는 1874년 카탈로그 항목 번호 "98. Impression, Soleil levant"를 살린 라벨이 붙습니다.</dd></dl></div></li>
         <li data-n="2"><span class="num">2</span><div><b>입구 미션 QR</b><span class="where">입구 옆 스탠드 <span class="tbd">· 위 시각화 화면 밖, 3D에서 보임</span></span><dl><dt>관람객</dt><dd>QR을 찍습니다.</dd><dt>앱</dt><dd>1874년 비평가의 혹평 문구가 뜹니다.</dd></dl></div></li>
-        <li data-n="3"><span class="num">3</span><div><b>연작 벽</b><span class="where">가벽 뒤 세 면 · 액자 없는 캔버스, 뒤에서 번지는 은은한 빛</span><dl><dt>관람객</dt><dd>모네의 연작을 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>그림이 인식되고 그 그림의 정보가 나옵니다.</dd></dl></div></li>
-        <li data-n="4"><span class="num">4</span><div><b>출구 벽 문구</b><span class="where">출구 옆 벽</span><dl><dt>관람객</dt><dd>"왜 같은 풍경을 계속 그렸을까?"라는 질문을 안고 3층으로 이어집니다.</dd></dl></div></li>
+        <li data-n="3"><span class="num">3</span><div><b>연작 벽</b><span class="where">창 쪽 뒷벽 · 10점을 3단으로, 액자 없는 캔버스, 뒤에서 번지는 은은한 빛</span><dl><dt>관람객</dt><dd>모네의 연작을 앱 카메라로 비춥니다.</dd><dt>앱</dt><dd>그림이 인식되고 그 그림의 정보가 나옵니다.</dd></dl></div></li>
+        <li data-n="4"><span class="num">4</span><div><b>출구 벽 문구</b><span class="where">끝벽, 출구 쪽</span><dl><dt>관람객</dt><dd>"왜 같은 풍경을 계속 그렸을까?"라는 질문을 안고 3층으로 이어집니다.</dd></dl></div></li>
       </ol>
     </div>
     <div>
@@ -628,7 +634,7 @@ const ZINFO = {
   c2: ['C2 산업혁명', '사업가의 방에서 단서로 다음 목적지를 찾습니다.'],
   c3: ['C3 화가의 아틀리에', '야외와 실내 오브제 중 화가를 밖으로 이끈 물건을 찾습니다.'],
   c4: ['C4 나다르 사진관', '사진관 정면에서 촬영하고, 액자 화면에서 사진을 받습니다.'],
-  c5: ['C5 모네 전시관', '〈인상, 해돋이〉 한 점과 가벽 뒤 모네의 연작.'],
+  c5: ['C5 모네 연작', '끝벽의 〈인상, 해돋이〉 한 점과 뒷벽의 모네 연작 10점.'],
 };
 let tourP = null;
 const onZone = (z) => {
@@ -643,7 +649,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=30' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
+    tourP = import('./js/tour.js?v=31' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
   }
   return tourP;
 }

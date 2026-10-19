@@ -1,4 +1,4 @@
-// 4층 전체 3D 둘러보기 — 한 장면(floor.glb: B 살롱 · C 복도와 부스 4개 · D 모네관)에 카메라만 옮겨 다닌다.
+// 4층 전체 3D 둘러보기 — 한 장면(floor.glb: 헤리티지 4층 실측 셸 + 고객 DWG(2026.10) 기준 살롱 · 부스 4개 · 모네연작)에 카메라만 옮겨 다닌다.
 // 1인칭 눈높이(1.6 m) 둘러보기: 끌면 제자리에서 시선이 돌고, 바닥을 누르거나 WASD·방향키로 걷는다. 벽·가벽·가구는 통과하지 못한다.
 // 평면도·구역 버튼을 누르면 그 구역의 스틸과 같은 자리·방향으로 이동하고, 평면도에는 현재 위치와 시선 방향이 표시된다.
 import * as THREE from 'three';
@@ -6,29 +6,25 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=39';
+import SCENES from './scenes.js?v=40';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=41' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=42' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
-// 걸을 수 있는 바닥: Blender 좌표(m, z-up) 직사각형 합집합 [x0, y0, x1, y1] (평면도 기준). 이 안에서도 벽·가벽·가구 자리는 막힌다.
+// 걸을 수 있는 바닥: 4층 평면 좌표(m, Blender x/y — 고객 DWG 2026.10 기준, experience-doc/render/plan4f.py) 직사각형 합집합 [x0, y0, x1, y1].
+// 이 안에서도 벽·가벽·가구 자리는 막힌다(헤리티지 실측 셸 포함).
 const WALK = [
-  [-19.25, -4.5, 6.1, -2.6],    // C 복도 보행로
-  [-15.3, -2.95, 2.1, -0.05],   // C-4 ~ C-1 부스 안쪽
-  [2.2, -4.5, 6.1, 0.7],        // C-1 옆 ~ 커튼선 너머
-  [5.6, -1.0, 6.7, 0.1],        // B 살롱 출입문
-  [6.25, -5.8, 10.25, 0.7],     // B 아카데미 살롱
-  [-20.0, -2.3, -18.9, -0.7],   // D 입구
-  [-25.2, -6.3, -19.25, 0.7],   // D 모네 전시관
-  [6.55, -6.05, 7.65, -5.7],     // B 살롱 입구(A 복도 쪽 문)
-  [5.0, -7.6, 10.0, -5.95],      // A 복도: 살롱 입구 앞 안내판·QR 앞 (도면 g_p9 A 구간, 체험 C0 장치 1)
+  [-21.15, -4.40, 8.36, 0.55],   // 전시 복도 띠: 모네연작 ~ 부스 4개 ~ 살롱 앞 (창 쪽 벽 ~ 전시실7 벽 기둥)
+  [8.30, -1.95, 9.10, -1.01],    // 살롱 출입구 (950)
+  [9.03, -4.23, 12.40, 0.35],    // 전시실5 아카데미 살롱 (3,370 × 4,580)
+  [4.88, -16.50, 8.36, -4.30],   // 서쪽 복도: 리셉션 데스크 ~ 박물관 입구 쪽
 ];
-// 현재 구역 판정(시선 앞 1.5 m 지점, Blender x/y): 평면도 강조와 번호 표시에 씀
+// 현재 구역 판정(시선 앞 2.5 m 지점, Blender x/y): 평면도 강조와 번호 표시에 씀
 const REGIONS = [
-  ['c0', 6.2, -6.0, 10.4, 0.9], ['c0', 4.9, -7.7, 10.4, -5.9], ['c5', -25.5, -6.5, -19.3, 0.9],
-  ['c1', -2.2, -2.9, 2.2, 0.7], ['c2', -6.6, -2.9, -2.2, 0.7], ['c3', -11.0, -2.9, -6.6, 0.7], ['c4', -15.4, -2.9, -11.0, 0.7],
+  ['c0', 9.0, -4.25, 12.45, 0.40], ['c0', 6.6, -4.40, 9.0, 0.60], ['c5', -21.2, -4.40, -17.55, 0.60],
+  ['c1', -2.20, -2.75, 2.20, 0.30], ['c2', -6.45, -2.75, -2.20, 0.30], ['c3', -10.70, -2.75, -6.45, 0.30], ['c4', -14.95, -2.75, -10.70, 0.30],
 ];
 const EYE = 1.6;
 // 구역별 처음 자리: 스틸 카메라 위치(눈높이 1.6 m)와 시선 방향(렌즈 시프트는 살짝 올려다보는 각도로)
@@ -40,7 +36,7 @@ for (const [z, d] of Object.entries(SCENES)) {
 }
 
 // ---- 충돌 격자: 불러온 장면의 삼각형 중 무릎~머리 높이(0.2–1.8 m)에 걸친 것을 10 cm 격자에 찍고, 몸 반경만큼 부풀린다 ----
-const GRID = { x0: -27, z0: -2.5, x1: 15, z1: 11.5, s: 0.1 };
+const GRID = { x0: -22, z0: -1.0, x1: 13.5, z1: 17.2, s: 0.1 };
 GRID.nx = Math.ceil((GRID.x1 - GRID.x0) / GRID.s); GRID.nz = Math.ceil((GRID.z1 - GRID.z0) / GRID.s);
 function buildGrid(meshes) {
   const { nx, nz, s, x0, z0 } = GRID, raw = new Uint8Array(nx * nz);
@@ -112,7 +108,7 @@ function fixHalo(mesh) {
     if (u < 0.5 && v < 0.5) o = p; else if (u > 0.5 && v < 0.5) ux = p; else if (u < 0.5 && v > 0.5) vy = p;
   }
   if (!o || !ux || !vy) return;
-  const m = 0.2, W = o.distanceTo(ux), H = o.distanceTo(vy);
+  const m = 0.10, W = o.distanceTo(ux), H = o.distanceTo(vy);     // d_monet.py canvas(): 0.10 m LED halo (2026-10-19)
   mesh.material = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.68, 0.36).multiplyScalar(1.6), alphaMap: haloTexture(W - 2 * m, H - 2 * m, m),
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   mesh.renderOrder = 2;
@@ -167,7 +163,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
   setPose(PRESETS.corridor);
 
   let baseFov = 60;
-  const FOV_MAX = 100;   // 체험 따라하기에서 큰 장치를 한 화면에 담을 때만 넓힌다(대개 86 이하, 세로 휴대폰의 C0 후보작 줄 5.9 m만 100) · 손가락·휠 확대는 75까지
+  const FOV_MAX = 100;   // 체험 따라하기에서 큰 장치를 한 화면에 담을 때만 넓힌다(대개 86 이하, 세로 휴대폰의 C0 후보작 줄 4.1 m만 100) · 손가락·휠 확대는 75까지
   const applyFov = () => { camera.fov = THREE.MathUtils.clamp(baseFov * V.zoom, 35, FOV_MAX); camera.updateProjectionMatrix(); };
   const fit = () => {
     const w = canvasWrap.clientWidth, h = canvasWrap.clientHeight; if (!w || !h) return;
@@ -401,7 +397,8 @@ export function createTour({ stage, plan, onZone, onPin }) {
     if (!you) return;
     camera.getWorldDirection(fwd);
     const ang = Math.atan2(-fwd.z, fwd.x) * 180 / Math.PI;   // Blender 평면 각도(동쪽 0°, 북쪽 90°)
-    you.setAttribute('transform', `translate(${camera.position.x.toFixed(2)} ${camera.position.z.toFixed(2)}) rotate(${(-ang).toFixed(1)})`);
+    // 평면도 SVG는 DWG 시트와 같은 방향(살롱 왼쪽, 창 아래): SVG = (−x, −z), 방향은 180° 돌려 표시
+    you.setAttribute('transform', `translate(${(-camera.position.x).toFixed(2)} ${(-camera.position.z).toFixed(2)}) rotate(${(180 - ang).toFixed(1)})`);
   };
   const lookPoint = () => new THREE.Vector3(camera.position.x - Math.sin(V.yaw) * 2.5, 0, camera.position.z - Math.cos(V.yaw) * 2.5);
   const regionOf = (p) => { const x = p.x, y = -p.z; for (const [z, x0, y0, x1, y1] of REGIONS) if (x >= x0 && x <= x1 && y >= y0 && y <= y1) return z; return 'corridor'; };
@@ -576,7 +573,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
     let yaw = Math.atan2(-dx, -dz), pitch = Math.atan2(box.c[1] - EYE, h) - Math.atan((1 - 2 * FIT_CY) * tv);
     fitCam.fov = vfov; fitCam.aspect = aspect; fitCam.updateProjectionMatrix(); fitCam.position.copy(pos);
     const cs = boxCorners(box);
-    for (let it = 0; it < 4; it++) {
+    for (let it = 0; it < 10; it++) {      // 10회: 넓은 화각(세로 휴대폰 C0 후보작 줄)에서도 좌우 가운데로 수렴
       fitCam.rotation.set(pitch, yaw, 0); fitCam.updateMatrixWorld();
       let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
       for (const c of cs) { const q = c.clone().project(fitCam); if (q.z > 1) continue; x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
@@ -627,7 +624,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
             const b = k === 'm' && b0.m ? { ...b0, ...b0.m } : b0, v1 = b.fovMax || v1_, cs = corners(b), [nx, nz] = b.n, ln = Math.hypot(nx, nz), base = Math.atan2(nz / ln, nx / ln), amax = b.amax || 75;
             const cand = [];
             for (let r = 1.0; r <= 6.51; r += 0.25) for (let da = -amax; da <= amax; da += 5) {
-              const ang = base + da * Math.PI / 180, x = b.c[0] + Math.cos(ang) * r, zz = b.c[2] + Math.sin(ang) * r;
+              const ang = base + da * Math.PI / 180, x = +(b.c[0] + Math.cos(ang) * r).toFixed(2), zz = +(b.c[2] + Math.sin(ang) * r).toFixed(2);   // scenes.js에 저장되는 값(소수 2자리)으로 검사
               if (!cellFree(x, zz) || !reach(x, zz) || (b.inRect && !(x >= b.inRect[0] && zz >= b.inRect[1] && x <= b.inRect[2] && zz <= b.inRect[3]))) continue;
               let v = null; if (fits([x, zz], b, v0, a, cs)) v = v0; else if (fits([x, zz], b, v1, a, cs)) { let lo = v0, hi = v1; for (let it = 0; it < 7; it++) { const m = (lo + hi) / 2; if (fits([x, zz], b, m, a, cs)) hi = m; else lo = m; } v = hi; }
               const score = (v != null ? v - v0 : 100 + 200 * (1 - cover([x, zz], b, v1, a, cs))) + 8 * Math.max(0, r - (b.rmax || 4)) + 6 * (da / 75) ** 2 + 0.3 * r;
