@@ -177,7 +177,7 @@ body.has-buybar{padding-bottom:84px}
   .stage-ctrl{top:20px;bottom:auto;gap:10px}
   .stage-ctrl button{display:none}
   .stage-count{height:28px;display:inline-flex;align-items:center;padding:0 10px;border-radius:999px;background:rgba(0,0,0,.4)}
-  .tiles{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 calc(-1 * var(--gut));padding:0 var(--gut)}
+  .tiles{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 calc(-1 * var(--gut));padding:0 var(--gut);scroll-padding-inline:var(--gut)}
   .tiles::-webkit-scrollbar{display:none}
   .tile{flex:0 0 62%;scroll-snap-align:start}
   .app .wrap{display:block}

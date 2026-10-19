@@ -4,7 +4,8 @@
 (function () {
   var me = document.currentScript;
   var C = me.getAttribute('data-concept') || 'A';
-  var HOME = C + '-home.html';
+  var HOME = me.getAttribute('data-home') || C + '-home.html';
+  var EXHIBIT = me.getAttribute('data-exhibit') || C + '-exhibit.html';
   var ICON_SEARCH = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>';
 
   var g = document.querySelector('header.gnb');
@@ -29,7 +30,7 @@
       e.preventDefault();
       var q = g.querySelector('input').value.trim().toLowerCase();
       if (!q) return;
-      location.href = /모네|monet|100|인상|해돋이|신세계|헤리티지/.test(q) ? C + '-exhibit.html' : HOME + '#now';
+      location.href = /모네|monet|100|인상|해돋이|신세계|헤리티지/.test(q) ? EXHIBIT : HOME + '#now';
     });
   }
 

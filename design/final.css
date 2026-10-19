@@ -1,0 +1,28 @@
+/* 최종안 — 홈은 시안 C, 전시 상세는 시안 A(2단).
+   전시 상세에서도 상단 메뉴·푸터는 홈(C)과 같은 검은 크롬으로 통일한다. */
+:root{--c-bg:#0B0B0B;--c-on:#FFFFFF;--c-sub:rgba(255,255,255,.66);--c-meta:rgba(255,255,255,.44);--c-hair:rgba(255,255,255,.14)}
+
+.gnb{background:rgba(11,11,11,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--c-hair)}
+.gnb-in{gap:40px}
+.gnb-logo{color:var(--c-on)}
+.gnb-link{color:var(--c-sub)}
+.gnb-link:hover,.gnb-link.is-on{color:var(--c-on)}
+.gnb-search{width:260px;padding:0 16px;border-radius:999px;background:#1C1C1C;border:1px solid transparent;color:var(--c-meta);gap:10px;cursor:auto}
+.gnb-search input{width:auto;flex:1;color:var(--c-on)}
+.gnb-search:hover,.gnb-search:focus-within{width:260px}
+.gnb-search:hover{border-color:transparent}
+.gnb-search:focus-within{border-color:var(--c-on)}
+.gnb-search input::placeholder{color:var(--c-meta)}
+.gnb-app{border-radius:999px;padding:0 20px;background:var(--c-on);color:#0B0B0B;font-weight:700}
+@media (max-width:860px){
+  .gnb-in{gap:20px}
+  .gnb-search{display:none}
+  .gnb-app{height:34px;padding:0 14px;font-size:13px}
+}
+
+.site-footer{background:#000000;border-top:0;color:var(--c-meta)}
+.foot-in{padding:44px var(--gut) 60px}
+.foot-logo{font-size:20px;color:var(--c-on)}
+.foot-legal{gap:22px}
+.foot-legal a{color:var(--c-sub)}
+.foot-legal a:hover{color:var(--c-on)}

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>최종안 홈 — 문명탐험가</title>
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="C.css">
+</head>
+<body>
+
+<header class="gnb" data-current="exhibition"></header>
+
+<main>
+
+  <section class="section stage" id="now" aria-label="지금 전시 중">
+    <div class="wrap wrap--bleed">
+      <div class="slides" id="slides">
+        <article class="slide">
+          <picture>
+            <source media="(max-width:860px)" srcset="../monet100-web/img/keyvisual.jpg">
+            <img src="../monet100-web/img/hero_kv_land.jpg" alt="MONET 100 키비주얼 — 클로드 모네 자화상과 인상, 해돋이" fetchpriority="high">
+          </picture>
+          <div class="slide-body">
+            <p class="slide-status">지금 전시 중 <b data-dday>D-47</b></p>
+            <h2 class="slide-title"><img src="../monet100-web/img/logo_lockup.png" alt="MONET 100 시대를 읽는 감각의 계보"></h2>
+            <p class="slide-meta">2026. 12. 5 — 2027. 2. 28 · 신세계본점 더 헤리티지 4F 뮤지엄</p>
+            <div class="slide-actions">
+              <a class="btn btn--on" href="final-exhibit.html">전시 보기</a>
+              <a class="btn btn--ghost" href="final-exhibit.html#tickets">예매 안내</a>
+            </div>
+          </div>
+        </article>
+        <article class="slide slide--soon">
+          <div class="slide-soon">
+            <b>2027</b>
+            <p>다음 전시</p>
+            <span>다음 전시를 준비하고 있습니다</span>
+          </div>
+        </article>
+      </div>
+      <div class="stage-ctrl">
+        <p class="stage-count"><b id="count-now">01</b> / 02</p>
+        <button type="button" data-dir="-1" aria-label="이전 전시"><svg class="ic" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button type="button" data-dir="1" aria-label="다음 전시"><svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section statement" aria-labelledby="statement-title">
+    <div class="wrap">
+      <p class="label">EXHIBITION COMPANION</p>
+      <h1 class="statement-title" id="statement-title">관람의 모든 순간,<br>곁에 두는 앱</h1>
+      <p class="statement-lead">입장부터 체험, 관람 기록까지 한 앱에.</p>
+    </div>
+  </section>
+
+  <section class="section features" id="features" aria-labelledby="features-title">
+    <div class="wrap">
+      <header class="head">
+        <div>
+          <p class="label">WHY 문명탐험가</p>
+          <h2 class="head-title" id="features-title">입장부터 체험, 기록까지</h2>
+        </div>
+      </header>
+      <ul class="tiles">
+        <li class="tile">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/><path d="M8 13a4 4 0 0 0 8 0"/></svg>
+          <div><h3 class="tile-en">EXPERIENCE</h3><p class="tile-ko">작품을 비추면 바로 시작되는 체험</p></div>
+        </li>
+        <li class="tile">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></svg>
+          <div><h3 class="tile-en">DOCENT</h3><p class="tile-ko">작품 앞에서 바로 듣는 해설</p></div>
+        </li>
+        <li class="tile">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+          <div><h3 class="tile-en">ARCHIVE</h3><p class="tile-ko">관람 기록과 수집품을 한곳에</p></div>
+        </li>
+        <li class="tile">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M9.6 10.4a1.7 1.7 0 1 1-3.4 0 1.7 1.7 0 0 1 3.4 0Z"/><path d="m18 17-3.8-3.8a2 2 0 0 0-2.8 0L5 19.5"/><path d="m19.5 2.5.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8Z"/></svg>
+          <div><h3 class="tile-en">SOUVENIR</h3><p class="tile-ko">전시마다 달라지는 기념품</p></div>
+        </li>
+        <li class="tile">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.3 11.5 12 4l2.7 7.5"/><path d="M10.2 9h3.6"/><path d="M9.6 15.6c0 .66 1.07 1.2 2.4 1.2s2.4-.54 2.4-1.2"/><path d="M7.2 17.8c0 1.1 2.15 2 4.8 2s4.8-.9 4.8-2"/><path d="M4.6 20.2c0 1.55 3.3 2.8 7.4 2.8s7.4-1.25 7.4-2.8"/></svg>
+          <div><h3 class="tile-en">HANDS-ON</h3><p class="tile-ko">보는 데서 끝나지 않고 직접 참여</p></div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section app" id="app" aria-labelledby="app-title">
+    <div class="wrap">
+      <div>
+        <h2 class="app-title" id="app-title">문명탐험가 앱</h2>
+      </div>
+      <div class="app-side">
+        <p class="app-date">2026년 11월 공개</p>
+        <p class="store"><span>App Store</span><span>Google Play</span></p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer"></footer>
+<script src="kit.js" data-concept="C" data-home="final-home.html" data-exhibit="final-exhibit.html"></script>
+<script>
+// 전시 슬라이드 — 한 장씩, 화살표·계수 동기화
+(function () {
+  var track = document.getElementById('slides');
+  var slides = track.querySelectorAll('.slide');
+  var btns = document.querySelectorAll('.stage-ctrl button');
+  var now = document.getElementById('count-now');
+  function idx() { return Math.round(track.scrollLeft / track.clientWidth); }
+  function sync() {
+    var i = idx();
+    now.textContent = String(i + 1).padStart(2, '0');
+    btns[0].disabled = i <= 0; btns[1].disabled = i >= slides.length - 1;
+  }
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var i = Math.max(0, Math.min(slides.length - 1, idx() + Number(b.dataset.dir)));
+      track.scrollTo({ left: i * track.clientWidth, behavior: 'smooth' });
+    });
+  });
+  track.addEventListener('scroll', sync, { passive: true }); sync();
+})();
+</script>
+</body>
+</html>
