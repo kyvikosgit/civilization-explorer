@@ -6,10 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=41';
+import SCENES from './scenes.js?v=42';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=43' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=44' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -589,7 +589,7 @@ export function createTour({ stage, plan, onZone, onPin }) {
     const d = SCENES[z], f = d?.follow?.[n - 1], box = d?.boxes?.[n - 1]; if (!f || !box) return null;
     const portrait = camera.aspect < 1, st = portrait ? f.m : f.d, B = portrait && box.m ? { ...box, ...box.m } : box;
     // 저장된 세로 화각은 기준 화면비(1.6 / 0.563)에서 잰 값 → 지금 화면비에서 가로로 모자라면 더 넓힌다
-    const refA = portrait ? 0.563 : 1.6, a = camera.aspect, need = st[2];
+    const refA = portrait ? 0.563 : 1.6, a = camera.aspect, need = st[2] + 0.8;   // +0.8°: 소수 1자리로 저장된 화각의 반올림 여유(가장자리에 딱 붙는 장치가 띠 밖으로 0.3% 나가지 않게)
     const h = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(need) / 2) * refA), v = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(h / 2) / a));
     return poseFor(st, B, THREE.MathUtils.clamp(Math.max(need, a < refA ? v : need, baseFov), 20, FOV_MAX), a);
   };
