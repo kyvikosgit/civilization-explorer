@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko" class="B">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>B 지면 · 오디오 도슨트</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="B.css">
+</head>
+<body>
+<div class="phone world">
+  <div class="sb"></div>
+  <header class="tb" data-left="down" data-href="B-hub.html" data-title="오디오 도슨트"></header>
+  <main class="scroll">
+
+    <div class="art"><img src="img/lazare.jpg" alt="클로드 모네, 생라자르역, 1877"></div>
+    <section class="np">
+      <p class="np-loc"><b class="num">08</b>3F · A 생라자르역</p>
+      <h2 class="np-t">산업혁명의 빛이 쏟아지다</h2>
+      <div class="prog">
+        <div class="prog-bar"><i style="width:39%"></i></div>
+        <div class="prog-t"><span>0:24</span><span>1:01</span></div>
+      </div>
+      <div class="ctrl">
+        <a href="#" aria-label="이전 트랙" id="prev"></a>
+        <a class="play" href="#" aria-label="일시정지" id="pp"></a>
+        <a href="#" aria-label="다음 트랙" id="next"></a>
+      </div>
+      <p class="hint">존에 들어서면 이어폰으로 들어보세요.</p>
+    </section>
+
+    <h2 class="nx-h">다음 트랙</h2>
+    <div id="list"></div>
+    <div style="height:40px"></div>
+
+  </main>
+</div>
+<script src="kit.js"></script>
+<script>
+document.getElementById('prev').innerHTML = ICON.prev;
+document.getElementById('next').innerHTML = ICON.next;
+document.getElementById('pp').innerHTML = ICON.pause;
+document.getElementById('list').innerHTML = TRACKS.filter(function (t) { return t.n > 8; }).map(function (t) {
+  var thumb = t.img ? '<img src="img/' + t.img + '.jpg" alt="">' : t.f + ' ' + t.z;
+  return '<a class="trk" href="#"><span class="trk-img">' + thumb + '</span><div><span class="trk-t">' + t.t +
+    '</span><span class="trk-z">' + pad2(t.n) + ' · ' + t.f + ' · ' + t.z + ' ' + t.zone + '</span></div><span class="trk-d">' + t.d + '</span></a>';
+}).join('');
+</script>
+</body>
+</html>

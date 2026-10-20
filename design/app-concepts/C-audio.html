@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko" class="C">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>C 가이드 · 오디오 도슨트</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="C.css">
+</head>
+<body>
+<div class="phone">
+  <div class="sb"></div>
+  <header class="tb" data-left="back" data-href="C-home.html" data-title="오디오 도슨트" data-right="scan"></header>
+  <main class="scroll">
+
+    <section class="now">
+      <div class="now-top">
+        <img src="img/lazare.jpg" alt="클로드 모네, 생라자르역, 1877">
+        <div><p class="now-loc"><b class="num">08</b>3F · A 생라자르역</p><h2 class="now-t">산업혁명의 빛이 쏟아지다</h2></div>
+      </div>
+      <div class="prog">
+        <div class="prog-bar"><i style="width:39%"></i></div>
+        <div class="prog-t"><span>0:24</span><span>1:01</span></div>
+      </div>
+      <div class="ctrl">
+        <a href="#" aria-label="이전 트랙" id="prev"></a>
+        <a class="play" href="#" aria-label="일시정지" id="pp"></a>
+        <a href="#" aria-label="다음 트랙" id="next"></a>
+      </div>
+    </section>
+
+    <nav class="ftabs" aria-label="층">
+      <a href="#"><b>4F</b>이해의 층</a>
+      <a class="on" href="#"><b>3F</b>체험의 층</a>
+    </nav>
+    <div class="trks" id="list"></div>
+    <div style="height:24px"></div>
+
+  </main>
+  <nav class="tabbar" data-set="ex" data-on="audio"></nav>
+</div>
+<script src="kit.js"></script>
+<script>
+document.getElementById('prev').innerHTML = ICON.prev;
+document.getElementById('next').innerHTML = ICON.next;
+document.getElementById('pp').innerHTML = ICON.pause;
+document.getElementById('list').innerHTML = TRACKS.filter(function (t) { return t.f === '3F'; }).map(function (t) {
+  var thumb = t.img ? '<img src="img/' + t.img + '.jpg" alt="">' : t.z;
+  return '<a class="trk' + (t.n === 8 ? ' on' : '') + '" href="#"><span class="trk-n">' + pad2(t.n) + '</span><span class="trk-img">' + thumb +
+    '</span><div><span class="trk-t">' + t.t + '</span><span class="trk-z">' + t.z + ' ' + t.zone + '</span></div><span class="trk-d">' + t.d + '</span></a>';
+}).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+/* 시안 A 목록 — 흰 지면, 선 구분 행, 이미지는 정해진 비율 틀 안에만. 상단 바: 흰 바탕 + 22pt 제목 */
+.A .tb{background:#FFFFFF}
+
+/* 홈 배너 — 29CM·무신사 와이드 배너 + 카운터 */
+.A .banner{display:block;position:relative;height:468px;overflow:hidden;background:#111111;color:#FFFFFF}
+.A .banner > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 16%}
+.A .banner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 42%,rgba(0,0,0,.74) 100%)}
+.A .banner-body{position:absolute;z-index:2;left:20px;right:76px;bottom:20px}
+.A .banner-kicker{font-size:13px;font-weight:500;color:rgba(255,255,255,.88)}
+.A .banner-lockup{width:236px;height:auto;margin:10px 0 8px -3px}
+.A .banner-date{font-family:var(--display);font-weight:600;font-size:16px}
+.A .banner-venue{font-size:13px;color:rgba(255,255,255,.82);margin-top:2px}
+.A .banner-dday{position:absolute;z-index:2;top:16px;left:20px;height:24px;padding:0 9px;border-radius:6px;background:#111111;font-family:var(--display);font-weight:700;font-size:12px;display:inline-flex;align-items:center}
+.A .count{position:absolute;z-index:2;right:20px;bottom:22px;height:24px;padding:0 9px;border-radius:999px;background:rgba(0,0,0,.5);font-size:12px;font-weight:600;display:inline-flex;align-items:center;font-variant-numeric:tabular-nums}
+.A .bookrow{display:flex;align-items:center;gap:14px;padding:16px 20px 18px}
+.A .bookrow > div{flex:1;min-width:0}
+.A .bookrow b{display:block;font-size:15px;font-weight:700}
+.A .bookrow span{display:block;font-size:13px;color:var(--sub);margin-top:1px}
+.A .bookrow .btn{height:44px;padding:0 18px;font-size:15px}
+
+/* 섹션 */
+.A .sec{padding:28px 20px 12px}
+.A .sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.A .sec-t{font-family:var(--display);font-weight:700;font-size:18px}
+.A .sec-s{font-size:13.5px;color:var(--sub);margin-top:2px}
+.A .soon{display:flex;align-items:center;gap:16px;padding:12px 0 16px}
+.A .soon-img{flex:none;width:84px;height:112px;background:#F0F0ED;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:22px;color:#C8C8C3}
+.A .steps li{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15px;color:var(--body)}
+.A .steps li:last-child{border-bottom:0}
+.A .steps i{flex:none;width:16px;font-family:var(--display);font-weight:700;color:var(--meta)}
+.A .steps b{color:var(--ink);font-weight:700}
+
+/* 전시 허브 — 이미지, 제목, 메타 → 텍스트 탭 → 행 */
+.A .hero{height:260px;overflow:hidden;background:#111111}
+.A .hero img{width:100%;height:100%;object-fit:cover;object-position:62% 30%}
+.A .xhead{padding:22px 20px 22px}
+.A .x-kicker{font-size:13px;color:var(--sub)}
+.A .x-title{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.15;margin-top:6px}
+.A .x-sub{font-size:16px;color:var(--body);margin-top:4px}
+.A .x-meta{margin-top:16px;display:grid;gap:5px}
+.A .x-meta div{display:flex;gap:12px;font-size:14px}
+.A .x-meta dt{flex:none;width:30px;color:var(--meta)}
+.A .x-meta dd{color:var(--body)}
+.A .tabs{position:sticky;top:0;z-index:3;display:flex;padding:0 8px;background:#FFFFFF;border-bottom:1px solid var(--line)}
+.A .tabs a{flex:1;position:relative;height:48px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;color:var(--meta)}
+.A .tabs a.on{color:var(--ink);font-weight:700}
+.A .tabs a.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--ink)}
+.A .lead{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.55}
+.A .lead span{color:var(--meta)}
+.A .para{font-size:15px;line-height:1.75;color:var(--body);margin-top:14px}
+.A .exp{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.A .exp > div{flex:1;min-width:0}
+.A .exp-img{flex:none;width:60px;height:60px;padding:6px;background:var(--fill);display:flex;align-items:center;justify-content:center}
+.A .exp-img img{width:100%;height:100%;object-fit:contain}
+.A .exp-loc{display:block;font-size:12.5px;color:var(--meta)}
+.A .exp-t{display:block;font-size:16px;font-weight:700;margin-top:1px}
+.A .exp .chev{width:18px;height:18px;color:#BDBDB7}
+.A .org{font-size:13px;color:var(--meta);line-height:1.6;padding:4px 0 32px}
+.A .buy{flex:none;display:flex;align-items:center;gap:16px;padding:12px 20px 34px;border-top:1px solid var(--line);background:#FFFFFF;position:relative;z-index:5}
+.A .buy-p b{display:block;font-family:var(--display);font-weight:700;font-size:18px}
+.A .buy-p span{display:block;font-size:12.5px;color:var(--sub)}
+.A .buy .btn{flex:1}
+
+/* 오디오 플레이어 — 흰 지면 */
+.A .art{margin:4px 20px 0;height:262px;overflow:hidden;background:var(--fill)}
+.A .art img{width:100%;height:100%;object-fit:cover}
+.A .np{padding:20px 20px 24px}
+.A .np-loc{font-size:13.5px;color:var(--sub)}
+.A .np-loc b{font-family:var(--display);font-weight:700;color:var(--point);margin-right:6px}
+.A .np-t{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.3;margin-top:4px}
+.A .prog{margin-top:20px}
+.A .ctrl{display:flex;align-items:center;justify-content:center;gap:44px;margin-top:8px}
+.A .ctrl .ic{width:28px;height:28px}
+.A .play{width:64px;height:64px;border-radius:50%;background:var(--point);color:#FFFFFF;display:flex;align-items:center;justify-content:center}
+.A .play .ic{width:26px;height:26px}
+.A .trk-h{display:flex;align-items:baseline;justify-content:space-between;padding:26px 20px 4px}
+.A .trk-h b{font-family:var(--display);font-weight:700;font-size:18px}
+.A .trk-h span{font-size:13px;color:var(--meta)}
+.A .trks{padding:0 20px}
+.A .trk{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.A .trk:last-child{border-bottom:0}
+.A .trk-n{flex:none;width:26px;font-family:var(--display);font-weight:700;font-size:15px;color:var(--meta);font-variant-numeric:tabular-nums}
+.A .trk.on .trk-n,.A .trk.on .trk-t{color:var(--point)}
+.A .trk > div{flex:1;min-width:0}
+.A .trk-t{display:block;font-size:15.5px;font-weight:600;line-height:1.4}
+.A .trk-z{display:block;font-size:13px;color:var(--sub);margin-top:1px}
+.A .trk-d{flex:none;font-size:13px;color:var(--meta);font-variant-numeric:tabular-nums}
+
+/* 내 티켓 */
+.A .tk{margin:8px 20px 0;border:1px solid var(--line2);border-radius:12px;overflow:hidden}
+.A .tk-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.A .tk-head b{font-family:var(--display);font-weight:800;font-size:18px}
+.A .tk-badge{height:22px;padding:0 7px;border-radius:4px;background:var(--ink);color:#FFFFFF;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center}
+.A .tk-qr{padding:24px 0 8px;display:flex;flex-direction:column;align-items:center}
+.A .tk-qr img{width:176px;height:176px}
+.A .tk-code{margin-top:12px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.A .tk-say{font-size:13px;color:var(--sub);margin-top:2px}
+.A .tk .info{padding:6px 16px 4px;border-top:1px solid var(--line);margin-top:18px}
+.A .field{height:52px;border-radius:8px;background:var(--fill);padding:0 16px;display:flex;align-items:center;font-size:15px;color:var(--meta);margin-top:14px}
+.A .foot{font-size:13px;color:var(--meta);padding:20px 0 36px}
+
+/* 공간 — 층별 존, 코드와 이름만 */
+.A .tabs a{font-size:14.5px}
+.A .floor{display:flex;align-items:baseline;gap:8px;padding:18px 0 6px;border-bottom:1px solid var(--ink)}
+.A .floor b{font-family:var(--display);font-weight:800;font-size:18px}
+.A .floor span{font-size:14px;font-weight:600}
+.A .floor small{margin-left:auto;font-size:13px;color:var(--meta)}
+.A .zone{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.A .zone:last-child{border-bottom:0}
+.A .zone i{flex:none;width:18px;font-family:var(--display);font-weight:700;color:var(--meta)}
+.A .zone b{display:block;font-size:15.5px;font-weight:600}
+.A .zone small{display:block;font-size:13px;color:var(--sub);margin-top:1px}
+
+/* 마이페이지 — 계정, 숫자 3칸, 선 구분 목록 (등급은 한 줄 + 얇은 막대) */
+.A .prof{display:flex;align-items:center;gap:14px;padding:12px 20px 18px}
+.A .avatar{flex:none;width:52px;height:52px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:19px;color:var(--sub)}
+.A .prof b{display:block;font-family:var(--display);font-weight:700;font-size:19px}
+.A .prof span{display:block;font-size:13.5px;color:var(--sub);margin-top:1px}
+.A .stats{display:flex;margin:0 20px 24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.A .stats a{flex:1;padding:16px 0 15px;text-align:center}
+.A .stats a + a{border-left:1px solid var(--line)}
+.A .stats b{display:block;font-family:var(--display);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.A .stats span{display:block;font-size:12.5px;color:var(--sub);margin-top:2px}
+.A .rec{display:flex;align-items:center;gap:14px;padding:12px 0 16px}
+.A .rec img{flex:none;width:60px;height:80px;object-fit:cover;object-position:50% 20%}
+.A .rec > div{flex:1;min-width:0}
+.A .rec b{display:block;font-size:16px;font-weight:700}
+.A .rec span{display:block;font-size:13px;color:var(--sub);margin-top:1px;font-variant-numeric:tabular-nums}
+.A .rec em{flex:none;font-size:13.5px;font-weight:600;color:var(--body)}
+.A .rec .chev{width:18px;height:18px;color:#BDBDB7}
+.A .grade{padding:10px 0 18px}
+.A .grade-top{display:flex;align-items:baseline;justify-content:space-between}
+.A .grade-top b{font-family:var(--display);font-weight:800;font-size:22px}
+.A .grade-top b small{font-family:var(--text);font-weight:500;font-size:13.5px;color:var(--sub);margin-left:8px}
+.A .grade-top span{font-size:13.5px;color:var(--body)}
+.A .segs{display:flex;gap:3px;margin-top:10px}
+.A .segs i{flex:1;height:3px;background:var(--line)}
+.A .segs i.on{background:var(--ink)}
+.A .grade p{font-size:13px;color:var(--sub);margin-top:10px}
+.A .danger{color:#C8442F}
+.A .ver{padding:24px 20px 36px;text-align:center;font-size:12.5px;color:var(--meta)}
+.A .sec-more{display:flex;align-items:center;font-size:13px;color:var(--meta)}
+.A .sec-more .chev{width:15px;height:15px;color:var(--meta)}

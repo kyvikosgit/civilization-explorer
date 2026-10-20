@@ -1,0 +1,135 @@
+/* 시안 C 가이드 — 플랫폼은 전시 목록, 전시에 들어가면 하단 탭이 전시 탭으로 바뀌고 탭 위 플레이어가 남는다.
+   상단 바: 흰 바탕 + 22pt 제목, 전시 안에서는 오른쪽에 QR 스캔 */
+.C .tb{background:#FFFFFF}
+.C .sec{padding:28px 20px 8px}
+.C .sec-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.C .sec-t{font-family:var(--display);font-weight:700;font-size:18px}
+.C .sec-s{font-size:13.5px;color:var(--sub);margin-top:2px}
+
+/* 홈 — 내 티켓 카드 + 같은 틀의 전시 카드 목록 */
+.C .mytk{display:flex;align-items:center;gap:12px;margin:8px 20px 0;padding:18px 18px;border-radius:12px;background:#111111;color:#FFFFFF}
+.C .mytk > div{flex:1;min-width:0}
+.C .mytk small{display:block;font-size:13px;color:rgba(255,255,255,.56)}
+.C .mytk b{display:block;font-family:var(--display);font-weight:700;font-size:17px;margin-top:3px}
+.C .mytk span{display:block;font-size:13px;color:rgba(255,255,255,.7);margin-top:2px}
+.C .mytk .chev{width:18px;height:18px;color:rgba(255,255,255,.5)}
+.C .card{padding:12px 0 22px;border-bottom:1px solid var(--line)}
+.C .card:last-child{border-bottom:0}
+.C .card-img{position:relative;display:block;height:234px;border-radius:8px;overflow:hidden;background:#111111}
+.C .card-img img{width:100%;height:100%;object-fit:cover;object-position:60% 30%}
+.C .card-dday{position:absolute;top:12px;left:12px;height:24px;padding:0 9px;border-radius:6px;background:#111111;color:#FFFFFF;font-family:var(--display);font-weight:700;font-size:12px;display:inline-flex;align-items:center}
+.C .card-t{font-family:var(--display);font-weight:800;font-size:22px;margin-top:16px;line-height:1.25}
+.C .card-s{font-size:15px;color:var(--body);margin-top:2px}
+.C .card-m{font-size:13.5px;color:var(--sub);margin-top:8px;line-height:1.55;font-variant-numeric:tabular-nums}
+.C .card-btns{display:flex;gap:8px;margin-top:16px}
+.C .card-btns .btn{flex:1}
+.C .card-soon{height:234px;border-radius:8px;background:#F2F2EF;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:64px;color:#D6D6D1}
+
+/* 전시 안 — 헤더, 주 버튼, 행 */
+.C .hero{height:220px;overflow:hidden;background:#111111}
+.C .hero img{width:100%;height:100%;object-fit:cover;object-position:62% 30%}
+.C .xhead{padding:20px 20px 4px}
+.C .x-kicker{font-size:13px;color:var(--sub)}
+.C .x-title{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.3;margin-top:4px}
+.C .x-meta{font-size:14px;color:var(--body);margin-top:10px;line-height:1.6;font-variant-numeric:tabular-nums}
+.C .x-btn{margin:18px 20px 0}
+.C .lead{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.55}
+.C .lead span{color:var(--meta)}
+.C .para{font-size:15px;line-height:1.75;color:var(--body);margin-top:12px}
+.C .step{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.C .step:last-child{border-bottom:0}
+.C .step-n{flex:none;width:22px;font-family:var(--display);font-weight:700;font-size:15px;color:var(--meta)}
+.C .step-img{flex:none;width:56px;height:56px;padding:5px;background:var(--fill);display:flex;align-items:center;justify-content:center}
+.C .step-img img{width:100%;height:100%;object-fit:contain}
+.C .step > div{flex:1;min-width:0}
+.C .step-loc{display:block;font-size:12.5px;color:var(--meta)}
+.C .step-t{display:block;font-size:16px;font-weight:700;margin-top:1px}
+.C .step .chev,.C .cell .chev{width:18px;height:18px;color:#BDBDB7}
+
+/* 탭 위 미니 플레이어 */
+.C .mini{flex:none;position:relative;z-index:6;display:flex;align-items:center;gap:12px;height:62px;padding:0 20px;background:#FFFFFF;border-top:1px solid var(--line)}
+.C .mini::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:39%;background:var(--point)}
+.C .mini img{flex:none;width:40px;height:40px;object-fit:cover}
+.C .mini > div{flex:1;min-width:0}
+.C .mini b{display:block;font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.C .mini span{display:block;font-size:12.5px;color:var(--sub)}
+.C .mini .ic{width:26px;height:26px}
+
+/* 오디오 탭 — 위에 지금 재생, 아래 층별 목록 */
+.C .now{margin:4px 20px 0;padding:16px;border-radius:12px;background:var(--fill)}
+.C .now-top{display:flex;gap:14px}
+.C .now-top img{flex:none;width:96px;height:96px;object-fit:cover}
+.C .now-loc{font-size:13px;color:var(--sub)}
+.C .now-loc b{font-family:var(--display);font-weight:700;color:var(--point);margin-right:6px}
+.C .now-t{font-family:var(--display);font-weight:800;font-size:19px;line-height:1.35;margin-top:3px}
+.C .now .prog{margin-top:16px}
+.C .now .prog-bar{background:#E2E1DC}
+.C .ctrl{display:flex;align-items:center;justify-content:center;gap:40px;margin-top:4px}
+.C .ctrl .ic{width:26px;height:26px}
+.C .play{width:56px;height:56px;border-radius:50%;background:var(--point);color:#FFFFFF;display:flex;align-items:center;justify-content:center}
+.C .play .ic{width:24px;height:24px}
+.C .ftabs{display:flex;gap:22px;padding:22px 20px 0;border-bottom:1px solid var(--line)}
+.C .ftabs a{position:relative;height:40px;display:flex;align-items:center;gap:6px;font-size:15.5px;font-weight:600;color:var(--meta)}
+.C .ftabs a b{font-family:var(--display);font-weight:700}
+.C .ftabs a.on{color:var(--ink)}
+.C .ftabs a.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ink)}
+.C .trks{padding:0 20px}
+.C .trk{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.C .trk:last-child{border-bottom:0}
+.C .trk-n{flex:none;width:22px;font-family:var(--display);font-weight:700;font-size:14px;color:var(--meta);font-variant-numeric:tabular-nums}
+.C .trk.on .trk-n{color:var(--point)}
+.C .trk-img{flex:none;width:48px;height:48px;background:var(--fill);overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:13px;color:var(--meta)}
+.C .trk-img img{width:100%;height:100%;object-fit:cover}
+.C .trk > div{flex:1;min-width:0}
+.C .trk-t{display:block;font-size:15px;font-weight:600;line-height:1.4}
+.C .trk.on .trk-t{color:var(--point)}
+.C .trk-z{display:block;font-size:12.5px;color:var(--sub);margin-top:1px}
+.C .trk-d{flex:none;font-size:12.5px;color:var(--meta);font-variant-numeric:tabular-nums}
+
+/* 공간 — 층 제목 + 존 행(작품 썸네일 또는 코드) */
+.C .floor{display:flex;align-items:baseline;gap:8px;padding:18px 0 4px}
+.C .floor b{font-family:var(--display);font-weight:800;font-size:18px}
+.C .floor span{font-size:14px;font-weight:600}
+.C .floor small{margin-left:auto;font-size:13px;color:var(--meta)}
+.C .zone{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.C .zone:last-child{border-bottom:0}
+.C .zone .trk-img{width:44px;height:44px}
+.C .zone b{display:block;font-size:15px;font-weight:600}
+.C .zone small{display:block;font-size:12.5px;color:var(--sub);margin-top:1px}
+
+/* 마이페이지 — 검정 회원 카드 안에 등급 한 줄 (그라운드시소·AIC) */
+.C .mcard{display:block;margin:8px 20px 0;padding:20px 18px 18px;border-radius:12px;background:#111111;color:#FFFFFF}
+.C .mcard-top{display:flex;align-items:center;gap:14px}
+.C .avatar{flex:none;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:18px;color:rgba(255,255,255,.8)}
+.C .mcard b{display:block;font-family:var(--display);font-weight:700;font-size:18px}
+.C .mcard-top span{display:block;font-size:13px;color:rgba(255,255,255,.6);margin-top:1px}
+.C .mcard-grade{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14)}
+.C .mcard-grade div{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:rgba(255,255,255,.66)}
+.C .mcard-grade div b{display:inline;font-size:15px;color:#FFFFFF}
+.C .segs{display:flex;gap:3px;margin-top:10px}
+.C .segs i{flex:1;height:3px;background:rgba(255,255,255,.18)}
+.C .mcard-grade p{font-size:12.5px;color:rgba(255,255,255,.5);margin-top:9px}
+.C .rec{display:flex;align-items:center;gap:14px;padding:12px 0 16px}
+.C .rec img{flex:none;width:120px;height:80px;border-radius:6px;object-fit:cover;object-position:62% 30%}
+.C .rec > div{flex:1;min-width:0}
+.C .rec b{display:block;font-family:var(--display);font-weight:800;font-size:17px}
+.C .rec span{display:block;font-size:12.5px;color:var(--sub);margin-top:1px;font-variant-numeric:tabular-nums}
+.C .rec em{display:block;font-size:13px;font-weight:700;margin-top:5px}
+.C .rec .chev{width:18px;height:18px;color:#BDBDB7}
+.C .danger{color:#C8442F}
+.C .ver{padding:24px 20px 36px;text-align:center;font-size:12.5px;color:var(--meta)}
+
+/* 내 티켓 — 전시 카드와 같은 3:2 이미지 머리 */
+.C .tk{margin:8px 20px 0;border:1px solid var(--line2);border-radius:12px;overflow:hidden}
+.C .tk-img{position:relative;height:150px;overflow:hidden;background:#111111}
+.C .tk-img img{width:100%;height:100%;object-fit:cover;object-position:62% 30%}
+.C .tk-head{padding:14px 16px 0}
+.C .tk-head b{display:block;font-family:var(--display);font-weight:800;font-size:20px}
+.C .tk-head span{display:block;font-size:14px;color:var(--body);margin-top:1px}
+.C .tk-qr{padding:18px 0 6px;display:flex;flex-direction:column;align-items:center}
+.C .tk-qr img{width:168px;height:168px}
+.C .tk-code{margin-top:12px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.C .tk-say{font-size:13px;color:var(--sub);margin-top:2px}
+.C .tk .info{padding:6px 16px 4px;border-top:1px solid var(--line);margin-top:16px}
+.C .field{height:52px;border-radius:8px;background:var(--fill);padding:0 16px;display:flex;align-items:center;font-size:15px;color:var(--meta);margin-top:14px}
+.C .foot{font-size:13px;color:var(--meta);padding:20px 0 36px}

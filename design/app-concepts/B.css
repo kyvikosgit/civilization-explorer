@@ -1,0 +1,148 @@
+/* 시안 B 지면 — 웹 승인안(검은 크롬 + 풀블리드 키비주얼)을 앱으로. 전시 안은 근흑 지면, 주황은 예매·재생에만.
+   상단 바: 투명 바탕 + 흰 글자 (이미지 위에서도, 어두운 지면에서도 같은 컴포넌트) */
+.B{--bg:#0B0B0B;--fg:#FFFFFF;--line:rgba(255,255,255,.12);--line2:rgba(255,255,255,.3);--sub:rgba(255,255,255,.64);--meta:rgba(255,255,255,.44);--body:rgba(255,255,255,.78);--fill:#161616}
+.B .hi{color:#FFFFFF}
+.B .phone.world{--bg:#0E0E0E}
+.B .sb.over{position:absolute;top:0;left:0;right:0}
+.B .tb{background:transparent;color:#FFFFFF}
+.B .tb.over{position:absolute;top:47px;left:0;right:0}
+.B .tb-chip{border-color:rgba(255,255,255,.4)}
+.B .tabbar{background:#0B0B0B;border-top-color:rgba(255,255,255,.1)}
+.B .tabbar a{color:rgba(255,255,255,.42)}
+.B .tabbar a.on{color:#FFFFFF}
+.B .cell .chev{color:rgba(255,255,255,.36)}
+.B .btn-white{background:#FFFFFF;color:#0B0B0B}
+.B .btn-ghost{border:1px solid rgba(255,255,255,.45);color:#FFFFFF;font-weight:600}
+
+/* 홈 — 첫 화면 전체가 키비주얼 */
+.B .slide{position:relative;height:761px;overflow:hidden;background:#000000}
+.B .slide > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 16%}
+.B .slide::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,0) 20%,rgba(0,0,0,0) 42%,rgba(11,11,11,.82) 80%,#0B0B0B 100%)}
+.B .count{position:absolute;z-index:3;top:111px;right:20px;height:26px;padding:0 10px;border-radius:999px;background:rgba(0,0,0,.42);font-family:var(--display);font-weight:600;font-size:12.5px;color:rgba(255,255,255,.7);display:inline-flex;align-items:center;font-variant-numeric:tabular-nums}
+.B .count b{color:#FFFFFF;font-weight:600;margin-right:4px}
+.B .slide-body{position:absolute;z-index:2;left:20px;right:20px;bottom:28px}
+.B .status{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 11px;border-radius:999px;background:rgba(255,255,255,.14);font-size:13px;font-weight:600}
+.B .status b{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
+.B .slide-lockup{width:300px;height:auto;margin:18px 0 10px -4px}
+.B .slide-meta{font-size:14px;font-weight:500;color:rgba(255,255,255,.86);font-variant-numeric:tabular-nums}
+.B .slide-actions{display:flex;gap:8px;margin-top:22px}
+.B .slide-actions .btn{flex:1}
+.B .state{padding:64px 20px 56px;text-align:center}
+.B .state h2{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.3}
+.B .state p{margin-top:12px;font-size:15px;color:var(--sub)}
+.B .sec{padding:28px 20px 12px}
+.B .sec-t{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:4px}
+.B .soon{margin-top:12px;height:210px;background:#141414;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.B .soon b{font-family:var(--display);font-weight:800;font-size:72px;line-height:1;color:#2A2A2A}
+.B .soon p{margin-top:14px;font-family:var(--display);font-weight:700;font-size:18px}
+.B .soon span{margin-top:4px;font-size:14px;color:var(--sub)}
+
+/* 전시 허브 — 승인 히어로 구성을 근흑 지면 위에 */
+.B .bhero{position:relative;height:620px;overflow:hidden;background:#000000}
+.B .bhero > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 14%}
+.B .bhero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.4) 0%,rgba(0,0,0,0) 26%,rgba(0,0,0,0) 46%,rgba(14,14,14,.8) 82%,#0E0E0E 100%)}
+.B .bh-kicker{position:absolute;z-index:2;top:102px;left:20px;font-family:var(--display);font-weight:500;font-size:15px;line-height:1.4}
+.B .bh-foot{position:absolute;z-index:2;left:20px;right:20px;bottom:18px}
+.B .bh-lockup{width:320px;height:auto;margin-left:-4px}
+.B .bh-date{font-family:var(--display);font-weight:600;font-size:19px;margin-top:12px;font-variant-numeric:tabular-nums}
+.B .bh-venue{font-family:var(--display);font-weight:500;font-size:13.5px;color:rgba(255,255,255,.86);margin-top:4px}
+.B .bh-credit{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:20px;font-family:var(--display);font-weight:500;font-size:11px;color:rgba(255,255,255,.86)}
+.B .bh-credit span{opacity:.7}
+.B .bh-credit img{width:70px;height:auto;margin-left:2px}
+.B .bh-credit .gap{width:10px}
+.B .intro{padding:36px 20px 12px}
+.B .past{font-family:var(--display);font-weight:600;font-size:17px;line-height:1.6;color:#8A8A86}
+.B .turn{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.5;margin-top:14px}
+.B .para{font-size:15px;line-height:1.75;color:var(--body);margin-top:18px}
+.B .para b{color:#FFFFFF}
+.B .qr{display:flex;align-items:center;gap:14px;padding:16px;margin:12px 0 4px;background:#161616;border-radius:8px}
+.B .qr > .ic{color:var(--point)}
+.B .qr > div{flex:1}
+.B .tiles{display:grid;grid-template-columns:1fr 1fr;gap:20px 12px;margin-top:16px}
+.B .tile-img{height:136px;background:#191919;display:flex;align-items:center;justify-content:center;padding:14px}
+.B .tile-img img{width:100%;height:100%;object-fit:contain}
+.B .tile-loc{display:block;margin-top:10px;font-size:12px;color:var(--meta)}
+.B .tile-t{display:block;font-size:15px;font-weight:700;margin-top:1px;line-height:1.4}
+.B .tile-num{font-family:var(--display);font-weight:800;font-size:40px;color:#FFFFFF;font-variant-numeric:tabular-nums}
+.B .tile-num small{font-size:20px;color:var(--meta);margin-left:4px}
+.B .org{font-size:13px;color:var(--meta);line-height:1.6;padding:4px 0 32px}
+.B .buy{flex:none;display:flex;align-items:center;gap:16px;padding:12px 20px 34px;border-top:1px solid rgba(255,255,255,.1);background:#0E0E0E;position:relative;z-index:5}
+.B .buy-p b{display:block;font-family:var(--display);font-weight:700;font-size:18px}
+.B .buy-p span{display:block;font-size:12.5px;color:var(--sub)}
+.B .buy .btn{flex:1}
+
+/* 오디오 플레이어 — 근흑 지면, 작품 40% */
+.B .art{height:330px;overflow:hidden;background:#000000}
+.B .art img{width:100%;height:100%;object-fit:cover}
+.B .np{padding:22px 20px 28px}
+.B .np-loc{font-size:14px;color:var(--sub)}
+.B .np-loc b{font-family:var(--display);font-weight:700;color:var(--point);margin-right:8px}
+.B .np-t{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.3;margin-top:4px}
+.B .prog{margin-top:22px}
+.B .prog-bar{background:rgba(255,255,255,.18)}
+.B .ctrl{display:flex;align-items:center;justify-content:center;gap:48px;margin-top:10px}
+.B .ctrl .ic{width:30px;height:30px}
+.B .play{width:72px;height:72px;border-radius:50%;background:var(--point);color:#FFFFFF;display:flex;align-items:center;justify-content:center}
+.B .play .ic{width:30px;height:30px}
+.B .hint{margin-top:22px;text-align:center;font-size:13px;color:var(--meta)}
+.B .nx-h{padding:26px 20px 6px;font-family:var(--display);font-weight:700;font-size:18px;border-top:1px solid rgba(255,255,255,.1)}
+.B .trk{display:flex;align-items:center;gap:14px;padding:12px 20px}
+.B .trk-img{flex:none;width:52px;height:52px;background:#1A1A1A;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:13px;color:rgba(255,255,255,.5)}
+.B .trk-img img{width:100%;height:100%;object-fit:cover}
+.B .trk > div{flex:1;min-width:0}
+.B .trk-t{display:block;font-size:15.5px;font-weight:600;line-height:1.4}
+.B .trk-z{display:block;font-size:13px;color:var(--sub);margin-top:1px}
+.B .trk-d{flex:none;font-size:13px;color:var(--meta);font-variant-numeric:tabular-nums}
+
+/* 공간 — 층별 존, 작품이 걸린 존은 썸네일 */
+.B .sec-s{font-size:14px;color:var(--sub);margin-top:-2px}
+.B .floor{display:flex;align-items:baseline;gap:8px;padding:20px 0 8px}
+.B .floor b{font-family:var(--display);font-weight:800;font-size:20px}
+.B .floor span{font-size:14px;font-weight:600}
+.B .floor small{margin-left:auto;font-size:13px;color:var(--meta)}
+.B .zone{display:flex;align-items:center;gap:14px;padding:10px 0;border-top:1px solid rgba(255,255,255,.1)}
+.B .zone-img{flex:none;width:52px;height:52px;background:#191919;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:15px;color:rgba(255,255,255,.5)}
+.B .zone-img img{width:100%;height:100%;object-fit:cover}
+.B .zone b{display:block;font-size:15.5px;font-weight:600}
+.B .zone small{display:block;font-size:12.5px;color:var(--sub);margin-top:1px}
+
+/* 마이페이지 — 근흑 프로필, 등급은 프로필 아래 한 줄, 관람 기록은 이미지 카드 */
+.B .prof{padding:12px 20px 24px}
+.B .prof-top{display:flex;align-items:center;gap:16px}
+.B .avatar{flex:none;width:64px;height:64px;border-radius:50%;background:#1E1E1E;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:22px;color:rgba(255,255,255,.7)}
+.B .prof b{display:block;font-family:var(--display);font-weight:800;font-size:22px}
+.B .prof-top span{display:block;font-size:13.5px;color:var(--sub);margin-top:2px}
+.B .grade{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12)}
+.B .grade-top{display:flex;align-items:baseline;justify-content:space-between;font-size:13.5px;color:var(--sub)}
+.B .grade-top b{font-size:15px;color:#FFFFFF;display:inline}
+.B .segs{display:flex;gap:3px;margin-top:10px}
+.B .segs i{flex:1;height:3px;background:rgba(255,255,255,.16)}
+.B .grade p{font-size:13px;color:var(--meta);margin-top:9px}
+.B .rec{display:block;position:relative;height:200px;margin-top:12px;overflow:hidden;background:#000000}
+.B .rec img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 30%}
+.B .rec::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.78) 100%)}
+.B .rec div{position:absolute;z-index:2;left:16px;right:16px;bottom:14px}
+.B .rec b{display:block;font-family:var(--display);font-weight:800;font-size:20px}
+.B .rec span{display:block;font-size:13px;color:rgba(255,255,255,.78);margin-top:2px;font-variant-numeric:tabular-nums}
+.B .rec em{position:absolute;z-index:2;top:12px;left:12px;height:24px;padding:0 9px;border-radius:999px;background:rgba(255,255,255,.16);font-size:12px;font-weight:600;display:inline-flex;align-items:center}
+.B .danger{color:#E0705C}
+.B .ver{padding:24px 20px 36px;text-align:center;font-size:12.5px;color:var(--meta)}
+.B .sec-h{display:flex;align-items:baseline;justify-content:space-between}
+.B .sec-more{display:flex;align-items:center;font-size:13px;color:var(--meta)}
+.B .sec-more .chev{width:15px;height:15px}
+
+/* 내 티켓 — 어두운 지면 위 흰 티켓 */
+.B .tk{margin:8px 20px 0;border-radius:12px;overflow:hidden;background:#FFFFFF;color:#111111}
+.B .tk-img{position:relative;height:120px;overflow:hidden;background:#000000}
+.B .tk-img img{width:100%;height:100%;object-fit:cover;object-position:60% 32%}
+.B .tk-img img + img{position:absolute;left:16px;bottom:12px;width:150px;height:auto}
+.B .tk-qr{padding:22px 0 6px;display:flex;flex-direction:column;align-items:center}
+.B .tk-qr img{width:176px;height:176px}
+.B .tk-code{margin-top:12px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.B .tk-say{font-size:13px;color:#6B6B68;margin-top:2px}
+.B .tk .info{padding:6px 16px 4px;border-top:1px solid #ECEBE7;margin-top:18px}
+.B .tk .info div{border-bottom-color:#ECEBE7}
+.B .tk .info dt{color:#6B6B68}
+.B .tk .info dd{color:#3D3D3A}
+.B .field{height:52px;border-radius:8px;background:#161616;padding:0 16px;display:flex;align-items:center;font-size:15px;color:var(--meta);margin-top:14px}
+.B .foot{font-size:13px;color:var(--meta);padding:20px 0 36px}

@@ -1,0 +1,83 @@
+/* 앱 시안 공통 — 서체·리셋·폰 틀(390×844)·상태 표시줄·상단 바 골격·하단 탭·셀·버튼
+   서체: Paperlogy(제목·숫자) + Freesentation(본문·UI)만. 한글 자간 0. 밑줄 링크 없음. */
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css');
+
+:root{
+  --ink:#111111; --body:#3D3D3A; --sub:#6B6B68; --meta:#9A9A96;
+  --line:#ECEBE7; --line2:#D9D8D3; --fill:#F5F5F3; --point:#D9672F;
+  --display:Paperlogy,Freesentation,sans-serif; --text:Freesentation,sans-serif;
+  --bg:#FFFFFF; --fg:#111111;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#E4E4E1}
+body{font-family:var(--text);font-size:15px;line-height:1.5;color:var(--fg);-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+ul,ol{list-style:none}
+em,i{font-style:normal}
+button,input{font:inherit;color:inherit;background:none;border:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* 폰 틀 — 390 뷰포트에서는 화면 그대로, 넓은 화면에서는 가운데 기기 틀 */
+.phone{position:relative;width:390px;height:844px;margin:0 auto;background:var(--bg);color:var(--fg);overflow:hidden;display:flex;flex-direction:column}
+@media (min-width:480px){body{padding:32px 0}.phone{border-radius:40px;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 24px 64px rgba(0,0,0,.14)}}
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;position:relative}
+.scroll::-webkit-scrollbar{display:none}
+/* 전체 길이 캡처용 (?full) */
+.full .phone{height:auto;overflow:visible}
+.full .scroll{overflow:visible}
+
+/* 상태 표시줄 */
+.sb{flex:none;height:47px;display:flex;align-items:center;justify-content:space-between;padding:2px 26px 0 36px;position:relative;z-index:6}
+.sb-time{font-family:var(--text);font-weight:700;font-size:16px}
+.sb-ic{display:flex;align-items:center;gap:6px}
+.sb svg{display:block}
+
+/* 아이콘(기능용만) */
+.ic{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ic.icf{fill:currentColor;stroke:none}
+
+/* 상단 바 골격 — 높이 52, 좌우 20 */
+.tb{flex:none;height:52px;padding:0 20px;display:flex;align-items:center;gap:12px;position:relative;z-index:5}
+.tb-left{flex:1;min-width:0;display:flex;align-items:center}
+.tb-back{width:34px;height:44px;margin-left:-7px;display:flex;align-items:center}
+.tb-brand,.tb-title{font-family:var(--display);font-weight:800;font-size:22px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-title{font-weight:700}
+.tb-right{display:flex;align-items:center;gap:14px;flex:none}
+.tb-text{font-size:14px;font-weight:600}
+.tb-chip{height:26px;padding:0 10px;border:1px solid var(--line2);border-radius:999px;display:inline-flex;align-items:center;font-family:var(--display);font-weight:600;font-size:12px}
+.tb-scan{display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:700}
+.tb-scan .ic{width:20px;height:20px}
+
+/* 하단 탭 */
+.tabbar{flex:none;height:83px;padding-bottom:30px;display:flex;border-top:1px solid var(--line);background:var(--bg);position:relative;z-index:5}
+.tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:700;color:#A6A6A0}
+.tabbar a.on{color:var(--fg)}
+.tabbar .ic{width:23px;height:23px}
+.hi{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:currentColor;color:#111;z-index:40}
+
+/* 공통 요소 */
+.band{height:8px;background:var(--fill)}
+.btn{display:flex;align-items:center;justify-content:center;height:52px;padding:0 20px;border-radius:8px;font-size:16px;font-weight:700;white-space:nowrap}
+.btn-ink{background:var(--ink);color:#FFFFFF}
+.btn-point{background:var(--point);color:#FFFFFF}
+.btn-line{border:1px solid var(--line2);color:var(--ink);font-weight:600}
+.cell{display:flex;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}
+.cell:last-child{border-bottom:0}
+.cell > div{flex:1;min-width:0}
+.cell-t{display:block;font-size:16px;font-weight:600;line-height:1.4}
+.cell-s{display:block;font-size:13.5px;color:var(--sub);margin-top:2px}
+.cell-v{font-size:14.5px;color:var(--sub)}
+.cell .chev{width:18px;height:18px;color:#BDBDB7}
+.info div{display:flex;gap:16px;padding:13px 0;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.55}
+.info div:last-child{border-bottom:0}
+.info dt{width:52px;flex:none;color:var(--sub)}
+.info dd{flex:1;color:var(--body)}
+.info dd small{display:block;font-size:13px;color:var(--meta)}
+
+/* 재생 진행 바 */
+.prog-bar{position:relative;height:3px;border-radius:2px;background:var(--line)}
+.prog-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--point)}
+.prog-bar i::after{content:"";position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--point)}
+.prog-t{display:flex;justify-content:space-between;margin-top:8px;font-size:12.5px;color:var(--meta);font-variant-numeric:tabular-nums}

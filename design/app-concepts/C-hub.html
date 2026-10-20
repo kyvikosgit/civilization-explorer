@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko" class="C">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>C 가이드 · 전시 허브</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="C.css">
+</head>
+<body>
+<div class="phone">
+  <div class="sb"></div>
+  <header class="tb" data-left="back" data-href="C-home.html" data-title="MONET 100" data-right="scan"></header>
+  <main class="scroll">
+
+    <div class="hero"><img src="img/kv_land.jpg" alt="MONET 100 키비주얼"></div>
+    <div class="xhead">
+      <p class="x-kicker">클로드 모네 서거 100주년 기념 미디어 체험 전시</p>
+      <h2 class="x-title">시대를 읽는 감각의 계보</h2>
+      <p class="x-meta">2026. 12. 5 — 2027. 2. 28 · <span data-dday>D-46</span><br>신세계본점 더 헤리티지 4F 뮤지엄</p>
+    </div>
+    <a class="btn btn-point x-btn" href="#">예매하기</a>
+
+    <section class="sec">
+      <p class="lead"><span>1874년, 파리의 심사위원들은 모네를 비웃었습니다.</span> 그러나 시대는 이미 그 기준을 넘어 움직이고 있었습니다.</p>
+      <p class="para">관람객은 1874년 파리행 승차권을 쥔 여행자가 되어, 살롱의 심사석과 화가의 아틀리에를 지나 생라자르 역에서 노르망디행 열차에 오릅니다.</p>
+    </section>
+
+    <div style="height:20px"></div>
+    <div class="band"></div>
+    <section class="sec">
+      <div class="sec-h"><h2 class="sec-t">체험</h2></div>
+      <p class="sec-s">관람 동선을 따라 순서대로 진행됩니다.</p>
+      <div style="height:6px"></div>
+      <a class="step" href="#"><span class="step-n">01</span><span class="step-img"><img src="img/vision.jpg" alt=""></span><div><span class="step-loc">4F · B 아카데미 살롱</span><span class="step-t">올해의 그림</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="step" href="#"><span class="step-n">02</span><span class="step-img"><img src="img/flyer.jpg" alt=""></span><div><span class="step-loc">4F · C-1 시민사회</span><span class="step-t">카페 게르부아의 소문</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="step" href="#"><span class="step-n">03</span><span class="step-img"><img src="img/t_ticket.png" alt=""></span><div><span class="step-loc">4F · C-2 산업혁명</span><span class="step-t">여행자의 책상</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="step" href="#"><span class="step-n">04</span><span class="step-img"><img src="img/diary.jpg" alt=""></span><div><span class="step-loc">4F · C-3 화가의 아틀리에</span><span class="step-t">화가를 밖으로 이끈 것</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="step" href="#"><span class="step-n">05</span><span class="step-img"><img src="img/sunrise.jpg" alt=""></span><div><span class="step-loc">4F · D 모네 전시관</span><span class="step-t">비평가를 화나게 한 그림</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    </section>
+
+    <div class="band"></div>
+    <section class="sec">
+      <div class="sec-h"><h2 class="sec-t">공간</h2></div>
+      <p class="sec-s">4층에서 시대를 이해하고, 3층에서 모네의 세계를 체험합니다.</p>
+      <div id="floors"></div>
+    </section>
+    <div style="height:12px"></div>
+
+    <div class="band"></div>
+    <section class="sec">
+      <div class="sec-h"><h2 class="sec-t">관람 정보</h2></div>
+      <dl class="info">
+        <div><dt>시간</dt><dd class="num">10:00 – 19:00<small>매 정시 입장 · 회차당 60분</small></dd></div>
+        <div><dt>관람권</dt><dd class="num">성인 22,000원 · 청소년 16,000원<small>NOL 티켓 · 회차 지정</small></dd></div>
+        <div><dt>주최</dt><dd>SONG DONG HUN Inc.</dd></div>
+        <div><dt>주관</dt><dd>KYVIKOS<small>후원 SHINSEGAE · LVMH · 주한 프랑스문화원</small></dd></div>
+      </dl>
+    </section>
+    <div style="height:24px"></div>
+
+  </main>
+  <a class="mini" href="C-audio.html">
+    <img src="img/lazare.jpg" alt="">
+    <div><b>산업혁명의 빛이 쏟아지다</b><span>08 · 3F · A 생라자르역</span></div>
+    <span id="mpp"></span>
+  </a>
+  <nav class="tabbar" data-set="ex" data-on="guide"></nav>
+</div>
+<script src="kit.js"></script>
+<script>
+document.getElementById('mpp').innerHTML = ICON.pause;
+document.getElementById('floors').innerHTML = FLOORS.map(function (fl) {
+  return '<div class="floor"><b>' + fl.f + '</b><span>' + fl.name + '</span><small>' + fl.sub + '</small></div>' +
+    fl.zones.map(function (z) {
+      return '<div class="zone"><span class="trk-img">' + (z.img ? '<img src="img/' + z.img + '.jpg" alt="">' : z.c) + '</span><div><b>' + z.c + ' ' + z.n + '</b>' + (z.s ? '<small>' + z.s + '</small>' : '') + '</div></div>';
+    }).join('');
+}).join('');
+</script>
+</body>
+</html>

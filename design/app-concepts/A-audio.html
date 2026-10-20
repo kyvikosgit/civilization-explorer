@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko" class="A">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>A 목록 · 오디오 도슨트</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="A.css">
+</head>
+<body>
+<div class="phone">
+  <div class="sb"></div>
+  <header class="tb" data-left="back" data-href="A-hub.html" data-title="오디오 도슨트"></header>
+  <main class="scroll">
+
+    <div class="art"><img src="img/sunrise.jpg" alt="클로드 모네, 인상, 해돋이, 1872"></div>
+    <section class="np">
+      <p class="np-loc"><b class="num">06</b>4F · D 모네 전시관</p>
+      <h2 class="np-t">새로운 시대가 시작되다</h2>
+      <div class="prog">
+        <div class="prog-bar"><i style="width:37%"></i></div>
+        <div class="prog-t"><span>0:11</span><span>0:30</span></div>
+      </div>
+      <div class="ctrl">
+        <a href="#" aria-label="이전 트랙" id="prev"></a>
+        <a class="play" href="#" aria-label="일시정지" id="pp"></a>
+        <a href="#" aria-label="다음 트랙" id="next"></a>
+      </div>
+    </section>
+
+    <div class="band"></div>
+    <div id="list"></div>
+    <div style="height:28px"></div>
+
+  </main>
+</div>
+<script src="kit.js"></script>
+<script>
+document.getElementById('prev').innerHTML = ICON.prev;
+document.getElementById('next').innerHTML = ICON.next;
+document.getElementById('pp').innerHTML = ICON.pause;
+var html = '';
+['4F', '3F'].forEach(function (f) {
+  var list = TRACKS.filter(function (t) { return t.f === f; });
+  html += '<div class="trk-h"><b>' + f + '</b><span>' + list.length + '개 트랙</span></div><div class="trks">';
+  list.forEach(function (t) {
+    html += '<a class="trk' + (t.n === 6 ? ' on' : '') + '" href="#"><span class="trk-n">' + pad2(t.n) + '</span>' +
+      '<div><span class="trk-t">' + t.t + '</span><span class="trk-z">' + t.z + ' ' + t.zone + '</span></div>' +
+      '<span class="trk-d">' + t.d + '</span></a>';
+  });
+  html += '</div>';
+});
+document.getElementById('list').innerHTML = html;
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko" class="C">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>C 가이드 · 마이페이지</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="C.css">
+</head>
+<body>
+<div class="phone">
+  <div class="sb"></div>
+  <header class="tb" data-title="마이페이지"></header>
+  <main class="scroll">
+
+    <!-- 로그인 상태 예시: 이름은 앱 기본값 '관람자', 이메일은 가린 자리표시 -->
+    <a class="mcard" href="#">
+      <div class="mcard-top"><i class="avatar">관</i><div><b>관람자</b><span>abc****@naver.com</span></div></div>
+      <div class="mcard-grade">
+        <div><span><b>Lv.0</b> · 0회 관람</span><span>다음 등급까지 1회</span></div>
+        <div class="segs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <p>Lv.1 혜택 · 기념 굿즈</p>
+      </div>
+    </a>
+
+    <section class="sec" style="padding-top:12px">
+      <a class="cell" href="C-ticket.html"><div><span class="cell-t">보유 티켓</span></div><span class="cell-v">1장</span><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="cell" href="#"><div><span class="cell-t">관람 등급</span></div><span class="cell-v">전체 보기</span><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    </section>
+
+    <div class="band"></div>
+    <section class="sec">
+      <div class="sec-h"><h2 class="sec-t">관람 기록</h2></div>
+      <a class="rec" href="C-hub.html">
+        <img src="img/kv_land.jpg" alt="">
+        <div><b>MONET 100</b><span>신세계본점 더 헤리티지 4F 뮤지엄</span><span>2026. 12. 5 — 2027. 2. 28</span><em>관람 중</em></div>
+        <svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </a>
+    </section>
+
+    <div class="band"></div>
+    <section class="sec">
+      <div class="sec-h"><h2 class="sec-t">이용 안내</h2></div>
+      <a class="cell" href="#"><div><span class="cell-t">취소·환불 규정</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="cell" href="#"><div><span class="cell-t">이용약관</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="cell" href="#"><div><span class="cell-t">개인정보처리방침</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      <a class="cell" href="#"><div><span class="cell-t">고객센터</span><span class="cell-s">info@kyvikos.com</span></div><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+    </section>
+
+    <div class="band"></div>
+    <section class="sec" style="padding-top:8px">
+      <a class="cell" href="#"><div><span class="cell-t">로그아웃</span></div></a>
+      <a class="cell" href="#"><div><span class="cell-t danger">회원 탈퇴</span></div></a>
+    </section>
+    <p class="ver">문명탐험가 v1.0.0</p>
+
+  </main>
+  <nav class="tabbar" data-set="platform" data-on="my"></nav>
+</div>
+<script src="kit.js"></script>
+</body>
+</html>
