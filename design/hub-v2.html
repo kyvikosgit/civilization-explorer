@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>전시 허브 개편안</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css');
+:root{--ink:#111111;--body:#3D3D3A;--sub:#6B6B68;--meta:#9A9A96;--line:#ECEBE7;--point:#D9672F}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#FFFFFF}
+body{font-family:Freesentation,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.wrap{max-width:1000px;margin:0 auto;padding:56px 40px 96px}
+h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:32px;line-height:1.25}
+.lead{font-size:15px;color:var(--sub);margin-top:8px}
+.lead a{color:var(--ink);font-weight:600}
+ol{list-style:none;margin-top:32px;border-top:2px solid var(--ink);counter-reset:n}
+ol li{counter-increment:n;display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);font-size:15.5px;line-height:1.6;color:var(--body)}
+ol li::before{content:counter(n,decimal-leading-zero);flex:none;width:24px;font-family:Paperlogy,sans-serif;font-weight:700;font-size:14px;line-height:1.75;color:var(--meta);font-variant-numeric:tabular-nums}
+ol b{color:var(--ink);font-weight:700}
+.cmp{display:grid;grid-template-columns:390px 390px;justify-content:space-between;align-items:start;margin-top:56px}
+.col h2{position:sticky;top:0;z-index:2;background:#FFFFFF;padding:12px 0;font-family:Paperlogy,sans-serif;font-weight:700;font-size:18px;display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);margin-bottom:16px}
+.col h2 small{font-family:Freesentation,sans-serif;font-weight:500;font-size:13px;color:var(--meta)}
+.col h2 a{font-family:Freesentation,sans-serif;font-weight:600;font-size:13px;color:var(--sub)}
+.shot{border:1px solid var(--line);width:390px}
+.shot + .shot{margin-top:12px}
+@media (max-width:900px){
+  .wrap{padding:40px 16px 72px}
+  h1{font-size:26px}
+  .cmp{grid-template-columns:1fr;gap:48px}
+  .shot{width:100%;max-width:390px;margin:0 auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>전시 허브 개편안</h1>
+  <p class="lead">MONET 100 전시 상세 · 시안 A2 · <a href="app-concepts/A2-hub.html">시안 열기</a></p>
+
+  <ol>
+    <li><span><b>섹션마다 형식이 다릅니다.</b> 같은 목록 행 대신 플레이어 카드, 작품 띠, 큰 이미지 카드, 공간 사진, 표로 나눴습니다.</span></li>
+    <li><span><b>중복을 없앴습니다.</b> 제목 블록에는 기간과 장소만 남기고, 시간과 관람권은 관람 정보에만 둡니다. 가격은 하단 예매 바와 관람 정보 두 곳뿐입니다.</span></li>
+    <li><span><b>머리 체계를 하나로 맞췄습니다.</b> 제목 크기, 보조 줄, 오른쪽 동작의 모양이 모든 섹션에서 같고, 섹션 사이는 8px 밴드 하나입니다.</span></li>
+    <li><span><b>관람 안내와 체험을 갈랐습니다.</b> 관람 안내는 듣고 보는 것(도슨트 플레이어, 작품 도감)이고, 체험은 참여하는 장치 다섯 개를 큰 카드로 보여줍니다.</span></li>
+    <li><span><b>체험 이미지를 한 세트로 맞췄습니다.</b> 그림, 전단, 승차권, 일기장을 같은 4:3 바탕 위에 자르지 않고 올렸습니다.</span></li>
+    <li><span><b>공간은 실제 3D 시각화로 보여줍니다.</b> 4층은 존별 사진, 시각화가 없는 3층은 짧은 목록이며, 모든 존 앞에 층을 붙였습니다.</span></li>
+    <li><span><b>색은 주황 하나입니다.</b> 재생 버튼, D-day, 예매 버튼에만 쓰고 나머지 색은 이미지가 맡습니다.</span></li>
+  </ol>
+
+  <div class="cmp">
+    <section class="col">
+      <h2>현재 <small>앱 화면 순서대로</small></h2>
+      <img class="shot" src="shots/hub-now-0.jpg" alt="현재 허브 1">
+      <img class="shot" src="shots/hub-now-1.jpg" alt="현재 허브 2">
+      <img class="shot" src="shots/hub-now-2.jpg" alt="현재 허브 3">
+      <img class="shot" src="shots/hub-now-3.jpg" alt="현재 허브 4">
+      <img class="shot" src="shots/hub-now-4.jpg" alt="현재 허브 5">
+    </section>
+    <section class="col">
+      <h2>개편안 A2 <a href="app-concepts/A2-hub.html">시안 열기</a></h2>
+      <img class="shot" src="shots/hub-a2-full.jpg" alt="개편안 전체 길이">
+    </section>
+  </div>
+</div>
+</body>
+</html>

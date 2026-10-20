@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ko" class="A">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>A2 · 전시 허브</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="A.css">
+<style>
+/* A2 전시 허브 — 섹션마다 다른 형식, 이미지와 글을 번갈아.
+   간격 단위 4·8·12·16·24·32·40 / 섹션 사이 8px 밴드 / 색은 주황 하나(재생·D-day·예매) */
+.A2 .scroll{scroll-behavior:smooth}
+
+/* 이미지 — 공식 포스터, 포스터 비율 그대로 */
+.A2 .poster{aspect-ratio:7016/9933;background:#111111}
+.A2 .poster img{width:100%;height:100%;object-fit:cover}
+
+/* 제목 블록 — [id].tsx 그대로, 정보 행은 기간·장소만 */
+.A2 .xh{padding:30px 20px 8px}
+.A2 .xh-st{font-size:13px;font-weight:600;color:var(--sub)}
+.A2 .xh-st b{font-family:var(--display);font-weight:800;color:var(--point);margin-left:6px}
+.A2 .xh-t{font-family:var(--display);font-weight:800;font-size:30px;line-height:36px;margin-top:8px}
+.A2 .xh-s{font-size:16px;font-weight:700;line-height:23px;margin-top:4px}
+.A2 .xh-k{font-size:13px;line-height:19px;color:var(--meta);margin-top:6px}
+.A2 .xh-m{margin-top:22px;border-top:2px solid var(--ink)}
+.A2 .xh-m div{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:21px}
+.A2 .xh-m div:last-child{border-bottom:0}
+.A2 .xh-m dt{flex:none;width:44px;font-size:13.5px;color:var(--meta)}
+.A2 .xh-m dd{flex:1;color:var(--ink)}
+.A2 .tabs{top:0}
+.A2 .tabs a{font-size:14.5px}
+
+/* 섹션 — 하나의 머리 체계: 제목(20) · 보조 줄(13 메타) · 오른쪽 동작(13.5 보조색) */
+.A2 .s{padding:32px 20px;scroll-margin-top:48px}
+.A2 .h{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+.A2 .h > div{min-width:0}
+.A2 .h h2{font-family:var(--display);font-weight:700;font-size:20px;line-height:28px}
+.A2 .h h3{font-size:16px;font-weight:700;line-height:24px}
+.A2 .h p{font-size:13px;line-height:19px;color:var(--meta);margin-top:2px}
+.A2 .act{flex:none;display:inline-flex;align-items:center;gap:4px;height:24px;font-size:13.5px;font-weight:600;color:var(--sub)}
+.A2 .act .ic{width:15px;height:15px;stroke-width:2}
+.A2 .act .ic.qr{width:17px;height:17px;stroke-width:1.9}
+.A2 .blk + .blk{margin-top:32px}
+
+/* 소개 — 확정 포맷 (과거 문장 왼쪽 회색 / 전환 문장 오른쪽 검정 / 주황 짧은 선 + 본문) */
+.A2 .about{padding:40px 20px 40px;scroll-margin-top:48px}
+.A2 .in-past{font-family:var(--display);font-weight:600;font-size:17px;line-height:27px;color:#9A9A9A}
+.A2 .in-turn{font-family:var(--display);font-weight:800;font-size:23px;line-height:33px;text-align:right;margin-top:22px}
+.A2 .in-col{margin-top:34px}
+.A2 .in-rule{width:24px;height:2px;background:var(--point);margin-bottom:16px}
+.A2 .in-body{font-size:14px;line-height:23px;color:#4A4A4A}
+.A2 .in-body + .in-body{margin-top:12px}
+.A2 .in-body b{font-weight:800;color:var(--ink)}
+
+/* 관람 안내 — 듣는 것: 플레이어 카드 */
+.A2 .pl{display:block;border:1px solid var(--line2);border-radius:12px;padding:16px}
+.A2 .pl-top{display:flex;align-items:center;gap:14px}
+.A2 .pl-img{flex:none;width:56px;height:56px;border-radius:6px;overflow:hidden;background:var(--fill)}
+.A2 .pl-img img{width:100%;height:100%;object-fit:cover;object-position:72% 30%}
+.A2 .pl-txt{flex:1;min-width:0}
+.A2 .pl-loc{display:block;font-size:12.5px;line-height:18px;color:var(--meta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.A2 .pl-loc i{font-family:var(--display);font-weight:700;color:var(--ink)}
+.A2 .pl-t{display:block;font-size:16px;font-weight:700;line-height:24px;margin-top:2px}
+.A2 .pl-btn{flex:none;width:48px;height:48px;border-radius:50%;background:var(--point);color:#FFFFFF;display:flex;align-items:center;justify-content:center}
+.A2 .pl-btn .ic{width:22px;height:22px;margin-left:2px}
+.A2 .pl-bar{margin-top:16px;height:3px;border-radius:2px;background:var(--line)}
+.A2 .pl-time{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;line-height:16px;color:var(--meta);font-variant-numeric:tabular-nums}
+
+/* 관람 안내 — 보는 것: 작품 도감 가로 띠 (같은 높이, 원본 비율 그대로) */
+.A2 .strip{display:flex;gap:12px;margin:0 -20px;padding:0 20px;overflow-x:auto;scrollbar-width:none}
+.A2 .strip::-webkit-scrollbar{display:none}
+.A2 .aw{flex:none;display:block}
+.A2 .aw img{height:148px;width:auto;max-width:none;background:var(--fill)}
+.A2 .aw b{display:block;font-size:14px;font-weight:600;line-height:20px;margin-top:12px}
+.A2 .aw span{display:block;font-size:12.5px;line-height:18px;color:var(--meta)}
+
+/* 체험 — 참여하는 장치: 큰 이미지 카드, 같은 4:3 매트 위에 원본을 온전히 */
+.A2 .cards{display:grid;gap:32px}
+.A2 .card{display:block}
+.A2 .card-img{aspect-ratio:4/3;background:#F2F1EE;display:flex;align-items:center;justify-content:center;padding:32px 40px}
+.A2 .card-img img{max-width:100%;max-height:100%;width:auto;height:auto;box-shadow:0 1px 2px rgba(0,0,0,.10),0 10px 24px rgba(0,0,0,.14)}
+.A2 .card-img img.cut{box-shadow:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.10)) drop-shadow(0 10px 14px rgba(0,0,0,.14))}
+.A2 .card-loc{display:block;font-size:13px;line-height:19px;color:var(--meta);margin-top:12px}
+.A2 .card-t{display:block;font-size:18px;font-weight:700;line-height:26px;margin-top:2px}
+.A2 .rows{margin-top:24px;border-top:1px solid var(--line)}
+.A2 .row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);font-size:15px;line-height:22px}
+.A2 .row:last-child{border-bottom:0}
+.A2 .row b{flex:1;font-weight:600}
+.A2 .row span{font-size:14px;color:var(--sub);font-variant-numeric:tabular-nums}
+.A2 .row .chev{width:16px;height:16px;color:#BDBDB7}
+
+/* 공간 — 4F는 존별 3D 시각화, 3F는 짧은 목록 */
+.A2 .fl{display:flex;align-items:baseline;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--ink)}
+.A2 .fl b{font-family:var(--display);font-weight:800;font-size:18px;line-height:26px}
+.A2 .fl span{font-size:14px;font-weight:600}
+.A2 .fl small{margin-left:auto;font-size:13px;color:var(--meta)}
+.A2 .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 12px;padding:16px 0 20px}
+.A2 .tile img{width:100%;aspect-ratio:16/10;object-fit:cover;background:var(--fill)}
+.A2 .tile i{display:block;font-size:12.5px;line-height:18px;color:var(--meta);margin-top:8px}
+.A2 .tile b{display:block;font-size:14.5px;font-weight:600;line-height:21px}
+.A2 .zl > div{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px;line-height:21px}
+.A2 .zl > div:last-child{border-bottom:0}
+.A2 .zl i{flex:none;width:48px;font-size:13px;color:var(--meta);font-variant-numeric:tabular-nums}
+.A2 .zl b{font-weight:600}
+.A2 .zl.top{border-top:1px solid var(--line)}
+.A2 .blk.f3{margin-top:32px}
+
+/* 관람 정보 — 짧은 표 */
+.A2 .info div{padding:12px 0;font-size:14.5px;line-height:22px}
+.A2 .org{font-size:12.5px;line-height:20px;color:var(--meta);padding:16px 0 0;border-top:1px solid var(--line);margin-top:4px}
+.A2 .s.last{padding-bottom:40px}
+</style>
+</head>
+<body>
+<div class="phone A2">
+  <div class="sb"></div>
+  <header class="tb" data-left="back" data-right="chip"></header>
+  <main class="scroll" id="sc">
+
+    <!-- 이미지 -->
+    <div class="poster"><img src="img/poster.jpg" alt="MONET 100 공식 포스터"></div>
+
+    <!-- 제목 블록 -->
+    <div class="xh">
+      <p class="xh-st">예매 중<b data-dday>D-46</b></p>
+      <h1 class="xh-t">MONET 100</h1>
+      <p class="xh-s">시대를 읽는 감각의 계보</p>
+      <p class="xh-k">클로드 모네 서거 100주년 기념 미디어 체험 전시</p>
+      <dl class="xh-m">
+        <div><dt>기간</dt><dd class="num">2026. 12. 5 — 2027. 2. 28</dd></div>
+        <div><dt>장소</dt><dd>신세계본점 더 헤리티지 4F 뮤지엄</dd></div>
+      </dl>
+    </div>
+
+    <nav class="tabs" aria-label="전시 목차">
+      <a class="on" href="#about">소개</a><a href="#guide">관람 안내</a><a href="#exp">체험</a><a href="#space">공간</a><a href="#info">관람 정보</a>
+    </nav>
+
+    <!-- 소개 -->
+    <section class="about" id="about">
+      <p class="in-past">1874년, 파리의 심사위원들은<br>모네를 비웃었습니다.</p>
+      <p class="in-turn">그러나 시대는 이미<br>그 기준을 넘어<br>움직이고 있었습니다.</p>
+      <div class="in-col">
+        <div class="in-rule"></div>
+        <p class="in-body"><b>MONET 100</b>은 인상주의 이후 100년, 시대의 다음을 가장 먼저 감각한 이들의 계보를 따라갑니다.</p>
+        <p class="in-body">관람객은 1874년 파리행 승차권을 쥔 여행자가 되어, 살롱의 심사석과 화가의 아틀리에를 지나 생라자르 역에서 노르망디행 열차에 오릅니다.</p>
+      </div>
+    </section>
+
+    <!-- 관람 안내 — 보고 듣는 것 -->
+    <div class="band"></div>
+    <section class="s" id="guide">
+      <div class="h"><div><h2>관람 안내</h2></div></div>
+
+      <div class="blk">
+        <div class="h"><div><h3>오디오 도슨트</h3><p id="docent-sum">14개 트랙 · 총 12분</p></div><a class="act" href="A-audio.html">전체 보기<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a></div>
+        <a class="pl" href="A-audio.html" aria-label="오디오 도슨트 재생">
+          <div class="pl-top">
+            <span class="pl-img"><img src="img/kv_land.jpg" alt=""></span>
+            <span class="pl-txt">
+              <span class="pl-loc"><i class="num">01</i> · 4F · A 접수 및 안내</span>
+              <span class="pl-t">전시를 시작하며</span>
+            </span>
+            <span class="pl-btn"><svg class="ic icf" viewBox="0 0 24 24"><path d="M8 5.2v13.6L19 12z"/></svg></span>
+          </div>
+          <div class="pl-bar"></div>
+          <div class="pl-time"><span>0:00</span><span>0:54</span></div>
+        </a>
+      </div>
+
+      <div class="blk">
+        <div class="h"><div><h3>작품 도감</h3><p>6점</p></div><a class="act" href="#">전체 보기<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a></div>
+        <div class="strip">
+          <a class="aw" href="#"><img src="img/art_sunrise.jpg" alt=""><b>인상, 해돋이</b><span>클로드 모네</span></a>
+          <a class="aw" href="#"><img src="img/lazare.jpg" alt=""><b>생라자르역</b><span>클로드 모네</span></a>
+          <a class="aw" href="#"><img src="img/etretat.jpg" alt=""><b>에트르타의 마네포르트</b><span>클로드 모네</span></a>
+          <a class="aw" href="#"><img src="img/giverny.jpg" alt=""><b>수련 연못</b><span>클로드 모네</span></a>
+          <a class="aw" href="#"><img src="img/vision.jpg" alt=""><b>환상 (La Vision)</b><span>뤽-올리비에 메르송</span></a>
+          <a class="aw" href="#"><img src="img/meules.jpg" alt=""><b>건초더미 연작</b><span>클로드 모네</span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 체험 — 참여하는 장치 -->
+    <div class="band"></div>
+    <section class="s" id="exp">
+      <div class="h"><div><h2>체험</h2></div><a class="act" href="#"><svg class="ic qr" viewBox="0 0 24 24"><path d="M4 8.5V5a1 1 0 0 1 1-1h3.5M15.5 4H19a1 1 0 0 1 1 1v3.5M20 15.5V19a1 1 0 0 1-1 1h-3.5M8.5 20H5a1 1 0 0 1-1-1v-3.5M4 12h16"/></svg>QR 스캔</a></div>
+      <div class="cards">
+        <a class="card" href="#"><div class="card-img"><img src="img/vision_l.jpg" alt=""></div><span class="card-loc">4F · B 아카데미 살롱</span><b class="card-t">올해의 그림</b></a>
+        <a class="card" href="#"><div class="card-img"><img src="img/flyer_l.jpg" alt=""></div><span class="card-loc">4F · C-1 시민사회</span><b class="card-t">카페 게르부아의 소문</b></a>
+        <a class="card" href="#"><div class="card-img"><img class="cut" src="img/t_ticket.png" alt=""></div><span class="card-loc">4F · C-2 산업혁명</span><b class="card-t">여행자의 책상</b></a>
+        <a class="card" href="#"><div class="card-img"><img src="img/diary.jpg" alt=""></div><span class="card-loc">4F · C-3 화가의 아틀리에</span><b class="card-t">화가를 밖으로 이끈 것</b></a>
+        <a class="card" href="#"><div class="card-img"><img src="img/art_sunrise.jpg" alt=""></div><span class="card-loc">4F · D 모네 전시관</span><b class="card-t">비평가를 화나게 한 그림</b></a>
+      </div>
+      <div class="rows">
+        <a class="row" href="#"><b>나의 수집품</b><span>0 / 5</span><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+        <a class="row" href="#"><b>완주 엠블럼</b><svg class="ic chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a>
+      </div>
+    </section>
+
+    <!-- 공간 -->
+    <div class="band"></div>
+    <section class="s" id="space">
+      <div class="h"><div><h2>공간</h2></div><a class="act" href="#">전체 보기<svg class="ic" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></a></div>
+
+      <div class="blk">
+        <div class="fl"><b>4F</b><span>이해의 층</span><small>변화의 시대</small></div>
+        <div class="zl"><div><i>4F · A</i><b>접수 및 안내</b></div></div>
+        <div class="grid">
+          <div class="tile"><img src="img/r_C0_a.jpg" alt=""><i>4F · B</i><b>아카데미 살롱</b></div>
+          <div class="tile"><img src="img/r_C1.jpg" alt=""><i>4F · C-1</i><b>시민사회</b></div>
+          <div class="tile"><img src="img/r_C2.jpg" alt=""><i>4F · C-2</i><b>산업혁명</b></div>
+          <div class="tile"><img src="img/r_C3.jpg" alt=""><i>4F · C-3</i><b>화가의 아틀리에</b></div>
+          <div class="tile"><img src="img/r_C4.jpg" alt=""><i>4F · C-4</i><b>나다르 사진관</b></div>
+          <div class="tile"><img src="img/r_C5_a.jpg" alt=""><i>4F · D</i><b>모네 전시관</b></div>
+        </div>
+        <div class="zl top"><div><i>4F · E</i><b>메인 미디어관</b></div></div>
+      </div>
+
+      <div class="blk f3">
+        <div class="fl"><b>3F</b><span>체험의 층</span><small>모네의 세계</small></div>
+        <div class="zl">
+          <div><i>3F · A</i><b>생라자르역</b></div>
+          <div><i>3F · B</i><b>에트르타</b></div>
+          <div><i>3F · C</i><b>건초더미</b></div>
+          <div><i>3F · D</i><b>지베르니</b></div>
+          <div><i>3F · E</i><b>미시아 살롱</b></div>
+          <div><i>3F · F</i><b>굿즈샵</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 관람 정보 -->
+    <div class="band"></div>
+    <section class="s last" id="info">
+      <div class="h"><div><h2>관람 정보</h2></div></div>
+      <dl class="info">
+        <div><dt>기간</dt><dd class="num">2026. 12. 5 — 2027. 2. 28</dd></div>
+        <div><dt>시간</dt><dd class="num">10:00 – 19:00<small>매 정시 입장 · 회차당 60분</small></dd></div>
+        <div><dt>장소</dt><dd>신세계본점 더 헤리티지 4F 뮤지엄</dd></div>
+        <div><dt>관람권</dt><dd class="num">성인 22,000원 · 청소년 16,000원</dd></div>
+      </dl>
+      <p class="org">주최 SONG DONG HUN Inc. · 주관 KYVIKOS<br>후원 SHINSEGAE · LVMH · 주한 프랑스문화원</p>
+    </section>
+
+  </main>
+  <div class="buy">
+    <div class="buy-p"><b class="num">22,000원</b><span>성인 · NOL 티켓 회차 지정</span></div>
+    <a class="btn btn-point" href="#">예매하기</a>
+  </div>
+</div>
+<script src="kit.js"></script>
+<script>
+// 도슨트 합계 — kit.js TRACKS(= docent.ts 실측 길이)에서 계산
+(function () {
+  var sec = TRACKS.reduce(function (a, t) { var p = t.d.split(':'); return a + (+p[0]) * 60 + (+p[1]); }, 0);
+  document.getElementById('docent-sum').textContent = TRACKS.length + '개 트랙 · 총 ' + Math.round(sec / 60) + '분';
+})();
+// 탭 — 스크롤 위치에 따라 켜짐
+(function () {
+  var sc = document.getElementById('sc'), tabs = [].slice.call(document.querySelectorAll('.tabs a'));
+  var secs = tabs.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function upd() {
+    var y = sc.scrollTop + 48 + 8, cur = 0;
+    secs.forEach(function (s, i) { if (s.offsetTop <= y) cur = i; });
+    if (sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 4) cur = secs.length - 1;
+    tabs.forEach(function (a, i) { a.classList.toggle('on', i === cur); });
+  }
+  sc.addEventListener('scroll', upd, { passive: true });
+})();
+</script>
+</body>
+</html>
