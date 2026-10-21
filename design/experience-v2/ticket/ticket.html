@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Billet OUEST 1874 · mock</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+/* 57×30 mm 에드몬슨 카드 → 20 px/mm = 1140×600 px.  글꼴: Old Standard TT(19세기 디돈 계열 본문·숫자, OFL) ·
+   Playfair Display(디돈 팻페이스, 큰 숫자, OFL) · 한글 메모만 Freesentation.  서체 선택 근거는 보드 C2 참고. */
+:root{
+  --card:#E8DCB8;            /* 담황색 카드(한 가지 색, 등급별 색 미확인) */
+  --card-2:#DFD0A6;
+  --ink:#2A2420;             /* 인쇄 잉크 */
+  --ink-soft:#4A413A;
+  --stamp:#3B3F8C;           /* 날인 잉크(보라·남색) */
+  --pencil:#4B4640;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#FFF}
+body{font-family:'Old Standard TT',serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.stage{width:1140px;height:600px;position:relative;overflow:hidden}
+
+/* 카드 */
+.card{position:absolute;inset:0;background:
+  radial-gradient(120% 90% at 30% 20%,rgba(255,255,255,.28),transparent 60%),
+  repeating-linear-gradient(115deg,rgba(0,0,0,.025) 0 2px,transparent 2px 7px),
+  linear-gradient(180deg,var(--card),var(--card-2));
+  border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}
+.card::after{content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;
+  background:
+   radial-gradient(circle at 12% 78%,rgba(90,70,30,.10),transparent 18%),
+   radial-gradient(circle at 86% 24%,rgba(90,70,30,.08),transparent 16%)}
+
+/* 양 끝 세로 일련번호 (1898년 실물 방식) */
+.serial{position:absolute;top:0;bottom:0;width:86px;display:flex;align-items:center;justify-content:center}
+.serial span{font-weight:700;font-size:58px;letter-spacing:.14em;writing-mode:vertical-rl;color:var(--ink)}
+.serial.l{left:0}.serial.l span{transform:rotate(180deg)}
+.serial.r{right:0}
+
+/* 인쇄 틀 */
+.frame{position:absolute;left:92px;right:92px;top:30px;bottom:30px;border:3px solid var(--ink);outline:1.5px solid var(--ink);outline-offset:4px;
+  display:grid;grid-template-rows:auto 1fr auto}
+.route{border-bottom:3px solid var(--ink);padding:14px 20px 10px;text-align:center;line-height:1}
+.route .from{font-size:60px;font-weight:700;letter-spacing:.06em}
+.route .from small{font-size:34px;font-weight:700;letter-spacing:.02em}
+.route .to{font-size:92px;font-weight:700;letter-spacing:.10em;margin-top:4px;font-family:'Playfair Display',serif}
+.route .via{font-size:26px;font-style:italic;letter-spacing:.04em;margin-top:2px;color:var(--ink-soft)}
+.mid{display:grid;grid-template-columns:232px 1fr 230px}
+.mid>div{padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1}
+.mid .co{border-right:3px solid var(--ink)}
+.mid .co b{font-size:50px;letter-spacing:.12em;font-weight:700}
+.mid .co i{font-style:normal;font-size:22px;margin-top:10px;letter-spacing:.08em;color:var(--ink-soft)}
+.mid .cls .n{font-family:'Playfair Display',serif;font-weight:900;font-size:150px;line-height:.9;letter-spacing:-.02em}
+.mid .cls .n sup{font-size:48px;font-family:'Old Standard TT',serif;font-weight:700;vertical-align:top;position:relative;top:22px;letter-spacing:0}
+.mid .cls .w{font-size:40px;font-weight:700;letter-spacing:.18em;margin-top:6px}
+.mid .cls .pe{font-size:24px;letter-spacing:.14em;margin-top:8px;color:var(--ink-soft)}
+.mid .px{border-left:3px solid var(--ink)}
+.mid .px small{font-size:22px;letter-spacing:.2em}
+.mid .px b{font-size:66px;line-height:1;margin-top:10px;font-weight:700;white-space:nowrap}
+.mid .px b sup{font-size:30px;vertical-align:top;position:relative;top:6px}
+.mid .px i{font-style:italic;font-size:20px;margin-top:10px;color:var(--ink-soft)}
+.foot{border-top:3px solid var(--ink);display:grid;grid-template-columns:auto 1fr;align-items:center;padding:8px 20px;line-height:1;min-height:70px}
+.foot .aller{font-size:40px;font-weight:700;letter-spacing:.3em}
+.foot .train{font-size:22px;letter-spacing:.08em;color:var(--ink-soft);text-align:right}
+
+/* 날인(기기에서 합성): 날짜는 왼쪽 가장자리 세로, 열차는 아래 띠에 */
+.stamp{position:absolute;color:var(--stamp);font-weight:700;letter-spacing:.08em;opacity:.86;
+  mix-blend-mode:multiply;filter:url(#rough)}
+.stamp.date{left:-74px;top:50%;width:300px;text-align:center;transform:translateY(-50%) rotate(-90deg);transform-origin:center;font-size:38px;white-space:nowrap}
+.stamp.date::before,.stamp.date::after{content:"";display:inline-block;width:28px;height:3px;background:var(--stamp);vertical-align:middle;margin:0 14px}
+.stamp.train{right:130px;bottom:44px;font-size:30px;border:3px solid var(--stamp);padding:6px 14px;transform:rotate(-2deg);white-space:nowrap;border-radius:3px}
+
+/* 뒷면 */
+.back .frame{display:block;padding:26px 36px}
+.back .k{font-size:22px;letter-spacing:.22em;color:var(--ink-soft);text-align:center}
+.back .ttl{font-size:40px;font-weight:700;letter-spacing:.16em;text-align:center;margin-top:2px}
+.back .ttl small{display:block;font-size:22px;letter-spacing:.08em;font-weight:400;margin-top:6px;color:var(--ink-soft)}
+.back .row{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:baseline;margin-top:30px;border-bottom:2px dotted var(--ink-soft);padding-bottom:8px}
+.back .row small{font-size:24px;letter-spacing:.16em;color:var(--ink-soft)}
+.back .row .v{font-size:44px;font-weight:700;letter-spacing:.06em;line-height:1}
+.back .name .v{color:var(--stamp);font-family:Freesentation,'Old Standard TT',serif;font-weight:800;letter-spacing:.14em;filter:url(#rough)}
+.back .memo{margin-top:56px;position:relative;height:150px;background:repeating-linear-gradient(180deg,transparent 0 70px,var(--ink-soft) 70px 72px);background-size:100% 72px}
+.back .memo span{position:absolute;left:4px;top:14px;font-family:Freesentation,sans-serif;font-weight:500;font-size:42px;letter-spacing:-.01em;color:var(--pencil);line-height:72px;white-space:pre-wrap;transform:rotate(-.6deg)}
+.back .memo em{position:absolute;left:0;top:-34px;font-style:normal;font-size:20px;letter-spacing:.12em;color:var(--ink-soft)}
+.back .fine{position:absolute;left:36px;right:36px;bottom:16px;font-size:17px;letter-spacing:.04em;color:var(--ink-soft);display:flex;justify-content:space-between}
+.back .fine b{font-family:Freesentation,sans-serif;font-weight:600}
+
+/* 폰 화면 (390×844) */
+.phone{width:390px;height:844px;background:#FFF;font-family:Freesentation,-apple-system,sans-serif;color:#111;padding:54px 16px 0;position:relative;overflow:hidden}
+.phone .bar{display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:700;color:#6B6B68}
+.phone .bar b{color:#111}
+.phone h1{font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:24px;margin-top:22px;line-height:1.25}
+.phone .sub{font-size:13.5px;color:#6B6B68;margin-top:4px}
+.phone .tk{margin-top:18px;width:358px;height:188.4px;border-radius:8px;overflow:hidden;box-shadow:0 10px 24px -14px rgba(0,0,0,.45)}
+.phone .tk .stage{transform:scale(.31404);transform-origin:0 0}
+.phone .cap{font-size:12px;color:#9A9A96;margin-top:8px;text-align:center}
+.phone .hist{margin-top:22px;border-top:1px solid #111;padding-top:12px;font-size:14.5px;line-height:1.55;color:#3D3D3A}
+.phone .hist b{color:#111}
+.phone .btn{margin-top:auto;height:50px;border:2px solid #111;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;border-radius:2px}
+.phone .btns{position:absolute;left:16px;right:16px;bottom:28px;display:grid;gap:8px}
+.phone .btns .btn.fill{background:#111;color:#FFF}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter></svg>
+
+<template id="front">
+<div class="stage front">
+  <div class="card"></div>
+  <div class="serial l"><span>04173</span></div>
+  <div class="serial r"><span>04173</span></div>
+  <div class="frame">
+    <div class="route">
+      <div class="from">PARIS <small>(S<sup style="font-size:.55em">t</sup>-LAZARE)</small></div>
+      <div class="to">LE HAVRE</div>
+      <div class="via">par Rouen</div>
+    </div>
+    <div class="mid">
+      <div class="co"><b>OUEST</b><i>SÉRIE A</i></div>
+      <div class="cls"><div class="n">2<sup>me</sup></div><div class="w">CLASSE</div><div class="pe">PLACE ENTIÈRE</div></div>
+      <div class="px"><small>PRIX</small><b>21<sup>f</sup>05</b></div>
+    </div>
+    <div class="foot"><div class="aller">ALLER</div><div class="train"></div></div>
+  </div>
+  <div class="stamp date">21 OCT 1874</div>
+  <div class="stamp train">OMNIBUS · DÉP. 12 h 25 soir</div>
+</div>
+</template>
+
+<template id="back">
+<div class="stage back">
+  <div class="card"></div>
+  <div class="serial l"><span>04173</span></div>
+  <div class="serial r"><span>04173</span></div>
+  <div class="frame">
+    <div class="k">CHEMIN DE FER DE L'OUEST</div>
+    <div class="ttl">SOUVENIR DE VOYAGE<small>Mercredi 21 octobre 1874 · Paris – Le Havre</small></div>
+    <div class="row name"><small>VOYAGEUR</small><div class="v">관람자</div></div>
+    <div class="memo"><em>MÉMOIRE DU VOYAGE</em><span data-memo></span></div>
+    <div class="fine"><span>N° 04173 · 2<sup>me</sup> classe · omnibus 12 h 25 – 7 h 48 (7 h 23)</span><b>MONET 100 · 재현물 · 1874년 10월 21일 수요일</b></div>
+  </div>
+</div>
+</template>
+
+<template id="phone">
+<div class="phone">
+  <div class="bar"><b>9:41</b><span>C2 · 매표창</span></div>
+  <h1>나의 기차표</h1>
+  <div class="sub">1874년 10월 21일 수요일 · 생라자르역 → 르아브르</div>
+  <div class="tk" data-slot="front"></div>
+  <div class="cap">표를 눌러 뒤집기</div>
+  <div class="tk" data-slot="back"></div>
+  <div class="hist"><b>르아브르</b> 모네가 자란 항구. 〈인상, 해돋이〉를 그린 곳.<br>서부철도, 파리–르아브르 1847년 개통. 2등 21 fr. 05, 보통열차 7시간 23분.</div>
+  <div class="btns"><div class="btn fill">수집함에 저장</div><div class="btn">사진첩에 저장</div></div>
+</div>
+</template>
+
+<script>
+const q=new URLSearchParams(location.search);
+const view=q.get('view')||'front';
+const memo=q.get('memo')||'';
+function make(id){return document.getElementById(id).content.firstElementChild.cloneNode(true)}
+let root;
+if(view==='phone'){
+  root=make('phone');
+  const f=make('front'),b=make('back');
+  b.querySelector('[data-memo]').textContent=memo||'르아브르 가는 날. 안개가 짙었다.';
+  root.querySelector('[data-slot=front]').appendChild(f);
+  root.querySelector('[data-slot=back]').appendChild(b);
+}else{
+  root=make(view==='front'?'front':'back');
+  const m=root.querySelector('[data-memo]'); if(m) m.textContent=memo;
+}
+document.body.appendChild(root);
+</script>
+</body>
+</html>
