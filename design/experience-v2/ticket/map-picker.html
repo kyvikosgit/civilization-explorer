@@ -27,7 +27,7 @@
 </div>
 <script type="module">
 // ── 부스 프로토타입 booth/js/c2.js 의 지도 엔진(el · proj · initMap 그리기 · smoothPath · drawRoute · 라벨 · 지역 강조)을 그대로 가져와
-//    시점만 파리→노르망디 해안으로 고정하고, 출발역 1곳(생라자르) + 목적지 7곳(행정구역 영역 + 역점)으로 바꿨다.
+//    시점만 파리→노르망디 해안으로 고정하고, 출발역 1곳(생라자르) + 목적지 6곳(행정구역 영역 + 역점)으로 바꿨다.
 //    데이터: map.json = booth/assets/data/map.json 사본 · zones.json = france-geojson arrondissements/cantons를 같은 메르카토르로 투영
 const NS = 'http://www.w3.org/2000/svg';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -35,11 +35,10 @@ const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS,
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 const ORIGIN = { id: 'lazare', fr: 'Gare Saint-Lazare', ko: '생라자르역', ll: [2.3253, 48.8763], lab: [8, 24, 'end'] };
-// 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 브레오테-뵈즈빌(0.40,49.61 — 페캉 지선 분기) · 에브뢰 · 베르네 · 리지외 · 퐁레베크 · 아니에르 · 낭테르
+// 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 브레오테-뵈즈빌(0.40,49.61 — 페캉 지선 분기) · 에브뢰 · 베르네 · 리지외 · 퐁레베크 · 아니에르
 const V = { mantes: [1.72, 48.99], vernon: [1.4850, 49.0930], rouen: [1.0993, 49.4431], yvetot: [0.753, 49.617], beuzeville: [0.40, 49.61],
-  evreux: [1.15, 49.02], bernay: [0.60, 49.09], lisieux: [0.23, 49.15], pontleveque: [0.18, 49.28], asnieres: [2.285, 48.905], nanterre: [2.20, 48.90] };
+  evreux: [1.15, 49.02], bernay: [0.60, 49.09], lisieux: [0.23, 49.15], pontleveque: [0.18, 49.28], asnieres: [2.285, 48.905] };
 const DEST = [
-  { id: 'chatou', fr: 'Chatou', ko: '샤투', ll: [2.1567, 48.8897], lab: [-10, -4, 'end'], info: '12 km · 32분', year: 1869, via: [V.asnieres, V.nanterre] },
   { id: 'argenteuil', fr: 'Argenteuil', ko: '아르장퇴유', ll: [2.2472, 48.9472], lab: [0, -30, 'middle'], info: '11 km · 25분', year: 1874, via: [V.asnieres] },
   { id: 'vernon', fr: 'Vernon', ko: '베르농', ll: [1.4850, 49.0930], lab: [0, 22, 'middle'], info: '80 km · 급행 1시간 30분', year: 1883, via: [V.mantes] },
   { id: 'rouen', fr: 'Rouen', ko: '루앙', ll: [1.0993, 49.4431], lab: [12, 5, 'start'], info: '140 km · 급행 2시간 40분', year: 1872, via: [V.mantes, V.vernon] },
@@ -48,8 +47,8 @@ const DEST = [
   { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, -14, 'middle'], labSel: [14, 6, 'start'], info: '229 km · 급행 4시간 30분', year: 1872, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
 ];
 // 목적지 영역 색 — 부스 지역 양피지 색 계열(노르망디 #C2C48E · 오드프랑스 #D6C08C · 브르타뉴 #CFB57F …)에서 고른 7색
-const ZTINT = { chatou: '#E6CC8E', argenteuil: '#DDAE74', vernon: '#C3D0A4', rouen: '#D9BE8C', lesifs: '#E4D47E', trouville: '#AFC0A0', lehavre: '#C89E72' };
-const ZORDER = ['chatou', 'argenteuil', 'vernon', 'rouen', 'trouville', 'lehavre', 'lesifs'];
+const ZTINT = { argenteuil: '#DDAE74', vernon: '#C3D0A4', rouen: '#D9BE8C', lesifs: '#E4D47E', trouville: '#AFC0A0', lehavre: '#C89E72' };
+const ZORDER = ['argenteuil', 'vernon', 'rouen', 'trouville', 'lehavre', 'lesifs'];
 const FIT = { lon0: -0.3, lon1: 2.65, lat0: 48.72, lat1: 49.92 };     // 파리 → 노르망디 해안
 
 let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null;

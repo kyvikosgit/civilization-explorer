@@ -8,7 +8,7 @@
 <style>
 /* 57×30 mm 에드몬슨 카드 → 20 px/mm = 1140×600 px.  글꼴: Old Standard TT(19세기 디돈 계열 본문·숫자, OFL) ·
    Playfair Display(디돈 팻페이스, 큰 숫자, OFL) · 한글 주석만 Freesentation.  서체 선택 근거는 보드 C2 참고.
-   ?to=chatou|argenteuil|rouen|havre|trouville|vernon|ifs  ·  ?view=front|back|phone  ·  ?d=21&m=10 (관람일) */
+   ?to=argenteuil|rouen|havre|trouville|vernon|ifs  ·  ?view=front|back|phone  ·  ?d=21&m=10 (관람일) */
 :root{
   --card:#E8DCB8;            /* 담황색 카드(한 가지 색, 등급별 색 미확인) */
   --card-2:#DFD0A6;
@@ -151,7 +151,6 @@ body{font-family:'Old Standard TT',serif;color:var(--ink);-webkit-font-smoothing
 <script>
 // 목적지 데이터. 연도 = 모네가 그곳에 머문 해(보드 C2 표). 운임은 그 해 ±3년 안의 안내서에 있는 2등 값만 찍는다. 없으면 빈 칸.
 const DEST={
-  chatou:    {to:'CHATOU',     via:'ligne de S<sup style="font-size:.6em">t</sup>-Germain', year:1869, prix:null,   ko:'샤투 · 라 그르누예르', hist:'<b>샤투</b> 1869년 여름, 르누아르와 나란히 라 그르누예르를 그렸다. 생제르맹선, 생라자르에서 약 30분(1875년 시간표).'},
   argenteuil:{to:'ARGENTEUIL', via:'',                 year:1874, prix:null,   ko:'아르장퇴유', hist:'<b>아르장퇴유</b> 1871년 말부터 1878년 초까지 살았다. 배 위의 작업실, 요트 경주, 철교. 생라자르에서 25분(1875년 시간표).'},
   rouen:     {to:'ROUEN',      via:'rive droite',      year:1872, prix:'12<sup>f</sup>50', ko:'루앙', hist:'<b>루앙</b> 1872년 형 레옹의 집에 머물며 강에서 본 도시를 그리고 시립전람회에 두 점을 냈다. 급행 2시간 40분(1875년 시간표).'},
   havre:     {to:'LE HAVRE',   via:'par Rouen',        year:1872, prix:'21<sup>f</sup>05', ko:'르아브르', hist:'<b>르아브르</b> 모네가 자란 항구. 1872년 11월경 호텔 창문에서 〈인상, 해돋이〉를 그렸다. 급행 4시간 30분, 2등 21 fr. 05(1874년 안내서).'},
