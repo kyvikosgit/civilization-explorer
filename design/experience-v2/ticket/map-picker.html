@@ -1,36 +1,176 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>C2 · 어디까지 가시겠습니까</title>
-<link rel="stylesheet" href="fonts.css"><link rel="stylesheet" href="../style.css">
-<style>
-html,body{height:100%}
-body{background:#FFF;display:flex;flex-direction:column;min-height:100vh}
-.scr{flex:1;display:flex;flex-direction:column;padding:44px 0 24px}
-.hd{padding:0 20px 8px}
-.hd .ph-role{font-size:13px}
-.hd .ph-q{font-size:24px;line-height:1.25;margin-top:4px}
-.rail-wrap{width:100%}
-.scr .ph-note{margin:8px 20px 0;font-size:12px;line-height:1.4}
-.sel{margin:auto 20px 0;border-top:1px solid var(--ink);padding-top:14px}
-.sel b{display:block;font-family:'Playfair Display',Georgia,serif;font-size:30px;letter-spacing:.06em;color:var(--point);line-height:1.1}
-.sel span{display:block;font-size:16px;color:var(--body);margin-top:4px}
-.sel small{display:block;font-size:12px;color:var(--meta);margin-top:2px}
-.scr .ph-btn{margin:16px 20px 0;font-size:16px;padding:14px 0;border-radius:6px}
-</style></head><body>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="map-picker.css">
+</head>
+<body>
 <div class="scr">
-<div class="hd"><div class="ph-role">C2 · 매표창 · 생라자르역</div><div class="ph-q">어디까지 가시겠습니까</div></div>
-<div class="rail-wrap rail-wrap--phone"><svg xmlns="http://www.w3.org/2000/svg" viewBox="6580 3060 2760 3174" width="2760" height="3174" class="rail-map rail-map--phone" role="img" aria-label="Chemins de fer de l'Ouest, Paris–Normandie"><defs><clipPath id="p-clip"><rect x="6580" y="3060" width="2760" height="3174"/></clipPath><filter id="p-paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.0017" numOctaves="3" seed="11" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 .62 0 0 0 0 .52 0 0 0 0 .36 0 0 0 .22 0" result="t"/><feBlend in="SourceGraphic" in2="t" mode="multiply" result="b"/><feTurbulence type="fractalNoise" baseFrequency="0.0848" numOctaves="1" seed="3" result="g"/><feColorMatrix in="g" type="matrix" values="0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .35 0 0 0 .07 0" result="g2"/><feBlend in="b" in2="g2" mode="multiply"/></filter><filter id="p-shadow" x="-10%" y="-10%" width="120%" height="120%"><feMorphology operator="dilate" radius="28.3"/><feGaussianBlur stdDeviation="35.4"/></filter></defs><g clip-path="url(#p-clip)"><g filter="url(#p-paper)"><rect x="6580" y="3060" width="2760" height="3174" fill="#C8B284"/><polygon points="7950,3330 7800,3426 7700,3470 7564,3514 7450,3540 7362,3571 7300,3600 7231,3627 7180,3650 7144,3668 7148,3690 7110,3700 7082,3712 7040,3730 7004,3752 6980,3780 6960,3811 6935,3850 6916,3890 6900,3925 6890,3960 6888,4000 6890,4035 6900,4065 6903,4080 6912,4090 6940,4094 6995,4092 7065,4100 7144,4092 7222,4092 7275,4100 7292,4113 7345,4135 7389,4150 7402,4158 7389,4166 7319,4163 7240,4146 7161,4154 7091,4162 7039,4172 7021,4188 6960,4193 6916,4206 6890,4222 6862,4245 6855,4258 6811,4284 6750,4319 6689,4345 6619,4354 6549,4380 6487,4390 6400,4408 6300,4420 6300,3200 7950,3200" fill="#6B5537" opacity=".42" filter="url(#p-shadow)"/><polygon points="7950,3330 7800,3426 7700,3470 7564,3514 7450,3540 7362,3571 7300,3600 7231,3627 7180,3650 7144,3668 7148,3690 7110,3700 7082,3712 7040,3730 7004,3752 6980,3780 6960,3811 6935,3850 6916,3890 6900,3925 6890,3960 6888,4000 6890,4035 6900,4065 6903,4080 6912,4090 6940,4094 6995,4092 7065,4100 7144,4092 7222,4092 7275,4100 7292,4113 7345,4135 7389,4150 7402,4158 7389,4166 7319,4163 7240,4146 7161,4154 7091,4162 7039,4172 7021,4188 6960,4193 6916,4206 6890,4222 6862,4245 6855,4258 6811,4284 6750,4319 6689,4345 6619,4354 6549,4380 6487,4390 6400,4408 6300,4420 6300,3200 7950,3200" fill="#DED6BA" stroke="#6B5537" stroke-width="6.4" stroke-linejoin="round"/></g><path d="M6600 3060V6234 M6900 3060V6234 M7200 3060V6234 M7500 3060V6234 M7800 3060V6234 M8100 3060V6234 M8400 3060V6234 M8700 3060V6234 M9000 3060V6234 M9300 3060V6234 M6580 3300H9340 M6580 3600H9340 M6580 3900H9340 M6580 4200H9340 M6580 4500H9340 M6580 4800H9340 M6580 5100H9340 M6580 5400H9340 M6580 5700H9340 M6580 6000H9340" stroke="#AA9678" stroke-width="5.7" opacity=".55" fill="none"/><polyline points="7389,4158 7430,4120 7470,4060 7500,4030 7540,4040 7580,4060 7610,4080 7640,4110 7660,4160 7670,4210 7700,4240 7750,4230 7800,4200 7850,4180 7885,4172 7870,4220 7830,4270 7800,4310 7830,4360 7880,4400 7950,4420 8030,4430 8100,4440 8090,4500 8050,4560 8030,4620 8080,4660 8150,4690 8205,4712 8235,4760 8265,4815 8320,4850 8400,4892 8470,4850 8540,4820 8610,4812 8680,4825 8725,4832 8770,4870 8810,4895 8850,4905 8870,4945 8890,4990 8930,4965 8965,4938 8990,4968 9030,5010 9080,5050 9140,5075" fill="none" stroke="#7A93A8" stroke-width="11.3" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/><g fill="none" stroke="#8C7A66" stroke-width="7.8" stroke-linejoin="round" stroke-linecap="round" opacity=".85"><polyline points="8885,4993 8840,4998 8790,4995 8740,4990"/><polyline points="7186,3786 7175,3740 7162,3700 7156,3688"/><polyline points="6960,4385 7010,4375 7060,4350 7075,4300 7060,4250 7045,4210 7030,4195"/><polyline points="6930,4578 6830,4592 6690,4656 6594,4695 6477,4772 6400,4800"/><polyline points="7885,4160 7892,4075 7872,3978 7843,3920 7843,3842 7814,3745 7843,3668 7843,3571 7843,3455 7834,3416"/><polyline points="8962,4916 8950,4870 8900,4850 8820,4845 8750,4842"/><polyline points="7885,4160 7910,4120 7960,4070 8020,4040 8100,3980 8200,3930 8300,3870 8420,3790"/><polyline points="9040,5020 9020,5060 8990,5110 8940,5150 8900,5190 8850,5250 8790,5330"/><polyline points="7905,4785 7920,4850 7950,4950 7960,5050 7990,5150 8010,5230"/></g><g fill="none" stroke="#96281E" stroke-width="13.4" stroke-linejoin="round" stroke-linecap="round"><polyline points="9040,5020 9005,4990 8985,4965"/><polyline points="8985,4965 8972,4940 8962,4916"/><polyline points="8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890"/><polyline points="9040,5020 9000,5005 8960,4998 8920,4995 8885,4993"/><polyline points="8400,4890 8360,4880 8320,4860 8290,4830 8260,4800 8235,4760 8215,4725 8208,4702"/><polyline points="8208,4702 8190,4670 8160,4630 8120,4590 8080,4550 8040,4500 8000,4450 7960,4410 7930,4370 7910,4330 7900,4290 7890,4250 7885,4210 7885,4160"/><polyline points="7885,4160 7870,4110 7840,4060 7800,4010 7760,3960 7720,3920 7680,3885 7630,3870 7580,3865 7530,3872 7470,3882 7420,3895 7370,3905 7330,3900 7290,3892 7250,3900 7195,3912"/><polyline points="7195,3912 7170,3950 7120,3985 7080,4015 7040,4040 7000,4055 6960,4062 6920,4070 6893,4078"/><polyline points="7195,3912 7200,3870 7193,3830 7186,3786"/><polyline points="8400,4890 8360,4895 8320,4890 8280,4880 8240,4870 8200,4860 8150,4850 8100,4830 8060,4810 8020,4795 7960,4790 7905,4785"/><polyline points="7905,4785 7865,4835 7810,4885 7760,4905 7718,4908 7680,4880 7640,4821 7590,4775 7520,4740 7456,4724 7462,4680 7468,4645 7420,4650 7340,4668 7260,4650 7180,4620 7100,4600 7010,4585 6930,4578"/><polyline points="6930,4578 6950,4530 6965,4480 6965,4430 6960,4385"/><polyline points="6960,4385 6930,4350 6900,4310 6868,4282 6858,4253"/></g><g class="rt"><polyline class="rt-halo" points="9040,5020 9005,4990 8985,4965 8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890 8400,4890 8360,4880 8320,4860 8290,4830 8260,4800 8235,4760 8215,4725 8208,4702 8208,4702 8190,4670 8160,4630 8120,4590 8080,4550 8040,4500 8000,4450 7960,4410 7930,4370 7910,4330 7900,4290 7890,4250 7885,4210 7885,4160 7885,4160 7870,4110 7840,4060 7800,4010 7760,3960 7720,3920 7680,3885 7630,3870 7580,3865 7530,3872 7470,3882 7420,3895 7370,3905 7330,3900 7290,3892 7250,3900 7195,3912 7195,3912 7170,3950 7120,3985 7080,4015 7040,4040 7000,4055 6960,4062 6920,4070 6893,4078" fill="none" stroke="#F4ECD8" stroke-width="49.5" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/><polyline class="rt-line" points="9040,5020 9005,4990 8985,4965 8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890 8400,4890 8360,4880 8320,4860 8290,4830 8260,4800 8235,4760 8215,4725 8208,4702 8208,4702 8190,4670 8160,4630 8120,4590 8080,4550 8040,4500 8000,4450 7960,4410 7930,4370 7910,4330 7900,4290 7890,4250 7885,4210 7885,4160 7885,4160 7870,4110 7840,4060 7800,4010 7760,3960 7720,3920 7680,3885 7630,3870 7580,3865 7530,3872 7470,3882 7420,3895 7370,3905 7330,3900 7290,3892 7250,3900 7195,3912 7195,3912 7170,3950 7120,3985 7080,4015 7040,4040 7000,4055 6960,4062 6920,4070 6893,4078" fill="none" stroke="#B5301F" stroke-width="22.6" stroke-linejoin="round" stroke-linecap="round"/></g><g font-family="'Playfair Display',Georgia,serif" font-weight="700" fill="#32241A" opacity=".78" font-size="60.2" letter-spacing="2.8"><circle cx="7156" cy="3688" r="17.0" fill="#8C7A66"/><text x="7212.6" y="3645.5" text-anchor="start" font-style="normal">FÉCAMP</text><circle cx="6930" cy="4578" r="17.0" fill="#8C7A66"/><text x="6972.5" y="4691.2" text-anchor="start" font-style="normal">LISIEUX</text><circle cx="8400" cy="4892" r="17.0" fill="#8C7A66"/><text x="8400.0" y="5005.2" text-anchor="middle" font-style="normal">MANTES</text><circle cx="7905" cy="4785" r="17.0" fill="#8C7A66"/><text x="7905.0" y="4898.2" text-anchor="middle" font-style="normal">ÉVREUX</text></g><g class="sts" font-family="'Playfair Display',Georgia,serif" font-weight="700" font-size="77.8" letter-spacing="3.5" fill="#32241A"><g class="st hub" data-st="PARIS"><circle class="ring" cx="9040" cy="5020" r="62.370000000000005" fill="#F4ECD8" opacity="0"/><circle class="dot" cx="9040" cy="5020" r="37.125" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="9011.7" y="5140.3" text-anchor="start" font-size="87.13600000000001" fill="#32241A" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">PARIS</text></g><g class="st" data-st="ARGENTEUIL"><circle class="ring" cx="8962" cy="4916" r="62.370000000000005" fill="#F4ECD8" opacity="0"/><circle class="dot" cx="8962" cy="4916" r="29.7" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="8912.5" y="4859.4" text-anchor="end" font-size="77.8" fill="#32241A" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">ARGENTEUIL</text><circle class="hit" cx="8962" cy="4916" r="113.2" fill="transparent" style="cursor:pointer"/></g><g class="st" data-st="CHATOU"><circle class="ring" cx="8885" cy="4993" r="62.370000000000005" fill="#F4ECD8" opacity="0"/><circle class="dot" cx="8885" cy="4993" r="29.7" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="8913.3" y="5099.2" text-anchor="end" font-size="77.8" fill="#32241A" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">CHATOU</text><circle class="hit" cx="8885" cy="4993" r="113.2" fill="transparent" style="cursor:pointer"/></g><g class="st" data-st="VERNON"><circle class="ring" cx="8208" cy="4702" r="62.370000000000005" fill="#F4ECD8" opacity="0"/><circle class="dot" cx="8208" cy="4702" r="29.7" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="8151.4" y="4652.5" text-anchor="end" font-size="77.8" fill="#32241A" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">VERNON</text><circle class="hit" cx="8208" cy="4702" r="113.2" fill="transparent" style="cursor:pointer"/></g><g class="st" data-st="ROUEN"><circle class="ring" cx="7885" cy="4160" r="62.370000000000005" fill="#F4ECD8" opacity="0"/><circle class="dot" cx="7885" cy="4160" r="29.7" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="7955.8" y="4215.53" text-anchor="start" font-size="77.8" fill="#32241A" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">ROUEN</text><circle class="hit" cx="7885" cy="4160" r="113.2" fill="transparent" style="cursor:pointer"/></g><g class="st" data-st="LES IFS"><circle class="ring" cx="7186" cy="3786" r="62.370000000000005" fill="#F4ECD8" opacity="0"/><circle class="dot" cx="7186" cy="3786" r="29.7" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="7249.7" y="3841.53" text-anchor="start" font-size="77.8" fill="#32241A" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">LES IFS</text><circle class="hit" cx="7186" cy="3786" r="113.2" fill="transparent" style="cursor:pointer"/></g><g class="st" data-st="TROUVILLE"><circle class="ring" cx="6858" cy="4253" r="62.370000000000005" fill="#F4ECD8" opacity="0"/><circle class="dot" cx="6858" cy="4253" r="29.7" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="6921.7" y="4352.1" text-anchor="start" font-size="77.8" fill="#32241A" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">TROUVILLE</text><circle class="hit" cx="6858" cy="4253" r="113.2" fill="transparent" style="cursor:pointer"/></g><g class="st on" data-st="LE HAVRE"><circle class="ring" cx="6893" cy="4078" r="62.370000000000005" fill="#F4ECD8" opacity="1"/><circle class="dot" cx="6893" cy="4078" r="29.7" fill="#96281E" stroke="#F4ECD8" stroke-width="5.7"/><text x="6850.5" y="4205.4" text-anchor="start" font-size="77.8" fill="#B5301F" style="paint-order:stroke" stroke="#DED6BA" stroke-width="15.6" stroke-linejoin="round" stroke-opacity=".75">LE HAVRE</text><circle class="hit" cx="6893" cy="4078" r="113.2" fill="transparent" style="cursor:pointer"/></g></g><rect x="6580" y="3060" width="2760" height="212.3" fill="#E8DEC4"/><line x1="6580" y1="3272.3" x2="9340" y2="3272.3" stroke="#503C28" stroke-width="5.7"/><text x="7960.0" y="3200.118" text-anchor="middle" font-family="'Playfair Display',Georgia,serif" font-weight="700" font-size="70.8" letter-spacing="11.3" fill="#32241A">CHEMINS DE FER DE L’OUEST</text><rect x="6615.4" y="3095.4" width="2689.2" height="3103.2" fill="none" stroke="#503C28" stroke-width="15.6"/></g></svg></div>
-<div class="ph-note">벽에 걸린 서부철도 노선도와 같은 그림입니다. 역을 누르면 파리에서 그곳까지 선이 켜집니다.</div>
-<div class="sel"><b id="sel-k">LE HAVRE</b><span id="sel-i">르아브르 · 229 km · 4시간 30분</span><small>급행 기준 · 1867~1875년 안내서</small></div>
-<div class="ph-btn">표 끊기</div>
+  <header class="hd">
+    <div class="eyebrow">C2 · Guichet · Gare Saint-Lazare</div>
+    <h2>어디까지 가시겠습니까</h2>
+    <p>벽에 걸린 노선도와 같은 지도입니다. 역을 누르면 생라자르에서 그곳까지 선이 이어집니다.</p>
+  </header>
+  <div id="mapBox" class="map-box">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="지도"></svg>
+    <div class="quiz-bottom"><div id="chips" class="chips" role="radiogroup" aria-label="목적지"></div></div>
+  </div>
+  <div class="sel">
+    <div><b id="selFr">Le Havre<small id="selKo">르아브르</small></b><span id="selInfo">229 km · 급행 4시간 30분</span><small class="note">1867~1875년 안내서 기준 · 2등</small></div>
+    <div class="km" id="selYear">표의 해<br>1872</div>
+  </div>
+  <button class="btn" id="buy">표 끊기</button>
 </div>
-<script>
-const R={"ARGENTEUIL": "9040,5020 9005,4990 8985,4965 8985,4965 8972,4940 8962,4916", "CHATOU": "9040,5020 9000,5005 8960,4998 8920,4995 8885,4993", "VERNON": "9040,5020 9005,4990 8985,4965 8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890 8400,4890 8360,4880 8320,4860 8290,4830 8260,4800 8235,4760 8215,4725 8208,4702", "ROUEN": "9040,5020 9005,4990 8985,4965 8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890 8400,4890 8360,4880 8320,4860 8290,4830 8260,4800 8235,4760 8215,4725 8208,4702 8208,4702 8190,4670 8160,4630 8120,4590 8080,4550 8040,4500 8000,4450 7960,4410 7930,4370 7910,4330 7900,4290 7890,4250 7885,4210 7885,4160", "LE HAVRE": "9040,5020 9005,4990 8985,4965 8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890 8400,4890 8360,4880 8320,4860 8290,4830 8260,4800 8235,4760 8215,4725 8208,4702 8208,4702 8190,4670 8160,4630 8120,4590 8080,4550 8040,4500 8000,4450 7960,4410 7930,4370 7910,4330 7900,4290 7890,4250 7885,4210 7885,4160 7885,4160 7870,4110 7840,4060 7800,4010 7760,3960 7720,3920 7680,3885 7630,3870 7580,3865 7530,3872 7470,3882 7420,3895 7370,3905 7330,3900 7290,3892 7250,3900 7195,3912 7195,3912 7170,3950 7120,3985 7080,4015 7040,4040 7000,4055 6960,4062 6920,4070 6893,4078", "LES IFS": "9040,5020 9005,4990 8985,4965 8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890 8400,4890 8360,4880 8320,4860 8290,4830 8260,4800 8235,4760 8215,4725 8208,4702 8208,4702 8190,4670 8160,4630 8120,4590 8080,4550 8040,4500 8000,4450 7960,4410 7930,4370 7910,4330 7900,4290 7890,4250 7885,4210 7885,4160 7885,4160 7870,4110 7840,4060 7800,4010 7760,3960 7720,3920 7680,3885 7630,3870 7580,3865 7530,3872 7470,3882 7420,3895 7370,3905 7330,3900 7290,3892 7250,3900 7195,3912 7195,3912 7200,3870 7193,3830 7186,3786", "TROUVILLE": "9040,5020 9005,4990 8985,4965 8985,4965 8950,4950 8905,4945 8870,4930 8840,4905 8790,4890 8740,4890 8705,4900 8660,4905 8620,4915 8580,4915 8540,4905 8500,4895 8450,4890 8400,4890 8400,4890 8360,4895 8320,4890 8280,4880 8240,4870 8200,4860 8150,4850 8100,4830 8060,4810 8020,4795 7960,4790 7905,4785 7905,4785 7865,4835 7810,4885 7760,4905 7718,4908 7680,4880 7640,4821 7590,4775 7520,4740 7456,4724 7462,4680 7468,4645 7420,4650 7340,4668 7260,4650 7180,4620 7100,4600 7010,4585 6930,4578 6930,4578 6950,4530 6965,4480 6965,4430 6960,4385 6960,4385 6930,4350 6900,4310 6868,4282 6858,4253"},I={"CHATOU": "샤투 · 12 km · 32분", "ARGENTEUIL": "아르장퇴유 · 11 km · 25분", "VERNON": "베르농 · 80 km · 1시간 30분", "ROUEN": "루앙 · 140 km · 2시간 40분", "LES IFS": "레지프 · 214 km · 4시간 33분 + 마차 15 km", "TROUVILLE": "트루빌 · 220 km · 6시간", "LE HAVRE": "르아브르 · 229 km · 4시간 30분"},HL='#B5301F',INK='#32241A';
-document.querySelectorAll('.st .hit').forEach(h=>h.addEventListener('click',()=>{
-  const g=h.closest('.st'),k=g.dataset.st;
-  document.querySelectorAll('.st').forEach(x=>{x.classList.remove('on');x.querySelector('.ring').setAttribute('opacity',0);x.querySelector('text').setAttribute('fill',INK);});
-  g.classList.add('on');g.querySelector('.ring').setAttribute('opacity',1);g.querySelector('text').setAttribute('fill',HL);
-  document.querySelector('.rt-halo').setAttribute('points',R[k]);document.querySelector('.rt-line').setAttribute('points',R[k]);
-  document.getElementById('sel-k').textContent=k;document.getElementById('sel-i').textContent=I[k];}));
+<script type="module">
+// ── 부스 프로토타입 booth/js/c2.js 의 지도 엔진(el · proj · initMap 그리기 · smoothPath · drawRoute · 라벨)을 그대로 가져와
+//    시점만 파리→노르망디 해안으로 고정하고, 출발역 1곳(생라자르) + 목적지 7곳으로 바꿨다. 데이터 map.json = booth/assets/data/map.json 사본.
+const NS = 'http://www.w3.org/2000/svg';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+const ORIGIN = { id: 'lazare', fr: 'Gare Saint-Lazare', ko: '생라자르역', ll: [2.3253, 48.8763], lab: [8, 24, 'end'] };
+// 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 뵈즈빌(브레오테-뵈즈빌 0.40,49.61 — 지선 분기) · 에브뢰 · 베르네 · 리지외 · 퐁레베크 · 아니에르 · 낭테르
+const V = { mantes: [1.72, 48.99], vernon: [1.4850, 49.0930], rouen: [1.0993, 49.4431], yvetot: [0.753, 49.617], beuzeville: [0.40, 49.61],
+  evreux: [1.15, 49.02], bernay: [0.60, 49.09], lisieux: [0.23, 49.15], pontleveque: [0.18, 49.28], asnieres: [2.285, 48.905], nanterre: [2.20, 48.90] };
+const DEST = [
+  { id: 'chatou', fr: 'Chatou', ko: '샤투', ll: [2.1567, 48.8897], lab: [-10, -4, 'end'], info: '12 km · 32분', year: 1869, nd: false, via: [V.asnieres, V.nanterre] },
+  { id: 'argenteuil', fr: 'Argenteuil', ko: '아르장퇴유', ll: [2.2472, 48.9472], lab: [0, -30, 'middle'], info: '11 km · 25분', year: 1874, nd: false, via: [V.asnieres] },
+  { id: 'vernon', fr: 'Vernon', ko: '베르농', ll: [1.4850, 49.0930], lab: [0, 22, 'middle'], info: '80 km · 급행 1시간 30분', year: 1883, nd: true, via: [V.mantes] },
+  { id: 'rouen', fr: 'Rouen', ko: '루앙', ll: [1.0993, 49.4431], lab: [12, 5, 'start'], info: '140 km · 급행 2시간 40분', year: 1872, nd: true, via: [V.mantes, V.vernon] },
+  { id: 'lesifs', fr: 'Les Ifs', ko: '레지프', ll: [0.4661, 49.6463], lab: [12, -4, 'start'], info: '214 km · 4시간 33분 + 마차 15 km', year: 1883, nd: true, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
+  { id: 'trouville', fr: 'Trouville', ko: '트루빌', ll: [0.0810, 49.3660], lab: [12, 5, 'start'], info: '220 km · 6시간', year: 1870, nd: true, via: [V.mantes, V.evreux, V.bernay, V.lisieux, V.pontleveque] },
+  { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, -14, 'middle'], labSel: [14, 6, 'start'], info: '229 km · 급행 4시간 30분', year: 1872, nd: true, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
+];
+const FIT = { lon0: -0.3, lon1: 2.65, lat0: 48.72, lat1: 49.92 };     // 파리 → 노르망디 해안
+
+let M = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, parisG, pinAt = null;
+const view = { s: 1, tx: 0, ty: 0 };
+let picked = null, busy = false;
+const proj = (lon, lat) => { const merc = (a) => (Math.log(Math.tan(Math.PI / 4 + (a * Math.PI) / 360)) * 180) / Math.PI; const P = M.projection; return [(lon - P.lon0) * P.k, (merc(P.lat1) - merc(lat)) * P.k]; };
+
+async function initMap() {
+  M = await fetch('map.json').then((r) => r.json());
+  svg = $('#map');
+  const defs = el('defs', {}, svg);
+  defs.innerHTML = `
+    <pattern id="seaHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+      <rect width="7" height="7" fill="#6f8f88"/><path d="M0 3.5h7" stroke="#638179" stroke-width="1.2"/></pattern>
+    <radialGradient id="vig" cx="50%" cy="50%" r="75%"><stop offset="55%" stop-color="#2a1c10" stop-opacity="0"/><stop offset="100%" stop-color="#2a1c10" stop-opacity=".55"/></radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>`;
+  el('rect', { width: '100%', height: '100%', fill: 'url(#seaHatch)' }, svg);
+  world = el('g', {}, svg);
+  [[22, '#89a59c', 0.35], [13, '#9db6aa', 0.5], [6, '#b7c9b8', 0.7]].forEach(([w, c, o]) =>
+    el('path', { d: M.land, fill: 'none', stroke: c, 'stroke-width': w, 'stroke-opacity': o, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world));
+  el('path', { d: M.land, fill: '#E8D6AD', stroke: '#6b5235', 'stroke-width': 1.1, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
+  const tint = { normandie: '#C2C48E', hauts: '#D6C08C', grandest: '#D8AE7C', paca: '#DCB98A', bretagne: '#CFB57F' };
+  Object.keys(tint).forEach((id) => { regionEls[id] = el('path', { d: M.regions[id], fill: tint[id], 'fill-opacity': 0.85, class: 'region', 'data-id': id }, world); });
+  el('path', { d: M.regionBorders, fill: 'none', stroke: '#8a6d47', 'stroke-width': 0.9, 'stroke-dasharray': '2 3', 'stroke-opacity': 0.7, 'vector-effect': 'non-scaling-stroke' }, world);
+  el('path', { d: M.borders, fill: 'none', stroke: '#6b5235', 'stroke-width': 1.3, 'stroke-dasharray': '6 3 1 3', 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke' }, world);
+  parisG = el('g', {}, world);
+  el('path', { d: M.regions.petitecouronne, fill: '#DCC8A0', stroke: '#8a6d47', 'stroke-width': 0.8, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke' }, parisG);
+  el('path', { d: M.regions.paris, fill: '#F1E2C0', stroke: '#6b5235', 'stroke-width': 1.4, 'vector-effect': 'non-scaling-stroke' }, parisG);
+  regionEls.normandie_hl = el('path', { d: M.regions.normandie, fill: 'none', stroke: '#E0662C', 'stroke-width': 2.4, opacity: 0, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
+  routeG = el('g', {}, world);
+  routeGlow = el('path', { fill: 'none', stroke: '#FF8A3D', 'stroke-width': 9, 'stroke-opacity': 0.45, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', filter: 'url(#glow)', 'vector-effect': 'non-scaling-stroke' }, routeG);
+  routeCore = el('path', { fill: 'none', stroke: '#F06A28', 'stroke-width': 4.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, routeG);
+  routeLine = el('path', { fill: 'none', stroke: '#FFF1DC', 'stroke-width': 2.2, 'stroke-linecap': 'round', 'stroke-dasharray': '1 7', 'vector-effect': 'non-scaling-stroke' }, routeG);
+  el('rect', { width: '100%', height: '100%', fill: 'url(#vig)', 'pointer-events': 'none' }, svg);
+  pinG = el('g', { 'pointer-events': 'none', opacity: 0 }, svg);
+  pinG.innerHTML = `<g class="pin-in"><path d="M0 0C-3-9-12-14-12-24a12 12 0 0 1 24 0C12-14 3-9 0 0z" fill="#E0482A" stroke="#fff" stroke-width="2"/><circle cy="-24" r="4.5" fill="#fff"/></g>`;
+  labels = el('g', { 'pointer-events': 'none' }, svg);     // 이름표는 핀 위에 — 고른 역 이름이 가려지지 않게
+  buildChips(); bindInput(); fit();
+  window.addEventListener('resize', fit);
+}
+function fit() {
+  const box = $('#mapBox').getBoundingClientRect();
+  svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+  const [x0, y0] = proj(FIT.lon0, FIT.lat1), [x1, y1] = proj(FIT.lon1, FIT.lat0);
+  const top = 10, bottom = box.height - ($('.quiz-bottom').offsetHeight || 90), pad = 14;
+  const s = Math.min((box.width - pad * 2) / (x1 - x0), (bottom - top - pad * 2) / (y1 - y0));
+  view.s = s; view.tx = (box.width - (x1 - x0) * s) / 2 - x0 * s; view.ty = top + (bottom - top - (y1 - y0) * s) / 2 - y0 * s;
+  world.setAttribute('transform', `translate(${view.tx} ${view.ty}) scale(${view.s})`);
+  drawLabels(); updatePin();
+}
+const toScreen = ([x, y]) => [x * view.s + view.tx, y * view.s + view.ty];
+function drawLabels() {
+  let h = '';
+  const txt = (x, y, fr, ko, fs, anchor = 'middle', w = 600) =>
+    `<text class="lbl" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${fs}" font-weight="${w}" stroke-width="3">${fr}</text>` +
+    (ko ? `<text class="lbl-ko" x="${x}" y="${y + fs * 1.05}" text-anchor="${anchor}" font-size="${fs * 0.82}" stroke-width="3">${ko}</text>` : '');
+  const [sx, sy] = toScreen(proj(0.35, 49.86));
+  h += `<text class="lbl-sea" x="${sx}" y="${sy}" text-anchor="middle" font-size="13">La Manche</text>`;
+  const [px, py] = toScreen(M.anchors.paris);
+  h += `<text class="lbl-faint" x="${px}" y="${py + 30}" text-anchor="middle" font-size="18">PARIS</text>`;
+  const dot = (s, on, origin) => {
+    const [x, y] = toScreen(proj(...s.ll)); const lab = on && s.labSel ? s.labSel : s.lab; const lx = x + lab[0], ly = y + lab[1];
+    h += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly + (lab[1] < 0 ? 4 : -12)}" stroke="#6b5235" stroke-width="1"/>`;
+    h += `<circle cx="${x}" cy="${y}" r="${on ? 9 : 7}" fill="${on || origin ? '#E0662C' : '#1E140C'}" stroke="#FFF1DC" stroke-width="2.5"/>`;
+    h += txt(lx, ly, s.fr, s.ko, origin ? 12 : 13, lab[2], on || origin ? 800 : 600);
+  };
+  DEST.forEach((s) => dot(s, picked && picked.id === s.id, false));
+  dot(ORIGIN, false, true);
+  labels.innerHTML = h;
+}
+function buildChips() {
+  const box = $('#chips');
+  box.innerHTML = DEST.map((c) => `<button class="chip" role="radio" aria-checked="false" data-id="${c.id}"><span class="dot"></span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
+  $$('.chip', box).forEach((b) => b.addEventListener('click', () => pick(b.dataset.id)));
+}
+function markChips() {
+  $$('#chips .chip').forEach((b) => { const on = picked && b.dataset.id === picked.id; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); });
+  const nd = picked && picked.nd;
+  regionEls.normandie_hl.setAttribute('opacity', nd ? 1 : 0);
+  regionEls.normandie.setAttribute('fill', nd ? '#D3D59C' : '#C2C48E'); regionEls.normandie.setAttribute('fill-opacity', nd ? 1 : 0.85);
+}
+function smoothPath(pts) {
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 1], p1 = pts[i]; const m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2];
+    d += i === 1 ? ` L${m[0]},${m[1]}` : ` Q${p0[0]},${p0[1]} ${m[0]},${m[1]}`;
+    if (i === pts.length - 1) d += ` L${p1[0]},${p1[1]}`;
+  }
+  return d;
+}
+function drawRoute(dest) {
+  const pts = [proj(...ORIGIN.ll), ...dest.via.map((ll) => proj(...ll)), proj(...dest.ll)];
+  const d = smoothPath(pts);
+  [routeGlow, routeCore, routeLine].forEach((p) => p.setAttribute('d', d));
+  const Lw = routeCore.getTotalLength() * view.s + 6;
+  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: 1000, easing: 'ease-out', fill: 'backwards' }); });
+  routeLine.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1000, easing: 'ease-in' });
+  pinAt = pts[pts.length - 1]; updatePin();
+  pinG.querySelector('.pin-in').animate([{ transform: 'translateY(-18px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 380, delay: 800, fill: 'backwards', easing: 'cubic-bezier(.3,1.4,.5,1)' });
+}
+function updatePin() { if (!pinAt) { pinG.setAttribute('opacity', 0); return; } const [x, y] = toScreen(pinAt); pinG.setAttribute('transform', `translate(${x} ${y})`); pinG.setAttribute('opacity', 1); }
+function pick(id) {
+  picked = DEST.find((s) => s.id === id); if (!picked) return;
+  markChips(); drawLabels(); drawRoute(picked);
+  $('#selFr').childNodes[0].textContent = picked.fr; $('#selKo').textContent = picked.ko; $('#selInfo').textContent = picked.info; $('#selYear').innerHTML = `표의 해<br>${picked.year}`;
+}
+function stationAt(sx, sy) {
+  let best = null, bd = 26;
+  DEST.forEach((s) => {
+    const [x, y] = toScreen(proj(...s.ll)); const d = Math.hypot(x - sx, y - sy);
+    const lx = x + s.lab[0], ly = y + s.lab[1];
+    const dl = Math.hypot((lx + (s.lab[2] === 'end' ? -30 : s.lab[2] === 'start' ? 30 : 0)) - sx, (ly + 4) - sy) * 0.8;
+    const m = Math.min(d, dl); if (m < bd) { bd = m; best = s.id; }
+  });
+  return best;
+}
+function bindInput() {
+  const box = $('#mapBox'); let down = null;
+  const local = (e) => { const r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  box.addEventListener('pointerdown', (e) => { if (e.target.closest('.chips')) return; down = { p: local(e), moved: false }; });
+  box.addEventListener('pointermove', (e) => { if (down) { const p = local(e); if (Math.hypot(p[0] - down.p[0], p[1] - down.p[1]) > 6) down.moved = true; } });
+  box.addEventListener('pointerup', (e) => { if (down && !down.moved) { const hit = stationAt(...local(e)); if (hit) pick(hit); } down = null; });
+}
+window.pick = pick;
+initMap();
 </script>
-</body></html>
+</body>
+</html>

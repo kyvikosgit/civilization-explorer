@@ -1,0 +1,61 @@
+/* C2 목적지 고르기 — 부스 프로토타입(booth/css/base.css · c2.css)의 토큰·지도 스타일을 그대로 가져옴 */
+@font-face { font-family: 'Paperlogy'; font-weight: 800; font-display: swap;
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-8ExtraBold.woff2') format('woff2'); }
+@font-face { font-family: 'Paperlogy'; font-weight: 600; font-display: swap;
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-6SemiBold.woff2') format('woff2'); }
+:root {
+  --bg: #FFFFFF; --panel: #F5F5F3; --ink: #111111; --dim: #707070; --point: #D9672F;
+  --hair: rgba(17,17,17,.10); --hair-strong: rgba(17,17,17,.24); --pad: 20px; --r: 8px;
+  --safe-t: env(safe-area-inset-top, 0px); --safe-b: env(safe-area-inset-bottom, 0px);
+  --display: 'Paperlogy', 'Freesentation', system-ui, sans-serif;
+  --body: 'Freesentation', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body { font-family: var(--body); color: var(--ink); background: var(--bg); max-width: 480px; margin: 0 auto; -webkit-font-smoothing: antialiased; word-break: keep-all; overflow: hidden; }
+button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+
+/* 화면: 머리말 → 지도(남는 높이 전부) → 정보 패널 + 표 끊기 */
+.scr { height: 100dvh; display: flex; flex-direction: column; padding-top: calc(44px + var(--safe-t)); }
+.hd { padding: 0 var(--pad) 10px; }
+.eyebrow { font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: 3px; color: var(--point); text-transform: uppercase; }
+.hd h2 { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1.22; letter-spacing: -0.02em; margin: 4px 0 0; }
+.hd p { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: var(--dim); }
+
+/* 지도 (booth/css/c2.css .quiz/.map-box 와 동일한 바탕·크롬) */
+.map-box { position: relative; flex: 1; min-height: 0; background: #6f8c86; touch-action: none; overflow: hidden; }
+#map { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
+.lbl { font-family: var(--display); fill: #3B2A19; paint-order: stroke; stroke: rgba(243,231,203,.85); stroke-linejoin: round; }
+.lbl-ko { font-family: var(--body); font-weight: 600; fill: #4a3722; paint-order: stroke; stroke: rgba(243,231,203,.85); stroke-linejoin: round; }
+.lbl-sea { font-family: var(--display); fill: #F3E7CB; font-style: italic; }
+.lbl-faint { font-family: var(--display); font-weight: 800; fill: rgba(107,82,53,.35); letter-spacing: 6px; }
+.region { transition: fill .3s, fill-opacity .3s; }
+
+/* 칩(부스와 동일) — 지도 아래쪽에 겹쳐 놓는다 */
+.quiz-bottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; padding: 26px 12px 10px;
+  background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.45)); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.chips { display: flex; gap: 8px; width: 100%; overflow-x: auto; scroll-snap-type: x mandatory; padding: 8px 2px 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { position: relative; flex: none; scroll-snap-align: center; display: flex; align-items: center; gap: 7px; height: 48px; padding: 0 14px 0 12px; white-space: nowrap; border-radius: 24px;
+  background: #FFFFFF; color: var(--ink); font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: -0.02em;
+  box-shadow: 0 4px 14px rgba(0,0,0,.18); transition: background .2s, color .2s; }
+.chip .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--ink); }
+.chip-t { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.chip-t small { font-family: var(--body); font-weight: 500; font-size: 10.5px; color: var(--dim); letter-spacing: 0; }
+.chip.on { background: var(--point); color: #fff; }
+.chip.on .dot { background: #fff; box-shadow: 0 0 0 1px #fff; }
+.chip.on .chip-t small { color: rgba(255,255,255,.85); }
+.chip .ck { position: absolute; right: -2px; top: -6px; width: 22px; height: 22px; border-radius: 50%; background: #fff; color: var(--point); display: none; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.chip .ck svg { width: 14px; height: 14px; }
+.chip.on .ck { display: grid; }
+
+/* 정보 패널 + 표 끊기 (고정 높이, 빈 공간 없음) */
+.sel { padding: 12px var(--pad) 0; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; }
+.sel b { display: block; font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; line-height: 1.1; color: var(--ink); }
+.sel b small { font-family: var(--body); font-weight: 600; font-size: 13px; letter-spacing: 0; color: var(--point); margin-left: 6px; }
+.sel span { display: block; font-size: 15px; color: var(--ink); margin-top: 4px; }
+.sel small.note { display: block; font-size: 11.5px; color: var(--dim); margin-top: 2px; }
+.sel .km { font-family: var(--display); font-weight: 600; font-size: 12px; color: var(--dim); text-align: right; line-height: 1.4; }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: auto; height: 52px; padding: 0 18px; border-radius: var(--r);
+  font-family: var(--body); font-weight: 700; font-size: 16px; letter-spacing: -0.01em; background: var(--ink); color: #FFFFFF; margin: 12px var(--pad) calc(14px + var(--safe-b)); }
