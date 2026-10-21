@@ -398,3 +398,11 @@ table.bd{min-width:0;width:100%;font-size:13px;margin-top:6px}
   .bd-h{flex-wrap:wrap;justify-content:center;text-align:center}
   .bd-h b{order:-1;width:100%;font-size:14px}
 }
+
+/* C1 칼럼 돌려보기 와이어 */
+.ph-col{border:1px solid var(--line-strong);background:#EDEBE5;padding:8px 10px 6px;display:grid;gap:5px}
+.ph-col-body{height:120px;margin:0 auto;width:78px;border-radius:40px/10px;background:linear-gradient(90deg,#3E4A3F,#6B776A 45%,#2E372F);display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:5px;padding:9px 8px}
+.pc{display:block;background:#E8DFC0;opacity:.9;border-radius:2px}
+.pc.on{outline:2px solid var(--point);outline-offset:-2px;background:#FFF}
+.ph-col-cap{font-size:9px;color:var(--sub);text-align:center}
+.works.alt .wk-t .flag{margin-left:2px}
