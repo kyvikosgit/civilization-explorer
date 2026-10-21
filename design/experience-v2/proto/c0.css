@@ -47,7 +47,7 @@
     repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 2px, transparent 2px 96px),
     linear-gradient(180deg, #3B2419 0%, #2A1810 40%, #1A0F0A 100%); }
 .rope { position: absolute; left: 0; right: 0; bottom: calc(0px + var(--safe-b)); width: 100%; height: 96px; z-index: 2; transition: opacity .3s; }
-.stage.reveal .rope { opacity: 0; }
+.stage.is-reveal .rope { opacity: 0; }
 .hint { position: absolute; left: 0; right: 0; bottom: calc(112px + var(--safe-b)); z-index: 6; display: flex; justify-content: center; pointer-events: none; transition: opacity .3s; }
 .hint.off { opacity: 0; }
 
@@ -129,6 +129,17 @@
 .card-body p { margin: 2px 0 0; font-size: 13.5px; color: #3D3D3A; }
 .card-body small { font-size: 11.5px; color: var(--dim); }
 .card-wrap .note { margin-top: 12px; line-height: 1.5; }
+
+@media (max-height: 700px) {
+  .reveal { padding-top: 14px; }
+  .reveal .sub { display: none; }
+  .reveal h2 { font-size: 18px; }
+  .reveal .hist { margin-top: 10px; font-size: 13px; padding-top: 10px; }
+  .reveal .btns { padding-top: 10px; padding-bottom: calc(10px + var(--safe-b)); }
+  .reveal .btn { height: 46px; }
+  .role h1 { font-size: 26px; }
+  .cands div { aspect-ratio: 1; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .target::after { animation: none; opacity: .8; }

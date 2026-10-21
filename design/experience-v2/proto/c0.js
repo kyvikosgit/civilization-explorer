@@ -43,7 +43,9 @@ function slot(name, n = 2, i = 0) {
   if (name === 'C') return { cx: W * 0.5, cy: areaH * 0.56, bw: W * 0.5, bh: areaH * 0.34 };
   if (name === 'L' || name === 'R') return { cx: W * (name === 'L' ? 0.145 : 0.855), cy: areaH * 0.56, bw: W * 0.22, bh: areaH * 0.25 };
   const xs = n === 1 ? [0.5] : n === 2 ? [0.3, 0.7] : [0.18, 0.5, 0.82];
-  return { cx: W * xs[i], cy: areaH * 0.235, bw: W * (n >= 3 ? 0.27 : 0.3), bh: areaH * 0.19 };
+  const bh = areaH * 0.19;
+  const topPad = 62 + 30 + bh / 2;                 // 코니스(상단 바) + 번호판 아래로
+  return { cx: W * xs[i], cy: Math.max(areaH * 0.235, topPad), bw: W * (n >= 3 ? 0.27 : 0.3), bh };
 }
 function fitScale(o, sl) { return Math.min(sl.bw / o.fw, sl.bh / o.fh); }
 function setTarget(c, sl, name) {
@@ -214,7 +216,7 @@ async function reveal() {
     c.tag.className = 'tag' + (c === me ? ' me' : '');
     c.tag.innerHTML = `${TODAY[c.w.n]}%<small>${c === me ? '나 · ' : ''}${c.w.n}번</small>`;
   });
-  $('#reveal').classList.add('on'); stage.classList.add('reveal');
+  $('#reveal').classList.add('on'); stage.classList.add('is-reveal');
   await sleep(reduceMotion ? 50 : 420);
   measure();
   me.el.classList.add('mine');
@@ -224,7 +226,7 @@ async function reveal() {
 }
 $('#again').addEventListener('click', () => {
   mode = 'pick';
-  $('#reveal').classList.remove('on'); stage.classList.remove('reveal');
+  $('#reveal').classList.remove('on'); stage.classList.remove('is-reveal');
   cands.forEach((c) => { c.tag.classList.remove('show'); c.el.classList.remove('mine', 'hung'); });
   $('#wallTitle').textContent = '살롱 벽 · 가운데 눈높이 한 자리';
   const c = chosen; chosen = null;
@@ -251,7 +253,7 @@ function enterWall() {
   showScreen('s2');
   mode = 'pick'; chosen = null;
   cands.forEach((c) => { c.el.classList.remove('mine', 'hung', 'fly', 'drag'); c.tag.classList.remove('show'); });
-  $('#reveal').classList.remove('on'); stage.classList.remove('reveal');
+  $('#reveal').classList.remove('on'); stage.classList.remove('is-reveal');
   $('#wallTitle').textContent = '살롱 벽 · 가운데 눈높이 한 자리';
   target.el.classList.remove('filled', 'near');
   hint.classList.remove('off');

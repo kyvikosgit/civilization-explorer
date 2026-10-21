@@ -11,7 +11,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = 'http://127.0.0.1:8802/design/experience-v2/proto/';
 const which = process.argv[2] || 'all';
 const [VW, VH] = (process.argv[3] || '390x844').split('x').map(Number);
-const suffix = process.argv[3] && process.argv[3] !== '390x844' ? `-${VW}` : '';
+const RM = !!process.env.REDUCE;
+const suffix = (process.argv[3] && process.argv[3] !== '390x844' ? `-${VW}` : '') + (RM ? '-rm' : '');
 const OUT = path.join(HERE, 'shots');
 const shot = (page, name) => page.screenshot({ path: path.join(OUT, `${name}${suffix}.png`) });
 
@@ -71,9 +72,10 @@ async function c1(page) {
   await page.waitForTimeout(400);
   await shot(page, 'c1-1'); await overflowCheck(page, 'c1-1');
   await page.click('#guide');
-  await page.waitForTimeout(1250);
+  await page.waitForFunction(() => window.__c1.viewer && window.__c1.viewer.riseT > 0.42, null, { timeout: 60000 });
   await shot(page, 'c1-2');
-  await page.waitForTimeout(2600);
+  await page.waitForFunction(() => window.__c1.step === 2, null, { timeout: 60000 });
+  await page.waitForTimeout(900);
   await shot(page, 'c1-2b'); await overflowCheck(page, 'c1-2b');
   // 봉 마르셰(2번)를 정면으로 돌린 뒤 떼어 본다
   await page.evaluate(() => window.__c1.focus(1));
@@ -85,9 +87,10 @@ async function c1(page) {
   await page.waitForTimeout(600);
   await shot(page, 'c1-3b');
   await page.click('#cfOk');
-  await page.waitForTimeout(5200);
+  await page.waitForFunction(() => document.querySelectorAll('.ctag.show').length >= 4, null, { timeout: 90000 });
+  await page.waitForTimeout(500);
   await shot(page, 'c1-4'); await overflowCheck(page, 'c1-4');
-  await page.waitForFunction(() => window.__c1.step === 5, null, { timeout: 30000 });
+  await page.waitForFunction(() => window.__c1.step === 5, null, { timeout: 90000 });
   await page.waitForTimeout(700);
   await shot(page, 'c1-5a');
   await page.waitForTimeout(2200);
@@ -101,7 +104,7 @@ async function c1(page) {
 
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 try {
-  const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR', timezoneId: 'Asia/Seoul', colorScheme: 'light' });
+  const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR', timezoneId: 'Asia/Seoul', colorScheme: 'light', reducedMotion: RM ? 'reduce' : 'no-preference' });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => console.log('[pageerror]', e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') { const t = m.text(); if (!/GL Driver|ReadPixels/.test(t)) console.log('[console]', m.type(), t.slice(0, 200)); } });

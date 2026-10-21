@@ -30,7 +30,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   const snap = document.createElement('canvas');
   snap.className = 'mv-snap';
   container.appendChild(snap);
-  const renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });   // [proto] 솟아오를 때 잔상을 남기려면 버퍼를 보존해야 한다
   renderer.domElement.className = 'mv-gl';
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0xffffff, 1);
@@ -70,7 +70,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   overhead.position.set(0.4, 9.5, 2.2); overhead.target.position.set(0, 2.2, 0);
   scene.add(overhead); scene.add(overhead.target);
   const riseState = { t: -1, dur: 1.9, spin: 0, flutter: 0, contact: null, done: false };
-  const floorPlane = new T.Plane(new T.Vector3(0, 1, 0), -0.002);
+  const floorPlane = new T.Plane(new T.Vector3(0, 1, 0), 0.002);   // y ≥ -0.002 만 그린다 (바닥은 남고 칼럼은 바닥 아래가 잘린다)
 
   // ── 재질 텍스처 (캔버스) — 녹흑색 도장 주철 + 금색 장식
   const IRON = [29, 38, 31];
@@ -529,7 +529,9 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     if (riseState.t >= 0) return;
     column.position.y = -TOTAL_H * 1.02;
     renderer.clippingPlanes = [floorPlane];
-    backdropMesh.material.transparent = true; backdropMesh.material.opacity = 0.36; backdropMesh.material.needsUpdate = true;
+    // 잔상: 색 버퍼를 지우지 않고 반투명 배경을 덮어 그린다 → 직전 프레임이 흐릿하게 남는다(모션 블러 느낌). 깊이 버퍼는 매 프레임 지운다
+    renderer.autoClearColor = false;
+    backdropMesh.material.transparent = true; backdropMesh.material.opacity = 0.5; backdropMesh.material.needsUpdate = true;
     riseState.t = 0; riseState.spin = reduceMotion ? 0 : 2.6; riseState.done = false;
     if (riseState.contact) riseState.contact.material.opacity = 0;
     idle = false; vel = 0; dirty = true;
@@ -828,11 +830,11 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
         rot += riseState.spin * dt;
         riseState.flutter = Math.max(0, Math.sin(t * Math.PI)) * 1.0;
         overhead.intensity = 2.4 * e;
-        backdropMesh.material.opacity = 0.36 + 0.64 * Math.pow(t, 2);
+        backdropMesh.material.opacity = 0.5 + 0.5 * Math.pow(t, 2);
         if (riseState.contact) riseState.contact.material.opacity = e;
         animating = true;
         if (t >= 1) {
-          riseState.t = -1; column.position.y = 0; renderer.clippingPlanes = [];
+          riseState.t = -1; column.position.y = 0; renderer.clippingPlanes = []; renderer.autoClearColor = true;
           backdropMesh.material.opacity = 1; backdropMesh.material.transparent = false; backdropMesh.material.needsUpdate = true;
           riseState.done = true; idle = false; vel = 0.014; lastTouch = performance.now();
           post('risen');
@@ -923,7 +925,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     inspect, release, reset, resize, focusItem, setInspectMap,
     rise, project, flutterPosters,                                 // [proto]
     setMagnet(on) { magnet = on; centeredIdx = -1; },              // [proto]
-    get rot() { return rot; }, get risen() { return riseState.done; },
+    get rot() { return rot; }, get risen() { return riseState.done; }, get riseT() { return riseState.t; },
     setIdle(on) { idle = on; dirty = true; },
     get debugMap() { const p = insp && insp.p; return p ? { type: p.front.map && p.front.map.constructor.name, video: !!(p.front.map && p.front.map.isVideoTexture), alpha: !!p.front.alphaMap } : null; },
     setHighlight(on) { highlight = on; dirty = true; },
