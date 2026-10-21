@@ -469,3 +469,11 @@ table.bd{min-width:0;width:100%;font-size:13px;margin-top:6px}
 @media (max-width:860px){.cp{padding:16px 14px 18px}.cp-code{font-size:24px}}
 @media (max-width:600px){.cp .kv{grid-template-columns:1fr;gap:2px}.cp .kv dd{margin-bottom:8px}}
 @media (max-width:700px){.cp td{display:block;padding:4px 0;text-align:left}.cp td::before{display:block;margin-bottom:1px}.cp td:first-child{padding-bottom:6px}.cp td:first-child::before{display:none}.cp td a{overflow-wrap:anywhere}}
+
+.map-fig .six{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;text-decoration:none}
+.map-fig .six span{display:flex;flex-direction:column;gap:5px;min-width:0}
+.map-fig .six img{width:100%;border:2px solid var(--ink);border-radius:14px;aspect-ratio:390/844;object-fit:cover}
+.map-fig .six small{font-size:11.5px;line-height:1.4;color:var(--sub)}
+.map-fig .try{display:inline-block;margin:0 6px 0 2px;padding:2px 8px;border:1px solid var(--ink);border-radius:3px;font-weight:700;color:var(--ink)}
+@media (max-width:860px){.map-fig .six{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:520px){.map-fig .six{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
