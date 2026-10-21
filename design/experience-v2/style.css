@@ -425,3 +425,35 @@ table.bd{min-width:0;width:100%;font-size:13px;margin-top:6px}
 @media (max-width:520px){.narr .pics{grid-template-columns:1fr 1fr;gap:8px}}
 .phones--4{display:grid;grid-template-columns:repeat(2,196px);justify-content:center;gap:14px}
 @media (max-width:520px){.phones--4{grid-template-columns:196px}}
+
+/* C2 지도 고르기 · 샤 1870 노선도 위 마커 (em 기준: .phone 6.5px, .map-fig 11px) */
+.ph-map{position:relative;flex:none;aspect-ratio:1;border:1px solid var(--line-strong);overflow:hidden;background:#E9E2D2;font-size:6.5px}
+.ph-map img{width:100%;height:100%;object-fit:cover}
+.ph-map svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ph-map polyline{fill:none;stroke:var(--point);stroke-width:2px;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.ph-map polyline.halo{stroke:#FFF;stroke-width:5px;opacity:.75}
+.map-fig .ph-map polyline.rt,.scr .ph-map polyline.rt{stroke-width:3px}
+.map-fig .ph-map polyline.halo,.scr .ph-map polyline.halo{stroke-width:7px}
+.ph-map .mk{position:absolute;width:0;height:0;cursor:pointer}
+.ph-map .mk i{position:absolute;width:1.2em;height:1.2em;left:-.6em;top:-.6em;border-radius:50%;background:#FFF;border:.2em solid var(--ink);box-shadow:0 0 0 .18em rgba(255,255,255,.85)}
+.ph-map .mk.est i{border-style:dashed}
+.ph-map .mk span{position:absolute;white-space:nowrap;font-size:1em;font-weight:700;letter-spacing:.03em;line-height:1.1;color:var(--ink);font-family:Georgia,'Times New Roman',serif;text-shadow:0 0 2px #FFF,0 0 2px #FFF,0 0 4px #FFF,0 0 4px #FFF}
+.ph-map .mk small{display:block;font-family:var(--text);font-size:.9em;font-weight:500;color:var(--body);letter-spacing:0}
+.ph-map .mk.hub i{background:var(--ink);width:1em;height:1em;left:-.5em;top:-.5em}
+.ph-map .mk.on i{background:var(--point);border-color:var(--point);width:1.5em;height:1.5em;left:-.75em;top:-.75em;box-shadow:0 0 0 .25em rgba(217,103,47,.25)}
+.ph-map .mk.on span{color:var(--point)}
+.ph-map .lb-r span{left:1em;top:-.55em}
+.ph-map .lb-l span{right:1em;top:-.55em;text-align:right}
+.ph-map .lb-t span{left:-.6em;bottom:1em}
+.ph-map .lb-tl span{right:-.6em;bottom:1em;text-align:right}
+.ph-map .lb-b span{left:-.6em;top:1em}
+.ph-map .lb-bl span{right:-.6em;top:1em;text-align:right}
+.ph-map .lb-br span{left:1em;top:.7em}
+.ph-sel{font-size:10.5px;color:var(--body);line-height:1.35;border-top:1px solid var(--ink);padding-top:5px}
+.ph-sel b{color:var(--point);font-family:Georgia,'Times New Roman',serif;letter-spacing:.05em;font-size:11.5px}
+.map-fig{margin:10px 0 14px}
+.map-fig .ph-map{font-size:11px;aspect-ratio:1600/996;border:1px solid var(--line-strong)}
+.map-fig figcaption{font-size:13px;line-height:1.55;color:var(--body);margin-top:8px}
+.map-fig figcaption b{color:var(--ink)}
+@media (max-width:860px){.map-fig .ph-map{font-size:8px}}
+@media (max-width:520px){.map-fig .ph-map{font-size:6.5px}}
