@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="map-picker.css">
 <style>
-/* ── 기차표 (ticket.html 의 카드 CSS 그대로, 1140×600 → 358px 축소) ── */
+/* ── 기차표 (ticket.html 의 카드 CSS 그대로, 1140×600 → 350px 축소) ── */
 
 /* 57×30 mm 에드몬슨 카드 → 20 px/mm = 1140×600 px.  글꼴: Old Standard TT(19세기 디돈 계열 본문·숫자, OFL) ·
    Playfair Display(디돈 팻페이스, 큰 숫자, OFL) · 한글 주석만 Freesentation.  서체 선택 근거는 보드 C2 참고.
@@ -123,7 +123,7 @@
 </div>
 </template>
 
-<!-- 1 고르기 -->
+<!-- 1 고르기 (지도) -->
 <section class="scr on" id="s1">
   <header class="hd">
     <div class="eyebrow">C2 · Guichet · Gare Saint-Lazare</div>
@@ -141,49 +141,49 @@
   <button class="btn" id="buy">표 끊기</button>
 </section>
 
-<!-- 2 발권 -->
-<section class="scr" id="s2">
-  <div class="topbar"><button class="icon-btn" data-back="s1" aria-label="뒤로"></button><div class="tb-title">발권 · 생라자르역 매표창</div><span></span></div>
-  <div class="tk-area">
-    <div class="eyebrow">Billet · Chemin de fer de l'Ouest</div>
-    <h2 id="tkTitle">르아브르행 표</h2>
-    <p class="sub" id="tkSub"></p>
-    <div class="guichet"><div class="slot"></div>
-      <div class="tk-flip" id="tkFlip"><div class="tk-face f"><div class="tk" data-slot="front"></div></div><div class="tk-face b"><div class="tk" data-slot="back"></div></div></div>
-      <div class="tak" id="tak">탁</div>
+<!-- 2 발권 이후: 한 장의 스크롤 캔버스 (표 → 거리·소요·운임 → 이야기 → 오늘의 관람객) -->
+<div class="dim" id="dim"></div>
+<div class="flow" id="flow" hidden>
+  <div class="flow-in" id="flowIn">
+    <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
+    <header class="hero" id="hero">
+      <div class="hero-bar">
+        <button class="icon-btn" id="flowBack" aria-label="지도로"></button>
+        <div class="hero-t" id="heroT"><b id="heroTitle">르아브르 · 1872년 표</b><span id="heroSub">PARIS → LE HAVRE</span></div>
+        <button class="coll" id="coll" aria-label="수집함"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 5h18v3H3z"/><path d="M10 12h4"/></svg><i id="collN" hidden>1</i></button>
+      </div>
+      <div class="guichet" id="guichet"><div class="slot-lip"></div><div class="slot"></div></div>
+      <div class="card-wrap" id="cardWrap">
+        <div class="card-shadow" id="cardShadow"></div>
+        <div class="card3d" id="card3d">
+          <div class="edge e4"></div><div class="edge e3"></div><div class="edge e2"></div><div class="edge e1"></div>
+          <div class="face back"><div class="tk" data-slot="back"></div><div class="grain"></div><div class="sheen"></div></div>
+          <div class="face front"><div class="tk" data-slot="front"></div><div class="grain"></div><div class="sheen"></div></div>
+        </div>
+        <div class="tak" id="tak">탁</div>
+      </div>
+      <div class="hint" id="hint">끌어서 돌려보기 · 두 번 탭하면 뒷면</div>
+    </header>
+    <div class="canvas" id="canvas">
+      <div class="hero-space"></div>
+      <div class="tiles" id="tkTiles"></div>
+      <div class="why" id="tkWhy"></div>
+      <section class="story" id="story">
+        <div class="track" id="track"><span class="st-lab top">PARIS</span><i class="train" id="train"><svg viewBox="0 0 24 24"><path d="M5 4h14a1 1 0 0 1 1 1v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5a1 1 0 0 1 1-1zm1 2v4h12V6zm2 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm8 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM7 18l-2 3h2l1-1.5h8L17 21h2l-2-3z"/></svg></i><span class="st-lab end" id="trackEnd">LE HAVRE</span></div>
+        <div class="story-h"><div class="eyebrow" id="stK"></div><h2 id="stH"></h2><p class="lead" id="stLead"></p></div>
+        <div id="beats"></div>
+      </section>
+      <section class="today" id="today">
+        <div class="eyebrow">Aujourd'hui au guichet</div>
+        <h2>오늘 같은 곳을 고른 관람객</h2>
+        <p class="sub">파리에서 가까운 순 · 수치는 예시</p>
+        <div class="bars" id="bars"></div>
+        <div class="sea" id="sea"></div>
+        <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">수집함에 저장</button></div>
+      </section>
     </div>
-    <p class="cap">표를 눌러도 뒤집힙니다</p>
-    <div class="tiles" id="tkTiles"></div>
-    <div class="why" id="tkWhy"></div>
-    <div class="hist" id="tkHist"></div>
   </div>
-  <div class="btns"><button class="btn line" id="flip">표 뒤집기</button><button class="btn" id="toStory">이야기 보기</button></div>
-</section>
-
-<!-- 3 이야기 -->
-<section class="scr" id="s3">
-  <div class="topbar"><button class="icon-btn" data-back="s2" aria-label="뒤로"></button><div class="tb-title" id="stTitle"></div><span class="tb-count" id="stCount">1/4</span></div>
-  <div class="story" id="story">
-    <div class="st-h"><div class="eyebrow" id="stK"></div><h2 id="stH"></h2></div>
-    <div class="cards" id="cards"></div>
-    <div class="dots" id="dots"></div>
-  </div>
-  <div class="btns"><button class="btn line" id="prev">이전</button><button class="btn" id="next">다음</button></div>
-</section>
-
-<!-- 4 오늘의 관람객 -->
-<section class="scr" id="s4">
-  <div class="topbar"><button class="icon-btn" data-back="s3" aria-label="뒤로"></button><div class="tb-title">오늘의 관람객</div><span></span></div>
-  <div class="res">
-    <div class="eyebrow">Aujourd'hui au guichet</div>
-    <h2>오늘 같은 곳을 고른 관람객</h2>
-    <p class="sub">파리에서 가까운 순 · 수치는 예시</p>
-    <div class="bars" id="bars"></div>
-    <div class="mine" id="mine"></div>
-    <div class="sea" id="sea"></div>
-  </div>
-  <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">수집함에 저장</button></div>
-</section>
+</div>
 <div class="toast" id="toast">수집함에 저장했습니다</div>
 
 <script type="module">
@@ -357,91 +357,160 @@ window.pick = pick; window.getPicked = () => picked; window.DEST = DEST;
 initMap();
 </script>
 <script type="module">
-// ── 2~4 화면: 발권(ticket.html 렌더 재사용) → 이야기(보드 C2 원고) → 오늘의 관람객
+// ── 발권 이후 한 장의 캔버스: 3D 표(끌어서 회전·관성·광택·그림자·두 번 탭 뒤집기) → 스크롤하며 상단에 고정 → 이야기 컷(패럴랙스·등장) → 오늘의 관람객
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const TK = {"argenteuil": {"to": "ARGENTEUIL", "via": "", "prix": null}, "vernon": {"to": "VERNON", "via": "", "prix": null}, "rouen": {"to": "ROUEN", "via": "rive droite", "prix": null}, "lesifs": {"to": "LES IFS", "via": "par Beuzeville", "prix": null}, "lehavre": {"to": "LE HAVRE", "via": "par Rouen", "prix": "21<sup>f</sup>05"}};
-const NARR = {"argenteuil": {"h": "아르장퇴유에 가서, 배 위의 작업실에서 강과 들판을 그렸습니다", "cards": [{"t": "파리에서 9 km, 기차로 15분(1875년 시간표로는 25분, 매시 출발). 모네는 1871년 12월부터 1878년 1월까지 여기 살며 생라자르역으로 파리를 오갔다. 역이 집과 파리 일을 잇는 고리였고, 1876년 말에는 역 근처 뤼 몽세에 작업실을 얻었다.", "img": "../works/c2-arg-regates-orsay.jpg", "cap": "아르장퇴유의 레가타", "meta": "1872년경 · 오르세(RF 2778) · PD"}, {"t": "도비니를 본떠 배를 한 척 사서 판자 선실을 올리고, 이젤 하나 들어갈 자리에서 물 위에서 그렸다. 바토아틀리에.", "img": "../works/c2-arg-bateau-atelier-km.jpg", "cap": "바토아틀리에", "meta": "1874 · 크뢸러뮐러(KM 111.222) · PD"}, {"t": "요트 경주가 열리던 강과 마을 위쪽의 철교. 〈레가타〉(1872년경)는 카유보트가 갖고 있다가 국가에 남겼고, 철교는 1873~74년에 그렸다.", "img": "../works/c2-arg-pont-chemin-de-fer-orsay.jpg", "cap": "아르장퇴유의 철교", "meta": "1873~74 · 오르세(RF 1679) · PD"}, {"t": "1873년 여름, 마을 근처 양귀비 들판을 카미유와 장을 앞세워 그렸다. 〈양귀비 들판〉은 이듬해 1874년 첫 전시에 걸렸다.", "img": "../works/c2-arg-coquelicots-orsay.jpg", "cap": "양귀비 들판", "meta": "1873 · 오르세(RF 1676) · PD"}, {"t": "1875년, 언덕 위 바람 속의 카미유와 장. 〈파라솔을 든 여인〉은 1876년 4월 두 번째 인상파 전시에 모네 18점 가운데 하나로 나왔다.", "img": "../works/c2-arg-parasol-nga.jpg", "cap": "파라솔을 든 여인 – 모네 부인과 아들", "meta": "1875 · 내셔널 갤러리 워싱턴(1983.1.29) · CC0"}]}, "vernon": {"h": "베르농에 가서, 기차에서 본 마을에 정원을 만들었습니다", "cards": [{"t": "1890년 가을부터 이듬해 봄까지, 집 앞 이웃 케뤼엘의 밭에 선 건초더미를 25점 그렸다. 빛이 바뀌면 캔버스를 바꿨다. 1891년 5월 뒤랑뤼엘에서 15점을 걸었고 한 달 안에 거의 다 팔렸다.", "img": "../works/c2-giverny-haystacks-met.jpg", "cap": "건초더미(눈과 해의 효과)", "meta": "1891 · 메트로폴리탄(29.100.109) · CC0"}, {"t": "1891년 여름·가을, 엡트 강가의 포플러. 리메-빌레 마을이 나무를 경매에 내놓자 그림을 끝내려고 나무를 사들였다가 목재상에게 되팔았다.", "img": "../works/c2-giverny-four-trees-met.jpg", "cap": "네 그루의 나무(엡트 강의 포플러)", "meta": "1891 · 메트로폴리탄(29.100.110) · CC0"}, {"t": "1899년, 정원 연못 위 일본식 다리를 같은 자리에서 거듭 그렸다. 메트와 워싱턴 내셔널 갤러리의 두 점이 그해 것이다.", "img": "../works/c2-giverny-bridge-met.jpg", "cap": "수련 연못 위의 다리", "meta": "1899 · 메트로폴리탄(29.100.113) · CC0"}, {"t": "그 뒤 수련 연작 약 250점. 1899년부터 정원이 거의 유일한 주제가 됐다.", "img": "../works/c2-giverny-footbridge-nga.jpg", "cap": "일본식 다리", "meta": "1899 · 내셔널 갤러리 워싱턴(1992.9.1) · CC0"}]}, "rouen": {"h": "루앙에 가서, 대성당 맞은편 방에서 같은 정면을 거듭 그렸습니다", "cards": [{"t": "파리에서 140 km, 급행 2시간 40분(1875년 시간표). 1892년 2월 모네는 이복누이의 유산을 정리하러 루앙에 와서 대성당 광장 31번지의 빈 아파트에 자리를 잡았다. 지베르니에서는 같은 파리–루앙선 베르농역에서 60 km. 봄에 한 번 집에 다녀온 뒤 다시 루앙에 머물렀는데, 기차를 탔다는 기록은 찾지 못했다.", "img": "../works/c2-rouen-cathedrale-orsay.jpg", "cap": "루앙 대성당, 정문, 흐린 날", "meta": "1892(오르세 표기) · 오르세 · PD"}, {"t": "자리를 잃자 옷가게 주인 페르낭 레비가 2층 피팅룸을 내주었다. 병풍 뒤에서 손님들에게 등을 돌리고 그렸다. 1893년 2월 15일~4월 14일에는 그랑퐁 거리 81번지 에두아르 모키의 가게에서 마지막 여섯 점.", "img": "../works/c2-rouen-cathedrale-nga.jpg", "cap": "루앙 대성당, 서쪽 정면, 햇빛", "meta": "1894 · 내셔널 갤러리 워싱턴(1963.10.179) · CC0"}, {"t": "빛이 옮겨가면 캔버스를 바꿨다. 한 번에 열네 점까지. 알리스에게 썼다. \"이 대성당은 너무 힘들다, 끔찍하다.\"", "img": "../works/c2-rouen-cathedrale-met.jpg", "cap": "루앙 대성당, 정문(햇빛)", "meta": "1894 · 메트로폴리탄(30.95.250) · CC0"}, {"t": "스무 해 전인 1872년에도 형 레옹의 집에 머물며 강에서 본 도시를 그렸고 시립전람회에 두 점을 냈다.", "img": "../works/c2-rouen-seine-hermitage.jpg", "cap": "루앙의 센강", "meta": "1872 · 에르미타주(ГЭ-10612) · PD · 다섯째 컷"}]}, "lesifs": {"h": "레지프에 가서, 마차로 에트르타에 들어가 절벽을 그렸습니다", "cards": [{"t": "에트르타에는 철도가 없었다. 루앙·뵈즈빌을 거쳐 페캉 지선의 레지프역(파리에서 214 km, 급행 4시간 33분)에서 내려 마차로 15 km(1 fr. 50).", "img": "../works/c2-etretat-manneporte-met.jpg", "cap": "마네포르트(에트르타)", "meta": "1883 · 메트로폴리탄(51.30.5) · CC0"}, {"t": "1883년 1~2월, 관광객 없는 비수기에 묵었다. 2월 1일 알리스 오슈데에게: 오늘 잘 그렸다, 날씨는 맑고 조금 춥다, 에트르타 절벽의 큰 그림을 할 생각이다.", "img": "../works/c2-etretat-aiguille-1883.jpg", "cap": "썰물의 에트르타 바늘바위", "meta": "1883 · 개인 소장(W 831) · PD(크리스티 도판)"}, {"t": "쿠르베가 이미 그린 절벽이라는 것을 알고 그렸다. 바위문 마네포르트와 썰물의 바늘바위.", "img": "../works/c2-etretat-mer-agitee-lyon.jpg", "cap": "에트르타, 거친 바다", "meta": "1883 · 리옹 미술관(W 821) · PD"}]}, "lehavre": {"h": "르아브르에 가서, 호텔 창문에서 항구의 해돋이를 그렸습니다", "cards": [{"t": "파리에서 229 km, 급행 4시간 30분, 2등 21 fr. 05. 모네는 다섯 살이던 1845년 가족과 함께 이 항구 도시로 와서 자랐다.", "img": "../works/c2-havre-impression-marmottan.jpg", "cap": "인상, 해돋이", "meta": "1872 · 마르모탕 모네(inv. 4014) · PD"}, {"t": "1872년 11월경 오텔 드 라미로테에 묵으며, 방 창문에서 바깥 항구의 남동쪽을 몇 시간 만에 그렸다. 부두, 크레인, 굴뚝, 돛대. 나룻배와 해는 마지막에 넣었다.", "img": "../works/c2-havre-grand-quai-hermitage.jpg", "cap": "르아브르의 그랑 케", "meta": "1874 · 에르미타주 · PD"}, {"t": "1874년 첫 전시 카탈로그에 제목을 적어 달라기에 \"르아브르 풍경이라고는 차마 못 하겠다\"며 〈인상〉이라 했고, 루이 르루아의 기사 제목이 '인상주의자'가 됐다.", "img": "../works/c2-havre-bateaux-peche-lacma.jpg", "cap": "르아브르, 항구를 나서는 어선들", "meta": "1874 · LACMA(소장처는 2차 확인) · PD"}, {"t": "5년 전 여름에는 르아브르 옆 생타드레스의 가족 별장 테라스에서 바다를 그렸고, 1874년 가을에 다시 와 항구를 그렸다.", "img": "../works/c2-havre-sainte-adresse-met.jpg", "cap": "생타드레스의 정원", "meta": "1867 · 메트로폴리탄(67.241) · CC0"}]}};   // 보드 C2 원고. 그림이 없는 컷(르아브르 4·베르농 1·루앙 4·레지프 4)은 뺐다
-const PCT = {"argenteuil": 13, "vernon": 11, "rouen": 9, "lesifs": 13, "lehavre": 54};          // 보드 '오늘의 관람객' 예시값 (거리순)
-const SEA = ['lesifs', 'lehavre'];        // 바다까지 간 곳
+const NARR = {"argenteuil": {"h": "아르장퇴유에 가서, 배 위의 작업실에서 강과 들판을 그렸습니다", "lead": "", "cards": [{"t": "파리에서 9 km, 기차로 15분(1875년 시간표로는 25분, 매시 출발). 모네는 1871년 12월부터 1878년 1월까지 여기 살며 생라자르역으로 파리를 오갔다. 역이 집과 파리 일을 잇는 고리였고, 1876년 말에는 역 근처 뤼 몽세에 작업실을 얻었다.", "img": "../works/c2-arg-regates-orsay.jpg", "cap": "아르장퇴유의 레가타", "meta": "1872년경 · 오르세(RF 2778) · PD"}, {"t": "도비니를 본떠 배를 한 척 사서 판자 선실을 올리고, 이젤 하나 들어갈 자리에서 물 위에서 그렸다. 바토아틀리에.", "img": "../works/c2-arg-bateau-atelier-km.jpg", "cap": "바토아틀리에", "meta": "1874 · 크뢸러뮐러(KM 111.222) · PD"}, {"t": "요트 경주가 열리던 강과 마을 위쪽의 철교. 〈레가타〉(1872년경)는 카유보트가 갖고 있다가 국가에 남겼고, 철교는 1873~74년에 그렸다.", "img": "../works/c2-arg-pont-chemin-de-fer-orsay.jpg", "cap": "아르장퇴유의 철교", "meta": "1873~74 · 오르세(RF 1679) · PD"}, {"t": "1873년 여름, 마을 근처 양귀비 들판을 카미유와 장을 앞세워 그렸다. 〈양귀비 들판〉은 이듬해 1874년 첫 전시에 걸렸다.", "img": "../works/c2-arg-coquelicots-orsay.jpg", "cap": "양귀비 들판", "meta": "1873 · 오르세(RF 1676) · PD"}, {"t": "1875년, 언덕 위 바람 속의 카미유와 장. 〈파라솔을 든 여인〉은 1876년 4월 두 번째 인상파 전시에 모네 18점 가운데 하나로 나왔다.", "img": "../works/c2-arg-parasol-nga.jpg", "cap": "파라솔을 든 여인 – 모네 부인과 아들", "meta": "1875 · 내셔널 갤러리 워싱턴(1983.1.29) · CC0"}]}, "vernon": {"h": "베르농에 가서, 기차에서 본 마을에 정원을 만들었습니다", "lead": "파리–루앙선 베르농역, 파리에서 80 km. 1883년 4월, 푸아시 집을 떠나야 했던 모네는 의붓아들 장피에르 오슈데의 회고로는 베르농–지조르 작은 기차 창밖에서 지베르니를 보았다. 5월 3일 '르 프레수아르'를 빌렸다.", "cards": [{"t": "1890년 가을부터 이듬해 봄까지, 집 앞 이웃 케뤼엘의 밭에 선 건초더미를 25점 그렸다. 빛이 바뀌면 캔버스를 바꿨다. 1891년 5월 뒤랑뤼엘에서 15점을 걸었고 한 달 안에 거의 다 팔렸다.", "img": "../works/c2-giverny-haystacks-met.jpg", "cap": "건초더미(눈과 해의 효과)", "meta": "1891 · 메트로폴리탄(29.100.109) · CC0"}, {"t": "1891년 여름·가을, 엡트 강가의 포플러. 리메-빌레 마을이 나무를 경매에 내놓자 그림을 끝내려고 나무를 사들였다가 목재상에게 되팔았다.", "img": "../works/c2-giverny-four-trees-met.jpg", "cap": "네 그루의 나무(엡트 강의 포플러)", "meta": "1891 · 메트로폴리탄(29.100.110) · CC0"}, {"t": "1899년, 정원 연못 위 일본식 다리를 같은 자리에서 거듭 그렸다. 메트와 워싱턴 내셔널 갤러리의 두 점이 그해 것이다.", "img": "../works/c2-giverny-bridge-met.jpg", "cap": "수련 연못 위의 다리", "meta": "1899 · 메트로폴리탄(29.100.113) · CC0"}, {"t": "그 뒤 수련 연작 약 250점. 1899년부터 정원이 거의 유일한 주제가 됐다.", "img": "../works/c2-giverny-footbridge-nga.jpg", "cap": "일본식 다리", "meta": "1899 · 내셔널 갤러리 워싱턴(1992.9.1) · CC0"}]}, "rouen": {"h": "루앙에 가서, 대성당 맞은편 방에서 같은 정면을 거듭 그렸습니다", "lead": "", "cards": [{"t": "파리에서 140 km, 급행 2시간 40분(1875년 시간표). 1892년 2월 모네는 이복누이의 유산을 정리하러 루앙에 와서 대성당 광장 31번지의 빈 아파트에 자리를 잡았다. 지베르니에서는 같은 파리–루앙선 베르농역에서 60 km. 봄에 한 번 집에 다녀온 뒤 다시 루앙에 머물렀는데, 기차를 탔다는 기록은 찾지 못했다.", "img": "../works/c2-rouen-cathedrale-orsay.jpg", "cap": "루앙 대성당, 정문, 흐린 날", "meta": "1892(오르세 표기) · 오르세 · PD"}, {"t": "자리를 잃자 옷가게 주인 페르낭 레비가 2층 피팅룸을 내주었다. 병풍 뒤에서 손님들에게 등을 돌리고 그렸다. 1893년 2월 15일~4월 14일에는 그랑퐁 거리 81번지 에두아르 모키의 가게에서 마지막 여섯 점.", "img": "../works/c2-rouen-cathedrale-nga.jpg", "cap": "루앙 대성당, 서쪽 정면, 햇빛", "meta": "1894 · 내셔널 갤러리 워싱턴(1963.10.179) · CC0"}, {"t": "빛이 옮겨가면 캔버스를 바꿨다. 한 번에 열네 점까지. 알리스에게 썼다. \"이 대성당은 너무 힘들다, 끔찍하다.\"", "img": "../works/c2-rouen-cathedrale-met.jpg", "cap": "루앙 대성당, 정문(햇빛)", "meta": "1894 · 메트로폴리탄(30.95.250) · CC0"}, {"t": "스무 해 전인 1872년에도 형 레옹의 집에 머물며 강에서 본 도시를 그렸고 시립전람회에 두 점을 냈다.", "img": "../works/c2-rouen-seine-hermitage.jpg", "cap": "루앙의 센강", "meta": "1872 · 에르미타주(ГЭ-10612) · PD · 다섯째 컷"}]}, "lesifs": {"h": "레지프에 가서, 마차로 에트르타에 들어가 절벽을 그렸습니다", "lead": "", "cards": [{"t": "에트르타에는 철도가 없었다. 루앙·뵈즈빌을 거쳐 페캉 지선의 레지프역(파리에서 214 km, 급행 4시간 33분)에서 내려 마차로 15 km(1 fr. 50).", "img": "../works/c2-etretat-manneporte-met.jpg", "cap": "마네포르트(에트르타)", "meta": "1883 · 메트로폴리탄(51.30.5) · CC0"}, {"t": "1883년 1~2월, 관광객 없는 비수기에 묵었다. 2월 1일 알리스 오슈데에게: 오늘 잘 그렸다, 날씨는 맑고 조금 춥다, 에트르타 절벽의 큰 그림을 할 생각이다.", "img": "../works/c2-etretat-aiguille-1883.jpg", "cap": "썰물의 에트르타 바늘바위", "meta": "1883 · 개인 소장(W 831) · PD(크리스티 도판)"}, {"t": "쿠르베가 이미 그린 절벽이라는 것을 알고 그렸다. 바위문 마네포르트와 썰물의 바늘바위.", "img": "../works/c2-etretat-mer-agitee-lyon.jpg", "cap": "에트르타, 거친 바다", "meta": "1883 · 리옹 미술관(W 821) · PD"}]}, "lehavre": {"h": "르아브르에 가서, 호텔 창문에서 항구의 해돋이를 그렸습니다", "lead": "", "cards": [{"t": "파리에서 229 km, 급행 4시간 30분, 2등 21 fr. 05. 모네는 다섯 살이던 1845년 가족과 함께 이 항구 도시로 와서 자랐다.", "img": "../works/c2-havre-impression-marmottan.jpg", "cap": "인상, 해돋이", "meta": "1872 · 마르모탕 모네(inv. 4014) · PD"}, {"t": "1872년 11월경 오텔 드 라미로테에 묵으며, 방 창문에서 바깥 항구의 남동쪽을 몇 시간 만에 그렸다. 부두, 크레인, 굴뚝, 돛대. 나룻배와 해는 마지막에 넣었다.", "img": "../works/c2-havre-grand-quai-hermitage.jpg", "cap": "르아브르의 그랑 케", "meta": "1874 · 에르미타주 · PD"}, {"t": "1874년 첫 전시 카탈로그에 제목을 적어 달라기에 \"르아브르 풍경이라고는 차마 못 하겠다\"며 〈인상〉이라 했고, 루이 르루아의 기사 제목이 '인상주의자'가 됐다.", "img": "../works/c2-havre-bateaux-peche-lacma.jpg", "cap": "르아브르, 항구를 나서는 어선들", "meta": "1874 · LACMA(소장처는 2차 확인) · PD"}, {"t": "5년 전 여름에는 르아브르 옆 생타드레스의 가족 별장 테라스에서 바다를 그렸고, 1874년 가을에 다시 와 항구를 그렸다.", "img": "../works/c2-havre-sainte-adresse-met.jpg", "cap": "생타드레스의 정원", "meta": "1867 · 메트로폴리탄(67.241) · CC0"}]}};
+const PCT = {"argenteuil": 13, "vernon": 11, "rouen": 9, "lesifs": 13, "lehavre": 54}, SEA = ['lesifs', 'lehavre'];
 const MF = ['JANV','FÉV','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'], MFL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const WD = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'], WK = ['일','월','화','수','목','금','토'];
 const q = new URLSearchParams(location.search), today = new Date();
 const day = parseInt(q.get('d') || today.getDate(), 10), mon = parseInt(q.get('m') || (today.getMonth() + 1), 10);
-const no = String(10000 + Math.floor(Math.random() * 89999));
-let cur = null, card = 0;
-
-function show(id) { $$('.scr').forEach((s) => s.classList.toggle('on', s.id === id)); window.scrollTo(0, 0); }
-$$('[data-back]').forEach((b) => b.addEventListener('click', () => show(b.dataset.back)));
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const make = (id) => document.getElementById(id).content.firstElementChild.cloneNode(true);
+const flow = $('#flow'), flowIn = $('#flowIn'), hero = $('#hero'), wrap = $('#cardWrap'), card = $('#card3d'), shadow = $('#cardShadow'), sheens = $$('.sheen'), hint = $('#hint');
+let cur = null, no = '04173', saved = false;
+
+// 종이결(한 번만 그려서 data URL로)
+(function grain() {
+  const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'); const im = g.createImageData(160, 160);
+  for (let i = 0; i < im.data.length; i += 4) { const v = 150 + Math.random() * 105; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 28; }
+  g.putImageData(im, 0, 0); document.documentElement.style.setProperty('--grain', `url(${c.toDataURL()})`);
+})();
+
 function fill(root, d) {
-  const wd = new Date(d.year, mon - 1, day).getDay(); const toText = d.to;
+  const wd = new Date(d.year, mon - 1, day).getDay();
   root.querySelectorAll('[data-no]').forEach((e) => e.textContent = no);
-  const to = root.querySelector('[data-to]'); if (to) { to.innerHTML = d.to; if (toText.length > 9) to.classList.add('long'); }
+  const to = root.querySelector('[data-to]'); if (to) { to.innerHTML = d.to; if (d.to.length > 9) to.classList.add('long'); }
   const via = root.querySelector('[data-via]'); if (via) via.innerHTML = d.via || '';
   const px = root.querySelector('[data-prix]'); if (px) { if (d.prix) px.innerHTML = d.prix; else { px.textContent = '— —'; px.classList.add('none'); } }
   const yr = root.querySelector('[data-yr]'); if (yr) yr.textContent = d.year;
   const ds = root.querySelector('[data-date]'); if (ds) ds.textContent = `${day} ${MF[mon - 1]} ${d.year}`;
-  const tt = root.querySelector('[data-to-text]'); if (tt) tt.textContent = toText;
+  const tt = root.querySelector('[data-to-text]'); if (tt) tt.textContent = d.to;
   const ld = root.querySelector('[data-longdate]'); if (ld) ld.textContent = `${WD[wd]} ${day} ${MFL[mon - 1]} ${d.year}`;
   const kd = root.querySelector('[data-ko-date]'); if (kd) kd.textContent = `${d.year}년 ${mon}월 ${day}일 ${WK[wd]}요일`;
   return root;
 }
-// 2 발권: 창구 슬롯에서 표가 밀려 올라오고, 날짜가 '탁' 찍힌다
-function goTicket() {
-  const p = window.getPicked(); if (!p) return; cur = p;
-  const d = { ...TK[p.id], year: p.year }; const wd = new Date(d.year, mon - 1, day).getDay();
-  $('#tkTitle').textContent = `${p.ko}행 표`;
-  $('#tkSub').textContent = `${d.year}년 ${mon}월 ${day}일 ${WK[wd]}요일 · 2등 · 생라자르역 → ${p.ko}`;
+
+// ── 3D 표: 상태(회전·속도·뒤집기) + rAF 루프. transform/opacity만 바꾼다
+const R = { rx: 0, ry: 0, vx: 0, vy: 0, flip: 0, flipT: 0, drag: null, lastInput: 0, dragged: false, t: 0, issued: false };
+const LIM = 60;
+function applyCard(now) {
+  const idle = now - R.lastInput > 1800 && !R.drag && R.t < 0.25 && !RM && R.issued;
+  if (!R.drag) {
+    R.rx += R.vx; R.ry += R.vy; R.vx *= 0.92; R.vy *= 0.92;
+    if (Math.abs(R.rx) > LIM) { R.rx = LIM * Math.sign(R.rx); R.vx *= -0.3; }
+    if (Math.abs(R.ry) > LIM) { R.ry = LIM * Math.sign(R.ry); R.vy *= -0.3; }
+    // 가만히 두면 천천히 흔들리고, 스크롤해 작아지면 0으로 돌아온다
+    const tx = idle ? 5 * Math.sin(now / 1400) : 0, ty = idle ? 9 * Math.sin(now / 2100 + 1) : 0;
+    const k = R.t > 0.25 ? 0.12 : 0.03;
+    if (Math.abs(R.vx) < 0.02 && Math.abs(R.vy) < 0.02) { R.rx += (tx - R.rx) * k; R.ry += (ty - R.ry) * k; }
+  }
+  R.flipT += (R.flip - R.flipT) * 0.14;
+  const ry = R.ry + R.flipT, rx = R.rx;
+  if (R.issued) card.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+  const f = Math.cos(ry * Math.PI / 180) >= 0 ? 1 : -1;     // 보이는 면
+  sheens.forEach((s, i) => { s.style.transform = `translate(${(f * R.ry * 1.9).toFixed(1)}%, ${(-rx * 1.4).toFixed(1)}%)`; s.style.opacity = (0.18 + Math.min(0.5, (Math.abs(R.ry) + Math.abs(rx)) / 90)).toFixed(2); });
+  shadow.style.transform = `translate(${(-R.ry * 0.5).toFixed(1)}px, ${(14 + rx * 0.45).toFixed(1)}px) scale(${(0.94 - Math.abs(rx) / 600).toFixed(3)})`;
+  shadow.style.opacity = (0.55 - (Math.abs(rx) + Math.abs(R.ry)) / 400).toFixed(2);
+}
+let raf = 0;
+function loop(now) { applyCard(now); raf = requestAnimationFrame(loop); }
+
+// 끌어서 돌리기(관성) · 두 번 탭 뒤집기
+let lastTap = 0;
+wrap.addEventListener('pointerdown', (e) => {
+  if (R.t > 0.25 || !R.issued) return;
+  wrap.setPointerCapture(e.pointerId); R.drag = { x: e.clientX, y: e.clientY, rx: R.rx, ry: R.ry, moved: 0, px: e.clientX, py: e.clientY, pt: performance.now() }; R.vx = R.vy = 0; R.lastInput = performance.now();
+});
+wrap.addEventListener('pointermove', (e) => {
+  const d = R.drag; if (!d) return;
+  const dx = e.clientX - d.x, dy = e.clientY - d.y; d.moved = Math.max(d.moved, Math.hypot(dx, dy));
+  R.ry = clamp(d.ry + dx * 0.45, -LIM, LIM); R.rx = clamp(d.rx - dy * 0.45, -LIM, LIM);
+  const now = performance.now(), dt = Math.max(8, now - d.pt);
+  R.vy = ((e.clientX - d.px) * 0.45) / dt * 16; R.vx = (-(e.clientY - d.py) * 0.45) / dt * 16; d.px = e.clientX; d.py = e.clientY; d.pt = now; R.lastInput = now;
+  if (d.moved > 10 && !R.dragged) { R.dragged = true; hint.classList.add('off'); }
+});
+const up = (e) => {
+  const d = R.drag; if (!d) return; R.drag = null; R.lastInput = performance.now();
+  if (RM) { R.vx = R.vy = 0; }
+  if (d.moved < 8) { const now = performance.now(); if (now - lastTap < 320) { R.flip += 180; lastTap = 0; hint.classList.add('off'); } else lastTap = now; }
+};
+wrap.addEventListener('pointerup', up); wrap.addEventListener('pointercancel', up);
+
+// ── 스크롤: 표가 작아져 상단에 붙고(보딩패스), 진행선·기차·패럴랙스·등장
+let W = 390, H = 844, storyTop = 0, storyH = 1, trackH = 1, beatEls = [], imgs = [];
+function layout() {
+  W = flow.clientWidth; H = flow.clientHeight;
+  const st = $('#story'); storyTop = st.offsetTop; storyH = st.offsetHeight; trackH = $('#track').offsetHeight - 56 - 86;
+  const ticks = $$('.tick', $('#track')); ticks.forEach((t) => t.remove());
+  beatEls.forEach((b) => { const i = document.createElement('i'); i.className = 'tick'; i.style.top = (b.offsetTop + b.offsetHeight * 0.42 - $('#track').offsetTop) + 'px'; $('#track').appendChild(i); });
+  onScroll();
+}
+function onScroll() {
+  const y = flow.scrollTop;
+  const t = clamp(y / 230, 0, 1); R.t = t;
+  const e = 1 - Math.pow(1 - t, 3);                       // ease-out
+  const s = 1 - 0.70 * e;                                   // 1 → .30
+  const cx0 = W / 2, cy0 = 72 + 92, cx1 = 50 + 52, cy1 = 30;   // 큰 표 중심 → 바 안 작은 표 중심
+  wrap.style.transform = `translate(${(cx0 + (cx1 - cx0) * e - 175).toFixed(1)}px, ${(cy0 + (cy1 - cy0) * e - 92).toFixed(1)}px) scale(${s.toFixed(3)})`;
+  $('#guichet').style.opacity = clamp(1 - t * 2.2, 0, 1); $('#guichet').style.transform = `translateY(${(-y * 0.35).toFixed(1)}px)`;
+  hint.style.opacity = R.dragged ? 0 : clamp(1 - t * 3, 0, 1);
+  $('#heroT').style.opacity = clamp((t - 0.55) / 0.45, 0, 1); $('#heroT').style.transform = `translateY(${((1 - clamp((t - 0.55) / 0.45, 0, 1)) * 6).toFixed(1)}px)`;
+  hero.classList.toggle('pinned', t > 0.98);
+  // 이야기 진행: 화면 45% 지점이 이야기 구간을 지나는 비율
+  const p = clamp((y + H * 0.45 - storyTop) / storyH, 0, 1);
+  $('#progBar').style.transform = `scaleX(${p.toFixed(3)})`;
+  $('#train').style.transform = `translateY(${(p * trackH).toFixed(1)}px)`;
+  // 패럴랙스(그림만, transform)
+  imgs.forEach(([img, el]) => { const r = el.getBoundingClientRect(); const c = r.top + r.height / 2 - H / 2; img.style.transform = `translateY(${(clamp(-c, -H, H) * 0.06).toFixed(1)}px) scale(1.12)`; });
+}
+flow.addEventListener('scroll', onScroll, { passive: true });
+window.addEventListener('resize', layout);
+const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: flow, threshold: 0.18 });
+
+// ── 발권: 지도가 어두워지고 창구 슬롯에서 표가 밀려 나온 뒤 날인이 찍힌다
+function issue() {
+  const p = window.getPicked(); if (!p) return; cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
+  const d = { ...TK[p.id], year: p.year };
+  const f = $('[data-slot=front]'), b = $('[data-slot=back]'); f.innerHTML = ''; b.innerHTML = ''; f.appendChild(fill(make('front'), d)); b.appendChild(fill(make('back'), d));
+  $('#heroTitle').textContent = `${p.ko} · ${p.year}년 표`; $('#heroSub').textContent = `PARIS → ${d.to} · 2me classe`;
   const [km, dur] = p.info.split(' · ');
   $('#tkTiles').innerHTML = `<div><small>파리에서</small><b>${km}</b></div><div><small>소요</small><b>${dur.replace('급행 ', '')}</b></div><div><small>2등 운임</small><b>${d.prix ? '21 fr. 05' : '— —'}</b></div>`;
   $('#tkWhy').innerHTML = `<b>왜 ${d.year}년?</b> 모네가 ${p.ko}에 온 해입니다. 오늘 날짜(${mon}월 ${day}일)에 그 해를 붙여 찍었습니다.${d.prix ? ' 운임은 1874년 안내서의 2등 값.' : ' 그 해 ±3년 안내서에 운임이 없어 빈칸.'}`;
-  $('#tkHist').innerHTML = `<b>${p.ko}</b> ${p.info}${d.prix ? ' · 2등 21 fr. 05' : ''}<br>${d.year}년, 모네는 여기서 무엇을 했나 →`;
-  const f = $('[data-slot=front]'), b = $('[data-slot=back]'); f.innerHTML = ''; b.innerHTML = '';
-  f.appendChild(fill(make('front'), d)); b.appendChild(fill(make('back'), d));
-  const flip = $('#tkFlip'); flip.classList.remove('flipped', 'in'); $('#tak').classList.remove('on');
-  show('s2');
-  requestAnimationFrame(() => { flip.classList.add('in'); setTimeout(() => $('#tak').classList.add('on'), 650); });
+  // 이야기
+  const n = NARR[p.id];
+  $('#stK').textContent = `${p.fr} · ${p.year} · ${n.cards.length}컷`; $('#stH').textContent = n.h; $('#stLead').textContent = n.lead; $('#stLead').hidden = !n.lead; $('#trackEnd').textContent = d.to;
+  $('#beats').innerHTML = n.cards.map((c, i) => `<article class="beat"><div class="num">${i + 1}</div><div class="img"><img src="${c.img}" alt="" loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async"></div><p class="cap">${c.t}</p><div class="meta">〈${c.cap}〉 · ${c.meta}</div></article>`).join('');
+  beatEls = $$('.beat'); imgs = beatEls.map((b) => [b.querySelector('img'), b.querySelector('.img')]);
+  beatEls.forEach((b) => io.observe(b)); imgs.forEach(([img]) => img.addEventListener('load', layout, { once: true }));
+  // 오늘의 관람객
+  const order = window.DEST.map((x) => x.id);
+  $('#bars').innerHTML = order.map((id, i) => { const x = window.DEST.find((z) => z.id === id), me = id === p.id; return `<div class="bar${me ? ' me' : ''}" style="--i:${i}"><div class="lb"><b>${x.ko}${me ? ' · 나' : ''}</b><b>${PCT[id]}%</b></div><div class="tr"><div class="fl" style="--w:${PCT[id] / 100}"></div></div></div>`; }).join('');
+  $('#sea').innerHTML = `오늘 바다까지 간 사람 <b>${SEA.reduce((a, id) => a + PCT[id], 0)}%</b> <small>(레지프·르아브르)</small>`;
+  io.observe($('#today')); $('#today').classList.remove('in');
+  $('#save').textContent = '수집함에 저장'; $('#save').disabled = false; $('#collN').hidden = true; wrap.classList.remove('fly'); hero.classList.remove('saved');
+  // 표시 + 발권 동작
+  R.rx = R.ry = R.vx = R.vy = 0; R.flip = R.flipT = 0; R.dragged = false; R.issued = false; hint.classList.remove('off');
+  card.style.transform = ''; flow.hidden = false; flow.scrollTop = 0; requestAnimationFrame(() => flow.classList.add('on')); $('#dim').classList.add('on'); hero.classList.add('issuing'); wrap.classList.remove('issued', 'stamped'); $('#tak').classList.remove('on');
+  layout(); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    wrap.classList.add('issued');
+    setTimeout(() => { wrap.classList.add('stamped'); $('#tak').classList.add('on'); if (!RM) { flowIn.classList.add('shake'); setTimeout(() => flowIn.classList.remove('shake'), 220); } }, RM ? 300 : 980);
+    setTimeout(() => { hero.classList.remove('issuing'); R.issued = true; R.lastInput = performance.now() - 1000; }, RM ? 400 : 1350);
+  }));
 }
-$('#buy').addEventListener('click', goTicket);
-$('#flip').addEventListener('click', () => $('#tkFlip').classList.toggle('flipped'));
-$('#tkFlip').addEventListener('click', () => $('#tkFlip').classList.toggle('flipped'));
-// 3 이야기: 보드 C2 원고 — 컷마다 그림 한 점 + 한 문장
-function goStory() {
-  const n = NARR[cur.id]; card = 0;
-  $('#stTitle').textContent = `${cur.ko}에 가서`; $('#stK').textContent = `${cur.fr} · ${cur.year}`; $('#stH').textContent = n.h;
-  $('#cards').innerHTML = n.cards.map((c, i) => `<article class="card-s" data-i="${i}"><div class="img"><img src="${c.img}" alt="" loading="${i ? 'lazy' : 'eager'}"></div><p class="beat">${c.t}</p><div class="meta">〈${c.cap}〉 · ${c.meta}</div></article>`).join('');
-  $('#dots').innerHTML = n.cards.map((_, i) => `<i${i ? '' : ' class="on"'}></i>`).join('');
-  show('s3'); setCard(0);
-}
-function setCard(i) {
-  const n = NARR[cur.id].cards.length; card = Math.max(0, Math.min(n - 1, i));
-  $('#cards').style.transform = `translateX(${-card * 100}%)`;
-  $$('#dots i').forEach((d, k) => d.classList.toggle('on', k === card));
-  $('#stCount').textContent = `${card + 1}/${n}`;
-  $('#prev').disabled = card === 0;
-  $('#next').textContent = card === n - 1 ? '오늘의 관람객' : '다음';
-}
-$('#toStory').addEventListener('click', goStory);
-$('#prev').addEventListener('click', () => setCard(card - 1));
-$('#next').addEventListener('click', () => { if (card === NARR[cur.id].cards.length - 1) goResult(); else setCard(card + 1); });
-// 스와이프
-let sx = null; const cards = $('#cards');
-cards.addEventListener('pointerdown', (e) => { sx = e.clientX; });
-cards.addEventListener('pointerup', (e) => { if (sx === null) return; const dx = e.clientX - sx; sx = null; if (Math.abs(dx) > 40) setCard(card + (dx < 0 ? 1 : -1)); });
-// 4 오늘의 관람객
-function goResult() {
-  const order = window.DEST.map((d) => d.id);
-  $('#bars').innerHTML = order.map((id) => { const d = window.DEST.find((x) => x.id === id), me = id === cur.id; return `<div class="bar${me ? ' me' : ''}"><div class="lb"><b>${d.ko}${me ? ' · 나' : ''}</b><b>${PCT[id]}%</b></div><div class="tr"><div class="fl" style="width:${PCT[id]}%"></div></div></div>`; }).join('');
-  const sea = SEA.reduce((a, id) => a + PCT[id], 0);
-  $('#sea').innerHTML = `오늘 바다까지 간 사람 <b>${sea}%</b> <small>(레지프·르아브르)</small>`;
-  const m = $('#mine'); m.innerHTML = `<div class="tk mini" data-slot="mini"></div><div class="mine-t"><div class="eyebrow">나의 선택</div><b>${cur.ko} · ${cur.year}년 표</b><span>같은 선택 ${PCT[cur.id]}% · 수집함에 저장하면 마지막 화면에 C0·C1·C5와 나란히 놓입니다</span></div>`;
-  m.querySelector('[data-slot=mini]').appendChild(fill(make('front'), { ...TK[cur.id], year: cur.year }));
-  show('s4');
-  requestAnimationFrame(() => $$('#bars .fl').forEach((f) => { const w = f.style.width; f.style.width = '0'; setTimeout(() => f.style.width = w, 30); }));
-}
-$('#again').addEventListener('click', () => show('s1'));
-$('#save').addEventListener('click', () => { const t = $('#toast'); t.classList.add('on'); setTimeout(() => { t.classList.remove('on'); show('s1'); }, 1300); });
-window.flow = { goTicket, goStory, goResult, setCard, show };
+$('#buy').addEventListener('click', issue);
+function leave() { flow.hidden = true; flow.classList.remove('on'); $('#dim').classList.remove('on'); cancelAnimationFrame(raf); }
+$('#flowBack').addEventListener('click', leave); $('#again').addEventListener('click', leave);
+$('#save').addEventListener('click', () => {
+  if (saved) return; saved = true; $('#save').disabled = true; $('#save').textContent = '저장됨';
+  flow.scrollTo({ top: 0, behavior: RM ? 'auto' : 'smooth' });
+  setTimeout(() => { wrap.classList.add('fly'); hero.classList.add('saved'); }, RM ? 0 : 500);
+  setTimeout(() => { $('#collN').hidden = false; $('#coll').classList.add('bump'); setTimeout(() => $('#coll').classList.remove('bump'), 500); const t = $('#toast'); t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); }, RM ? 100 : 1250);
+});
+window.flow = { issue, leave, R, layout };
 </script>
 </body>
 </html>
