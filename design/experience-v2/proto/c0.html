@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#FFFFFF">
+<title>C0 · 당신은 오늘의 심사위원입니다</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="c0.css">
+</head>
+<body class="c0">
+
+<!-- 1 역할 — 기획서 문장 한 줄로 그 시대의 자리에 선다 -->
+<section class="scr on" id="s1">
+  <div class="topbar"><span></span><div class="tb-title">C0 · 아카데미 살롱</div><span></span></div>
+  <div class="role">
+    <div class="eyebrow">C0 · Salon de 1873 · Jury</div>
+    <h1>당신은 오늘의<br>심사위원입니다</h1>
+    <div class="rule"></div>
+    <p class="lead">1873년, 파리 아카데미 공식 살롱전.<br>살롱 벽 가운데, 눈높이의 가장 좋은 자리는 하나뿐입니다. 후보작 5점 중 그 자리에 걸 한 점을 고르십시오.</p>
+    <details class="crit">
+      <summary><span>심사 기준 7</span><i data-ic="chevron"></i></summary>
+      <ol>
+        <li>위대한 주제 <small>신화, 종교, 역사</small></li>
+        <li>정확한 인체</li>
+        <li>명확한 구도</li>
+        <li>완성된 묘사</li>
+        <li>고상한 감정</li>
+        <li>매끄러운 표면 <small>붓질이 보이면 안 됨</small></li>
+        <li>캔버스가 안 보이는 완벽한 채색</li>
+      </ol>
+    </details>
+    <div class="cands-cap"><span>후보작 5점</span><small>고를 때는 번호와 그림만</small></div>
+    <div class="cands" id="candStrip"></div>
+    <p class="note loc">4F · B · 전시실5 · 1873년 살롱 재현<br>입구와 좌우 벽의 QR로 시작합니다. 액자 앞에 설 필요 없이 번호로 고릅니다.</p>
+  </div>
+  <div class="btns one"><button class="btn" id="enter">심사위원 자격으로 입장하기</button></div>
+</section>
+
+<!-- 2·3 살롱 벽 — 끌어서 가운데 액자에 건다 → 오늘의 살롱 벽 -->
+<section class="scr" id="s2">
+  <div class="stage" id="stage">
+    <div class="wall-paper"></div>
+    <div class="wall-light"></div>
+    <div class="lower" id="lower">
+      <div class="dado"></div>
+      <div class="wainscot"></div>
+    </div>
+    <svg class="rope" viewBox="0 0 390 96" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+      <defs>
+        <linearGradient id="brass" x1="0" x2="1"><stop offset="0" stop-color="#6E4F1C"/><stop offset=".45" stop-color="#E5C46E"/><stop offset="1" stop-color="#7A5A22"/></linearGradient>
+        <linearGradient id="ropeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C0393F"/><stop offset="1" stop-color="#6E1C22"/></linearGradient>
+      </defs>
+      <path d="M60 22 C 150 70, 240 70, 330 22" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="9" stroke-linecap="round" transform="translate(0 5)"/>
+      <path d="M60 22 C 150 70, 240 70, 330 22" fill="none" stroke="url(#ropeG)" stroke-width="7" stroke-linecap="round"/>
+      <rect x="55.5" y="16" width="9" height="80" fill="url(#brass)"/><circle cx="60" cy="12" r="7" fill="url(#brass)"/>
+      <rect x="325.5" y="16" width="9" height="80" fill="url(#brass)"/><circle cx="330" cy="12" r="7" fill="url(#brass)"/>
+    </svg>
+    <div class="cornice"></div>
+    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle">살롱 벽 · 가운데 눈높이 한 자리</div><span></span></div>
+    <div class="hang" id="hang">
+      <div class="frame target" id="target"><div class="plate plate-q">?</div><div class="mat"><div class="void"><span>가운데 · 눈높이</span><b>여기에 걸기</b></div></div></div>
+    </div>
+    <div class="tags" id="tags"></div>
+    <div class="hint" id="hint"><span class="pill light">후보작을 끌어 가운데 액자에 거십시오</span></div>
+  </div>
+
+  <!-- 오늘의 살롱 벽 — 아래에서 올라오는 결과 패널 -->
+  <div class="reveal" id="reveal">
+    <div class="cap" id="revCap">오늘의 살롱 벽 · 심사위원 1,284명</div>
+    <h2 id="revTitle">내가 건 4번은 오늘 벽에서 가운데 눈높이</h2>
+    <p class="sub" id="revSub">표가 가장 많은 그림은 가운데 눈높이, 가장 적은 그림은 천장 가까이. 수치는 예시.</p>
+    <div class="hist" id="revHist"><b>그때 살롱에서는</b>살롱은 바닥부터 천장까지 그림을 걸었다. 눈높이 자리는 적었고, 천장 가까이 걸리면 잘 보이지 않았다.<small>Wikipedia · Salon (Paris) · 2차 자료</small></div>
+    <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">저장</button></div>
+  </div>
+</section>
+
+<!-- 4 내가 가운데에 건 그림 — 카드(기기에서 생성) -->
+<section class="scr" id="s4">
+  <div class="topbar"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">나의 카드</div><span></span></div>
+  <div class="card-wrap">
+    <div class="cap">C0 · 내가 가운데에 건 그림</div>
+    <div class="card" id="card">
+      <div class="card-wall"><div class="frame mini" id="cardFrame"><div class="mat"><img alt="" id="cardImg"></div></div><div class="card-pos" id="cardPos"></div></div>
+      <div class="card-body">
+        <b id="cardNo"></b>
+        <h3 id="cardTitle"></h3>
+        <p id="cardMeta"></p>
+        <small id="cardShown"></small>
+      </div>
+    </div>
+    <p class="note">고른 그림의 제목·작가·연도는 고른 뒤에만 나옵니다. 마지막 화면에서 C1·C2·C5의 선택과 나란히 놓입니다.</p>
+  </div>
+  <div class="btns one"><button class="btn line" id="restart">처음으로</button></div>
+</section>
+
+<!-- 확인 시트 -->
+<div class="sheet" id="confirm">
+  <div class="grip"></div>
+  <h3>이 그림을 가운데에 걸까요?</h3>
+  <p class="sub">걸고 나면 오늘의 심사위원들이 건 벽을 봅니다.</p>
+  <div class="confirm-row"><div class="frame mini" id="cfFrame"><div class="mat"><img alt="" id="cfImg"></div></div><div class="cf-no"><span>후보작</span><b id="cfNo"></b></div></div>
+  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 고르기</button><button class="btn" id="cfOk">이 그림을 건다</button></div>
+</div>
+
+<script type="module" src="c0.js"></script>
+</body>
+</html>

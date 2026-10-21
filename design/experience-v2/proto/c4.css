@@ -1,0 +1,151 @@
+/* C4 나다르 사진관 — 어두운 사진관(검정 바탕 · 흰 글자), 포인트 주황 하나 */
+html { background: #0F0E0D; }
+body.c4 { background: #0F0E0D; color: #FFFFFF; min-height: 100dvh; display: flex; flex-direction: column; }
+body.c4 .topbar { background: #0F0E0D; color: #FFF; }
+.icon-btn { color: inherit; }
+
+.tabs { display: grid; grid-template-columns: 1fr 1fr; margin: 0 16px; border: 1px solid rgba(255,255,255,.22); border-radius: 8px; overflow: hidden; }
+.tab { height: 38px; font-size: 14px; font-weight: 600; color: rgba(255,255,255,.6); }
+.tab + .tab { border-left: 1px solid rgba(255,255,255,.22); }
+.tab.on { background: #FFFFFF; color: var(--ink); }
+
+.screen { flex: 1; display: flex; flex-direction: column; padding: 0 16px calc(24px + var(--safe-b)); }
+.screen[hidden] { display: none; }
+.role { padding: 14px 4px 10px; }
+.role .eyebrow { color: var(--point); letter-spacing: 0; font-size: 12px; margin-bottom: 6px; }
+.role h1 { font-size: 23px; line-height: 1.3; letter-spacing: -0.02em; font-weight: 800; }
+.role .sub { margin: 6px 0 0; font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,.6); }
+
+/* ── 벽: 액자 4점 가로 슬라이드 */
+.gallery { position: relative; margin: 4px -16px 0; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  background: radial-gradient(120% 80% at 50% 30%, #2A2420, #141211 70%); }
+.track { display: flex; transition: transform .55s cubic-bezier(.2,.8,.2,1); will-change: transform; }
+.slide { flex: 0 0 100%; padding: 16px 44px 14px; display: flex; flex-direction: column; align-items: center; }
+.frame { position: relative; width: 100%; max-width: 300px; aspect-ratio: 4 / 5; padding: 12px; border-radius: 2px;
+  background: linear-gradient(135deg, #B8903F, #6E4F1E 30%, #D9B45C 52%, #7D5A22 75%, #3A2A12);
+  box-shadow: 0 18px 40px rgba(0,0,0,.6), inset 0 0 0 2px rgba(255,236,180,.35), inset 0 0 0 5px rgba(40,26,10,.5);
+  transition: transform .55s cubic-bezier(.2,.8,.2,1); }
+.frame::after { content: ''; position: absolute; inset: 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.65), inset 0 3px 10px rgba(0,0,0,.55); pointer-events: none; }
+.art { position: absolute; inset: 12px; overflow: hidden; background: #1A1714; }
+.art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.art .paint { transition: opacity .3s; }
+/* 사진 층 — 습판처럼 검정에서 떠오른다 */
+.photo-layer { position: absolute; inset: 0; opacity: 0; }
+.photo-layer .photo { filter: brightness(0) contrast(1.6) sepia(1); }
+.grain { position: absolute; inset: -20%; opacity: 0; pointer-events: none; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 220px 220px; }
+.vignette { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(70% 62% at 50% 45%, rgba(0,0,0,0) 45%, rgba(20,12,6,.55) 100%);
+  box-shadow: inset 0 0 30px rgba(30,18,8,.7); }
+.silver { position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 20%, rgba(220,225,235,.55) 45%, rgba(255,255,255,0) 60%, rgba(200,210,225,.3) 85%); }
+.slide.dev .photo-layer { opacity: 1; }
+.slide.dev .paint { opacity: 0; transition-delay: .15s; }
+/* --k: 검수용 배속(?slow 이면 js 가 5 로) */
+.slide.dev .photo { animation: develop calc(1.2s * var(--k, 1)) cubic-bezier(.3,.6,.3,1) both; }
+.slide.dev .grain { animation: grainIn calc(1.2s * var(--k, 1)) ease both, grainShift .35s steps(3) infinite; }
+.slide.dev .vignette { animation: fadeTo calc(.9s * var(--k, 1)) ease calc(.3s * var(--k, 1)) both; }
+.slide.dev .silver { animation: silverIn calc(1.2s * var(--k, 1)) ease both; }
+@keyframes develop {
+  0% { filter: brightness(0) contrast(1.8) sepia(1); }
+  35% { filter: brightness(.3) contrast(1.6) sepia(1); }
+  70% { filter: brightness(.85) contrast(1.2) sepia(.75); }
+  100% { filter: brightness(1) contrast(1.06) sepia(.4); }
+}
+@keyframes grainIn { 0% { opacity: .75; } 100% { opacity: .3; } }
+@keyframes grainShift { 0% { transform: translate(0,0); } 33% { transform: translate(-3%, 2%); } 66% { transform: translate(2%, -3%); } 100% { transform: translate(0,0); } }
+@keyframes fadeTo { from { opacity: 0; } to { opacity: 1; } }
+@keyframes silverIn { 0% { opacity: .55; transform: translateX(-25%); } 100% { opacity: .14; transform: translateX(25%); } }
+.frame-no { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); height: 20px; padding: 0 8px; border-radius: 3px;
+  background: #FFFFFF; color: var(--ink); font-family: var(--display); font-weight: 800; font-size: 12px; display: flex; align-items: center; }
+
+/* 뷰파인더 모서리 */
+.finder { position: absolute; left: 50%; top: 50%; width: 76%; max-width: 332px; aspect-ratio: 4 / 5; transform: translate(-50%, -50%); pointer-events: none; }
+.finder i { position: absolute; width: 22px; height: 22px; border: 2px solid rgba(255,255,255,.85); }
+.finder i:nth-child(1) { left: -12px; top: -12px; border-right: 0; border-bottom: 0; }
+.finder i:nth-child(2) { right: -12px; top: -12px; border-left: 0; border-bottom: 0; }
+.finder i:nth-child(3) { left: -12px; bottom: -12px; border-right: 0; border-top: 0; }
+.finder i:nth-child(4) { right: -12px; bottom: -12px; border-left: 0; border-top: 0; }
+
+/* 기계식 셔터 조리개 — 날개 8장이 가운데로 닫혔다 열린다 (CSS 만) */
+.iris { position: absolute; inset: 0; overflow: hidden; pointer-events: none; visibility: hidden; }
+.iris.run { visibility: visible; }
+.leaf { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
+/* 날개 한 장 = 중심을 지나는 선 아래의 반평면. 이동 거리 --d(갤러리 대각선 기준)는 js 에서 준다 */
+.leaf b { position: absolute; left: -200vmax; top: 0; width: 400vmax; height: var(--d, 400px); background: linear-gradient(#141211, #050404 40px);
+  border-top: 1px solid rgba(255,255,255,.28); box-shadow: 0 -6px 14px rgba(0,0,0,.8); transform: translateY(var(--d, 400px)); }
+.leaf:nth-child(1) { transform: rotate(0deg); } .leaf:nth-child(2) { transform: rotate(45deg); }
+.leaf:nth-child(3) { transform: rotate(90deg); } .leaf:nth-child(4) { transform: rotate(135deg); }
+.leaf:nth-child(5) { transform: rotate(180deg); } .leaf:nth-child(6) { transform: rotate(225deg); }
+.leaf:nth-child(7) { transform: rotate(270deg); } .leaf:nth-child(8) { transform: rotate(315deg); }
+.iris.run .leaf b { animation: leafD calc(.8s * var(--k, 1)) cubic-bezier(.5,0,.3,1) both; }
+@keyframes leafD { 0% { transform: translateY(var(--d)); } 38% { transform: translateY(0); } 55% { transform: translateY(0); } 100% { transform: translateY(var(--d)); } }
+.flash { position: absolute; inset: 0; background: #FFFFFF; opacity: 0; pointer-events: none; }
+.flash.run { animation: flash calc(.8s * var(--k, 1)) linear both; }
+@keyframes flash { 0%, 50% { opacity: 0; } 56% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 캡션 */
+.caption { min-height: 92px; padding: 14px 4px 0; text-align: center; }
+.cap-state { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 4px; font-size: 11px; font-weight: 700;
+  background: rgba(255,255,255,.14); color: rgba(255,255,255,.85); transition: background .3s, color .3s; }
+.cap-state.photo { background: var(--point); color: #FFF; }
+.cap-name { margin-top: 8px; font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: -0.02em; }
+.cap-line { margin-top: 4px; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,.75); }
+.cap-line b { color: #FFF; font-weight: 600; }
+.cap-line .arrow { display: inline-block; margin: 0 6px; color: var(--point); font-weight: 700; }
+.cap-src { margin-top: 3px; font-size: 11px; color: rgba(255,255,255,.4); }
+.dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+.dots i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.28); transition: width .3s, background .3s; }
+.dots i.on { width: 18px; background: #FFF; }
+.dots i.dev { background: var(--point); }
+
+/* 셔터 버튼 */
+.shutter-row { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 16px; }
+.shutter { width: 76px; height: 76px; border-radius: 50%; border: 3px solid #FFFFFF; display: grid; place-items: center; background: transparent; transition: transform .12s; }
+.shutter span { width: 60px; height: 60px; border-radius: 50%; background: #FFFFFF; transition: transform .12s, background .2s; }
+.shutter:active span, .shutter.pressed span { transform: scale(.84); }
+.shutter.next span { background: var(--point); }
+.shutter-hint { font-size: 12.5px; color: rgba(255,255,255,.6); }
+.then { margin: 22px 4px 0; font-size: 12.5px; line-height: 1.6; color: rgba(255,255,255,.5); }
+
+/* ── 내 초상 */
+.studio { margin-top: 8px; display: flex; flex-direction: column; align-items: center; }
+.plate { position: relative; width: 100%; max-width: 300px; aspect-ratio: 3 / 4; overflow: hidden; background: #1A1714; border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 0 0 8px #DDCFAE, 0 0 0 9px rgba(178,140,76,.9), 0 16px 40px rgba(0,0,0,.6); }
+.plate video, .plate img, .plate canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.plate video { transform: scaleX(-1); }
+.plate .result { object-fit: contain; background: #DDCFAE; }
+.oval { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 56% at 50% 46%, rgba(0,0,0,0) 62%, rgba(0,0,0,.55) 100%); }
+.plate.done .oval { display: none; }
+.count { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: rgba(0,0,0,.25); }
+.count b { font-family: var(--display); font-weight: 800; font-size: 72px; line-height: 1; letter-spacing: -0.03em; animation: tick 1s ease-out infinite; }
+.count span { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.9); }
+@keyframes tick { 0% { transform: scale(1.15); opacity: .6; } 30% { transform: scale(1); opacity: 1; } 100% { opacity: 1; } }
+.busy { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(0,0,0,.45); font-size: 13px; font-weight: 600; }
+.cam-off { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,.6); }
+.cam-off[hidden] { display: none; }
+.plate-foot { margin-top: 22px; font-family: Georgia, 'Times New Roman', serif; font-size: 12.5px; letter-spacing: .06em; color: rgba(255,255,255,.55); }
+.me-actions { display: grid; gap: 8px; margin-top: 22px; }
+.me-actions[hidden] { display: none; }
+
+@media (max-height: 700px) {
+  .role h1 { font-size: 20px; }
+  .frame { max-width: 236px; }
+  .slide { padding-top: 12px; padding-bottom: 10px; }
+  .caption { min-height: 80px; padding-top: 10px; }
+  .shutter { width: 64px; height: 64px; } .shutter span { width: 50px; height: 50px; }
+  .shutter-row { margin-top: 10px; }
+  .then { margin-top: 14px; }
+  .plate { max-width: 230px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .track, .frame { transition: none; }
+  .iris.run .leaf b { animation: none; transform: translateY(var(--d)); }
+  .flash.run { animation: flashQuick .3s linear both; }
+  @keyframes flashQuick { 0% { opacity: .9; } 100% { opacity: 0; } }
+  .slide.dev .photo, .slide.dev .grain, .slide.dev .silver, .slide.dev .vignette { animation: none; }
+  .slide.dev .photo { filter: brightness(1) contrast(1.06) sepia(.4); }
+  .slide.dev .grain { opacity: .3; } .slide.dev .vignette { opacity: 1; } .slide.dev .silver { opacity: .14; }
+  .count b { animation: none; }
+}

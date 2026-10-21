@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0F0E0D">
+<title>C4 · 그림이 사진으로</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../../../booth/css/base.css">
+<link rel="stylesheet" href="c4.css">
+</head>
+<body class="c4">
+
+<div class="topbar">
+  <a class="icon-btn" href="../../experience-v2.html#c4" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="tb-title">C4 · 나다르 사진관</div>
+  <span></span>
+</div>
+
+<nav class="tabs" role="tablist" aria-label="화면">
+  <button class="tab on" role="tab" aria-selected="true" data-tab="wall" type="button">사진관 벽</button>
+  <button class="tab" role="tab" aria-selected="false" data-tab="me" type="button">내 초상</button>
+</nav>
+
+<!-- ── 사진관 벽: 초상화 4점 → 셔터 → 나다르 사진 -->
+<main class="screen" id="wall" data-screen="wall">
+  <header class="role">
+    <div class="eyebrow">당신은</div>
+    <h1>나다르 사진관의 손님입니다</h1>
+    <p class="sub" id="wallSub">벽의 초상화 앞에서 셔터를 누르세요</p>
+  </header>
+
+  <section class="gallery" id="gallery" aria-label="초상화 벽">
+    <div class="track" id="track"></div>
+    <div class="finder" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="iris" id="iris" aria-hidden="true">
+      <div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div>
+      <div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div>
+    </div>
+    <div class="flash" id="flash" aria-hidden="true"></div>
+  </section>
+
+  <div class="caption" id="caption" aria-live="polite">
+    <div class="cap-state" id="capState">화가의 초상</div>
+    <div class="cap-name" id="capName"></div>
+    <div class="cap-line" id="capLine"></div>
+    <div class="cap-src" id="capSrc"></div>
+  </div>
+
+  <div class="dots" id="dots" aria-hidden="true"></div>
+
+  <div class="shutter-row">
+    <button class="shutter" id="shutter" type="button" aria-label="셔터"><span></span></button>
+    <div class="shutter-hint" id="shutterHint">셔터</div>
+  </div>
+
+  <p class="then">나다르는 1860년 카퓌신 대로 35번지로 사진관을 옮겼다. 1874년 첫 인상파 전시가 이 옛 사진관 자리에서 열렸다.</p>
+</main>
+
+<!-- ── 내 초상: 전면 카메라 → 노출 4초 → 기기 안에서 19세기 사진 → 카르트 드 비지트 틀 -->
+<main class="screen" id="me" data-screen="me" hidden>
+  <header class="role">
+    <div class="eyebrow">선택</div>
+    <h1>내 초상을 남긴다</h1>
+    <p class="sub">전면 카메라 · 기기 안에서 흑백·세피아 · 업로드하지 않는다</p>
+  </header>
+
+  <section class="studio">
+    <div class="plate" id="plate">
+      <video id="cam" class="cam" playsinline muted autoplay></video>
+      <img id="still" class="still" alt="" hidden>
+      <canvas id="result" class="result" hidden></canvas>
+      <div class="oval" id="oval"></div>
+      <div class="count" id="count" hidden><b id="countNum">4</b><span>노출 중 · 움직이지 마세요</span></div>
+      <div class="busy" id="busy" hidden><div class="spinner"></div><span>현상 중</span></div>
+      <div class="cam-off" id="camOff"><p id="camMsg">카메라를 켜면 여기에 비칩니다</p></div>
+    </div>
+    <div class="plate-foot">Nadar · 35, boulevard des Capucines</div>
+  </section>
+
+  <div class="me-actions" id="meActions">
+    <button class="btn white" id="camStart" type="button">카메라 켜기</button>
+    <button class="btn dark-line" id="camDemo" type="button">데모 이미지로</button>
+  </div>
+  <div class="me-actions" id="meShoot" hidden>
+    <button class="btn white" id="shoot" type="button">노출 4초 · 촬영</button>
+  </div>
+  <div class="me-actions" id="meDone" hidden>
+    <button class="btn white" id="saveMe" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>초상 저장</button>
+    <button class="btn dark-line" id="again" type="button">다시 찍기</button>
+  </div>
+
+  <p class="then">당시 습판 사진은 밝은 날에도 몇 초의 노출이 필요했다. 사진은 기기에만 남는다.</p>
+</main>
+
+<script type="module" src="c4.js"></script>
+</body>
+</html>
