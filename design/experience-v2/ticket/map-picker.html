@@ -13,48 +13,53 @@
   <header class="hd">
     <div class="eyebrow">C2 · Guichet · Gare Saint-Lazare</div>
     <h2>어디까지 가시겠습니까</h2>
-    <p>벽에 걸린 노선도와 같은 지도입니다. 역을 누르면 생라자르에서 그곳까지 선이 이어집니다.</p>
+    <p>벽에 걸린 노선도와 같은 지도입니다. 가고 싶은 지역이나 역을 누르면 생라자르에서 그곳까지 선이 이어집니다.</p>
   </header>
   <div id="mapBox" class="map-box">
     <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="지도"></svg>
     <div class="quiz-bottom"><div id="chips" class="chips" role="radiogroup" aria-label="목적지"></div></div>
   </div>
   <div class="sel">
-    <div><b id="selFr">Le Havre<small id="selKo">르아브르</small></b><span id="selInfo">229 km · 급행 4시간 30분</span><small class="note">1867~1875년 안내서 기준 · 2등</small></div>
+    <div><b id="selFr">Le Havre<small id="selKo">르아브르</small></b><span id="selInfo">229 km · 급행 4시간 30분</span><small class="note" id="selZone">르아브르 칸통 1~6 · 1867~1875년 안내서 기준 · 2등</small></div>
     <div class="km" id="selYear">표의 해<br>1872</div>
   </div>
   <button class="btn" id="buy">표 끊기</button>
 </div>
 <script type="module">
-// ── 부스 프로토타입 booth/js/c2.js 의 지도 엔진(el · proj · initMap 그리기 · smoothPath · drawRoute · 라벨)을 그대로 가져와
-//    시점만 파리→노르망디 해안으로 고정하고, 출발역 1곳(생라자르) + 목적지 7곳으로 바꿨다. 데이터 map.json = booth/assets/data/map.json 사본.
+// ── 부스 프로토타입 booth/js/c2.js 의 지도 엔진(el · proj · initMap 그리기 · smoothPath · drawRoute · 라벨 · 지역 강조)을 그대로 가져와
+//    시점만 파리→노르망디 해안으로 고정하고, 출발역 1곳(생라자르) + 목적지 7곳(행정구역 영역 + 역점)으로 바꿨다.
+//    데이터: map.json = booth/assets/data/map.json 사본 · zones.json = france-geojson arrondissements/cantons를 같은 메르카토르로 투영
 const NS = 'http://www.w3.org/2000/svg';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 const ORIGIN = { id: 'lazare', fr: 'Gare Saint-Lazare', ko: '생라자르역', ll: [2.3253, 48.8763], lab: [8, 24, 'end'] };
-// 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 뵈즈빌(브레오테-뵈즈빌 0.40,49.61 — 지선 분기) · 에브뢰 · 베르네 · 리지외 · 퐁레베크 · 아니에르 · 낭테르
+// 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 브레오테-뵈즈빌(0.40,49.61 — 페캉 지선 분기) · 에브뢰 · 베르네 · 리지외 · 퐁레베크 · 아니에르 · 낭테르
 const V = { mantes: [1.72, 48.99], vernon: [1.4850, 49.0930], rouen: [1.0993, 49.4431], yvetot: [0.753, 49.617], beuzeville: [0.40, 49.61],
   evreux: [1.15, 49.02], bernay: [0.60, 49.09], lisieux: [0.23, 49.15], pontleveque: [0.18, 49.28], asnieres: [2.285, 48.905], nanterre: [2.20, 48.90] };
 const DEST = [
-  { id: 'chatou', fr: 'Chatou', ko: '샤투', ll: [2.1567, 48.8897], lab: [-10, -4, 'end'], info: '12 km · 32분', year: 1869, nd: false, via: [V.asnieres, V.nanterre] },
-  { id: 'argenteuil', fr: 'Argenteuil', ko: '아르장퇴유', ll: [2.2472, 48.9472], lab: [0, -30, 'middle'], info: '11 km · 25분', year: 1874, nd: false, via: [V.asnieres] },
-  { id: 'vernon', fr: 'Vernon', ko: '베르농', ll: [1.4850, 49.0930], lab: [0, 22, 'middle'], info: '80 km · 급행 1시간 30분', year: 1883, nd: true, via: [V.mantes] },
-  { id: 'rouen', fr: 'Rouen', ko: '루앙', ll: [1.0993, 49.4431], lab: [12, 5, 'start'], info: '140 km · 급행 2시간 40분', year: 1872, nd: true, via: [V.mantes, V.vernon] },
-  { id: 'lesifs', fr: 'Les Ifs', ko: '레지프', ll: [0.4661, 49.6463], lab: [12, -4, 'start'], info: '214 km · 4시간 33분 + 마차 15 km', year: 1883, nd: true, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
-  { id: 'trouville', fr: 'Trouville', ko: '트루빌', ll: [0.0810, 49.3660], lab: [12, 5, 'start'], info: '220 km · 6시간', year: 1870, nd: true, via: [V.mantes, V.evreux, V.bernay, V.lisieux, V.pontleveque] },
-  { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, -14, 'middle'], labSel: [14, 6, 'start'], info: '229 km · 급행 4시간 30분', year: 1872, nd: true, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
+  { id: 'chatou', fr: 'Chatou', ko: '샤투', ll: [2.1567, 48.8897], lab: [-10, -4, 'end'], info: '12 km · 32분', year: 1869, via: [V.asnieres, V.nanterre] },
+  { id: 'argenteuil', fr: 'Argenteuil', ko: '아르장퇴유', ll: [2.2472, 48.9472], lab: [0, -30, 'middle'], info: '11 km · 25분', year: 1874, via: [V.asnieres] },
+  { id: 'vernon', fr: 'Vernon', ko: '베르농', ll: [1.4850, 49.0930], lab: [0, 22, 'middle'], info: '80 km · 급행 1시간 30분', year: 1883, via: [V.mantes] },
+  { id: 'rouen', fr: 'Rouen', ko: '루앙', ll: [1.0993, 49.4431], lab: [12, 5, 'start'], info: '140 km · 급행 2시간 40분', year: 1872, via: [V.mantes, V.vernon] },
+  { id: 'lesifs', fr: 'Les Ifs', ko: '레지프', ll: [0.4661, 49.6463], lab: [12, -4, 'start'], info: '214 km · 4시간 33분 + 마차 15 km', year: 1883, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
+  { id: 'trouville', fr: 'Trouville', ko: '트루빌', ll: [0.0810, 49.3660], lab: [12, 5, 'start'], info: '220 km · 6시간', year: 1870, via: [V.mantes, V.evreux, V.bernay, V.lisieux, V.pontleveque] },
+  { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, -14, 'middle'], labSel: [14, 6, 'start'], info: '229 km · 급행 4시간 30분', year: 1872, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
 ];
+// 목적지 영역 색 — 부스 지역 양피지 색 계열(노르망디 #C2C48E · 오드프랑스 #D6C08C · 브르타뉴 #CFB57F …)에서 고른 7색
+const ZTINT = { chatou: '#E6CC8E', argenteuil: '#DDAE74', vernon: '#C3D0A4', rouen: '#D9BE8C', lesifs: '#E4D47E', trouville: '#AFC0A0', lehavre: '#C89E72' };
+const ZORDER = ['chatou', 'argenteuil', 'vernon', 'rouen', 'trouville', 'lehavre', 'lesifs'];
 const FIT = { lon0: -0.3, lon1: 2.65, lat0: 48.72, lat1: 49.92 };     // 파리 → 노르망디 해안
 
-let M = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, parisG, pinAt = null;
+let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null;
 const view = { s: 1, tx: 0, ty: 0 };
-let picked = null, busy = false;
+let picked = null;
 const proj = (lon, lat) => { const merc = (a) => (Math.log(Math.tan(Math.PI / 4 + (a * Math.PI) / 360)) * 180) / Math.PI; const P = M.projection; return [(lon - P.lon0) * P.k, (merc(P.lat1) - merc(lat)) * P.k]; };
+const mix = (hex, to, t) => { const a = hex.match(/\w\w/g).map((h) => parseInt(h, 16)), b = to.match(/\w\w/g).map((h) => parseInt(h, 16)); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
 
 async function initMap() {
-  M = await fetch('map.json').then((r) => r.json());
+  [M, Z] = await Promise.all([fetch('map.json').then((r) => r.json()), fetch('zones.json').then((r) => r.json())]);
   svg = $('#map');
   const defs = el('defs', {}, svg);
   defs.innerHTML = `
@@ -69,12 +74,14 @@ async function initMap() {
   el('path', { d: M.land, fill: '#E8D6AD', stroke: '#6b5235', 'stroke-width': 1.1, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
   const tint = { normandie: '#C2C48E', hauts: '#D6C08C', grandest: '#D8AE7C', paca: '#DCB98A', bretagne: '#CFB57F' };
   Object.keys(tint).forEach((id) => { regionEls[id] = el('path', { d: M.regions[id], fill: tint[id], 'fill-opacity': 0.85, class: 'region', 'data-id': id }, world); });
+  // 목적지 영역(행정구역 폴리곤) — 지역색 위, 경계선 아래
+  ZORDER.forEach((id) => { zoneEls[id] = el('path', { d: Z.zones[id].d, fill: ZTINT[id], 'fill-opacity': 0.92, class: 'zone', 'data-id': id, stroke: '#8a6d47', 'stroke-width': 0.7, 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world); });
   el('path', { d: M.regionBorders, fill: 'none', stroke: '#8a6d47', 'stroke-width': 0.9, 'stroke-dasharray': '2 3', 'stroke-opacity': 0.7, 'vector-effect': 'non-scaling-stroke' }, world);
   el('path', { d: M.borders, fill: 'none', stroke: '#6b5235', 'stroke-width': 1.3, 'stroke-dasharray': '6 3 1 3', 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke' }, world);
   parisG = el('g', {}, world);
   el('path', { d: M.regions.petitecouronne, fill: '#DCC8A0', stroke: '#8a6d47', 'stroke-width': 0.8, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke' }, parisG);
   el('path', { d: M.regions.paris, fill: '#F1E2C0', stroke: '#6b5235', 'stroke-width': 1.4, 'vector-effect': 'non-scaling-stroke' }, parisG);
-  regionEls.normandie_hl = el('path', { d: M.regions.normandie, fill: 'none', stroke: '#E0662C', 'stroke-width': 2.4, opacity: 0, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
+  ZORDER.forEach((id) => { zoneHl[id] = el('path', { d: Z.zones[id].d, fill: 'none', stroke: '#E0662C', 'stroke-width': 2.4, opacity: 0, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round', 'pointer-events': 'none' }, world); });
   routeG = el('g', {}, world);
   routeGlow = el('path', { fill: 'none', stroke: '#FF8A3D', 'stroke-width': 9, 'stroke-opacity': 0.45, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', filter: 'url(#glow)', 'vector-effect': 'non-scaling-stroke' }, routeG);
   routeCore = el('path', { fill: 'none', stroke: '#F06A28', 'stroke-width': 4.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, routeG);
@@ -97,6 +104,7 @@ function fit() {
   drawLabels(); updatePin();
 }
 const toScreen = ([x, y]) => [x * view.s + view.tx, y * view.s + view.ty];
+const toWorld = (sx, sy) => [(sx - view.tx) / view.s, (sy - view.ty) / view.s];
 function drawLabels() {
   let h = '';
   const txt = (x, y, fr, ko, fs, anchor = 'middle', w = 600) =>
@@ -106,6 +114,14 @@ function drawLabels() {
   h += `<text class="lbl-sea" x="${sx}" y="${sy}" text-anchor="middle" font-size="13">La Manche</text>`;
   const [px, py] = toScreen(M.anchors.paris);
   h += `<text class="lbl-faint" x="${px}" y="${py + 30}" text-anchor="middle" font-size="18">PARIS</text>`;
+  // 영역 이름(행정구역명, 작은 대문자) — 영역 가운데, 자리가 있을 때만
+  ZORDER.forEach((id) => {
+    const z = Z.zones[id]; const a = z.anchor || [(z.bounds[0] + z.bounds[2]) / 2, (z.bounds[1] + z.bounds[3]) / 2];
+    const [x, y] = toScreen(a); const w = (z.bounds[2] - z.bounds[0]) * view.s;
+    if (w < 56 && !z.anchor) return;
+    const on = picked && picked.id === id;
+    h += `<text class="lbl-zone${on ? ' on' : ''}" x="${x}" y="${y}" text-anchor="middle" font-size="${w < 90 ? 7.5 : 9.5}">${(id === 'lehavre' ? 'LE HAVRE' : z.label).toUpperCase()}</text>`;
+  });
   const dot = (s, on, origin) => {
     const [x, y] = toScreen(proj(...s.ll)); const lab = on && s.labSel ? s.labSel : s.lab; const lx = x + lab[0], ly = y + lab[1];
     h += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly + (lab[1] < 0 ? 4 : -12)}" stroke="#6b5235" stroke-width="1"/>`;
@@ -118,14 +134,16 @@ function drawLabels() {
 }
 function buildChips() {
   const box = $('#chips');
-  box.innerHTML = DEST.map((c) => `<button class="chip" role="radio" aria-checked="false" data-id="${c.id}"><span class="dot"></span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
+  box.innerHTML = DEST.map((c) => `<button class="chip" role="radio" aria-checked="false" data-id="${c.id}"><span class="dot" style="background:${ZTINT[c.id]};box-shadow:0 0 0 1px #6b5235"></span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
   $$('.chip', box).forEach((b) => b.addEventListener('click', () => pick(b.dataset.id)));
 }
 function markChips() {
   $$('#chips .chip').forEach((b) => { const on = picked && b.dataset.id === picked.id; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); });
-  const nd = picked && picked.nd;
-  regionEls.normandie_hl.setAttribute('opacity', nd ? 1 : 0);
-  regionEls.normandie.setAttribute('fill', nd ? '#D3D59C' : '#C2C48E'); regionEls.normandie.setAttribute('fill-opacity', nd ? 1 : 0.85);
+  ZORDER.forEach((id) => {
+    const on = picked && picked.id === id;
+    zoneHl[id].setAttribute('opacity', on ? 1 : 0);
+    zoneEls[id].setAttribute('fill', on ? mix(ZTINT[id], '#F3E7CB', 0.35) : ZTINT[id]); zoneEls[id].setAttribute('fill-opacity', on ? 1 : 0.92);
+  });
 }
 function smoothPath(pts) {
   let d = `M${pts[0][0]},${pts[0][1]}`;
@@ -150,7 +168,9 @@ function updatePin() { if (!pinAt) { pinG.setAttribute('opacity', 0); return; } 
 function pick(id) {
   picked = DEST.find((s) => s.id === id); if (!picked) return;
   markChips(); drawLabels(); drawRoute(picked);
+  const z = Z.zones[id];
   $('#selFr').childNodes[0].textContent = picked.fr; $('#selKo').textContent = picked.ko; $('#selInfo').textContent = picked.info; $('#selYear').innerHTML = `표의 해<br>${picked.year}`;
+  $('#selZone').textContent = `${z.kind === 'cantons' ? (id === 'lehavre' ? '르아브르 칸통 1~6' : '칸통 ' + z.names.join(' · ')) : 'arrondissement ' + z.label} · 1867~1875년 안내서 기준 · 2등`;
 }
 function stationAt(sx, sy) {
   let best = null, bd = 26;
@@ -162,12 +182,17 @@ function stationAt(sx, sy) {
   });
   return best;
 }
+function zoneAt(sx, sy) {
+  const [wx, wy] = toWorld(sx, sy); const pt = svg.createSVGPoint(); pt.x = wx; pt.y = wy;
+  for (const id of [...ZORDER].reverse()) if (zoneEls[id].isPointInFill(pt)) return id;     // 위에 그려진 영역(레지프)이 르아브르보다 먼저
+  return null;
+}
 function bindInput() {
   const box = $('#mapBox'); let down = null;
   const local = (e) => { const r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   box.addEventListener('pointerdown', (e) => { if (e.target.closest('.chips')) return; down = { p: local(e), moved: false }; });
   box.addEventListener('pointermove', (e) => { if (down) { const p = local(e); if (Math.hypot(p[0] - down.p[0], p[1] - down.p[1]) > 6) down.moved = true; } });
-  box.addEventListener('pointerup', (e) => { if (down && !down.moved) { const hit = stationAt(...local(e)); if (hit) pick(hit); } down = null; });
+  box.addEventListener('pointerup', (e) => { if (down && !down.moved) { const [x, y] = local(e); const hit = stationAt(x, y) || zoneAt(x, y); if (hit) pick(hit); } down = null; });
 }
 window.pick = pick;
 initMap();

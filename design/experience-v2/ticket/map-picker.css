@@ -31,6 +31,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .lbl-sea { font-family: var(--display); fill: #F3E7CB; font-style: italic; }
 .lbl-faint { font-family: var(--display); font-weight: 800; fill: rgba(107,82,53,.35); letter-spacing: 6px; }
 .region { transition: fill .3s, fill-opacity .3s; }
+.zone { cursor: pointer; transition: fill .3s, fill-opacity .3s; }
+.lbl-zone { font-family: var(--display); font-weight: 600; fill: rgba(59,42,25,.62); letter-spacing: 1.6px; paint-order: stroke; stroke: rgba(243,231,203,.55); stroke-width: 2.5px; stroke-linejoin: round; }
+.lbl-zone.on { fill: #B5461C; }
 
 /* 칩(부스와 동일) — 지도 아래쪽에 겹쳐 놓는다 */
 .quiz-bottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; padding: 26px 12px 10px;
