@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Billet OUEST 1874 · mock</title>
+<title>Billet OUEST · mock · 어디까지 갈까</title>
 <link rel="stylesheet" href="fonts.css">
 <style>
 /* 57×30 mm 에드몬슨 카드 → 20 px/mm = 1140×600 px.  글꼴: Old Standard TT(19세기 디돈 계열 본문·숫자, OFL) ·
-   Playfair Display(디돈 팻페이스, 큰 숫자, OFL) · 한글 메모만 Freesentation.  서체 선택 근거는 보드 C2 참고. */
+   Playfair Display(디돈 팻페이스, 큰 숫자, OFL) · 한글 주석만 Freesentation.  서체 선택 근거는 보드 C2 참고.
+   ?to=chatou|argenteuil|rouen|havre|trouville|vernon|ifs  ·  ?view=front|back|phone  ·  ?d=21&m=10 (관람일) */
 :root{
   --card:#E8DCB8;            /* 담황색 카드(한 가지 색, 등급별 색 미확인) */
   --card-2:#DFD0A6;
   --ink:#2A2420;             /* 인쇄 잉크 */
   --ink-soft:#4A413A;
   --stamp:#3B3F8C;           /* 날인 잉크(보라·남색) */
-  --pencil:#4B4640;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#FFF}
@@ -44,8 +44,9 @@ body{font-family:'Old Standard TT',serif;color:var(--ink);-webkit-font-smoothing
 .route{border-bottom:3px solid var(--ink);padding:14px 20px 10px;text-align:center;line-height:1}
 .route .from{font-size:60px;font-weight:700;letter-spacing:.06em}
 .route .from small{font-size:34px;font-weight:700;letter-spacing:.02em}
-.route .to{font-size:92px;font-weight:700;letter-spacing:.10em;margin-top:4px;font-family:'Playfair Display',serif}
-.route .via{font-size:26px;font-style:italic;letter-spacing:.04em;margin-top:2px;color:var(--ink-soft)}
+.route .to{font-size:92px;font-weight:700;letter-spacing:.10em;margin-top:4px;font-family:'Playfair Display',serif;white-space:nowrap}
+.route .to.long{font-size:78px;letter-spacing:.06em}
+.route .via{font-size:26px;font-style:italic;letter-spacing:.04em;margin-top:2px;color:var(--ink-soft);min-height:26px}
 .mid{display:grid;grid-template-columns:232px 1fr 230px}
 .mid>div{padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1}
 .mid .co{border-right:3px solid var(--ink)}
@@ -59,30 +60,23 @@ body{font-family:'Old Standard TT',serif;color:var(--ink);-webkit-font-smoothing
 .mid .px small{font-size:22px;letter-spacing:.2em}
 .mid .px b{font-size:66px;line-height:1;margin-top:10px;font-weight:700;white-space:nowrap}
 .mid .px b sup{font-size:30px;vertical-align:top;position:relative;top:6px}
-.mid .px i{font-style:italic;font-size:20px;margin-top:10px;color:var(--ink-soft)}
+.mid .px b.none{font-size:40px;color:var(--ink-soft);letter-spacing:.3em}
 .foot{border-top:3px solid var(--ink);display:grid;grid-template-columns:auto 1fr;align-items:center;padding:8px 20px;line-height:1;min-height:70px}
 .foot .aller{font-size:40px;font-weight:700;letter-spacing:.3em}
-.foot .train{font-size:22px;letter-spacing:.08em;color:var(--ink-soft);text-align:right}
+.foot .yr{font-size:30px;letter-spacing:.14em;color:var(--ink-soft);text-align:right;font-weight:700}
 
-/* 날인(기기에서 합성): 날짜는 왼쪽 가장자리 세로, 열차는 아래 띠에 */
+/* 날인(기기에서 합성): 날짜는 왼쪽 가장자리 세로 */
 .stamp{position:absolute;color:var(--stamp);font-weight:700;letter-spacing:.08em;opacity:.86;
   mix-blend-mode:multiply;filter:url(#rough)}
 .stamp.date{left:-74px;top:50%;width:300px;text-align:center;transform:translateY(-50%) rotate(-90deg);transform-origin:center;font-size:38px;white-space:nowrap}
 .stamp.date::before,.stamp.date::after{content:"";display:inline-block;width:28px;height:3px;background:var(--stamp);vertical-align:middle;margin:0 14px}
-.stamp.train{right:130px;bottom:44px;font-size:30px;border:3px solid var(--stamp);padding:6px 14px;transform:rotate(-2deg);white-space:nowrap;border-radius:3px}
 
-/* 뒷면 */
-.back .frame{display:block;padding:26px 36px}
-.back .k{font-size:22px;letter-spacing:.22em;color:var(--ink-soft);text-align:center}
-.back .ttl{font-size:40px;font-weight:700;letter-spacing:.16em;text-align:center;margin-top:2px}
-.back .ttl small{display:block;font-size:22px;letter-spacing:.08em;font-weight:400;margin-top:6px;color:var(--ink-soft)}
-.back .row{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:baseline;margin-top:30px;border-bottom:2px dotted var(--ink-soft);padding-bottom:8px}
-.back .row small{font-size:24px;letter-spacing:.16em;color:var(--ink-soft)}
-.back .row .v{font-size:44px;font-weight:700;letter-spacing:.06em;line-height:1}
-.back .name .v{color:var(--stamp);font-family:Freesentation,'Old Standard TT',serif;font-weight:800;letter-spacing:.14em;filter:url(#rough)}
-.back .memo{margin-top:56px;position:relative;height:150px;background:repeating-linear-gradient(180deg,transparent 0 70px,var(--ink-soft) 70px 72px);background-size:100% 72px}
-.back .memo span{position:absolute;left:4px;top:14px;font-family:Freesentation,sans-serif;font-weight:500;font-size:42px;letter-spacing:-.01em;color:var(--pencil);line-height:72px;white-space:pre-wrap;transform:rotate(-.6deg)}
-.back .memo em{position:absolute;left:0;top:-34px;font-style:normal;font-size:20px;letter-spacing:.12em;color:var(--ink-soft)}
+/* 뒷면: 메모 없음. 회사명·구간·날짜·재현물 표기만 */
+.back .frame{display:block;padding:40px 36px}
+.back .k{font-size:24px;letter-spacing:.22em;color:var(--ink-soft);text-align:center}
+.back .ttl{font-size:44px;font-weight:700;letter-spacing:.16em;text-align:center;margin-top:14px;font-family:'Playfair Display',serif}
+.back .ttl small{display:block;font-size:26px;letter-spacing:.06em;font-weight:400;margin-top:18px;color:var(--ink-soft);font-family:'Old Standard TT',serif}
+.back .rule{width:220px;height:3px;background:var(--ink);margin:40px auto 0}
 .back .fine{position:absolute;left:36px;right:36px;bottom:16px;font-size:17px;letter-spacing:.04em;color:var(--ink-soft);display:flex;justify-content:space-between}
 .back .fine b{font-family:Freesentation,sans-serif;font-weight:600}
 
@@ -108,37 +102,35 @@ body{font-family:'Old Standard TT',serif;color:var(--ink);-webkit-font-smoothing
 <template id="front">
 <div class="stage front">
   <div class="card"></div>
-  <div class="serial l"><span>04173</span></div>
-  <div class="serial r"><span>04173</span></div>
+  <div class="serial l"><span data-no></span></div>
+  <div class="serial r"><span data-no></span></div>
   <div class="frame">
     <div class="route">
       <div class="from">PARIS <small>(S<sup style="font-size:.55em">t</sup>-LAZARE)</small></div>
-      <div class="to">LE HAVRE</div>
-      <div class="via">par Rouen</div>
+      <div class="to" data-to></div>
+      <div class="via" data-via></div>
     </div>
     <div class="mid">
       <div class="co"><b>OUEST</b><i>SÉRIE A</i></div>
       <div class="cls"><div class="n">2<sup>me</sup></div><div class="w">CLASSE</div><div class="pe">PLACE ENTIÈRE</div></div>
-      <div class="px"><small>PRIX</small><b>21<sup>f</sup>05</b></div>
+      <div class="px"><small>PRIX</small><b data-prix></b></div>
     </div>
-    <div class="foot"><div class="aller">ALLER</div><div class="train"></div></div>
+    <div class="foot"><div class="aller">ALLER</div><div class="yr" data-yr></div></div>
   </div>
-  <div class="stamp date">21 OCT 1874</div>
-  <div class="stamp train">OMNIBUS · DÉP. 12 h 25 soir</div>
+  <div class="stamp date" data-date></div>
 </div>
 </template>
 
 <template id="back">
 <div class="stage back">
   <div class="card"></div>
-  <div class="serial l"><span>04173</span></div>
-  <div class="serial r"><span>04173</span></div>
+  <div class="serial l"><span data-no></span></div>
+  <div class="serial r"><span data-no></span></div>
   <div class="frame">
     <div class="k">CHEMIN DE FER DE L'OUEST</div>
-    <div class="ttl">SOUVENIR DE VOYAGE<small>Mercredi 21 octobre 1874 · Paris – Le Havre</small></div>
-    <div class="row name"><small>VOYAGEUR</small><div class="v">관람자</div></div>
-    <div class="memo"><em>MÉMOIRE DU VOYAGE</em><span data-memo></span></div>
-    <div class="fine"><span>N° 04173 · 2<sup>me</sup> classe · omnibus 12 h 25 – 7 h 48 (7 h 23)</span><b>MONET 100 · 재현물 · 1874년 10월 21일 수요일</b></div>
+    <div class="ttl">PARIS – <span data-to-text></span><small data-longdate></small></div>
+    <div class="rule"></div>
+    <div class="fine"><span>N° <span data-no></span> · 2<sup>me</sup> classe · aller</span><b>MONET 100 · 재현물 · <span data-ko-date></span></b></div>
   </div>
 </div>
 </template>
@@ -147,30 +139,61 @@ body{font-family:'Old Standard TT',serif;color:var(--ink);-webkit-font-smoothing
 <div class="phone">
   <div class="bar"><b>9:41</b><span>C2 · 매표창</span></div>
   <h1>나의 기차표</h1>
-  <div class="sub">1874년 10월 21일 수요일 · 생라자르역 → 르아브르</div>
+  <div class="sub" data-sub></div>
   <div class="tk" data-slot="front"></div>
   <div class="cap">표를 눌러 뒤집기</div>
   <div class="tk" data-slot="back"></div>
-  <div class="hist"><b>르아브르</b> 모네가 자란 항구. 〈인상, 해돋이〉를 그린 곳.<br>서부철도, 파리–르아브르 1847년 개통. 2등 21 fr. 05, 보통열차 7시간 23분.</div>
-  <div class="btns"><div class="btn fill">수집함에 저장</div><div class="btn">사진첩에 저장</div></div>
+  <div class="hist" data-hist></div>
+  <div class="btns"><div class="btn fill">모네는 거기서 무엇을 했나</div><div class="btn">수집함에 저장</div></div>
 </div>
 </template>
 
 <script>
+// 목적지 데이터. 연도 = 모네가 그곳에 머문 해(보드 C2 표). 운임은 그 해 ±3년 안의 안내서에 있는 2등 값만 찍는다. 없으면 빈 칸.
+const DEST={
+  chatou:    {to:'CHATOU',     via:'ligne de S<sup style="font-size:.6em">t</sup>-Germain', year:1869, prix:null,   ko:'샤투 · 라 그르누예르', hist:'<b>샤투</b> 1869년 여름, 르누아르와 나란히 라 그르누예르를 그렸다. 생제르맹선, 생라자르에서 약 30분(1875년 시간표).'},
+  argenteuil:{to:'ARGENTEUIL', via:'',                 year:1874, prix:null,   ko:'아르장퇴유', hist:'<b>아르장퇴유</b> 1871년 말부터 1878년 초까지 살았다. 배 위의 작업실, 요트 경주, 철교. 생라자르에서 25분(1875년 시간표).'},
+  rouen:     {to:'ROUEN',      via:'rive droite',      year:1872, prix:'12<sup>f</sup>50', ko:'루앙', hist:'<b>루앙</b> 1872년 형 레옹의 집에 머물며 강에서 본 도시를 그리고 시립전람회에 두 점을 냈다. 급행 2시간 40분(1875년 시간표).'},
+  havre:     {to:'LE HAVRE',   via:'par Rouen',        year:1872, prix:'21<sup>f</sup>05', ko:'르아브르', hist:'<b>르아브르</b> 모네가 자란 항구. 1872년 11월경 호텔 창문에서 〈인상, 해돋이〉를 그렸다. 급행 4시간 30분, 2등 21 fr. 05(1874년 안내서).'},
+  trouville: {to:'TROUVILLE',  via:'par Lisieux',      year:1870, prix:'18<sup>f</sup>50', ko:'트루빌', hist:'<b>트루빌</b> 1870년 여름, 결혼 직후 카미유와 해변에서 아홉 점을 그렸다. 리지외 경유 급행 6시간, 2등 18 fr. 50(1867년 안내서).'},
+  vernon:    {to:'VERNON',     via:'',                 year:1883, prix:null,   ko:'베르농 · 지베르니', hist:'<b>베르농</b> 1883년 4월, 파리–루앙선 베르농역 너머 지베르니 마을의 집을 빌렸다. 파리에서 80 km(1867년 안내서).'},
+  ifs:       {to:'LES IFS',    via:'par Beuzeville',   year:1883, prix:null,   ko:'레지프 · 에트르타', hist:'<b>레지프</b> 에트르타까지는 철도가 없어 역에서 마차로 15 km(1867년 안내서). 1883년 1~2월, 비수기의 절벽을 그렸다.'},
+};
 const q=new URLSearchParams(location.search);
+const key=(q.get('to')||'havre').toLowerCase();
+const D=DEST[key]||DEST.havre;
 const view=q.get('view')||'front';
-const memo=q.get('memo')||'';
+const day=parseInt(q.get('d')||'21',10), mon=parseInt(q.get('m')||'10',10);
+const no=(q.get('no')||'04173');
+const MF=['JANV','FÉV','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'];
+const MFL=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const WD=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const WK=['일','월','화','수','목','금','토'];
+const dt=new Date(D.year,mon-1,day);
+const wd=dt.getDay();
+const toText=D.to.replace(/<[^>]+>/g,'');
 function make(id){return document.getElementById(id).content.firstElementChild.cloneNode(true)}
+function fill(root){
+  root.querySelectorAll('[data-no]').forEach(e=>e.textContent=no);
+  const to=root.querySelector('[data-to]'); if(to){to.innerHTML=D.to; if(toText.length>9) to.classList.add('long');}
+  const via=root.querySelector('[data-via]'); if(via) via.innerHTML=D.via||'';
+  const px=root.querySelector('[data-prix]'); if(px){ if(D.prix){px.innerHTML=D.prix;} else {px.textContent='— —'; px.classList.add('none');} }
+  const yr=root.querySelector('[data-yr]'); if(yr) yr.textContent=D.year;
+  const ds=root.querySelector('[data-date]'); if(ds) ds.textContent=`${day} ${MF[mon-1]} ${D.year}`;
+  const tt=root.querySelector('[data-to-text]'); if(tt) tt.textContent=toText;
+  const ld=root.querySelector('[data-longdate]'); if(ld) ld.textContent=`${WD[wd]} ${day} ${MFL[mon-1]} ${D.year}`;
+  const kd=root.querySelector('[data-ko-date]'); if(kd) kd.textContent=`${D.year}년 ${mon}월 ${day}일 ${WK[wd]}요일`;
+  return root;
+}
 let root;
 if(view==='phone'){
   root=make('phone');
-  const f=make('front'),b=make('back');
-  b.querySelector('[data-memo]').textContent=memo||'르아브르 가는 날. 안개가 짙었다.';
-  root.querySelector('[data-slot=front]').appendChild(f);
-  root.querySelector('[data-slot=back]').appendChild(b);
+  root.querySelector('[data-sub]').textContent=`${D.year}년 ${mon}월 ${day}일 ${WK[wd]}요일 · 생라자르역 → ${D.ko}`;
+  root.querySelector('[data-hist]').innerHTML=D.hist;
+  root.querySelector('[data-slot=front]').appendChild(fill(make('front')));
+  root.querySelector('[data-slot=back]').appendChild(fill(make('back')));
 }else{
-  root=make(view==='front'?'front':'back');
-  const m=root.querySelector('[data-memo]'); if(m) m.textContent=memo;
+  root=fill(make(view==='front'?'front':'back'));
 }
 document.body.appendChild(root);
 </script>

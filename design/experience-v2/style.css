@@ -406,3 +406,22 @@ table.bd{min-width:0;width:100%;font-size:13px;margin-top:6px}
 .pc.on{outline:2px solid var(--point);outline-offset:-2px;background:#FFF}
 .ph-col-cap{font-size:9px;color:var(--sub);text-align:center}
 .works.alt .wk-t .flag{margin-left:2px}
+
+/* C2 v3 · 목적지 이야기 */
+.narrs{padding:0 24px 22px;display:grid;gap:14px}
+.narr-h{font-size:13px;font-weight:700;color:var(--sub);border-top:1px solid var(--line);padding-top:16px}
+.narr{border:1px solid var(--line);padding:16px 18px 18px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;background:#FFF}
+.narr-k{font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--point)}
+.narr h4{font-family:var(--display);font-weight:800;font-size:17px;line-height:1.35;color:var(--ink);margin-top:4px}
+.beats{margin-top:10px;display:grid;gap:0;counter-reset:bt;border-top:1px solid var(--ink)}
+.beats li{counter-increment:bt;position:relative;padding:8px 0 8px 24px;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.55;color:var(--body)}
+.beats li::before{content:counter(bt);position:absolute;left:0;top:8px;font-family:var(--display);font-weight:800;color:var(--point)}
+.beats .src{display:block;margin-top:2px}
+.narr .pics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-content:start}
+.narr .pics li{display:flex;flex-direction:column;gap:2px;min-width:0}
+.narr .pics .wk-img{aspect-ratio:4/3}
+@media (max-width:1100px){.narr{grid-template-columns:1fr}}
+@media (max-width:860px){.narrs{padding:0 16px 18px}.narr{padding:12px}.narr .pics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.narr .pics{grid-template-columns:1fr 1fr;gap:8px}}
+.phones--4{display:grid;grid-template-columns:repeat(2,196px);justify-content:center;gap:14px}
+@media (max-width:520px){.phones--4{grid-template-columns:196px}}
