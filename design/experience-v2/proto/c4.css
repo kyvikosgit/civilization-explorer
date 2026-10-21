@@ -130,13 +130,21 @@ body.c4 .topbar { background: #0F0E0D; color: #FFF; }
 .me-actions[hidden] { display: none; }
 
 @media (max-height: 700px) {
-  .role h1 { font-size: 20px; }
-  .frame { max-width: 236px; }
-  .slide { padding-top: 12px; padding-bottom: 10px; }
-  .caption { min-height: 80px; padding-top: 10px; }
-  .shutter { width: 64px; height: 64px; } .shutter span { width: 50px; height: 50px; }
-  .shutter-row { margin-top: 10px; }
-  .then { margin-top: 14px; }
+  .role { padding: 10px 4px 6px; }
+  .role h1 { font-size: 19px; }
+  .role .sub { margin-top: 4px; font-size: 12.5px; }
+  .frame { max-width: 190px; padding: 9px; }
+  .frame::after, .art { inset: 9px; }
+  .frame-no { top: -9px; height: 18px; font-size: 11px; }
+  .slide { padding-top: 12px; padding-bottom: 8px; }
+  .finder { max-width: 214px; }
+  .caption { min-height: 66px; padding-top: 8px; }
+  .cap-name { font-size: 17px; margin-top: 6px; }
+  .cap-line { font-size: 12px; }
+  .dots { margin-top: 6px; }
+  .shutter { width: 60px; height: 60px; } .shutter span { width: 46px; height: 46px; }
+  .shutter-row { margin-top: 8px; gap: 4px; }
+  .then { margin-top: 12px; font-size: 11.5px; }
   .plate { max-width: 230px; }
 }
 @media (prefers-reduced-motion: reduce) {

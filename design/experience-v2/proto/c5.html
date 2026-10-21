@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#151413">
+<title>C5 · 가장 오래 머문 그림</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../../../booth/css/base.css">
+<link rel="stylesheet" href="c5.css">
+</head>
+<body class="c5">
+
+<div class="topbar">
+  <a class="icon-btn" href="../../experience-v2.html#c5" aria-label="뒤로" id="backLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="tb-title">C5 · 모네 전시관</div>
+  <span></span>
+</div>
+<div class="progress" id="progress"><i class="on"></i><i></i><i></i></div>
+
+<!-- 1. 벽 — 가장 오래 머문 그림 -->
+<main class="screen" data-screen="1">
+  <header class="role">
+    <div class="eyebrow">당신은</div>
+    <h1>모네의 방을 한 바퀴 돈<br>관람객입니다</h1>
+    <p class="sub">가장 오래 머문 그림 하나를 고르세요 · 벽의 번호로</p>
+  </header>
+  <section class="wall" id="wall" aria-label="연작 벽 · 옆으로 밀어 보기">
+    <div class="rail" id="rail"></div>
+  </section>
+  <p class="wall-hint" id="wallHint">옆으로 밀어 벽을 따라가세요</p>
+  <div class="later"><button class="link-btn" id="later" type="button">나중에 하기</button></div>
+</main>
+
+<!-- 2. 단어 — 그 그림에서 느낀 것 -->
+<main class="screen" data-screen="2" hidden>
+  <header class="role">
+    <div class="eyebrow" id="pickNo">1번</div>
+    <h1>그 그림에서 느낀 것</h1>
+    <p class="sub">일상 단어로 세 개까지 · 그림 위에 얹듯이</p>
+  </header>
+  <section class="spot" id="spot">
+    <div class="spot-glow"></div>
+    <img id="spotImg" alt="" draggable="false">
+    <div class="spot-light"></div>
+    <div class="tags" id="tags"></div>
+  </section>
+  <div class="words" id="words" role="group" aria-label="느낌 단어"></div>
+  <div class="actions">
+    <button class="btn" id="toReveal" type="button" disabled>오늘의 관람객 보기</button>
+    <button class="link-btn" id="rePick" type="button">다른 그림으로</button>
+  </div>
+</main>
+
+<!-- 3. 오늘의 관람객 -->
+<main class="screen light" data-screen="3" hidden>
+  <header class="mhead">
+    <div class="cap">오늘의 관람객 · <span id="total">3,402</span>명</div>
+    <h2>가장 오래 머문 그림</h2>
+    <div class="rule"></div>
+  </header>
+  <section class="bars" id="bars" aria-label="그림별 오늘의 비율"></section>
+  <p class="bars-note">수치는 예시 · 같은 기기는 한 번만 센다</p>
+
+  <section class="mine">
+    <div class="mine-head">
+      <img id="mineImg" alt="" class="mine-thumb">
+      <div>
+        <div class="eyebrow">내가 머문 그림 · <span id="mineNo"></span>번</div>
+        <div class="mine-title" id="mineTitle"></div>
+        <div class="mine-meta" id="mineMeta"></div>
+        <div class="mine-pct"><b id="minePct"></b> 오늘 이 그림을 고른 관람객</div>
+      </div>
+    </div>
+    <div class="sec-title" id="cloudTitle">이 그림을 고른 사람들의 단어</div>
+    <div class="cloud" id="cloud"></div>
+    <div class="same" id="same"></div>
+    <p class="then" id="then"></p>
+  </section>
+
+  <div class="actions">
+    <button class="btn" id="save" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>내가 머문 그림 저장</button>
+    <button class="btn line" id="restart" type="button">처음부터</button>
+  </div>
+  <p class="placeholder-note">임시 · 연작 10점의 최종 목록과 도판 권리는 아직 정해지지 않았다. 여기서는 보드 C2의 퍼블릭 도메인 도판 10장을 임시로 걸었다. 비율·단어 수는 예시.</p>
+</main>
+
+<script type="module" src="c5.js"></script>
+</body>
+</html>
