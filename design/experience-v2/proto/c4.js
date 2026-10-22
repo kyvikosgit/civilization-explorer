@@ -1,11 +1,13 @@
-// C4 나다르 사진관
-//   (1) 벽: 세 줄의 금박 액자(그림 10점)가 서로 다른 속도로 흐른다. 셔터 "사진으로" → 조리개·섬광 → 단추에서 퍼지는 물결로
-//       모든 액자가 같은 사람의 사진으로 현상된다(검게 닫힘 → 은빛 · 세피아 → 흑백 · 입자). 다시 누르면 붓질 띠가 쓸어 그림으로.
-//       액자를 누르면 흐름이 멈추고 그 사람이 크게(세로 분할을 끌어 그림 ↔ 사진). 첫 전환 뒤 "당신이라면?"
-//   (2) 고르기: 뒤로 두 줄기(왼쪽 그림은 위로 · 오른쪽 사진은 아래로). 반쪽을 누르면 그쪽이 화면을 채우고 빨라진다 → 오늘의 관람객 · 그때는 이랬다 · 저장(고른 쪽 10명 콜라주 카드)
+// C4 나다르 사진관 — 질문이 주인공인 한 화면
+//   위: "사람을 남긴다면, 그림입니까 사진입니까?"
+//   아래: 두 벽 — 왼쪽은 같은 25명의 그림(금박 · 타원 · 나무 액자를 살롱식으로 빽빽이, 초당 10px 위로),
+//         오른쪽은 그들의 사진(카르트 드 비지트 · 캐비닛 카드, 초당 9px 아래로). 먼 층(빈 액자)은 더 느리게 — 깊이.
+//   약 4초마다 한 사람의 두 액자가 함께 빛나고 가운데에 "이름 · 그림 연도 / 사진 연도"가 뜬다(유일한 '변환' 단서).
+//   액자를 누르면 그 사람의 그림과 사진을 나란히 크게(두 손가락 확대). 반쪽(또는 아래 단추)을 누르면 그쪽이 화면을 채우고
+//   오늘의 관람객 → 그때는 이랬다 → 저장(고른 쪽 25명 콜라주 카드 "나는 ○○으로 남긴다").
 //   (+) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js) 재사용
-// 얼굴은 img/c4f/<id>-{paint,photo}.jpg — 5점 수동 표시 + 닮음 변환으로 같은 4:5 틀에 맞춘 것(img/c4f/align.py · js/c4-faces.json)
-// 움직임은 transform · opacity 만. 화면 밖이거나 가려지면 흐름을 멈춘다. 서버 없음, 업로드 없음.
+// 인물·출처: js/c4-people.json(위키미디어 공용 파일 페이지 · 라이선스) · 얼굴 틀: img/c4p/build.py
+// 움직임은 transform · opacity 만. 화면 밖 · 탭 숨김 · 시트가 열리면 멈춘다. 서버 없음, 업로드 없음.
 import { toast, loadImage, startCamera, stopCamera, cameraErrorText } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
 import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine } from './js/crowd.js';
@@ -14,35 +16,11 @@ import * as N from '../../../booth/js/nadar.js';
 const $ = (s) => document.querySelector(s);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-// 사진의 해(오래된 것부터). 그림·사진 출처는 상세 페이지 #c4-people 표와 같다
-const PEOPLE = [
-  { id: 'liszt', name: '프란츠 리스트', painter: '앙리 레만', pyear: '1839', photog: '헤르만 비오브', fyear: '1843',
-    src: '그림 카르나발레 미술관 · Paris Musées CC0 · 사진 다게레오타입 · Commons PD(원본 소장처 미확인)' },
-  { id: 'courbet', name: '귀스타브 쿠르베', painter: '자화상', pyear: '1848~49', photog: '나다르', fyear: '1850년경',
-    src: '그림 〈파이프를 문 남자〉 파브르 미술관 · Commons PD-Art · 사진 다게레오타입 · Commons PD(출처 약함)' },
-  { id: 'degas', name: '에드가 드가', painter: '자화상', pyear: '1855', photog: '에티엔 카르자', fyear: '1860년경',
-    src: '그림 오르세 미술관 · Commons PD-Art · 사진 BnF Gallica(마네의 사진첩) · Commons PD' },
-  { id: 'zola', name: '에밀 졸라', painter: '에두아르 마네', pyear: '1868', photog: '에티엔 카르자', fyear: '1865년경',
-    src: '그림 오르세 미술관 · Commons PD-Art · 사진 샌디에이고 사진미술관 · Commons PD' },
-  { id: 'manet', name: '에두아르 마네', painter: '앙리 팡탱라투르', pyear: '1867', photog: '나다르(추정)', fyear: '1867~71년경',
-    src: '그림 시카고 미술관 · CC0 · 사진 레이크스미술관 · PDM' },
-  { id: 'monet', name: '클로드 모네', painter: '카롤뤼스뒤랑', pyear: '1867', photog: 'A. 그레이너', fyear: '1871',
-    src: '그림 마르모탕 모네 미술관 · Commons PD-Art · 사진 Commons PD(원본 소장처 미확인)' },
-  { id: 'morisot', name: '베르트 모리조', painter: '에두아르 마네', pyear: '1872', photog: '사진가 미상', fyear: '연도 미상',
-    src: '그림 오르세 미술관 · Commons PD-Art · 사진 Commons PD(작자·연도 미확인)' },
-  { id: 'renoir', name: '오귀스트 르누아르', painter: '자화상', pyear: '1875년경', photog: '사진가 미상', fyear: '1875년경',
-    src: '그림 클라크 미술관 1955.584 · Commons PD-Art · 사진 오르세 미술관(RMN) · Commons PD' },
-  { id: 'hugo', name: '빅토르 위고', painter: '레옹 보나 구도 판본', pyear: '1879', photog: '나다르', fyear: '1878',
-    src: '그림·사진 빅토르 위고의 집 · Paris Musées CC0' },
-  { id: 'pissarro', name: '카미유 피사로', painter: '자화상', pyear: '1903', photog: '사진가 미상', fyear: '1900년경',
-    src: '그림 테이트 · Commons PD-Art · 사진 Commons(원본 미확인)' },
-].map((p) => ({ ...p, paint: `img/c4f/${p.id}-paint.jpg`, photo: `img/c4f/${p.id}-photo.jpg` }));
-
-// 미리 받기 — 20장(각 ≤120KB)
-const IMG = new Map();
-PEOPLE.forEach((p) => ['paint', 'photo'].forEach((k) => { const im = new Image(); im.decoding = 'async'; im.src = p[k]; IMG.set(p[k], im); }));
-const ready = Promise.all([...IMG.values()].map((im) => (im.decode ? im.decode().catch(() => {}) : Promise.resolve())));
+const stage = $('#ask'), halves = $('#halves');
+const thumb = (id, k) => `img/c4p/${id}-${k}.jpg`;
+const large = (id, k) => `img/c4p/lg/${id}-${k}.jpg`;
+const STAMP = { '나다르': ['Nadar', '35, boul. des Capucines'], '에티엔 카르자': ['Ét. Carjat', 'Paris'], '피에르 프티': ['Pierre Petit', 'Paris'],
+  '헤르만 비오브': ['H. Biow', ''], 'A. 그레이너': ['A. Greiner', 'Amsterdam'] };
 
 // ── 탭
 $$('.tab').forEach((t) => t.addEventListener('click', () => {
@@ -53,149 +31,190 @@ $$('.tab').forEach((t) => t.addEventListener('click', () => {
   window.scrollTo(0, 0);
 }));
 
-// ── 1 벽: 세 줄. 줄마다 순서를 달리하고 두 벌을 이어 붙여 끊김 없이 돈다(왼쪽 · 오른쪽 · 왼쪽, 속도도 다르게)
-const ROWS = [
-  { order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dir: -1, dur: 74000 },
-  { order: [5, 8, 2, 9, 1, 6, 3, 7, 0, 4], dir: 1, dur: 58000 },
-  { order: [7, 3, 9, 0, 5, 2, 8, 4, 6, 1], dir: -1, dur: 88000 },
-];
-const wallScr = $('#wallScr'), rowsEl = $('#rows');
-const BANDS = 5, BAND_STEP = 100 / BANDS, BAND_H = BAND_STEP + 4;   // 띠 다섯 줄, 살짝 겹치게
-function frameHTML(pi, r, k) {
-  const p = PEOPLE[pi], ov = (k + r) % 3 === 0, sm = (k + r * 2) % 4 === 1;
-  const bands = Array.from({ length: BANDS }, (_, j) => {
-    const top = j * BAND_STEP - 2;
-    return `<div class="bd${j % 2 ? ' r' : ''}" style="--j:${j};top:${top}%;height:${BAND_H}%"><div class="bi" style="top:${(-top / BAND_H * 100).toFixed(2)}%;height:${(100 / BAND_H * 100).toFixed(2)}%;background-image:url('${p.paint}')"></div></div>`;
-  }).join('');
-  return `<button class="fr${ov ? ' ov' : ''}${sm ? ' s' : ''}" type="button" data-p="${pi}" aria-label="${p.name}"><div class="mat"><div class="art">
-    <img class="pa" src="${p.paint}" alt="" draggable="false" decoding="async"><img class="ph" src="${p.photo}" alt="" draggable="false" decoding="async">
-    <i class="sep"></i><i class="ink"></i><i class="sil"></i><i class="grn"></i><div class="bands">${bands}</div></div></div></button>`;
-}
-rowsEl.innerHTML = ROWS.map((row, r) => {
-  const one = row.order.map((pi, k) => frameHTML(pi, r, k)).join('');
-  return `<div class="row"><div class="track">${one}${one}</div></div>`;
-}).join('');
-const frames = $$('.fr');
-const tracks = $$('.track');
-const flows = REDUCED ? [] : tracks.map((t, r) => {
-  const a = ROWS[r].dir < 0 ? ['translateX(0)', 'translateX(-50%)'] : ['translateX(-50%)', 'translateX(0)'];
-  return t.animate([{ transform: a[0] }, { transform: a[1] }], { duration: ROWS[r].dur, iterations: Infinity, easing: 'linear' });
-});
-if (REDUCED) tracks.forEach((t, r) => { if (ROWS[r].dir > 0) t.style.transform = 'translateX(-50%)'; });
+// 고정 난수(배치가 매번 같게)
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle(a, rnd) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-// 흐름은 벽이 보일 때만
-let onScreen = true, peekOpen = false;
-function syncFlow() {
-  const run = onScreen && !peekOpen && !wallScr.hidden && !$('#wall').hidden && $('#choose').hidden && document.visibilityState === 'visible';
-  flows.forEach((a) => { if (run && a.playState !== 'running') a.play(); else if (!run && a.playState === 'running') a.pause(); });
-  streams.forEach((a) => { const on = !$('#choose').hidden && !$('#wall').hidden && document.visibilityState === 'visible'; if (on && a.playState !== 'running') a.play(); else if (!on && a.playState === 'running') a.pause(); });
-}
-if ('IntersectionObserver' in window) new IntersectionObserver((es) => { onScreen = es[0].isIntersecting; syncFlow(); }).observe(wallScr);
-document.addEventListener('visibilitychange', () => syncFlow());
-
-// ── 셔터: 조리개가 닫힌 순간 모드를 바꾸고, 단추에서 가까운 액자부터 32ms 간격으로 퍼진다
-let mode = 'paint', busy = false, flipped = false;
-function irisSize() {
-  const r = wallScr.getBoundingClientRect();
-  $('#iris').style.setProperty('--d', `${Math.ceil(Math.hypot(r.width, r.height) * 0.6)}px`);
-}
-function ripple() {
-  const b = $('#shutter').getBoundingClientRect(), bx = b.left + b.width / 2, by = b.top + b.height / 2;
-  const sr = wallScr.getBoundingClientRect();
-  const list = frames.map((f) => { const r = f.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    const vis = r.right > sr.left - 40 && r.left < sr.right + 40; return { f, d: Math.hypot(cx - bx, cy - by), vis }; });
-  const vis = list.filter((x) => x.vis).sort((a, c) => a.d - c.d), off = list.filter((x) => !x.vis);
-  vis.forEach((x, i) => x.f.style.setProperty('--d', `${i * 32}ms`));
-  const last = vis.length * 32;
-  off.forEach((x) => x.f.style.setProperty('--d', `${last}ms`));
-  return last;
-}
-function flip() {
-  if (busy) return;
-  busy = true; $('#shutter').disabled = true;
-  const to = mode === 'paint' ? 'photo' : 'paint';
-  if (navigator.vibrate) navigator.vibrate(20);
-  const swap = () => {
-    const last = REDUCED ? 0 : ripple();
-    wallScr.classList.add('run'); wallScr.dataset.mode = to; mode = to;
-    $('#roleWhat').textContent = to === 'photo' ? '사진' : '초상화';
-    $('#shutterLab').textContent = to === 'photo' ? '초상화로' : '사진으로';
-    $('#shutter').setAttribute('aria-label', to === 'photo' ? '초상화로' : '사진으로');
-    $('#wfCount').textContent = to === 'photo' ? '같은 열 사람의 사진' : '초상화 10점';
-    setTimeout(() => {
-      busy = false; $('#shutter').disabled = false;
-      if (!flipped) { flipped = true; $('#toChoose').hidden = false; }
-    }, REDUCED ? 0 : last + 900);
+let PEOPLE = [], BYID = {};
+// ── 살롱식 걸기: 큰 것 하나 / 작은 것 둘(높이 엇갈리게)을 섞어 한 줄기 높이 H 를 만든다. 두 벌을 H 간격으로 이어 끊김 없이 돈다
+function layout(kind, order, W, seed) {
+  const rnd = rng(seed), items = [];
+  let y = 12, i = 0;
+  const hOf = (w, big) => {
+    if (kind === 'paint') { const m = Math.max(5, Math.round(w * 0.065)); return { h: Math.round((w - 2 * m) * 1.25 + 2 * m), m }; }
+    const iw = w * 0.86, top = w * 0.07, st = Math.max(15, w * (big ? 0.2 : 0.22)); return { h: Math.round(top + iw * 1.25 + st), m: 0, iw, top };
   };
-  if (REDUCED) return swap();
-  irisSize();
-  const iris = $('#iris'), flash = $('#flash');
-  iris.classList.remove('run'); flash.classList.remove('run'); void iris.offsetWidth;
-  iris.classList.add('run'); if (to === 'photo') flash.classList.add('run');
-  setTimeout(swap, 280);
-  setTimeout(() => { iris.classList.remove('run'); flash.classList.remove('run'); }, 760);
+  while (i < order.length) {
+    const left = order.length - i;
+    if (left === 1 || rnd() < 0.36) {
+      const big = true, w = Math.round(W * (0.62 + rnd() * 0.14)), g = hOf(w, big);
+      const x = Math.round((W - w) / 2 + (rnd() - 0.5) * W * 0.14);
+      items.push({ id: order[i++], x, y, w, ...g, big }); y += g.h + 16 + Math.round(rnd() * 8);
+    } else {
+      const w1 = Math.round(W * (0.39 + rnd() * 0.07)), w2 = Math.round(W * (0.39 + rnd() * 0.07));
+      const g1 = hOf(w1), g2 = hOf(w2), y1 = y + Math.round(rnd() * 12), y2 = y + 10 + Math.round(rnd() * 22);
+      items.push({ id: order[i++], x: Math.round(W * 0.05), y: y1, w: w1, ...g1 });
+      items.push({ id: order[i++], x: Math.round(W * 0.95 - w2), y: y2, w: w2, ...g2 });
+      y = Math.max(y1 + g1.h, y2 + g2.h) + 14 + Math.round(rnd() * 8);
+    }
+  }
+  items.forEach((it) => { it.shape = kind === 'paint' ? (rnd() < 0.3 ? 'ov' : rnd() < 0.22 ? 'wood' : '') : (it.big ? 'cab' : ''); });
+  return { items, H: y };
 }
-$('#shutter').addEventListener('click', flip);
-
-// ── 액자 하나 크게: 흐름이 멈추고, 세로 분할(기본 가운데)을 끌어 그림 ↔ 사진. 바깥을 누르면 다시 흐른다
-const peek = $('#peek'), pkFace = $('#pkFace');
-function openPeek(pi) {
-  const p = PEOPLE[pi];
-  $('#pkName').textContent = p.name;
-  $('#pkPaint').src = p.paint; $('#pkPaint').alt = `${p.name} · 그림 ${p.painter} ${p.pyear}`;
-  $('#pkPhoto').src = p.photo; $('#pkPhoto').alt = `${p.name} · 사진 ${p.photog} ${p.fyear}`;
-  $('#pkPaintCap').textContent = `${p.painter} · ${p.pyear}`;
-  $('#pkPhotoCap').textContent = `${p.photog} · ${p.fyear}`;
-  $('#pkSrc').textContent = p.src;
-  pkFace.style.setProperty('--s', '50%');
-  peek.hidden = false; peekOpen = true; syncFlow();
+function frameHTML(kind, it, dy) {
+  const p = BYID[it.id], style = `left:${it.x}px;top:${it.y + dy}px;width:${it.w}px;height:${it.h}px`;
+  if (kind === 'paint') {
+    return `<button class="fr pf ${it.shape}" type="button" data-id="${p.id}" style="${style};--m:${it.m}px" aria-label="${p.name} · 그림"><i class="glw"></i><span class="body"><span class="win"><img src="${thumb(p.id, 'paint')}" alt="" draggable="false" decoding="async"></span></span></button>`;
+  }
+  const s = STAMP[p.photo.by] || ['Photographie', ''], fs = Math.max(6.5, Math.min(10, it.w * 0.07));
+  return `<button class="fr cd ${it.shape}" type="button" data-id="${p.id}" style="${style};--fs:${fs.toFixed(1)}px" aria-label="${p.name} · 사진"><i class="glw"></i><span class="body"><span class="win" style="top:${it.top.toFixed(1)}px;left:${((it.w - it.iw) / 2).toFixed(1)}px;right:auto;width:${it.iw.toFixed(1)}px"><img src="${thumb(p.id, 'photo')}" alt="" draggable="false" decoding="async"></span><span class="stamp">${s[0]}${s[1] ? `<i>${s[1]}</i>` : ''}</span></span></button>`;
 }
-function closePeek() { peek.hidden = true; peekOpen = false; syncFlow(); }
-rowsEl.addEventListener('click', (e) => { const f = e.target.closest('.fr'); if (f && !busy) openPeek(+f.dataset.p); });
-peek.addEventListener('click', (e) => { if (!e.target.closest('.pk-face')) closePeek(); });
-let drag = null;
-const setSplit = (x) => { const r = pkFace.getBoundingClientRect(); pkFace.style.setProperty('--s', `${Math.max(0, Math.min(100, (x - r.left) / r.width * 100)).toFixed(1)}%`); };
-pkFace.addEventListener('pointerdown', (e) => { drag = e.pointerId; try { pkFace.setPointerCapture(e.pointerId); } catch (err) { /* noop */ } setSplit(e.clientX); });
-pkFace.addEventListener('pointermove', (e) => { if (drag === e.pointerId) setSplit(e.clientX); });
-['pointerup', 'pointercancel'].forEach((t) => pkFace.addEventListener(t, (e) => { if (drag === e.pointerId) drag = null; }));
+function ghosts(kind, W, Hf, seed) {
+  const rnd = rng(seed), out = [];
+  for (let y = 30; y < Hf - 40;) {
+    const w = Math.round(W * (0.22 + rnd() * 0.16)), h = Math.round(w * (kind === 'paint' ? 1.25 : 1.55)), x = Math.round(rnd() * (W - w));
+    out.push({ x, y, w, h }); y += h + 40 + Math.round(rnd() * 90);
+  }
+  const one = (dy) => out.map((g) => `<i class="ghost" style="left:${g.x}px;top:${g.y + dy}px;width:${g.w}px;height:${g.h}px"></i>`).join('');
+  return one(0) + one(Hf);
+}
 
-// ── 2 고르기: 왼쪽 그림 줄기는 위로, 오른쪽 사진 줄기는 아래로
-const choose = $('#choose');
-const fill = (k, ord) => { const one = ord.map((i) => `<img src="${PEOPLE[i][k]}" alt="" draggable="false" decoding="async">`).join(''); return one + one; };
-$('#strmPaint').innerHTML = fill('paint', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-$('#strmPhoto').innerHTML = fill('photo', [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
-const STREAM_MS = 70000;
-const streams = REDUCED ? [] : [
-  $('#strmPaint').animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-50%)' }], { duration: STREAM_MS, iterations: Infinity }),
-  $('#strmPhoto').animate([{ transform: 'translateY(-50%)' }, { transform: 'translateY(0)' }], { duration: STREAM_MS, iterations: Infinity }),
-];
-streams.forEach((a) => a.pause());
-if (REDUCED) $('#strmPhoto').style.transform = 'translateY(-25%)';
-function openChoose() {
-  pick(null);
-  choose.hidden = false; wallScr.setAttribute('aria-hidden', 'true');
+// ── 흐름(WAAPI): 그림은 위로 초당 10px, 사진은 아래로 초당 9px, 먼 층은 같은 주기에 더 짧은 길이 → 더 느리게. 시작은 천천히 붙는다
+let flows = [], sideAnims = { paint: [], photo: [] }, onScreen = true, sheetOpen = false, ramp = 0;
+function build() {
+  const W = Math.round($('#sidePaint').getBoundingClientRect().width);
+  const ids = PEOPLE.map((p) => p.id);
+  const sides = { paint: { order: shuffle(ids, rng(11)), speed: 10, dir: -1 }, photo: { order: null, speed: 9, dir: 1 } };
+  // 사진 벽은 그림 벽의 거꾸로 순서 — 서로 반대로 흐르니 같은 사람이 주기적으로 엇갈리며 두 벽에 함께 보인다
+  sides.photo.order = sides.paint.order.slice().reverse();
+  flows.forEach((a) => a.cancel()); flows = []; sideAnims = { paint: [], photo: [] };
+  ['paint', 'photo'].forEach((k) => {
+    const s = sides[k], L = layout(k, s.order, W, k === 'paint' ? 3 : 7);
+    const near = $(k === 'paint' ? '#hangPaint' : '#hangPhoto'), far = $(k === 'paint' ? '#farPaint' : '#farPhoto');
+    near.style.height = `${L.H * 2}px`;
+    near.innerHTML = L.items.map((it) => frameHTML(k, it, 0)).join('') + L.items.map((it) => frameHTML(k, it, L.H)).join('');
+    const Hf = Math.round(L.H * 0.58); far.style.height = `${Hf * 2}px`; far.innerHTML = ghosts(k, W, Hf, k === 'paint' ? 5 : 9);
+    if (REDUCED) { if (s.dir > 0) { near.style.transform = `translateY(${-L.H}px)`; far.style.transform = `translateY(${-Hf}px)`; } return; }
+    const dur = (L.H / s.speed) * 1000;
+    const kf = (h) => (s.dir < 0 ? [{ transform: 'translateY(0)' }, { transform: `translateY(${-h}px)` }] : [{ transform: `translateY(${-h}px)` }, { transform: 'translateY(0)' }]);
+    const a1 = near.animate(kf(L.H), { duration: dur, iterations: Infinity }), a2 = far.animate(kf(Hf), { duration: dur, iterations: Infinity });
+    // 같은 사람의 두 액자가 처음부터 나란히 서지 않게 시작 자리를 어긋낸다
+    const off = (k === 'paint' ? 0.12 : 0.47) * dur; a1.currentTime = off; a2.currentTime = off;
+    flows.push(a1, a2); sideAnims[k].push(a1, a2);
+  });
+  ramp = 0; rampUp();
   syncFlow();
 }
-function backToWall() { choose.hidden = true; wallScr.removeAttribute('aria-hidden'); syncFlow(); }
-$('#toChoose').addEventListener('click', openChoose);
-$('#chBack').addEventListener('click', backToWall);
+function rampUp() {
+  if (REDUCED) return;
+  const t0 = performance.now();
+  const step = (now) => { ramp = Math.min(1, (now - t0) / 1600); const e = ramp * ramp * (3 - 2 * ramp); rate(e); if (ramp < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+let pickRate = 1;
+function rate(e) { flows.forEach((a) => { const mine = stance && sideAnims[stance].includes(a); const r = Math.max(0.0001, e * (mine ? pickRate : 1)); a.updatePlaybackRate ? a.updatePlaybackRate(r) : (a.playbackRate = r); }); }
+function running() { return onScreen && !sheetOpen && !stage.hidden && document.visibilityState === 'visible'; }
+function syncFlow() {
+  const run = running();
+  flows.forEach((a) => { if (run && a.playState !== 'running') a.play(); else if (!run && a.playState === 'running') a.pause(); });
+  if (run && !stance) startGlow(); else stopGlow();
+}
+if ('IntersectionObserver' in window) new IntersectionObserver((es) => { onScreen = es[0].isIntersecting; syncFlow(); }).observe(halves);
+document.addEventListener('visibilitychange', syncFlow);
 
+// ── 같은 사람: 약 4초마다, 두 벽에 모두 온전히 보이는 사람 하나의 두 액자가 함께 빛난다 + 가운데 이름표
+let glowT = 0, glowOff = 0, shown = [];
+function fullyIn(el, r) { const b = el.getBoundingClientRect(), cy = (b.top + b.bottom) / 2; return b.top > r.top - b.height * 0.2 && cy < r.bottom - 160 && b.bottom < r.bottom - 100 ? b : null; }
+function glowOnce() {
+  const r = halves.getBoundingClientRect();
+  const vis = (k) => { const m = new Map(); $$(`#${k === 'paint' ? 'hangPaint' : 'hangPhoto'} .fr`).forEach((f) => { const b = fullyIn(f, r); if (b && !m.has(f.dataset.id)) m.set(f.dataset.id, { f, b }); }); return m; };
+  const a = vis('paint'), b = vis('photo');
+  const both = [...a.keys()].filter((id) => b.has(id));
+  if (!both.length) return false;
+  both.sort((x, y) => shown.indexOf(x) - shown.indexOf(y));   // 오래전에 보인 사람 먼저
+  const id = both[0], pa = a.get(id), pb = b.get(id), p = BYID[id];
+  shown = shown.filter((x) => x !== id).concat(id);
+  [pa.f, pb.f].forEach((f) => { f.classList.remove('lit'); void f.offsetWidth; f.classList.add('lit'); setTimeout(() => f.classList.remove('lit'), 2800); });
+  const y = ((pa.b.top + pa.b.bottom) / 2 + (pb.b.top + pb.b.bottom) / 2) / 2 - r.top;
+  const same = $('#same');
+  $('#sameName').textContent = p.name;
+  $('#sameYears').textContent = `${p.paint.year} / ${p.photo.year}`;
+  same.style.setProperty('--y', `${Math.max(50, Math.min(r.height - 150, y)).toFixed(0)}px`);
+  same.classList.add('on'); halves.classList.add('glowing'); clearTimeout(glowOff); glowOff = setTimeout(() => { same.classList.remove('on'); halves.classList.remove('glowing'); }, 2600);
+  return true;
+}
+function startGlow() { if (glowT) return; glowT = setTimeout(function tick() { glowT = setTimeout(tick, glowOnce() ? 4000 : 700); }, 1200); }   // 못 찾으면 0.7초 뒤 다시
+function stopGlow() { clearTimeout(glowT); glowT = 0; }
+
+// ── 나란히 크게: 액자를 누르면 그 사람의 그림 | 사진(큰 판은 이때 받는다). 두 손가락으로 함께 확대, 한 손가락으로 옮기기, 두 번 누르면 원래대로
+const sheet = $('#pairSheet'), dim = $('#pairDim'), psIn = $('#psIn'), psZoom = $('#psZoom');
+const capHTML = (lab, e) => `<b>${lab}</b>${e.by} · ${e.year}${e.where ? `<br>${e.where}` : ''}<small>${e.license}${e.page ? ` · ${decodeURIComponent(e.page.split('/wiki/')[1] || '').replace(/_/g, ' ').slice(0, 70)}` : ''}</small>`;
+function openPair(id) {
+  const p = BYID[id];
+  $('#psName').textContent = p.name;
+  $('#psPaint').src = thumb(id, 'paint'); $('#psPhoto').src = thumb(id, 'photo');
+  const up = (img, src) => { const im = new Image(); im.onload = () => { if ($('#psName').textContent === p.name) img.src = src; }; im.src = src; };
+  up($('#psPaint'), large(id, 'paint')); up($('#psPhoto'), large(id, 'photo'));
+  $('#psPaint').alt = `${p.name} · 그림 ${p.paint.by} ${p.paint.year}`; $('#psPhoto').alt = `${p.name} · 사진 ${p.photo.by} ${p.photo.year}`;
+  $('#psPaintCap').innerHTML = capHTML('그림', p.paint); $('#psPhotoCap').innerHTML = capHTML('사진', p.photo);
+  zoomSet(1, 0, 0);
+  sheet.classList.add('open'); dim.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
+  sheetOpen = true; syncFlow();
+}
+function closePair() { sheet.classList.remove('open'); dim.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); sheetOpen = false; syncFlow(); }
+$('#psClose').addEventListener('click', closePair); dim.addEventListener('click', closePair);
+let Z = { s: 1, x: 0, y: 0 };
+function zoomSet(s, x, y) {
+  const r = psZoom.getBoundingClientRect(); s = Math.max(1, Math.min(4, s));
+  x = Math.min(0, Math.max(r.width * (1 - s), x)); y = Math.min(0, Math.max(r.height * (1 - s), y));
+  Z = { s, x, y }; psIn.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s.toFixed(3)})`;
+}
+const pts = new Map(); let g0 = null, lastTap = 0;
+const center = () => { const a = [...pts.values()]; return { x: a.reduce((s, p) => s + p.x, 0) / a.length, y: a.reduce((s, p) => s + p.y, 0) / a.length, d: a.length > 1 ? Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) : 0 }; };
+psZoom.addEventListener('pointerdown', (e) => {
+  try { psZoom.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); const c = center(); g0 = { ...c, ...Z };
+  if (pts.size === 1) { const now = performance.now(); if (now - lastTap < 300) zoomSet(1, 0, 0); lastTap = now; }
+});
+psZoom.addEventListener('pointermove', (e) => {
+  if (!pts.has(e.pointerId) || !g0) return;
+  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const c = center(), r = psZoom.getBoundingClientRect();
+  const s = pts.size > 1 && g0.d ? g0.s * (c.d / g0.d) : g0.s;
+  const ox = g0.x - r.left, oy = g0.y - r.top;   // 처음 손가락 가운데(틀 기준) 아래의 점이 손가락을 따라간다
+  const px = (ox - g0.x0) / g0.s, py = (oy - g0.y0) / g0.s;
+  zoomSet(s, c.x - r.left - px * s, c.y - r.top - py * s);
+});
+const up = (e) => { pts.delete(e.pointerId); const c = pts.size ? center() : null; g0 = c ? { ...c, ...Z } : null; if (g0) { g0.x0 = Z.x; g0.y0 = Z.y; } };
+['pointerup', 'pointercancel'].forEach((t) => psZoom.addEventListener(t, up));
+// g0 에 시작 변환을 함께 둔다(x0 · y0 = 그때의 이동)
+psZoom.addEventListener('pointerdown', () => { if (g0) { g0.x0 = Z.x; g0.y0 = Z.y; } });
+
+// ── 고르기
 const STANCES = { paint: { label: '그림', full: '그림으로', pct: 44 }, photo: { label: '사진', full: '사진으로', pct: 56 } };   // 예시 수치
 const VISITORS = '1,712';
 let stance = null;
 function pick(k) {
   stance = k;
-  if (k) choose.dataset.pick = k; else delete choose.dataset.pick;
-  $$('.half').forEach((h) => h.setAttribute('aria-checked', h.dataset.k === k));
-  streams.forEach((a, i) => { const mine = k && ['paint', 'photo'][i] === k; a.updatePlaybackRate ? a.updatePlaybackRate(mine ? 5 : 1) : (a.playbackRate = mine ? 5 : 1); });
+  if (k) stage.dataset.pick = k; else delete stage.dataset.pick;
   $('#reveal').classList.remove('on');
+  pickRate = k ? 2.6 : 1; rate(1);
+  syncFlow();
   if (!k) return;
+  $('#mineHead').textContent = `${STANCES[k].full} 남긴다.`;
+  $('#mineSubHead').textContent = k === 'paint' ? '화가가 보고 그린 대로' : '렌즈 앞에 앉은 그대로';
+  $('#same').classList.remove('on'); halves.classList.remove('glowing'); $$('.fr.lit').forEach((f) => f.classList.remove('lit'));
   if (navigator.vibrate) navigator.vibrate(10);
-  setTimeout(reveal, REDUCED ? 0 : 650);
+  setTimeout(reveal, REDUCED ? 0 : 700);
 }
-$$('.half').forEach((h) => h.addEventListener('click', () => { if (!stance) pick(h.dataset.k); }));
+$$('.pick').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); if (!stance) pick(b.dataset.k); }));
+halves.addEventListener('click', (e) => {
+  if (stance) return;
+  const f = e.target.closest('.fr'); if (f) return openPair(f.dataset.id);
+  const s = e.target.closest('.side'); if (s) pick(s.dataset.k);
+});
 
-// ── 3 오늘의 관람객: 점(하나 = 열 사람)이 흩어졌다가 그림 · 사진 두 기둥 아래로 모인다. 내 점은 주황, 맨 마지막
+// ── 오늘의 관람객: 점(하나 = 열 사람)이 흩어졌다가 그림 · 사진 두 기둥 아래로 모인다. 내 점은 주황, 맨 마지막
 const KEYS = ['paint', 'photo'];
 let crowd = null;
 function reveal() {
@@ -205,11 +224,11 @@ function reveal() {
   $('#crowdCols').innerHTML = KEYS.map((k) => { const s = STANCES[k], me = k === stance; return `<div class="crowd-col${me ? ' me' : ''}"><b class="n">${s.pct}<i>%</i></b><span class="lab">${s.label}${me ? ' · 나' : ''}</span></div>`; }).join('');
   $('#crowdStamp').textContent = stampLine(VISITORS);
   $('#mineCard').hidden = true; $('#saveStance').disabled = false;
-  const stage = $('#crowdStage'), n = dotsFor(VISITORS);
+  const cs = $('#crowdStage'), n = dotsFor(VISITORS);
   if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'dark', n, reduceMotion: REDUCED, seed: 5 });
   requestAnimationFrame(() => {
     crowd.resize();
-    const sr = stage.getBoundingClientRect(), w = sr.width / 2;
+    const sr = cs.getBoundingClientRect(), w = sr.width / 2;
     const rects = KEYS.map((k, i) => ({ x: i * w + 10, y: 8, w: w - 20, h: sr.height - 14 }));
     const counts = split(n, KEYS.map((k) => STANCES[k].pct));
     const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
@@ -219,30 +238,27 @@ function reveal() {
 }
 $('#again').addEventListener('click', () => pick(null));
 
-// ── 저장: 입장(출구 화면이 읽는다) + 고른 쪽 10명 콜라주 카드 한 장
+// ── 저장: 입장(출구 화면이 읽는다) + 고른 쪽 25명 콜라주 카드 한 장
+const loadImg = (src) => new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
 async function card(k) {
-  await ready;
   const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d');
-  const bg = g.createRadialGradient(W / 2, H * 0.42, 60, W / 2, H * 0.42, H * 0.8); bg.addColorStop(0, '#2A2420'); bg.addColorStop(1, '#0F0E0D');
+  const bg = g.createRadialGradient(W / 2, H * 0.45, 60, W / 2, H * 0.45, H * 0.85); bg.addColorStop(0, k === 'paint' ? '#3A2A20' : '#2B2A27'); bg.addColorStop(1, '#0F0E0D');
   g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-  g.fillStyle = '#F0B98F'; g.font = '600 30px Paperlogy, Freesentation, sans-serif'; g.fillText('C4 · 나다르 사진관', W / 2, 118);
-  g.fillStyle = '#FFFFFF'; g.font = '800 74px Paperlogy, Freesentation, sans-serif'; g.fillText(`나는 ${STANCES[k].full} 남긴다`, W / 2, 210);
-  const cols = 5, cw = 168, ch = 210, gx = 22, gy = 70, x0 = (W - cols * cw - (cols - 1) * gx) / 2, y0 = 300;
+  g.textAlign = 'center';
+  g.fillStyle = '#F0B98F'; g.font = '600 28px Paperlogy, Freesentation, sans-serif'; g.fillText('C4 · 나다르 사진관', W / 2, 92);
+  g.fillStyle = '#FFFFFF'; g.font = '800 70px Paperlogy, Freesentation, sans-serif'; g.fillText(`나는 ${STANCES[k].full} 남긴다`, W / 2, 178);
+  const cols = 5, cw = 160, ch = 200, gap = 14, x0 = (W - cols * cw - (cols - 1) * gap) / 2, y0 = 228;
+  const ims = await Promise.all(PEOPLE.map((p) => loadImg(thumb(p.id, k))));
   PEOPLE.forEach((p, i) => {
-    const x = x0 + (i % cols) * (cw + gx), y = y0 + Math.floor(i / cols) * (ch + gy);
-    g.save(); g.fillStyle = '#B8903F'; g.fillRect(x - 6, y - 6, cw + 12, ch + 12); g.fillStyle = '#1E1712'; g.fillRect(x, y, cw, ch);
-    g.beginPath(); g.ellipse(x + cw / 2, y + ch / 2, cw / 2 - 10, ch / 2 - 10, 0, 0, Math.PI * 2); g.clip();
-    const im = IMG.get(p[k]); if (im && im.naturalWidth) g.drawImage(im, x + 10, y + 10, cw - 20, ch - 20);
-    g.restore();
-    g.fillStyle = 'rgba(255,255,255,.82)'; g.font = '600 22px Freesentation, sans-serif';
-    g.fillText(p.name, x + cw / 2, y + ch + 38);
+    const x = x0 + (i % cols) * (cw + gap), y = y0 + Math.floor(i / cols) * (ch + gap);
+    if (k === 'paint') { g.fillStyle = '#B8903F'; g.fillRect(x, y, cw, ch); g.fillStyle = '#E2C26A'; g.fillRect(x + 3, y + 3, cw - 6, ch - 6); g.fillStyle = '#6E4F1E'; g.fillRect(x + 6, y + 6, cw - 12, ch - 12); if (ims[i]) g.drawImage(ims[i], x + 9, y + 9, cw - 18, ch - 18); }
+    else { g.fillStyle = '#E9DEC4'; g.fillRect(x, y, cw, ch); if (ims[i]) g.drawImage(ims[i], x + 10, y + 9, cw - 20, (cw - 20) * 1.25 > ch - 28 ? ch - 28 : (cw - 20) * 1.25); }
   });
   g.fillStyle = 'rgba(255,255,255,.6)'; g.font = '400 26px Freesentation, sans-serif';
-  g.fillText(`오늘 같은 입장 ${STANCES[k].pct}% · 수치는 예시`, W / 2, 1150);
-  g.fillStyle = 'rgba(255,255,255,.45)'; g.font = '400 24px Georgia, "Times New Roman", serif';
-  g.fillText('MONET 100 · 35, boulevard des Capucines · Paris', W / 2, 1250);
+  g.fillText(`${PEOPLE.length}명의 ${STANCES[k].label} · 오늘 같은 입장 ${STANCES[k].pct}% · 수치는 예시`, W / 2, 1268);
+  g.fillStyle = 'rgba(255,255,255,.42)'; g.font = '400 22px Georgia, "Times New Roman", serif';
+  g.fillText('MONET 100 · 35, boulevard des Capucines · Paris', W / 2, 1312);
   return c;
 }
 async function shareCanvas(cv, name) {
@@ -270,6 +286,14 @@ $('#saveStance').addEventListener('click', async () => {
   catch (e) { console.warn('[c4] card', e); toast('입장을 저장했습니다'); }
   $('#saveStance').disabled = false;
 });
+
+// ── 시작: 인물 목록을 읽고, 작은 판 50장을 미리 받은 뒤 건다
+(async () => {
+  const data = await fetch('js/c4-people.json').then((r) => r.json());
+  PEOPLE = data.people; PEOPLE.forEach((p) => { BYID[p.id] = p; });
+  build();
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { if (!stance) build(); }, 200); });
+})();
 
 // ── 내 초상
 const video = $('#cam'), plate = $('#plate'), result = $('#photoOut'), still = $('#still');
@@ -382,5 +406,5 @@ $('#saveMe').addEventListener('click', async () => {
 meState('idle');
 void loadImage;
 // 검수용
-window.__c4 = { get mode() { return mode; }, get busy() { return busy; }, get flipped() { return flipped; }, get stance() { return stance; }, get crowd() { return crowd; },
-  get peek() { return peekOpen; }, get flowing() { return flows.some((a) => a.playState === 'running'); }, get card() { return !!lastCard; }, flip, openChoose, pick, reveal };
+window.__c4 = { get stance() { return stance; }, get crowd() { return crowd; }, get sheet() { return sheetOpen; }, get people() { return PEOPLE.length; },
+  get flowing() { return flows.some((a) => a.playState === 'running'); }, get lit() { return $$('.fr.lit').length; }, get card() { return !!lastCard; }, get zoom() { return Z.s; }, pick, openPair, glowOnce };

@@ -303,57 +303,56 @@ async function c3(page) {
   await touch(page, 'touchEnd', []);
 }
 
-// ── C4 나다르 사진관: 벽(그림 3줄이 흐른다) → 사진으로(물결 현상) → 액자 하나 크게(분할 끌기) → 당신이라면? → 사진 반쪽 → 오늘 · 그때는 → 저장 → 내 초상(데모)
+// ── C4 나다르 사진관(질문 한 화면): 질문 + 두 벽(그림 위로 · 사진 아래로) → 5초 뒤 같은 사람이 함께 빛남 → 액자 → 나란히 크게(확대) → 닫기 → 사진 반쪽 → 오늘 · 그때는 → 저장 → 내 초상(데모)
 async function c4(page) {
   await page.goto(BASE + 'c4.html', { waitUntil: 'networkidle' }); await fonts(page);
-  await page.waitForFunction(() => [...document.querySelectorAll('.fr img')].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 20000 }).catch(() => bad('c4: wall images not loaded'));
-  await wait(page, 700);
-  if (!RM && !(await page.evaluate(() => window.__c4.flowing))) bad('c4: wall is not flowing');
-  await shot(page, 'c4-wall-1'); await overflowCheck(page, 'c4-wall-1');
+  await page.waitForFunction(() => window.__c4 && window.__c4.people > 0 && [...document.querySelectorAll('.fr img')].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30000 }).catch(() => bad('c4: wall images not loaded'));
+  const np = await page.evaluate(() => window.__c4.people); if (np < 24) bad('c4: only ' + np + ' people');
+  await wait(page, 900);
+  if (!RM && !(await page.evaluate(() => window.__c4.flowing))) bad('c4: walls are not drifting');
+  await shot(page, 'c4-q-1'); await overflowCheck(page, 'c4-q-1');
+  // 화면 안에 같은 사람이 두 번 보이지 않는지(한쪽 벽 안에서)
+  const dup = await page.evaluate(() => { const r = document.querySelector('#halves').getBoundingClientRect(); return ['#hangPaint', '#hangPhoto'].map((q) => { const ids = [...document.querySelectorAll(q + ' .fr')].filter((f) => { const b = f.getBoundingClientRect(); return b.bottom > r.top && b.top < r.bottom; }).map((f) => f.dataset.id); return ids.length - new Set(ids).size; }); });
+  if (dup.some((d) => d > 0)) bad('c4: duplicate sitters visible ' + JSON.stringify(dup));
   if (!FULL) return;
-  await safeBottom(page, '#shutter', 'c4 wall');
-  await tapEl(page, '#shutter');
-  await page.waitForFunction(() => window.__c4.mode === 'photo', null, { timeout: 3000 }).catch(() => bad('TOUCH FAIL: c4 shutter did not flip'));
-  // 단추에서 퍼지는 물결 한가운데 — 현상 애니메이션을 셔터 뒤 300ms 자리에 세워 찍고 다시 흘린다(헤드리스 캡처가 느려 물결을 놓치므로)
-  const frozen = await page.evaluate(() => { const as = document.getAnimations().filter((a) => a.animationName && !/leafD|flash/.test(a.animationName)); as.forEach((a) => { a.pause(); a.currentTime = 300; }); return as.length; });
-  if (!RM && !frozen) bad('c4: no develop animations after shutter');
-  await shot(page, 'c4-wall-2');
-  await page.evaluate(() => document.getAnimations().forEach((a) => { if (a.animationName && a.playState === 'paused') a.play(); }));
-  await page.locator('#toChoose:not([hidden])').waitFor({ state: 'visible', timeout: 5000 }).catch(() => bad('c4: 당신이라면? did not appear'));
-  await wait(page, 400); await shot(page, 'c4-wall-3');
-  // 액자 하나 → 크게 · 분할 끌기 → 바깥 탭으로 닫기
-  const fc = await page.evaluate(() => { const r = [...document.querySelectorAll('.row:first-child .fr')].map((f) => f.getBoundingClientRect()).filter((b) => b.left > 10 && b.right < innerWidth - 10)[0]; return r && { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
-  if (!fc) bad('c4: no fully visible frame in row 1'); else await tap(page, fc.x, fc.y);
-  await page.waitForFunction(() => window.__c4.peek, null, { timeout: 3000 }).catch(() => bad('TOUCH FAIL: c4 frame tap did not open'));
-  if (await page.evaluate(() => window.__c4.flowing)) bad('c4: flow did not pause while a frame is open');
-  const fb = await page.locator('#pkFace').boundingBox();
-  await drag(page, { x: fb.x + fb.width / 2, y: fb.y + fb.height / 2 }, { x: fb.x + fb.width * 0.25, y: fb.y + fb.height / 2 });
-  const s = await page.evaluate(() => parseFloat(document.querySelector('#pkFace').style.getPropertyValue('--s')));
-  if (!(s < 35)) bad('TOUCH FAIL: c4 split drag ' + s);
-  await wait(page, 200); await shot(page, 'c4-peek');
-  await tap(page, VW / 2, VH - 20);
-  await page.waitForFunction(() => !window.__c4.peek, null, { timeout: 3000 }).catch(() => bad('TOUCH FAIL: c4 peek did not close'));
-  await press(page, '#toChoose', '#choose:not([hidden])', 'c4 당신이라면?');
-  await wait(page, 700); await shot(page, 'c4-choose'); await overflowCheck(page, 'c4-choose');
-  const hb = await page.locator('.half[data-k="photo"]').boundingBox();
-  await tap(page, hb.x + hb.width / 2, hb.y + hb.height * 0.55);
+  await page.waitForFunction(() => window.__c4.lit >= 2, null, { timeout: 9000 }).catch(() => bad('c4: no pair lit up within ~9s'));
+  await page.waitForTimeout(RM ? 100 : 700); await shot(page, 'c4-q-2');
+  // 액자 하나 → 나란히 크게 → 두 손가락 확대 → 닫기
+  const fc = await page.evaluate(() => { const r = document.querySelector('#halves').getBoundingClientRect(); const f = [...document.querySelectorAll('#hangPhoto .fr')].map((e) => e.getBoundingClientRect()).find((b) => b.top > r.top + 20 && b.bottom < r.bottom - 120); return f && { x: f.left + f.width / 2, y: f.top + f.height / 2 }; });
+  if (!fc) bad('c4: no frame to tap'); else await tap(page, fc.x, fc.y);
+  await page.waitForFunction(() => window.__c4.sheet, null, { timeout: 3000 }).catch(() => bad('TOUCH FAIL: c4 frame tap did not open the pair'));
+  if (await page.evaluate(() => window.__c4.flowing)) bad('c4: walls kept drifting under the sheet');
+  await wait(page, 600);
+  const zb = await page.locator('#psZoom').boundingBox();
+  if (zb) {
+    const cx = zb.x + zb.width / 2, cy = zb.y + zb.height / 2;
+    await touch(page, 'touchStart', [{ x: cx - 20, y: cy, id: 1 }, { x: cx + 20, y: cy, id: 2 }]);
+    for (let i = 1; i <= 10; i++) { await touch(page, 'touchMove', [{ x: cx - 20 - 6 * i, y: cy, id: 1 }, { x: cx + 20 + 6 * i, y: cy, id: 2 }]); await page.waitForTimeout(25); }
+    await touch(page, 'touchEnd', []);
+    const z = await page.evaluate(() => window.__c4.zoom); if (!(z > 1.5)) bad('TOUCH FAIL: c4 pinch zoom ' + z);
+  }
+  await shot(page, 'c4-pair'); await overflowCheck(page, 'c4-pair');
+  await tapEl(page, '#psClose');
+  await page.waitForFunction(() => !window.__c4.sheet, null, { timeout: 3000 }).catch(() => bad('TOUCH FAIL: c4 sheet did not close'));
+  await wait(page, 500);
+  await safeBottom(page, '.pick[data-k="photo"]', 'c4 pick');
+  await tapEl(page, '.pick[data-k="photo"]');
   await page.waitForFunction(() => window.__c4.stance === 'photo', null, { timeout: 3000 }).catch(() => bad('TOUCH FAIL: c4 photo half'));
   await page.locator('#reveal.on').waitFor({ state: 'visible', timeout: 4000 }).catch(() => bad('c4: reveal did not slide up'));
-  await wait(page, 2400); await shot(page, 'c4-reveal');
+  await wait(page, 2400); await shot(page, 'c4-q-3'); await overflowCheck(page, 'c4-q-3');
   if (!(await page.evaluate(() => window.__c4.crowd && !window.__c4.crowd.busy))) bad('c4: crowd still moving');
   await press(page, '#saveStance', '#mineCard:not([hidden])', 'c4 save');
-  await page.waitForFunction(() => window.__c4.card, null, { timeout: 5000 }).catch(() => bad('c4: card not made'));
+  await page.waitForFunction(() => window.__c4.card, null, { timeout: 8000 }).catch(() => bad('c4: card not made'));
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('m100_choice') || '{}').c4);
   if (!saved || saved.stance !== 'photo') bad('c4: stance not saved ' + JSON.stringify(saved));
   await page.evaluate(() => { const r = document.querySelector('#reveal'); r.scrollTop = r.scrollHeight; }); await wait(page, 300);
   await shot(page, 'c4-saved');
   // 내 초상(데모 이미지)
   await press(page, '.tab[data-tab="me"]', '#me:not([hidden])', 'c4 tab me');
-  await wait(page, 500); await shot(page, 'c4-me-1'); await overflowCheck(page, 'c4-me-1');
   await press(page, '#camDemo', '#meShoot:not([hidden])', 'c4 demo');
   await press(page, '#shoot', '#count:not([hidden])', 'c4 shoot', 3000);
   await page.waitForFunction(() => !document.querySelector('#meDone').hidden, null, { timeout: 30000 }).catch(() => bad('c4: develop did not finish'));
-  await wait(page, 500); await shot(page, 'c4-me-3');
+  await wait(page, 400); await shot(page, 'c4-me-3');
 }
 
 // ── C5 살아 있는 연작: 벽 → 모티프 열기(지금 시간의 때) → 해 끌기(모핑 중간) → 멈춤 → 다섯 방식 중간 캡처 → 남기기(한 장의 하루) → 벽으로(문장) → 나머지 모티프마다 중간 한 장

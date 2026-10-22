@@ -1,0 +1,1295 @@
+{
+ "_note": "C4 인물 — 같은 사람의 그림(퍼블릭 도메인)과 사진(퍼블릭 도메인). page = 위키미디어 공용 파일 페이지(라이선스 확인), src = 원본(@dl/ 는 공용에서 받은 원본 폴더 — img/c4p/build.py --dl 로 지정), crop = 눈 가운데(정규화) · 눈→입 거리(높이 비) → 4:5 얼굴·어깨 틀. 연도는 소장처·공용 기록을 따르고 기록이 없으면 \"연도 미상\"",
+ "people": [
+  {
+   "id": "liszt",
+   "name": "프란츠 리스트",
+   "paint": {
+    "by": "앙리 레만",
+    "year": "1839",
+    "where": "카르나발레 미술관",
+    "license": "Paris Musées CC0",
+    "page": null,
+    "src": "img/c4f/src/liszt-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5397,
+      0.1802
+     ],
+     "em": 0.0662
+    },
+    "cropPx": [
+     284,
+     0,
+     752,
+     585
+    ],
+    "cropSrcPx": 468
+   },
+   "photo": {
+    "by": "헤르만 비오브",
+    "year": "1843",
+    "where": "다게레오타입 · 원본 소장처 미확인",
+    "license": "Commons PD",
+    "page": null,
+    "src": "../works/c4c-liszt-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5573,
+      0.1836
+     ],
+     "em": 0.0723
+    },
+    "cropPx": [
+     203,
+     0,
+     526,
+     405
+    ],
+    "cropSrcPx": 323
+   }
+  },
+  {
+   "id": "courbet",
+   "name": "귀스타브 쿠르베",
+   "paint": {
+    "by": "자화상 〈파이프를 문 남자〉",
+    "year": "1848~49",
+    "where": "파브르 미술관",
+    "license": "Commons PD-Art",
+    "page": null,
+    "src": "img/c4f/src/courbet-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5422,
+      0.353
+     ],
+     "em": 0.1552
+    },
+    "cropPx": [
+     25,
+     0,
+     960,
+     1169
+    ],
+    "cropSrcPx": 935
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1850년경",
+    "where": "다게레오타입 · 출처 약함",
+    "license": "Commons PD",
+    "page": null,
+    "src": "img/c4f/src/courbet-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4218,
+      0.2364
+     ],
+     "em": 0.0686
+    },
+    "cropPx": [
+     167,
+     53,
+     628,
+     629
+    ],
+    "cropSrcPx": 461
+   }
+  },
+  {
+   "id": "degas",
+   "name": "에드가 드가",
+   "paint": {
+    "by": "자화상",
+    "year": "1855",
+    "where": "오르세 미술관",
+    "license": "Commons PD-Art",
+    "page": null,
+    "src": "../works/c4c-degas-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5017,
+      0.2084
+     ],
+     "em": 0.0839
+    },
+    "cropPx": [
+     94,
+     0,
+     364,
+     337
+    ],
+    "cropSrcPx": 270
+   },
+   "photo": {
+    "by": "에티엔 카르자",
+    "year": "1860년경",
+    "where": "BnF(마네의 사진첩)",
+    "license": "Commons PD",
+    "page": null,
+    "src": "img/c4f/src/degas-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5176,
+      0.2256
+     ],
+     "em": 0.0247
+    },
+    "cropPx": [
+     392,
+     238,
+     602,
+     501
+    ],
+    "cropSrcPx": 210
+   }
+  },
+  {
+   "id": "zola",
+   "name": "에밀 졸라",
+   "paint": {
+    "by": "에두아르 마네",
+    "year": "1868",
+    "where": "오르세 미술관",
+    "license": "Commons PD-Art",
+    "page": null,
+    "src": "img/c4f/src/zola-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4262,
+      0.2955
+     ],
+     "em": 0.0424
+    },
+    "cropPx": [
+     259,
+     223,
+     559,
+     598
+    ],
+    "cropSrcPx": 300
+   },
+   "photo": {
+    "by": "에티엔 카르자",
+    "year": "1865년경",
+    "where": "샌디에이고 사진미술관",
+    "license": "Commons PD",
+    "page": null,
+    "src": "img/c4f/src/zola-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4629,
+      0.2977
+     ],
+     "em": 0.115
+    },
+    "cropPx": [
+     56,
+     0,
+     832,
+     970
+    ],
+    "cropSrcPx": 776
+   }
+  },
+  {
+   "id": "manet",
+   "name": "에두아르 마네",
+   "paint": {
+    "by": "앙리 팡탱라투르",
+    "year": "1867",
+    "where": "시카고 미술관",
+    "license": "CC0",
+    "page": null,
+    "src": "../works/c4-manet-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4607,
+      0.22
+     ],
+     "em": 0.0525
+    },
+    "cropPx": [
+     127,
+     47,
+     315,
+     282
+    ],
+    "cropSrcPx": 188
+   },
+   "photo": {
+    "by": "나다르(추정)",
+    "year": "1867~71년경",
+    "where": "레이크스미술관",
+    "license": "PDM",
+    "page": null,
+    "src": "../works/c4-manet-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4784,
+      0.2993
+     ],
+     "em": 0.088
+    },
+    "cropPx": [
+     50,
+     31,
+     336,
+     388
+    ],
+    "cropSrcPx": 286
+   }
+  },
+  {
+   "id": "monet",
+   "name": "클로드 모네",
+   "paint": {
+    "by": "카롤뤼스뒤랑",
+    "year": "1867",
+    "where": "마르모탕 모네 미술관",
+    "license": "Commons PD-Art",
+    "page": null,
+    "src": "img/c4f/src/monet-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4329,
+      0.3674
+     ],
+     "em": 0.162
+    },
+    "cropPx": [
+     0,
+     0,
+     819,
+     1024
+    ],
+    "cropSrcPx": 819
+   },
+   "photo": {
+    "by": "A. 그레이너",
+    "year": "1871",
+    "where": "원본 소장처 미확인 · 출처 vangoghletters.org",
+    "license": "Commons PD",
+    "page": null,
+    "src": "../works/c4c-monet-photo.jpg",
+    "crop": {
+     "eye": [
+      0.387,
+      0.2454
+     ],
+     "em": 0.1257
+    },
+    "cropPx": [
+     0,
+     0,
+     494,
+     618
+    ],
+    "cropSrcPx": 494
+   }
+  },
+  {
+   "id": "morisot",
+   "name": "베르트 모리조",
+   "paint": {
+    "by": "에두아르 마네",
+    "year": "1872",
+    "where": "오르세 미술관",
+    "license": "Commons PD-Art",
+    "page": null,
+    "src": "img/c4f/src/morisot-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4181,
+      0.3793
+     ],
+     "em": 0.1008
+    },
+    "cropPx": [
+     34,
+     126,
+     769,
+     1046
+    ],
+    "cropSrcPx": 735
+   },
+   "photo": {
+    "by": "사진가 미상",
+    "year": "연도 미상",
+    "where": "출처 ibiblio · 작자·연도 미확인",
+    "license": "Commons PD",
+    "page": null,
+    "src": "img/c4f/src/morisot-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5583,
+      0.2319
+     ],
+     "em": 0.0371
+    },
+    "cropPx": [
+     217,
+     121,
+     413,
+     365
+    ],
+    "cropSrcPx": 196
+   }
+  },
+  {
+   "id": "renoir",
+   "name": "오귀스트 르누아르",
+   "paint": {
+    "by": "자화상",
+    "year": "1875년경",
+    "where": "클라크 미술관 1955.584",
+    "license": "Commons PD-Art",
+    "page": null,
+    "src": "img/c4f/src/renoir-paint.jpg",
+    "crop": {
+     "eye": [
+      0.511,
+      0.3857
+     ],
+     "em": 0.1415
+    },
+    "cropPx": [
+     0,
+     3,
+     960,
+     1203
+    ],
+    "cropSrcPx": 960
+   },
+   "photo": {
+    "by": "사진가 미상",
+    "year": "1875년경",
+    "where": "오르세 미술관(RMN)",
+    "license": "Commons PD",
+    "page": null,
+    "src": "../works/c4c-renoir-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4739,
+      0.3727
+     ],
+     "em": 0.1153
+    },
+    "cropPx": [
+     39,
+     32,
+     459,
+     557
+    ],
+    "cropSrcPx": 420
+   }
+  },
+  {
+   "id": "hugo",
+   "name": "빅토르 위고",
+   "paint": {
+    "by": "레옹 보나 구도 판본",
+    "year": "1879",
+    "where": "빅토르 위고의 집",
+    "license": "Paris Musées CC0",
+    "page": null,
+    "src": "../works/c4-hugo-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5106,
+      0.2924
+     ],
+     "em": 0.053
+    },
+    "cropPx": [
+     129,
+     72,
+     277,
+     258
+    ],
+    "cropSrcPx": 148
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1878",
+    "where": "빅토르 위고의 집",
+    "license": "Paris Musées CC0",
+    "page": null,
+    "src": "../works/c4-hugo-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4296,
+      0.3016
+     ],
+     "em": 0.0721
+    },
+    "cropPx": [
+     71,
+     50,
+     273,
+     302
+    ],
+    "cropSrcPx": 202
+   }
+  },
+  {
+   "id": "pissarro",
+   "name": "카미유 피사로",
+   "paint": {
+    "by": "자화상",
+    "year": "1903",
+    "where": "테이트",
+    "license": "Commons PD-Art",
+    "page": null,
+    "src": "img/c4f/src/pissarro-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4111,
+      0.3365
+     ],
+     "em": 0.1228
+    },
+    "cropPx": [
+     0,
+     0,
+     834,
+     1043
+    ],
+    "cropSrcPx": 834
+   },
+   "photo": {
+    "by": "사진가 미상",
+    "year": "1900년경",
+    "where": "원본 미확인(출처 블로그)",
+    "license": "Commons CC0 표기",
+    "page": null,
+    "src": "../works/c4c-pissarro-photo.jpg",
+    "crop": {
+     "eye": [
+      0.544,
+      0.3351
+     ],
+     "em": 0.1619
+    },
+    "cropPx": [
+     101,
+     0,
+     388,
+     359
+    ],
+    "cropSrcPx": 287
+   }
+  },
+  {
+   "id": "delacroix",
+   "name": "외젠 들라크루아",
+   "paint": {
+    "by": "자화상",
+    "year": "1837",
+    "where": "루브르 박물관 RF 25",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Autoportrait_-_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_RF_25.jpg",
+    "file": "Autoportrait - Eugène Delacroix - Musée du Louvre Peintures RF 25.jpg",
+    "commonsDate": "1837",
+    "commonsArtist": "Eugène Delacroix",
+    "src": "@dl/delacroix-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4992,
+      0.3427
+     ],
+     "em": 0.0946
+    },
+    "cropPx": [
+     225,
+     121,
+     1052,
+     1155
+    ],
+    "cropSrcPx": 827
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1858",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:F%C3%A9lix_Nadar_1820-1910_portraits_Eug%C3%A8ne_Delacroix.jpg",
+    "file": "Félix Nadar 1820-1910 portraits Eugène Delacroix.jpg",
+    "commonsDate": "1858 date QS:P571,+1858-00-00T00:00:00Z/9",
+    "commonsArtist": "Nadar",
+    "src": "@dl/delacroix-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4569,
+      0.2332
+     ],
+     "em": 0.0634
+    },
+    "cropPx": [
+     326,
+     117,
+     1074,
+     1052
+    ],
+    "cropSrcPx": 748
+   }
+  },
+  {
+   "id": "ingres",
+   "name": "장오귀스트도미니크 앵그르",
+   "paint": {
+    "by": "자화상",
+    "year": "1858",
+    "where": "피렌체",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Ingres-autoportrait-1858_Florence.jpg",
+    "file": "Ingres-autoportrait-1858 Florence.jpg",
+    "commonsDate": "1858",
+    "commonsArtist": "Jean-Auguste-Dominique Ingres",
+    "src": "@dl/ingres-paint.jpg",
+    "crop": {
+     "eye": [
+      0.497,
+      0.268
+     ],
+     "em": 0.0855
+    },
+    "cropPx": [
+     168,
+     29,
+     657,
+     642
+    ],
+    "cropSrcPx": 489
+   },
+   "photo": {
+    "by": "에티엔 카르자",
+    "year": "1867년 이전",
+    "where": "파리 낭만주의 박물관 · Paris Musées",
+    "license": "Commons CC0",
+    "page": "https://commons.wikimedia.org/wiki/File:Ingres,_CSR_PH_32819.jpg",
+    "file": "Ingres, CSR PH 32819.jpg",
+    "commonsDate": "Unknown date",
+    "commonsArtist": "Carjat, Etienne (Fareins, 01–04–1828 - Paris, 09–03–1906)",
+    "src": "@dl/ingres-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5049,
+      0.1794
+     ],
+     "em": 0.0389
+    },
+    "cropPx": [
+     920,
+     335,
+     1956,
+     1629
+    ],
+    "cropSrcPx": 1036
+   }
+  },
+  {
+   "id": "corot",
+   "name": "카미유 코로",
+   "paint": {
+    "by": "자화상",
+    "year": "1835",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Jean-Baptiste_Camille_Corot_-_autoportrait.jpg",
+    "file": "Jean-Baptiste Camille Corot - autoportrait.jpg",
+    "commonsDate": "1835",
+    "commonsArtist": "Jean-Baptiste Camille Corot",
+    "src": "@dl/corot-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5613,
+      0.2629
+     ],
+     "em": 0.0921
+    },
+    "cropPx": [
+     266,
+     9,
+     1171,
+     1141
+    ],
+    "cropSrcPx": 905
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "연도 미상",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:F%C3%A9lix_Nadar_1820-1910_portraits_Camille_Corot.jpg",
+    "file": "Félix Nadar 1820-1910 portraits Camille Corot.jpg",
+    "commonsDate": "",
+    "commonsArtist": "Nadar",
+    "src": "@dl/corot-photo.jpg",
+    "crop": {
+     "eye": [
+      0.335,
+      0.2765
+     ],
+     "em": 0.0637
+    },
+    "cropPx": [
+     141,
+     205,
+     884,
+     1134
+    ],
+    "cropSrcPx": 743
+   }
+  },
+  {
+   "id": "millet",
+   "name": "장프랑수아 밀레",
+   "paint": {
+    "by": "자화상",
+    "year": "1840~41년경",
+    "where": "보스턴 미술관 93.154",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Jean-Fran%C3%A7ois_Millet_-_Self-Portrait_-_93.154_-_Museum_of_Fine_Arts.jpg",
+    "file": "Jean-François Millet - Self-Portrait - 93.154 - Museum of Fine Arts.jpg",
+    "commonsDate": "between circa 1840 and circa 1841 date QS:P,+1840-00-00T00:00:00Z/8,P1319,+1840-",
+    "commonsArtist": "Jean-François Millet",
+    "src": "@dl/millet-paint.jpg",
+    "crop": {
+     "eye": [
+      0.6009,
+      0.3344
+     ],
+     "em": 0.0847
+    },
+    "cropPx": [
+     213,
+     100,
+     698,
+     707
+    ],
+    "cropSrcPx": 485
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1856~58",
+    "where": "메트로폴리탄 미술관 소장본",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Jean-Fran%C3%A7ois_Millet_by_Nadar,_Metropolitan_Museum_copy_-_Original.jpg",
+    "file": "Jean-François Millet by Nadar, Metropolitan Museum copy - Original.jpg",
+    "commonsDate": "1856–58",
+    "commonsArtist": "Nadar",
+    "src": "@dl/millet-photo.jpg",
+    "crop": {
+     "eye": [
+      0.523,
+      0.2839
+     ],
+     "em": 0.0377
+    },
+    "cropPx": [
+     1010,
+     652,
+     1782,
+     1617
+    ],
+    "cropSrcPx": 772
+   }
+  },
+  {
+   "id": "sand",
+   "name": "조르주 상드",
+   "paint": {
+    "by": "외젠 들라크루아",
+    "year": "1838",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Eug%C3%A8ne_Delacroix_-_George_Sand_-_WGA06193.jpg",
+    "file": "Eugène Delacroix - George Sand - WGA06193.jpg",
+    "commonsDate": "1838 date QS:P571,+1838-00-00T00:00:00Z/9",
+    "commonsArtist": "Eugène Delacroix",
+    "src": "@dl/sand-paint.jpg",
+    "crop": {
+     "eye": [
+      0.6,
+      0.21
+     ],
+     "em": 0.05
+    },
+    "cropPx": [
+     287,
+     81,
+     613,
+     489
+    ],
+    "cropSrcPx": 326
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1864",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:F%C3%A9lix_Nadar_-_George_Sand_-_Google_Art_Project.jpg",
+    "file": "Félix Nadar - George Sand - Google Art Project.jpg",
+    "commonsDate": "1864 date QS:P571,+1864-00-00T00:00:00Z/9",
+    "commonsArtist": "Nadar",
+    "src": "@dl/sand-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5444,
+      0.233
+     ],
+     "em": 0.0622
+    },
+    "cropPx": [
+     889,
+     188,
+     2004,
+     1583
+    ],
+    "cropSrcPx": 1115
+   }
+  },
+  {
+   "id": "gautier",
+   "name": "테오필 고티에",
+   "paint": {
+    "by": "오귀스트 드 샤티용",
+    "year": "연도 미상",
+    "where": "카르나발레 미술관 · Paris Musées",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Auguste_de_Chatillon_-_Portrait_de_Th%C3%A9ophile_Gautier.jpg",
+    "file": "Auguste de Chatillon - Portrait de Théophile Gautier.jpg",
+    "commonsDate": "",
+    "commonsArtist": "",
+    "src": "@dl/gautier-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5137,
+      0.207
+     ],
+     "em": 0.0474
+    },
+    "cropPx": [
+     965,
+     371,
+     2293,
+     2030
+    ],
+    "cropSrcPx": 1328
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1856년경",
+    "where": "메트로폴리탄 미술관",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Th%C3%A9ophile_Gautier_by_Nadar_c1856-1.jpg",
+    "file": "Théophile Gautier by Nadar c1856-1.jpg",
+    "commonsDate": "circa 1856 date QS:P571,+1856-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Nadar",
+    "src": "@dl/gautier-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5942,
+      0.2378
+     ],
+     "em": 0.0545
+    },
+    "cropPx": [
+     476,
+     125,
+     924,
+     685
+    ],
+    "cropSrcPx": 448
+   }
+  },
+  {
+   "id": "rossini",
+   "name": "조아키노 로시니",
+   "paint": {
+    "by": "오르탕스 오드부르레스코",
+    "year": "1828",
+    "where": "카사 로시니(루고)",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Gioachino_Rossini,_1828,_by_Hortense_Haudebourt-Lescot.jpg",
+    "file": "Gioachino Rossini, 1828, by Hortense Haudebourt-Lescot.jpg",
+    "commonsDate": "1828 date QS:P571,+1828-00-00T00:00:00Z/9",
+    "commonsArtist": "Hortense Haudebourt-Lescot",
+    "src": "@dl/rossini-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5,
+      0.22
+     ],
+     "em": 0.048
+    },
+    "cropPx": [
+     539,
+     175,
+     1089,
+     863
+    ],
+    "cropSrcPx": 550
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1855~57",
+    "where": "메트로폴리탄 미술관 DT7047",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Gioachino_Rossini_by_Nadar,_MMA,_DT7047.jpg",
+    "file": "Gioachino Rossini by Nadar, MMA, DT7047.jpg",
+    "commonsDate": "between 1855 and 1857 date QS:P,+1855-00-00T00:00:00Z/8,P1319,+1855-00-00T00:00:",
+    "commonsArtist": "Nadar",
+    "src": "@dl/rossini-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4979,
+      0.2692
+     ],
+     "em": 0.0606
+    },
+    "cropPx": [
+     771,
+     370,
+     2034,
+     1949
+    ],
+    "cropSrcPx": 1263
+   }
+  },
+  {
+   "id": "dore",
+   "name": "귀스타브 도레",
+   "paint": {
+    "by": "카롤뤼스뒤랑",
+    "year": "1877",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Carolus-Duran_Dor%C3%A9.jpg",
+    "file": "Carolus-Duran Doré.jpg",
+    "commonsDate": "1877 date QS:P571,+1877-00-00T00:00:00Z/9",
+    "commonsArtist": "Carolus-Duran",
+    "src": "@dl/dore-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4305,
+      0.3095
+     ],
+     "em": 0.1088
+    },
+    "cropPx": [
+     31,
+     8,
+     1071,
+     1308
+    ],
+    "cropSrcPx": 1040
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1855년경",
+    "where": "게티 미술관",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Gustave_Dor%C3%A9_by_Nadar_-_Getty_Museum.jpg",
+    "file": "Gustave Doré by Nadar - Getty Museum.jpg",
+    "commonsDate": "circa 1855 date QS:P571,+1855-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Nadar",
+    "src": "@dl/dore-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4335,
+      0.2496
+     ],
+     "em": 0.0571
+    },
+    "cropPx": [
+     776,
+     377,
+     2120,
+     2056
+    ],
+    "cropSrcPx": 1344
+   }
+  },
+  {
+   "id": "bazille",
+   "name": "프레데리크 바지유",
+   "paint": {
+    "by": "오귀스트 르누아르",
+    "year": "1867",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Pierre-Auguste_Renoir_-_Fr%C3%A9d%C3%A9ric_Bazille.jpg",
+    "file": "Pierre-Auguste Renoir - Frédéric Bazille.jpg",
+    "commonsDate": "",
+    "commonsArtist": "",
+    "src": "@dl/bazille-paint.jpg",
+    "crop": {
+     "eye": [
+      0.585,
+      0.165
+     ],
+     "em": 0.03
+    },
+    "cropPx": [
+     880,
+     223,
+     1343,
+     803
+    ],
+    "cropSrcPx": 463
+   },
+   "photo": {
+    "by": "사진가 미상",
+    "year": "1867",
+    "where": "BnF(마네의 사진첩)",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Bazille,_Fr%C3%A9d%C3%A9ric,_album_Manet,_BNF_Gallica.jpg",
+    "file": "Bazille, Frédéric, album Manet, BNF Gallica.jpg",
+    "commonsDate": "1867. 2013-06-09 for upload",
+    "commonsArtist": "Unknown Unknown . Upload, stitch and restoration by Jebulon",
+    "src": "@dl/bazille-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4815,
+      0.2746
+     ],
+     "em": 0.0577
+    },
+    "cropPx": [
+     264,
+     207,
+     855,
+     945
+    ],
+    "cropSrcPx": 591
+   }
+  },
+  {
+   "id": "caillebotte",
+   "name": "귀스타브 카유보트",
+   "paint": {
+    "by": "자화상",
+    "year": "1892",
+    "where": "오르세 미술관",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Caillebotteautoportrait.jpg",
+    "file": "Caillebotteautoportrait.jpg",
+    "commonsDate": "1892",
+    "commonsArtist": "Gustave Caillebotte",
+    "src": "@dl/caillebotte-paint.jpg",
+    "crop": {
+     "eye": [
+      0.44,
+      0.33
+     ],
+     "em": 0.08
+    },
+    "cropPx": [
+     101,
+     88,
+     473,
+     553
+    ],
+    "cropSrcPx": 372
+   },
+   "photo": {
+    "by": "사진가 미상",
+    "year": "1878년경",
+    "where": "개인 소장",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Gustave_Caillebotte_photo_c1878.jpg",
+    "file": "Gustave Caillebotte photo c1878.jpg",
+    "commonsDate": "circa 1878 date QS:P,+1878-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Anonymous photographer",
+    "src": "@dl/caillebotte-photo.jpg",
+    "crop": {
+     "eye": [
+      0.6395,
+      0.3712
+     ],
+     "em": 0.1711
+    },
+    "cropPx": [
+     90,
+     0,
+     1000,
+     1138
+    ],
+    "cropSrcPx": 910
+   }
+  },
+  {
+   "id": "michelet",
+   "name": "쥘 미슐레",
+   "paint": {
+    "by": "토마 쿠튀르",
+    "year": "1865년경",
+    "where": "카르나발레 미술관 · Paris Musées",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Jules_Michelet_par_Thomas_Couture.jpg",
+    "file": "Jules Michelet par Thomas Couture.jpg",
+    "commonsDate": "circa 1865 date QS:P571,+1865-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Thomas Couture",
+    "src": "@dl/michelet-paint.jpg",
+    "crop": {
+     "eye": [
+      0.4501,
+      0.2425
+     ],
+     "em": 0.0363
+    },
+    "cropPx": [
+     1165,
+     754,
+     2252,
+     2113
+    ],
+    "cropSrcPx": 1087
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1855~56년경",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:F%C3%A9lix_Nadar_1820-1910_portraits_Jules_Michelet.jpg",
+    "file": "Félix Nadar 1820-1910 portraits Jules Michelet.jpg",
+    "commonsDate": "circa 1855-1856",
+    "commonsArtist": "Nadar",
+    "src": "@dl/michelet-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5773,
+      0.291
+     ],
+     "em": 0.0663
+    },
+    "cropPx": [
+     437,
+     172,
+     1041,
+     928
+    ],
+    "cropSrcPx": 604
+   }
+  },
+  {
+   "id": "baudelaire",
+   "name": "샤를 보들레르",
+   "paint": {
+    "by": "에밀 드루아",
+    "year": "1844",
+    "where": "베르사유 궁",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:%C3%89mile_Deroy_-_Charles_Baudelaire_(1844).jpg",
+    "file": "Émile Deroy - Charles Baudelaire (1844).jpg",
+    "commonsDate": "1844 date QS:P571,+1844-00-00T00:00:00Z/9",
+    "commonsArtist": "Émile Deroy",
+    "src": "@dl/baudelaire-paint.jpg",
+    "crop": {
+     "eye": [
+      0.597,
+      0.2952
+     ],
+     "em": 0.0943
+    },
+    "cropPx": [
+     273,
+     39,
+     939,
+     871
+    ],
+    "cropSrcPx": 666
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1855년경",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:F%C3%A9lix_Nadar_1820-1910_portraits_Charles_Baudelaire_2.jpg",
+    "file": "Félix Nadar 1820-1910 portraits Charles Baudelaire 2.jpg",
+    "commonsDate": "circa 1855 date QS:P,+1855-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Nadar",
+    "src": "@dl/baudelaire-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4832,
+      0.1854
+     ],
+     "em": 0.0711
+    },
+    "cropPx": [
+     328,
+     0,
+     1170,
+     1053
+    ],
+    "cropSrcPx": 842
+   }
+  },
+  {
+   "id": "bernhardt",
+   "name": "사라 베르나르",
+   "paint": {
+    "by": "쥘 바스티앵르파주",
+    "year": "1879",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:%C2%A7%C2%A7Bernhardt,_Sarah_(1844-1923)_par_Jules_Bastien-Lepage_(1848-1884)_-_1879.jpg",
+    "file": "§§Bernhardt, Sarah (1844-1923) par Jules Bastien-Lepage (1848-1884) - 1879.jpg",
+    "commonsDate": "1879 date QS:P571,+1879-00-00T00:00:00Z/9",
+    "commonsArtist": "Jules Bastien-Lepage",
+    "src": "@dl/bernhardt-paint.jpg",
+    "crop": {
+     "eye": [
+      0.47,
+      0.25
+     ],
+     "em": 0.05
+    },
+    "cropPx": [
+     211,
+     110,
+     491,
+     460
+    ],
+    "cropSrcPx": 280
+   },
+   "photo": {
+    "by": "나다르",
+    "year": "1864년경",
+    "where": "게티 미술관",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Sarah_Bernhardt,_par_Nadar,_1864.jpg",
+    "file": "Sarah Bernhardt, par Nadar, 1864.jpg",
+    "commonsDate": "circa 1864 date QS:P571,+1864-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Nadar",
+    "src": "@dl/bernhardt-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4348,
+      0.2966
+     ],
+     "em": 0.058
+    },
+    "cropPx": [
+     281,
+     228,
+     832,
+     916
+    ],
+    "cropSrcPx": 551
+   }
+  },
+  {
+   "id": "cezanne",
+   "name": "폴 세잔",
+   "paint": {
+    "by": "자화상",
+    "year": "1875년경",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Portrait_de_l%27artiste,_par_Paul_C%C3%A9zanne,_FWN_434.jpg",
+    "file": "Portrait de l'artiste, par Paul Cézanne, FWN 434.jpg",
+    "commonsDate": "circa 1875 date QS:P571,+1875-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Paul Cézanne",
+    "src": "@dl/cezanne-paint.jpg",
+    "crop": {
+     "eye": [
+      0.52,
+      0.24
+     ],
+     "em": 0.07
+    },
+    "cropPx": [
+     344,
+     72,
+     987,
+     876
+    ],
+    "cropSrcPx": 643
+   },
+   "photo": {
+    "by": "사진가 미상",
+    "year": "1861년경",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Paul_cezanne_1861.jpg",
+    "file": "Paul cezanne 1861.jpg",
+    "commonsDate": "circa 1861 date QS:P571,+1861-00-00T00:00:00Z/9,P1480,Q5727902",
+    "commonsArtist": "Unknown author Unknown author",
+    "src": "@dl/cezanne-photo.jpg",
+    "crop": {
+     "eye": [
+      0.4405,
+      0.3431
+     ],
+     "em": 0.1143
+    },
+    "cropPx": [
+     0,
+     18,
+     486,
+     625
+    ],
+    "cropSrcPx": 486
+   }
+  },
+  {
+   "id": "berlioz",
+   "name": "엑토르 베를리오즈",
+   "paint": {
+    "by": "귀스타브 쿠르베",
+    "year": "1850",
+    "where": "오르세 미술관",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Gustave_Courbet_-_Portrait_of_Hector_Berlioz_-_WGA05492.jpg",
+    "file": "Gustave Courbet - Portrait of Hector Berlioz - WGA05492.jpg",
+    "commonsDate": "1850 date QS:P571,+1850-00-00T00:00:00Z/9",
+    "commonsArtist": "Gustave Courbet",
+    "src": "@dl/berlioz-paint.jpg",
+    "crop": {
+     "eye": [
+      0.5705,
+      0.3515
+     ],
+     "em": 0.1201
+    },
+    "cropPx": [
+     154,
+     19,
+     987,
+     1060
+    ],
+    "cropSrcPx": 833
+   },
+   "photo": {
+    "by": "피에르 프티",
+    "year": "1863",
+    "where": "",
+    "license": "Commons Public domain",
+    "page": "https://commons.wikimedia.org/wiki/File:Pierre_Petit_Hector_Berlioz_1863.jpg",
+    "file": "Pierre Petit Hector Berlioz 1863.jpg",
+    "commonsDate": "1863",
+    "commonsArtist": "Pierre Petit",
+    "src": "@dl/berlioz-photo.jpg",
+    "crop": {
+     "eye": [
+      0.5719,
+      0.2025
+     ],
+     "em": 0.0741
+    },
+    "cropPx": [
+     213,
+     0,
+     679,
+     583
+    ],
+    "cropSrcPx": 466
+   }
+  }
+ ]
+}
