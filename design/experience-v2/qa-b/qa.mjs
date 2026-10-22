@@ -124,7 +124,7 @@ async function c5(page) {
   await page.evaluate(() => window.__c5.setT(1.5)); await wait(page, 400); await shot(page, 'c5-7mid');
   await press(page, '#keep', '#kept:not([hidden])', 'c5 keep'); await wait(page, 700); await shot(page, 'c5-8kept');
   await press(page, '#viewClose', '#wallLine:not([hidden])', 'c5 close'); await wait(page, 2200); await shot(page, 'c5-9closed');
-  await press(page, '#toSeries', '#wall[hidden]', 'c5 series close', 3000).catch(() => {}); await wait(page, 600);
+  await page.evaluate(() => window.scrollTo(0, 0)); await wait(page, 500); await tapEl(page, '#toSeries'); await wait(page, 900); if (!(await page.evaluate(() => document.querySelector('#wall').hidden))) bad('c5: series did not collapse');
   await shot(page, 'c5-10collapsed');
   await shot(page, 'c5-11full', true);
 }

@@ -58,20 +58,20 @@ for i in range(N):
     z = 1.0 + ZOOM * smooth(t)
     fr = plate.transform((W, H), Image.AFFINE, (1 / z, 0, sx - sx / z, 0, 1 / z, sy - sy / z), Image.BICUBIC)
     img = np.asarray(fr).astype(np.float32) / 255.0
-    # 새벽 색: 처음엔 어둡고 푸르게(채도 낮게), 끝엔 따뜻하고 밝게
+    # 새벽 색: 처음엔 그림과 거의 같은 색(조금 어둡고 차분하게), 끝엔 따뜻하고 밝게 — 풀릴 때 그림과 색이 어긋나 얼룩지지 않게
     lum = img @ np.array([0.299, 0.587, 0.114], np.float32)
-    sat = lerp(0.8, 1.0, e)
+    sat = lerp(0.94, 1.0, e)
     img = lum[..., None] + (img - lum[..., None]) * sat
-    gain = np.array([lerp(0.86, 1.05, e), lerp(0.92, 0.98, e), lerp(1.05, 0.95, e)], np.float32) * lerp(0.88, 1.03, e)
-    img = img * gain + np.array([0.0, 0.006, 0.03], np.float32) * (1 - e)
+    gain = np.array([lerp(0.98, 1.05, e), lerp(0.99, 0.98, e), lerp(1.00, 0.95, e)], np.float32) * lerp(0.95, 1.03, e)
+    img = img * gain
     # 해: 따뜻한 빛이 차츰 번진다 + 물 위 세로 반사
     glow = radial(sx, sy, lerp(70, 160, e), lerp(70, 160, e)) * lerp(0.05, 0.30, e) + radial(sx, sy + 0.24 * H, 34, 0.20 * H) * lerp(0.0, 0.10, e)
     img = img + glow[..., None] * np.array([1.0, 0.52, 0.18], np.float32)
     # 안개: 두 겹이 천천히 흐르고, 해가 오를수록 엷어진다
     oa, ob = int(t * 70), int(t * 150)
     fog = (fogA[:, oa:oa + W] * 0.6 + fogB[:, ob:ob + W] * 0.4) * band
-    a = np.clip(fog * lerp(0.42, 0.24, e), 0, 0.5)[..., None]
-    mist = np.array([lerp(0.66, 0.90, e), lerp(0.72, 0.80, e), lerp(0.80, 0.70, e)], np.float32)
+    a = np.clip(fog * lerp(0.30, 0.20, e), 0, 0.4)[..., None]
+    mist = np.array([lerp(0.70, 0.88, e), lerp(0.70, 0.79, e), lerp(0.70, 0.70, e)], np.float32)
     img = img * (1 - a) + mist * a
     img = img * vign[..., None]
     enc.stdin.write((np.clip(img, 0, 1) * 255 + 0.5).astype(np.uint8).tobytes())

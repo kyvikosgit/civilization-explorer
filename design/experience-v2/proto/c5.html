@@ -23,7 +23,7 @@
   <header class="role-hd rise" style="--i:0">
     <div class="eyebrow">당신은</div>
     <h1>〈인상, 해돋이〉 앞에 선<br>관람객입니다</h1>
-    <p class="sub">1872년 르아브르, 모네는 숙소 창밖의 항구를 보고 이 그림을 그렸습니다. 그림이 그날 아침의 장면으로 잠시 풀립니다.</p>
+    <p class="sub">1872년 르아브르, 모네가 묵던 호텔 창밖의 항구</p>
   </header>
 
   <!-- 무대 — 그림 비율 그대로의 한 자리. 비추기 → 그림 → 장면 → 그림이 모두 이 자리에서 일어난다 -->
@@ -34,17 +34,17 @@
       <canvas id="sunCv" aria-hidden="true"></canvas>
       <span class="sun-tmp" id="sunTmp" hidden>임시 영상</span>
       <button class="scan" id="scan" type="button" aria-label="〈인상, 해돋이〉를 비추기 (시연: 누르면 인식)">
+        <span class="scan-view" aria-hidden="true"></span>
         <span class="scan-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-        <span class="scan-txt"><b>〈인상, 해돋이〉를<br>비춰 보세요</b><small>누르면 인식한 것으로 넘어갑니다 · 시연</small></span>
+        <span class="scan-txt"><b>〈인상, 해돋이〉를 비춰 보세요</b><small>시연 · 누르면 인식</small></span>
       </button>
-      <div class="scan-pill" id="scanPill" aria-live="polite"></div>
     </div>
 
     <!-- 그림 아래 한 자리 — 장면일 때는 때와 곳, 끝나면 한 줄과 단추 -->
     <div class="sun-below">
       <div class="sun-cap" id="sunCap" aria-live="polite">
-        <b>1872년 11월 13일 오전 7시 35분경, 르아브르 <span>(추정)</span></b>
-        <small>AI로 재현한 장면</small>
+        <b>1872년 11월 13일 아침, 르아브르</b>
+        <small>날짜는 추정 · AI로 재현한 장면</small>
       </div>
       <div class="sun-end" id="sunEnd">
         <p class="sun-line">모네는 이 아침을 이렇게 남겼습니다.</p>
@@ -58,18 +58,17 @@
   </section>
 
   <!-- 연작은 뒤로 — 조용한 링크 하나. 누르면 아래에 연작 벽이 열린다(기능은 그대로) -->
-  <div class="series-link rise" style="--i:2"><button class="btn quiet" id="toSeries" type="button" aria-expanded="false" aria-controls="wall">연작 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+  <div class="series-link"><button class="btn quiet" id="toSeries" type="button" aria-expanded="false" aria-controls="wall">연작 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
 
   <!-- 연작 벽. 벽에는 그림이 따로따로 걸려 있다. 한 줄을 누르면 그 연작이 한 점이 되어 화면을 채운다 -->
   <section class="wall" id="wall" aria-label="연작 벽" hidden>
-    <p class="wall-hd">같은 자리를 다른 때에 그린 그림들 — 한 줄을 누르면 지금 시간의 한 점이 됩니다.</p>
     <div class="wall-strip" id="strip"></div>
     <!-- 출구 벽의 문장 — 방이 한 번 묻고, 답하지 않는다 -->
     <p class="wall-line" id="wallLine" hidden>왜 같은 풍경을 계속 그렸을까?</p>
     <div class="floor"></div>
   </section>
 
-  <div class="exit-link rise" style="--i:2"><a class="btn quiet" id="toExit" href="exit.html">출구에서 오늘의 관람객 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></a></div>
+  <div class="exit-link"><a class="btn quiet" id="toExit" href="exit-e.html">출구에서 오늘의 관람객 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></a></div>
 </main>
 
 <!-- 한 점이 된 연작 — 전체 화면. 열리면 해는 지금 시간에 가 있다. 해를 끌어 하루를 돌린다 -->
@@ -111,7 +110,7 @@
     <button class="keep" id="keep" type="button">이 시간을 남기기</button>
     <div class="kept" id="kept" hidden>
       <img id="keptImg" alt="" draggable="false">
-      <div class="kept-txt"><b id="keptLine"></b><small id="keptMeta"></small><a id="keptDl" download="monet-c5.jpg" href="#">한 장의 하루 내려받기</a></div>
+      <div class="kept-txt"><b id="keptLine"></b><small id="keptMeta"></small><a id="keptDl" class="kept-dl" download="monet-c5.jpg" href="#">내려받기</a></div>
     </div>
   </div>
 </div>
