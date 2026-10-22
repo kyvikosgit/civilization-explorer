@@ -17,7 +17,173 @@ const DETAIL_LAG = 400;                                 // 겹칠: 세부가 색
 const PLACE = { haystacks: '지베르니 · 1890–91', rouen: '루앙 · 1892–94', parliament: '런던 · 1900–04', waterloo: '런던 · 1900–03', seine: '지베르니 · 1897' };
 const ORDER = ['haystacks', 'rouen', 'parliament', 'waterloo', 'seine'];
 const STYLES = ['모핑', '붓자국', '빛 쓸림', '번짐', '겹칠'];
-const Q = new URLSearchParams(location.search);          // 검수용: ?now=15:40 ?style=2
+const Q = new URLSearchParams(location.search);          // 검수용: ?now=15:40 ?style=2 ?order=scene-paint
+
+// ════════ 〈인상, 해돋이〉 — 마지막 방의 한 점(본 흐름). 연작은 아래 "연작 보기" 뒤로
+//   비추기(시연: 점선 액자를 누르면 인식) → 그림이 화면 폭 가득, 그림 비율 그대로 → 1.2초 뒤 그림이 그날 아침의 장면으로 풀린다(2.5초)
+//   → 장면 약 10초(소리 없음, 조작 없음) → 끝 무렵 다시 그림으로(2.5초) → "모네는 이 아침을 이렇게 남겼습니다." · 다시 보기 · 이 그림 저장
+//   풀리는 순서: 그림의 밝은 자리(해 · 하늘 · 물 위 빛)부터, 물결처럼 가로로 긴 붓결 노이즈를 섞어 — 평평한 페이드가 아니다(WebGL, 없으면 CSS 페이드)
+//   영상은 4:3 → 그림 비율로 가운데를 잘라(높이 맞춤 · cover) 그림과 같은 자리에 겹친다
+const SUN = {
+  ORDER: Q.get('order') === 'scene-paint' ? 'scene-paint' : 'paint-scene-paint',   // 'paint-scene-paint'(기본: 그림 → 장면 → 그림) | 'scene-paint'(장면 → 그림으로 끝)
+  REVEAL_MS: 700, HOLD_MS: 1200, DISSOLVE_S: 2.5, REPLAY_IN_S: 0.9,                  // REPLAY_IN_S: 'scene-paint' 의 다시 보기에서 그림 → 장면으로 들어가는 짧은 풀림
+};
+const SCENE_VIDEO = 'video/sunrise-scene.mp4';                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
+const SCENE_READY = false;                                    // ← 실제 영상을 위 이름으로 넣으면 true 한 줄. 그 전엔 요청하지 않는다(없는 파일 404 가 콘솔에 남지 않게). 못 불러오면 임시 영상으로
+const SCENE_PLACEHOLDER = 'video/sunrise-placeholder.mp4';    // 임시 영상(video/make-placeholder.py) — 쓰는 동안 "임시 영상" 표시
+const sun = (() => {
+  const stage = document.getElementById('sunStage'), vid = document.getElementById('sunVid'), img = document.getElementById('sunImg'), cv = document.getElementById('sunCv');
+  const pill = document.getElementById('scanPill'), cap = document.getElementById('sunCap'), end = document.getElementById('sunEnd'), tmp = document.getElementById('sunTmp');
+  const ez = (x) => { x = Math.max(0, Math.min(1, x)); return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; };   // ease-in-out
+  let state = 'scan', mix = 0, placeholder = false, vidOk = true, replayed = false, holdTimer = 0, raf = 0, g = null;
+
+  // 영상: 실제 파일 → 없으면 임시 영상 → 그것도 없으면 장면 없이 그림만
+  vid.muted = true; vid.playsInline = true; vid.loop = false;
+  vid.addEventListener('error', () => {
+    if (!placeholder) { placeholder = true; tmp.hidden = false; vid.src = SCENE_PLACEHOLDER; vid.load(); }
+    else { vidOk = false; if (state === 'play') finish(); }
+  });
+  if (SCENE_READY) vid.src = SCENE_VIDEO; else { placeholder = true; tmp.hidden = false; vid.src = SCENE_PLACEHOLDER; }
+
+  // 그림 비율 그대로 — 스캔본의 실제 비율(63×48cm 표기, 스캔 2048×1589)로 자리를 잡는다. 자르지 않는다
+  const imgReady = img.decode ? img.decode().catch(() => {}) : Promise.resolve();
+  imgReady.then(() => { if (img.naturalWidth) stage.style.setProperty('--ar', `${img.naturalWidth} / ${img.naturalHeight}`); });
+
+  // ── WebGL: 그림과 장면을 한 자리에서 섞는다
+  function initGL() {
+    const c = cv.getContext('webgl', { premultipliedAlpha: false, alpha: false, antialias: false, preserveDrawingBuffer: true });
+    if (!c) return null;
+    const VS = 'attribute vec2 p; varying vec2 v; void main(){ v = vec2(p.x * .5 + .5, .5 - p.y * .5); gl_Position = vec4(p, 0., 1.); }';
+    const FS = `precision mediump float; varying vec2 v; uniform sampler2D uP, uV, uK; uniform float uMix, uSoft; uniform vec2 uVS;
+      void main(){
+        vec3 p = texture2D(uP, v).rgb;
+        vec3 s = texture2D(uV, (v - .5) * uVS + .5).rgb;               // 영상: 가운데를 잘라 그림 자리에
+        float k = texture2D(uK, v).r;                                 // 풀리는 순서(0 = 먼저)
+        float t = -uSoft + uMix * (1. + 2. * uSoft);
+        float e = smoothstep(t - uSoft, t + uSoft, k);                // 1 = 아직 그림
+        vec3 col = mix(s, p, e);
+        float front = 1. - abs(2. * e - 1.);
+        col += front * front * .045 * vec3(1., .82, .6);              // 풀리는 앞머리에 아주 옅은 아침 빛
+        gl_FragColor = vec4(col, 1.);
+      }`;
+    try {
+      const sh = (type, src) => { const s = c.createShader(type); c.shaderSource(s, src); c.compileShader(s); if (!c.getShaderParameter(s, c.COMPILE_STATUS)) throw new Error(c.getShaderInfoLog(s)); return s; };
+      const pr = c.createProgram(); c.attachShader(pr, sh(c.VERTEX_SHADER, VS)); c.attachShader(pr, sh(c.FRAGMENT_SHADER, FS)); c.linkProgram(pr);
+      if (!c.getProgramParameter(pr, c.LINK_STATUS)) throw new Error(c.getProgramInfoLog(pr));
+      c.useProgram(pr);
+      const buf = c.createBuffer(); c.bindBuffer(c.ARRAY_BUFFER, buf); c.bufferData(c.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), c.STATIC_DRAW);
+      const lp = c.getAttribLocation(pr, 'p'); c.enableVertexAttribArray(lp); c.vertexAttribPointer(lp, 2, c.FLOAT, false, 0, 0);
+      const U = (n) => c.getUniformLocation(pr, n);
+      const tex = (unit) => { const t = c.createTexture(); c.activeTexture(c.TEXTURE0 + unit); c.bindTexture(c.TEXTURE_2D, t);
+        c.texParameteri(c.TEXTURE_2D, c.TEXTURE_WRAP_S, c.CLAMP_TO_EDGE); c.texParameteri(c.TEXTURE_2D, c.TEXTURE_WRAP_T, c.CLAMP_TO_EDGE);
+        c.texParameteri(c.TEXTURE_2D, c.TEXTURE_MIN_FILTER, c.LINEAR); c.texParameteri(c.TEXTURE_2D, c.TEXTURE_MAG_FILTER, c.LINEAR);
+        c.texImage2D(c.TEXTURE_2D, 0, c.RGB, 1, 1, 0, c.RGB, c.UNSIGNED_BYTE, new Uint8Array([18, 16, 14])); return t; };
+      const tP = tex(0), tV = tex(1), tK = tex(2);
+      c.uniform1i(U('uP'), 0); c.uniform1i(U('uV'), 1); c.uniform1i(U('uK'), 2); c.uniform1f(U('uSoft'), 0.2);
+      return { c, tP, tV, tK, uMix: U('uMix'), uVS: U('uVS'), vidFrame: false };
+    } catch (e) { console.warn('[c5 sunrise] webgl', e); return null; }
+  }
+  // 풀리는 순서 텍스처: 그림의 큰 밝기(밝은 자리 먼저 0.66) + 가로로 긴 붓결 노이즈(0.34) → 순위 균등화(진행이 고르게)
+  function keyData() {
+    const S = 192, Hh = Math.round(S * img.naturalHeight / img.naturalWidth), n = S * Hh;
+    const sm = document.createElement('canvas'); sm.width = 40; sm.height = Math.round(40 * Hh / S); sm.getContext('2d').drawImage(img, 0, 0, sm.width, sm.height);
+    const up = document.createElement('canvas'); up.width = S; up.height = Hh; const ux = up.getContext('2d', { willReadFrequently: true }); ux.imageSmoothingQuality = 'high'; ux.drawImage(sm, 0, 0, S, Hh);
+    const px = ux.getImageData(0, 0, S, Hh).data; const L = new Float32Array(n); let lo = 1, hi = 0;
+    for (let i = 0; i < n; i++) { L[i] = (px[i * 4] * .299 + px[i * 4 + 1] * .587 + px[i * 4 + 2] * .114) / 255; lo = Math.min(lo, L[i]); hi = Math.max(hi, L[i]); }
+    let seed = 1872; const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const N2 = new Float32Array(n); const s3 = (x) => x * x * (3 - 2 * x);
+    for (const [nx, ny, amp] of [[5, 26, .6], [13, 64, .4]]) {        // 가로로 길고 세로로 얇은 결 — 물 위 붓질처럼
+      const gv = Array.from({ length: (nx + 1) * (ny + 1) }, rnd);
+      for (let y = 0; y < Hh; y++) { const fy = y / Hh * ny, y0 = Math.floor(fy), ty = s3(fy - y0);
+        for (let x = 0; x < S; x++) { const fx = x / S * nx, x0 = Math.floor(fx), tx = s3(fx - x0), r = (nx + 1);
+          const a = gv[y0 * r + x0], b = gv[y0 * r + x0 + 1], c2 = gv[(y0 + 1) * r + x0], d = gv[(y0 + 1) * r + x0 + 1];
+          N2[y * S + x] += amp * ((a * (1 - tx) + b * tx) * (1 - ty) + (c2 * (1 - tx) + d * tx) * ty); } }
+    }
+    const K = new Float32Array(n); for (let i = 0; i < n; i++) K[i] = .66 * (1 - (L[i] - lo) / (hi - lo + 1e-6)) + .34 * N2[i];
+    const idx = Array.from({ length: n }, (_, i) => i).sort((a, b) => K[a] - K[b]);
+    const out = new Uint8Array(n); idx.forEach((i, r) => { out[i] = Math.round(r / (n - 1) * 255); });
+    return { S, Hh, out };
+  }
+  const glReady = imgReady.then(() => {
+    g = initGL(); stage.classList.add(g ? 'gl' : 'nogl'); if (!g) return;
+    const { c } = g;
+    c.activeTexture(c.TEXTURE0); c.bindTexture(c.TEXTURE_2D, g.tP); c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, img);
+    const k = keyData(); c.activeTexture(c.TEXTURE2); c.bindTexture(c.TEXTURE_2D, g.tK); c.pixelStorei(c.UNPACK_ALIGNMENT, 1);
+    c.texImage2D(c.TEXTURE_2D, 0, c.LUMINANCE, k.S, k.Hh, 0, c.LUMINANCE, c.UNSIGNED_BYTE, k.out);
+    size(); draw();
+  });
+  function size() {
+    if (!g) return; const r = stage.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.max(2, Math.round(r.width * dpr)); cv.height = Math.max(2, Math.round(r.height * dpr)); g.c.viewport(0, 0, cv.width, cv.height);
+  }
+  window.addEventListener('resize', () => { size(); draw(); });
+  function draw() {
+    if (!g) return; const { c } = g;
+    if (vid.readyState >= 2 && mix > 0) { c.activeTexture(c.TEXTURE1); c.bindTexture(c.TEXTURE_2D, g.tV); c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, vid); g.vidFrame = true; }
+    const ra = cv.width / cv.height, va = vid.videoWidth && vid.videoHeight ? vid.videoWidth / vid.videoHeight : 4 / 3;
+    c.uniform2f(g.uVS, va > ra ? ra / va : 1, va > ra ? 1 : va / ra);
+    c.uniform1f(g.uMix, g.vidFrame ? mix : 0);
+    c.drawArrays(c.TRIANGLE_STRIP, 0, 4);
+  }
+
+  // ── 흐름
+  const setMix = (m) => { mix = m; };
+  const vidReady = () => new Promise((r) => { if (vid.readyState >= 2) r(); else { vid.addEventListener('loadeddata', r, { once: true }); setTimeout(r, 4000); } });
+  function tick() {
+    raf = 0; if (state !== 'play') return;
+    const D = SUN.DISSOLVE_S, vt = vid.currentTime, dur = isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 10;
+    const sceneFirst = SUN.ORDER === 'scene-paint';
+    const mIn = sceneFirst ? (replayed ? ez(vt / SUN.REPLAY_IN_S) : 1) : ez(vt / D);
+    const outAt = Math.max(D + .5, dur - D - .12);
+    const mOut = 1 - ez((vt - outAt) / D);
+    setMix(Math.min(mIn, mOut));
+    stage.classList.toggle('scene', vt < outAt && (sceneFirst || vt > 0));   // 장면 쪽으로 가는 중 — "임시 영상" 표시 · 웹GL 없을 때의 CSS 페이드
+    cap.classList.toggle('on', mix > .6 && vt < outAt);
+    draw();
+    if (vt >= outAt + D || vid.ended) { finish(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+  function play() {
+    if (!vidOk) { finish(); return; }
+    state = 'play'; vid.currentTime = 0;
+    const p = vid.play(); if (p && p.catch) p.catch(() => setTimeout(() => { if (state === 'play' && vid.paused) vid.play().catch(() => finish()); }, 400));   // 임시 영상으로 바뀌는 중이면 한 번 더
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function finish() {
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    state = 'end'; setMix(0); draw(); cap.classList.remove('on'); stage.classList.remove('scene');
+    try { vid.pause(); } catch (_) { /* noop */ }
+    end.classList.add('on'); haptic(8);
+  }
+  function start() {                                   // 그림이 뜬 뒤의 순서
+    clearTimeout(holdTimer); end.classList.remove('on'); cap.classList.remove('on');
+    if (SUN.ORDER === 'scene-paint' && !replayed) { setMix(1); play(); return; }
+    state = 'hold'; setMix(0); draw();
+    holdTimer = setTimeout(play, (replayed ? 0 : SUN.REVEAL_MS) + SUN.HOLD_MS);
+  }
+  async function scan() {
+    if (state !== 'scan') return;
+    state = 'found'; stage.dataset.state = 'found'; haptic(30);
+    pill.textContent = '〈인상, 해돋이〉를 찾았어요'; pill.classList.add('on');
+    await Promise.all([glReady, new Promise((r) => setTimeout(r, reduceMotion ? 150 : 650)), SUN.ORDER === 'scene-paint' ? vidReady() : null]);
+    if (SUN.ORDER === 'scene-paint') { setMix(1); draw(); }                // 장면부터: 첫 프레임을 먼저 올려 둔다
+    stage.dataset.state = 'shown'; stage.classList.add('shown');
+    setTimeout(() => pill.classList.remove('on'), 1100);
+    start();
+  }
+  function replay() { if (state !== 'end') return; replayed = true; haptic(6); vid.pause(); vid.currentTime = 0; start(); }
+  document.getElementById('scan').addEventListener('click', scan);
+  document.getElementById('sunReplay').addEventListener('click', replay);
+  return { scan, replay, get state() { return state; }, get mix() { return mix; }, get order() { return SUN.ORDER; }, get gl() { return !!g; }, get placeholder() { return placeholder; }, get vt() { return vid.currentTime; }, get src() { return vid.currentSrc; } };
+})();
+window.__c5sun = sun;
+
+// 연작 보기 — 조용한 링크. 열면 연작 벽이 아래에 펼쳐진다
+const toSeries = document.getElementById('toSeries'), wallEl = document.getElementById('wall');
+toSeries.addEventListener('click', () => {
+  const open = wallEl.hidden; wallEl.hidden = !open; toSeries.setAttribute('aria-expanded', String(open));
+  if (open) requestAnimationFrame(() => wallEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }));
+});
 
 const [FR, SRC] = await Promise.all([
   fetch(IMG + 'frames.json').then((r) => r.json()),

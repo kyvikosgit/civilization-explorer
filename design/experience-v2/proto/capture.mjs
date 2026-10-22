@@ -359,6 +359,7 @@ async function c4(page) {
 // ── C5 살아 있는 연작: 벽 → 모티프 열기(지금 시간의 때) → 해 끌기(모핑 중간) → 멈춤 → 다섯 방식 중간 캡처 → 남기기(한 장의 하루) → 벽으로(문장) → 나머지 모티프마다 중간 한 장
 async function c5(page) {
   await page.goto(BASE + 'c5.html', { waitUntil: 'networkidle' }); await fonts(page);
+  await press(page, '#toSeries', '#wall:not([hidden])', 'c5 연작 보기');          // 연작은 〈인상, 해돋이〉 아래 "연작 보기" 뒤로
   await page.waitForFunction(() => window.__c5 && [...document.querySelectorAll('#strip img')].every((i) => i.complete), null, { timeout: 60000 }); await wait(page, 700);
   await shot(page, 'c5-1'); await overflowCheck(page, 'c5-1');
   if (!FULL) return;

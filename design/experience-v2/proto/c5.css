@@ -8,6 +8,72 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .room .role-hd { padding-top: 10px; }
 .room .role-hd .sub { color: rgba(255,255,255,.62); }
 
+/* ── 〈인상, 해돋이〉 — 마지막 방의 한 점. 화면 폭 가득, 그림 비율 그대로(자르지 않는다).
+   비추기(점선 액자) → 그림 → 그날 아침의 장면 → 다시 그림. 모든 단계가 같은 자리(.sun-stage)에서 일어난다 */
+.sun-wrap { margin: 14px calc(-1 * var(--pad)) 0; }
+.sun-stage { position: relative; width: 100%; aspect-ratio: var(--ar, 2048 / 1589); overflow: hidden; background: #12100E; isolation: isolate; }
+.sun-stage > video, .sun-stage > img, .sun-stage > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sun-stage > video { object-fit: cover; object-position: 50% 50%; z-index: 1; }
+.sun-stage > img, .sun-stage > canvas { opacity: 0; transform: scale(1.015); transition: opacity .7s ease, transform 1.1s var(--ease-out); pointer-events: none; -webkit-user-select: none; user-select: none; }
+.sun-stage > img { object-fit: fill; z-index: 2; }
+.sun-stage > canvas { z-index: 3; }
+.sun-stage.shown > img, .sun-stage.gl.shown > canvas { opacity: 1; transform: none; }
+/* 웹GL 이 없을 때: 그림 자체를 천천히 걷어 영상이 드러나게(2.5초, ease-in-out) */
+.sun-stage.nogl > img { transition: opacity 2.5s cubic-bezier(.45,0,.55,1), transform 1.1s var(--ease-out); }
+.sun-stage.nogl.scene > img { opacity: 0; }
+
+/* 비추기 — 어두운 벽 앞의 뷰파인더. 그림 비율의 점선 액자 + 네 귀 */
+.scan { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; color: #fff; background:
+  radial-gradient(70% 80% at 50% 45%, rgba(255,226,186,.07), transparent 70%), linear-gradient(180deg, #1A1714, #12100E); transition: opacity .5s ease; }
+.scan-frame { position: absolute; inset: 11% 13%; border-radius: 2px; outline: 1.5px dashed rgba(255,255,255,.55); outline-offset: -1px; transition: inset .7s var(--ease-out), outline-color .25s, background-color .3s; }
+.scan-frame i { position: absolute; width: 18px; height: 18px; border: 0 solid #fff; animation: corner 2.4s ease-in-out infinite; }
+.scan-frame i:nth-child(1) { left: -4px; top: -4px; border-left-width: 2.5px; border-top-width: 2.5px; }
+.scan-frame i:nth-child(2) { right: -4px; top: -4px; border-right-width: 2.5px; border-top-width: 2.5px; }
+.scan-frame i:nth-child(3) { left: -4px; bottom: -4px; border-left-width: 2.5px; border-bottom-width: 2.5px; }
+.scan-frame i:nth-child(4) { right: -4px; bottom: -4px; border-right-width: 2.5px; border-bottom-width: 2.5px; }
+@keyframes corner { 0%, 100% { transform: none; opacity: .95; } 50% { transform: scale(1.12); opacity: .6; } }
+.scan-txt { position: relative; display: grid; gap: 8px; text-align: center; transition: opacity .25s; }
+.scan-txt b { font-family: var(--display); font-weight: 700; font-size: 19px; line-height: 1.32; letter-spacing: -0.02em; }
+.scan-txt small { font-family: var(--body); font-weight: 500; font-size: 12px; color: rgba(255,255,255,.5); }
+.scan:active .scan-frame { background-color: rgba(255,255,255,.04); }
+.sun-stage[data-state="found"] .scan-frame { outline: 2.5px solid var(--point); background-color: rgba(217,103,47,.14); }
+.sun-stage[data-state="found"] .scan-frame i { border-color: var(--point); animation: none; }
+.sun-stage[data-state="found"] .scan-txt { opacity: 0; }
+.sun-stage.shown .scan-frame { inset: 0; outline-color: rgba(217,103,47,0); background-color: transparent; }
+.sun-stage.shown .scan-frame i { opacity: 0; transition: opacity .4s; }
+.sun-stage.shown .scan { opacity: 0; pointer-events: none; background: transparent; }
+.scan-pill { position: absolute; left: 50%; top: 12px; z-index: 6; transform: translate(-50%, -6px); padding: 6px 12px; border-radius: 999px; background: rgba(14,13,12,.72); color: #fff; font-family: var(--display); font-weight: 600; font-size: 12.5px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s var(--ease-out); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.scan-pill.on { opacity: 1; transform: translate(-50%, 0); }
+.scan-pill::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: var(--point); margin-right: 7px; vertical-align: 1px; }
+
+/* "임시 영상" — 장면일 때만, 오른쪽 위에 작게(영상에는 아무것도 굽지 않는다) */
+.sun-tmp { position: absolute; right: 10px; top: 10px; z-index: 4; padding: 3px 7px; border-radius: 3px; background: rgba(0,0,0,.45); color: rgba(255,255,255,.82); font-family: var(--display); font-weight: 600; font-size: 10.5px; letter-spacing: .02em; opacity: 0; transition: opacity .8s ease; }
+.sun-stage.scene .sun-tmp { opacity: 1; }
+
+/* 그림 아래 한 자리 — 장면의 때와 곳 / 끝의 한 줄과 단추가 같은 칸에서 바뀐다(높이가 흔들리지 않게) */
+.sun-below { display: grid; padding: 14px var(--pad) 0; min-height: 132px; }
+.sun-cap, .sun-end { grid-area: 1 / 1; transition: opacity .9s ease, transform .9s var(--ease-out); opacity: 0; transform: translateY(4px); pointer-events: none; }
+.sun-cap.on, .sun-end.on { opacity: 1; transform: none; pointer-events: auto; }
+.sun-cap b { display: block; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: -0.01em; color: rgba(255,255,255,.86); }
+.sun-cap b span { font-weight: 500; color: rgba(255,255,255,.5); }
+.sun-cap small { display: block; margin-top: 4px; font-size: 12px; color: rgba(255,255,255,.48); }
+.sun-line { font-family: var(--display); font-weight: 700; font-size: 18px; line-height: 1.35; letter-spacing: -0.02em; }
+.sun-meta { margin-top: 4px; font-size: 12.5px; color: rgba(255,255,255,.5); }
+.sun-acts { display: flex; gap: 8px; margin-top: 16px; }
+.sun-btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 22px; background: #fff; color: #111; font-family: var(--body); font-weight: 700; font-size: 14.5px; transition: transform .12s, background .2s; }
+.sun-btn svg { width: 17px; height: 17px; }
+.sun-btn:active { transform: scale(.98); }
+.sun-btn.quiet { background: transparent; color: rgba(255,255,255,.86); border: 1px solid rgba(255,255,255,.28); }
+.sun-btn.quiet:active { background: rgba(255,255,255,.1); }
+
+/* 연작 보기 — 조용한 링크. 열리면 연작 벽이 아래에 */
+.series-link { display: flex; justify-content: center; padding: 18px 0 0; }
+.series-link .btn { width: auto; color: rgba(255,255,255,.6); gap: 4px; }
+.series-link .btn svg { width: 18px; height: 18px; transition: transform .3s var(--ease-out); }
+.series-link .btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+.wall-hd { position: relative; padding: 0 var(--pad) 18px; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,.55); }
+.wall:not([hidden]) { animation: capIn .6s ease both; }
+
 /* ── 연작 벽: 모티프마다 한 줄 — 이름표 + 액자 다섯이 나란히(따로 걸린 그림들). 벽은 어둡고 그림만 조명 */
 .wall { position: relative; flex: 1; display: flex; flex-direction: column; margin: 8px calc(-1 * var(--pad)) 0; padding: 22px 0 0;
   background: linear-gradient(180deg, #171514 0%, #1D1A18 60%, #141211 100%); overflow: hidden; }
@@ -96,13 +162,15 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .kept-txt a { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.7); text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-height: 700px) {
-  .room .role-hd h1 { font-size: 21px; }
+  .room .role-hd h1 { font-size: 21px; } .room .role-hd .sub { font-size: 14px; } .sun-wrap { margin-top: 8px; } .sun-below { min-height: 120px; padding-top: 10px; }
   .row img { height: calc(var(--th, 56px) * .82); } .wall-strip { gap: 20px; }
   .sky { height: 112px; } .now-line { font-size: 12.5px; } .styles button { height: 36px; }
   .stage { gap: 8px; } .caption { min-height: 56px; } .cap-title { font-size: 15.5px; }
   .actions { min-height: 66px; padding-top: 4px; } .keep { height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .scan-frame i, .wall:not([hidden]) { animation: none; }
+  .sun-stage > img, .sun-stage.nogl > img, .scan-frame, .sun-cap, .sun-end, .sun-tmp { transition-duration: .2s; }
   .wall-line, .view, .now-line.in, .caption.fade .cap-when, .caption.fade .cap-title, .caption.fade .cap-meta, .kept, .paused { animation: none; }
   .row .fr, .styles button, .styles button::after, .sun::before, .sky text, .sky .tick, .keep { transition: none; }
 }
