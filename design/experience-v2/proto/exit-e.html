@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#121110">
+<title>출구 · 큰 선택과 작은 선택</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../ticket/fonts.css">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="exit-common.css">
+<link rel="stylesheet" href="exit-e.css">
+</head>
+<body class="xe">
+
+<nav class="vsw float" aria-label="출구 시안"><span class="vsw-lb">출구 시안</span><a href="exit.html">A</a><a href="exit-b.html">B</a><a href="exit-c.html">C</a><a href="exit-d.html">D</a><a href="exit-e.html" aria-current="page">E</a><span class="vsw-nm">큰 선택 · 작은 선택</span></nav>
+
+<!-- 출구 시안 E — 큰 선택(가치 판단)과 작은 선택의 위계.
+     큰 선택 둘(C1 · C4)은 한 화면씩 크게: 내 선택 → "그때"와 "오늘" 두 줄을 같은 칸(선택지)에 맞춰 나란히 → 오늘 줄은 점(js/crowd.js), 내 점만 주황.
+     그다음 흰 쟁반 "그 밖에 고른 것"(C0 메달 · C2 행선지, 작은 카드 둘) → 가져가는 것 다섯 → 저장·공유. 위로 밀어 다음 장(스크롤 스냅) -->
+<main class="xe-deck" id="deck">
+
+  <!-- 큰 선택 I · C1 -->
+  <section class="xe-ch" id="ch1" data-st="c1" aria-labelledby="q1">
+    <div class="xe-bg posters" id="bg1" aria-hidden="true"></div>
+    <div class="xe-in">
+      <header class="xe-hd">
+        <div class="xe-tag"><b>큰 선택</b><span>1 / 2</span><em id="room1"></em></div>
+        <h2 class="xe-q" id="q1">그림이 걸릴 자격은<br>누가 정하는가</h2>
+      </header>
+      <div class="xe-me">
+        <div class="xe-me-lb">나는</div>
+        <div class="xe-me-v" id="me1"></div>
+        <div class="xe-me-sub" id="sub1"></div>
+      </div>
+      <div class="xe-cmp" id="cmp1"></div>
+      <button class="xe-next" type="button" data-to="ch2"><span>다음 큰 선택</span><i aria-hidden="true"></i></button>
+    </div>
+  </section>
+
+  <!-- 큰 선택 II · C4 -->
+  <section class="xe-ch" id="ch2" data-st="c4" aria-labelledby="q2">
+    <div class="xe-bg faces" id="bg2" aria-hidden="true"></div>
+    <div class="xe-in">
+      <header class="xe-hd">
+        <div class="xe-tag"><b>큰 선택</b><span>2 / 2</span><em id="room2"></em></div>
+        <h2 class="xe-q" id="q2">사람을 남기는 데,<br>그림인가 사진인가</h2>
+      </header>
+      <div class="xe-me">
+        <div class="xe-me-lb">나는</div>
+        <div class="xe-me-v" id="me2"></div>
+        <div class="xe-me-sub" id="sub2"></div>
+      </div>
+      <div class="xe-cmp" id="cmp2"></div>
+      <button class="xe-next" type="button" data-to="minor"><span>그 밖에 고른 것</span><i aria-hidden="true"></i></button>
+    </div>
+  </section>
+
+  <!-- 작은 선택 · 가져가는 것 · 저장 -->
+  <section class="xe-end" id="minor" aria-labelledby="minorH">
+    <div class="xe-sheet">
+      <div class="xe-sec-hd"><span class="xe-sec-tag">작은 선택</span><h2 id="minorH">그 밖에 고른 것</h2></div>
+      <div class="xe-minor" id="minorCards"></div>
+
+      <div class="xe-sec-hd keep"><span class="xe-sec-tag">수집함에 담김</span><h2>가져가는 것</h2></div>
+      <div class="xe-keep" id="keep"></div>
+
+      <div class="xe-acts">
+        <button class="btn" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>
+        <button class="btn line" id="restart" type="button">처음부터</button>
+      </div>
+      <p class="xe-foot" id="foot"></p>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="exit-e.js"></script>
+</body>
+</html>
