@@ -29,7 +29,7 @@
    "photo": {
     "by": "헤르만 비오브",
     "year": "1843",
-    "where": "다게레오타입 · 원본 소장처 미확인",
+    "where": "다게레오타입",
     "license": "Commons PD",
     "page": null,
     "src": "../works/c4c-liszt-photo.jpg",
@@ -46,7 +46,8 @@
      526,
      405
     ],
-    "cropSrcPx": 323
+    "cropSrcPx": 323,
+    "note": "다게레오타입 · 원본 소장처 미확인"
    }
   },
   {
@@ -77,7 +78,7 @@
    "photo": {
     "by": "나다르",
     "year": "1850년경",
-    "where": "다게레오타입 · 출처 약함",
+    "where": "다게레오타입",
     "license": "Commons PD",
     "page": null,
     "src": "img/c4f/src/courbet-photo.jpg",
@@ -94,55 +95,8 @@
      628,
      629
     ],
-    "cropSrcPx": 461
-   }
-  },
-  {
-   "id": "degas",
-   "name": "에드가 드가",
-   "paint": {
-    "by": "자화상",
-    "year": "1855",
-    "where": "오르세 미술관",
-    "license": "Commons PD-Art",
-    "page": null,
-    "src": "../works/c4c-degas-paint.jpg",
-    "crop": {
-     "eye": [
-      0.5017,
-      0.2084
-     ],
-     "em": 0.0839
-    },
-    "cropPx": [
-     94,
-     0,
-     364,
-     337
-    ],
-    "cropSrcPx": 270
-   },
-   "photo": {
-    "by": "에티엔 카르자",
-    "year": "1860년경",
-    "where": "BnF(마네의 사진첩)",
-    "license": "Commons PD",
-    "page": null,
-    "src": "img/c4f/src/degas-photo.jpg",
-    "crop": {
-     "eye": [
-      0.5176,
-      0.2256
-     ],
-     "em": 0.0247
-    },
-    "cropPx": [
-     392,
-     238,
-     602,
-     501
-    ],
-    "cropSrcPx": 210
+    "cropSrcPx": 461,
+    "note": "다게레오타입 · 출처 약함"
    }
   },
   {
@@ -152,23 +106,25 @@
     "by": "에두아르 마네",
     "year": "1868",
     "where": "오르세 미술관",
-    "license": "Commons PD-Art",
-    "page": null,
-    "src": "img/c4f/src/zola-paint.jpg",
+    "license": "Commons PD",
+    "page": "https://commons.wikimedia.org/wiki/File:Manet,_Edouard_-_Portrait_of_Emile_Zola.jpg",
+    "src": "@dl/zola-paint.jpg",
     "crop": {
      "eye": [
-      0.4262,
-      0.2955
+      0.4432,
+      0.2959
      ],
-     "em": 0.0424
+     "em": 0.0438
     },
     "cropPx": [
-     259,
-     223,
-     559,
-     598
+     708,
+     572,
+     1518,
+     1585
     ],
-    "cropSrcPx": 300
+    "cropSrcPx": 810,
+    "file": "Manet, Edouard - Portrait of Emile Zola.jpg",
+    "commonsDate": ""
    },
    "photo": {
     "by": "에티엔 카르자",
@@ -200,45 +156,49 @@
     "by": "앙리 팡탱라투르",
     "year": "1867",
     "where": "시카고 미술관",
-    "license": "CC0",
-    "page": null,
-    "src": "../works/c4-manet-paint.jpg",
+    "license": "Commons PD",
+    "page": "https://commons.wikimedia.org/wiki/File:Henri_Fantin-Latour_-_%C3%89douard_Manet_-_1905.207_-_Art_Institute_of_Chicago.jpg",
+    "src": "@dl/manet-paint.jpg",
     "crop": {
      "eye": [
-      0.4607,
-      0.22
+      0.4651,
+      0.2197
      ],
-     "em": 0.0525
+     "em": 0.049
     },
     "cropPx": [
-     127,
-     47,
-     315,
-     282
+     635,
+     248,
+     1459,
+     1276
     ],
-    "cropSrcPx": 188
+    "cropSrcPx": 824,
+    "file": "Henri Fantin-Latour - Édouard Manet - 1905.207 - Art Institute of Chicago.jpg",
+    "commonsDate": "1867"
    },
    "photo": {
     "by": "나다르(추정)",
     "year": "1867~71년경",
     "where": "레이크스미술관",
-    "license": "PDM",
-    "page": null,
-    "src": "../works/c4-manet-photo.jpg",
+    "license": "CC0",
+    "page": "https://commons.wikimedia.org/wiki/File:Portret_van_%C3%89douard_Manet_Edouard_Manet_(titel_op_object),_RP-F-F25216-X.jpg",
+    "src": "@dl/manet-photo.jpg",
     "crop": {
      "eye": [
-      0.4784,
-      0.2993
+      0.4888,
+      0.2953
      ],
-     "em": 0.088
+     "em": 0.0603
     },
     "cropPx": [
-     50,
-     31,
-     336,
-     388
+     762,
+     572,
+     2289,
+     2481
     ],
-    "cropSrcPx": 286
+    "cropSrcPx": 1527,
+    "file": "Portret van Édouard Manet Edouard Manet (titel op object), RP-F-F25216-X.jpg",
+    "commonsDate": "ca. 1871 - in of voor 1867"
    }
   },
   {
@@ -269,7 +229,7 @@
    "photo": {
     "by": "A. 그레이너",
     "year": "1871",
-    "where": "원본 소장처 미확인 · 출처 vangoghletters.org",
+    "where": "",
     "license": "Commons PD",
     "page": null,
     "src": "../works/c4c-monet-photo.jpg",
@@ -286,7 +246,8 @@
      494,
      618
     ],
-    "cropSrcPx": 494
+    "cropSrcPx": 494,
+    "note": "원본 소장처 미확인 · 출처 vangoghletters.org"
    }
   },
   {
@@ -315,9 +276,9 @@
     "cropSrcPx": 735
    },
    "photo": {
-    "by": "사진가 미상",
-    "year": "연도 미상",
-    "where": "출처 ibiblio · 작자·연도 미확인",
+    "by": "",
+    "year": "",
+    "where": "",
     "license": "Commons PD",
     "page": null,
     "src": "img/c4f/src/morisot-photo.jpg",
@@ -334,7 +295,8 @@
      413,
      365
     ],
-    "cropSrcPx": 196
+    "cropSrcPx": 196,
+    "note": "출처 ibiblio · 작자·연도 미확인"
    }
   },
   {
@@ -352,18 +314,18 @@
       0.511,
       0.3857
      ],
-     "em": 0.1415
+     "em": 0.115
     },
     "cropPx": [
-     0,
-     3,
-     960,
-     1203
+     87,
+     80,
+     894,
+     1088
     ],
-    "cropSrcPx": 960
+    "cropSrcPx": 807
    },
    "photo": {
-    "by": "사진가 미상",
+    "by": "",
     "year": "1875년경",
     "where": "오르세 미술관(RMN)",
     "license": "Commons PD",
@@ -389,48 +351,52 @@
    "id": "hugo",
    "name": "빅토르 위고",
    "paint": {
-    "by": "레옹 보나 구도 판본",
+    "by": "다니엘 소베(레옹 보나 원작)",
     "year": "1879",
     "where": "빅토르 위고의 집",
-    "license": "Paris Musées CC0",
-    "page": null,
-    "src": "../works/c4-hugo-paint.jpg",
+    "license": "Commons PD",
+    "page": "https://commons.wikimedia.org/wiki/File:Portrait_de_Victor_Hugo_par_Daniel_Saub%C3%A8s_d%27apr%C3%A8s_L%C3%A9on_Bonnat.jpg",
+    "src": "@dl/hugo-paint.jpg",
     "crop": {
      "eye": [
-      0.5106,
-      0.2924
+      0.5126,
+      0.2931
      ],
-     "em": 0.053
+     "em": 0.05
     },
     "cropPx": [
-     129,
-     72,
-     277,
-     258
+     1290,
+     742,
+     2647,
+     2438
     ],
-    "cropSrcPx": 148
+    "cropSrcPx": 1357,
+    "file": "Portrait de Victor Hugo par Daniel Saubès d'après Léon Bonnat.jpg",
+    "commonsDate": "circa 1879 date QS:P571,+1879-00-00T00:00:00Z/9,P1480,Q5727902"
    },
    "photo": {
     "by": "나다르",
     "year": "1878",
     "where": "빅토르 위고의 집",
     "license": "Paris Musées CC0",
-    "page": null,
-    "src": "../works/c4-hugo-photo.jpg",
+    "page": "https://commons.wikimedia.org/wiki/File:Victor_Hugo,_1320.jpg",
+    "src": "@dl/hugo-photo.jpg",
     "crop": {
      "eye": [
-      0.4296,
-      0.3016
+      0.43,
+      0.37
      ],
-     "em": 0.0721
+     "em": 0.062
     },
     "cropPx": [
-     71,
-     50,
-     273,
-     302
+     819,
+     941,
+     2483,
+     3020
     ],
-    "cropSrcPx": 202
+    "cropSrcPx": 1664,
+    "file": "Victor Hugo, 1320.jpg",
+    "commonsDate": "En 1878"
    }
   },
   {
@@ -459,9 +425,9 @@
     "cropSrcPx": 834
    },
    "photo": {
-    "by": "사진가 미상",
+    "by": "",
     "year": "1900년경",
-    "where": "원본 미확인(출처 블로그)",
+    "where": "",
     "license": "Commons CC0 표기",
     "page": null,
     "src": "../works/c4c-pissarro-photo.jpg",
@@ -478,7 +444,8 @@
      388,
      359
     ],
-    "cropSrcPx": 287
+    "cropSrcPx": 287,
+    "note": "원본 미확인(출처 블로그)"
    }
   },
   {
@@ -619,7 +586,7 @@
    },
    "photo": {
     "by": "나다르",
-    "year": "연도 미상",
+    "year": "",
     "where": "",
     "license": "Commons Public domain",
     "page": "https://commons.wikimedia.org/wiki/File:F%C3%A9lix_Nadar_1820-1910_portraits_Camille_Corot.jpg",
@@ -674,7 +641,7 @@
    "photo": {
     "by": "나다르",
     "year": "1856~58",
-    "where": "메트로폴리탄 미술관 소장본",
+    "where": "메트로폴리탄 미술관",
     "license": "Commons Public domain",
     "page": "https://commons.wikimedia.org/wiki/File:Jean-Fran%C3%A7ois_Millet_by_Nadar,_Metropolitan_Museum_copy_-_Original.jpg",
     "file": "Jean-François Millet by Nadar, Metropolitan Museum copy - Original.jpg",
@@ -704,26 +671,26 @@
     "by": "외젠 들라크루아",
     "year": "1838",
     "where": "",
-    "license": "Commons Public domain",
-    "page": "https://commons.wikimedia.org/wiki/File:Eug%C3%A8ne_Delacroix_-_George_Sand_-_WGA06193.jpg",
-    "file": "Eugène Delacroix - George Sand - WGA06193.jpg",
+    "license": "Commons PD",
+    "page": "https://commons.wikimedia.org/wiki/File:Eug%C3%A8ne_Ferdinand_Victor_Delacroix_041.jpg",
+    "file": "Eugène Ferdinand Victor Delacroix 041.jpg",
     "commonsDate": "1838 date QS:P571,+1838-00-00T00:00:00Z/9",
     "commonsArtist": "Eugène Delacroix",
     "src": "@dl/sand-paint.jpg",
     "crop": {
      "eye": [
-      0.6,
-      0.21
+      0.7,
+      0.24
      ],
-     "em": 0.05
+     "em": 0.08
     },
     "cropPx": [
-     287,
-     81,
-     613,
-     489
+     640,
+     33,
+     1566,
+     1190
     ],
-    "cropSrcPx": 326
+    "cropSrcPx": 926
    },
    "photo": {
     "by": "나다르",
@@ -756,7 +723,7 @@
    "name": "테오필 고티에",
    "paint": {
     "by": "오귀스트 드 샤티용",
-    "year": "연도 미상",
+    "year": "",
     "where": "카르나발레 미술관 · Paris Musées",
     "license": "Commons Public domain",
     "page": "https://commons.wikimedia.org/wiki/File:Auguste_de_Chatillon_-_Portrait_de_Th%C3%A9ophile_Gautier.jpg",
@@ -836,7 +803,7 @@
    "photo": {
     "by": "나다르",
     "year": "1855~57",
-    "where": "메트로폴리탄 미술관 DT7047",
+    "where": "메트로폴리탄 미술관",
     "license": "Commons Public domain",
     "page": "https://commons.wikimedia.org/wiki/File:Gioachino_Rossini_by_Nadar,_MMA,_DT7047.jpg",
     "file": "Gioachino Rossini by Nadar, MMA, DT7047.jpg",
@@ -917,32 +884,32 @@
    "id": "bazille",
    "name": "프레데리크 바지유",
    "paint": {
-    "by": "오귀스트 르누아르",
-    "year": "1867",
-    "where": "",
-    "license": "Commons Public domain",
-    "page": "https://commons.wikimedia.org/wiki/File:Pierre-Auguste_Renoir_-_Fr%C3%A9d%C3%A9ric_Bazille.jpg",
-    "file": "Pierre-Auguste Renoir - Frédéric Bazille.jpg",
-    "commonsDate": "",
+    "by": "자화상",
+    "year": "1865~66",
+    "where": "시카고 미술관",
+    "license": "Commons PD",
+    "page": "https://commons.wikimedia.org/wiki/File:Fr%C3%A9d%C3%A9ric_Bazille_-_Self-Portrait_-_1962.336_-_Art_Institute_of_Chicago.jpg",
+    "file": "Frédéric Bazille - Self-Portrait - 1962.336 - Art Institute of Chicago.jpg",
+    "commonsDate": "between 1865 and 1866 date QS:P,+1865-00-00T00:00:00Z/8,P1319,+1865-00-00T00:00:",
     "commonsArtist": "",
     "src": "@dl/bazille-paint.jpg",
     "crop": {
      "eye": [
-      0.585,
-      0.165
+      0.5,
+      0.185
      ],
-     "em": 0.03
+     "em": 0.056
     },
     "cropPx": [
-     880,
-     223,
-     1343,
-     803
+     399,
+     63,
+     1104,
+     945
     ],
-    "cropSrcPx": 463
+    "cropSrcPx": 705
    },
    "photo": {
-    "by": "사진가 미상",
+    "by": "",
     "year": "1867",
     "where": "BnF(마네의 사진첩)",
     "license": "Commons Public domain",
@@ -996,7 +963,7 @@
     "cropSrcPx": 372
    },
    "photo": {
-    "by": "사진가 미상",
+    "by": "",
     "year": "1878년경",
     "where": "개인 소장",
     "license": "Commons Public domain",
@@ -1135,27 +1102,27 @@
    "paint": {
     "by": "쥘 바스티앵르파주",
     "year": "1879",
-    "where": "",
-    "license": "Commons Public domain",
-    "page": "https://commons.wikimedia.org/wiki/File:%C2%A7%C2%A7Bernhardt,_Sarah_(1844-1923)_par_Jules_Bastien-Lepage_(1848-1884)_-_1879.jpg",
-    "file": "§§Bernhardt, Sarah (1844-1923) par Jules Bastien-Lepage (1848-1884) - 1879.jpg",
-    "commonsDate": "1879 date QS:P571,+1879-00-00T00:00:00Z/9",
+    "where": "스웨덴 국립미술관",
+    "license": "Commons PD",
+    "page": "https://commons.wikimedia.org/wiki/File:Sarah_Bernhardt_(1844-1923)_(Jules_Bastien-Lepage)_-_Nationalmuseum_-_21150.tif",
+    "file": "Sarah Bernhardt (1844-1923) (Jules Bastien-Lepage) - Nationalmuseum - 21150.tif",
+    "commonsDate": "Unknown date",
     "commonsArtist": "Jules Bastien-Lepage",
     "src": "@dl/bernhardt-paint.jpg",
     "crop": {
      "eye": [
-      0.47,
-      0.25
+      0.36,
+      0.36
      ],
-     "em": 0.05
+     "em": 0.085
     },
     "cropPx": [
-     211,
-     110,
-     491,
-     460
+     40,
+     334,
+     1343,
+     1963
     ],
-    "cropSrcPx": 280
+    "cropSrcPx": 1303
    },
    "photo": {
     "by": "나다르",
@@ -1212,7 +1179,7 @@
     "cropSrcPx": 643
    },
    "photo": {
-    "by": "사진가 미상",
+    "by": "",
     "year": "1861년경",
     "where": "",
     "license": "Commons Public domain",
@@ -1290,6 +1257,12 @@
     ],
     "cropSrcPx": 466
    }
+  }
+ ],
+ "_dropped": [
+  {
+   "id": "degas",
+   "why": "사진(카르자 1860년경, BnF 마네의 사진첩)이 전신 명함판이라 얼굴이 작고 퇴색해 크게 보면 흐리다. 공용에 더 큰 판이 없고 Gallica 원본은 자동 접근이 막혀 있어 뺐다"
   }
  ]
 }
