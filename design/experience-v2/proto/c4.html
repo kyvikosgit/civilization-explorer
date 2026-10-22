@@ -5,7 +5,7 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0F0E0D">
-<title>C4 · 그림과 사진, 어느 쪽이 낫습니까</title>
+<title>C4 · 나다르 사진관</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="css/crowd.css">
@@ -24,18 +24,21 @@
   <button class="tab" role="tab" aria-selected="false" data-tab="me" type="button">내 초상</button>
 </nav>
 
-<!-- ── 1 사진관 벽: 초상화 4점 → 셔터 한 번 → 조리개·섬광 → 네 점이 함께(120ms 차례로) 나다르 사진으로 현상 → 바로 질문 -->
-<main class="wrap screen" id="wall" data-screen="wall">
-  <div id="wallBody">
-  <header class="role-hd rise" style="--i:0">
-    <div class="eyebrow">당신은</div>
-    <h1>나다르 사진관의 손님입니다</h1>
-    <p class="sub" id="wallSub">벽의 초상화 네 점 앞에서 셔터를 누르세요</p>
-  </header>
+<!-- ── 사진관: 한 무대 위에 벽(1) · 고르기(2) · 오늘의 관람객(3)이 겹쳐 있다 -->
+<main class="stage screen" id="wall" data-screen="wall">
 
-  <section class="gallery rise" id="gallery" style="--i:1" aria-label="초상화 벽">
-    <div class="wall-grid" id="wallGrid"></div>
-    <div class="finder" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <!-- 1 나다르 사진관의 벽 — 세 줄의 액자가 서로 다른 속도로 흐른다. 셔터 → 단추에서 퍼지는 물결로 모두 사진이 된다 -->
+  <section class="wall-scr" id="wallScr" data-mode="paint" aria-label="사진관의 벽">
+    <p class="role-line">나다르 사진관. 벽에는 <b id="roleWhat">초상화</b>가 걸려 있습니다.</p>
+    <div class="rows" id="rows"></div>
+    <div class="wall-foot">
+      <div class="wf-l" id="wfCount" aria-live="polite">초상화 10점</div>
+      <div class="wf-c">
+        <button class="shutter" id="shutter" type="button" aria-label="사진으로"><span></span></button>
+        <div class="shutter-lab" id="shutterLab">사진으로</div>
+      </div>
+      <div class="wf-r"><button class="you" id="toChoose" type="button" hidden>당신이라면?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    </div>
     <div class="iris" id="iris" aria-hidden="true">
       <div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div>
       <div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div>
@@ -43,63 +46,50 @@
     <div class="flash" id="flash" aria-hidden="true"></div>
   </section>
 
-  <div class="caption rise" id="caption" style="--i:2" aria-live="polite">
-    <div class="cap-state" id="capState">화가의 초상 4점</div>
-    <div class="cap-line" id="capLine">마네 · 위고 · 베르나르 · 보들레르</div>
-  </div>
+  <!-- 2 당신은 어떤 걸 남기시겠습니까 — 뒤로 두 줄기(왼쪽 그림은 위로, 오른쪽 사진은 아래로). 반쪽을 누르면 그쪽이 화면을 채운다 -->
+  <section class="choose" id="choose" hidden aria-label="고르기">
+    <div class="streams" aria-hidden="true">
+      <div class="stream" data-k="paint"><div class="strm-track" id="strmPaint"></div></div>
+      <div class="stream" data-k="photo"><div class="strm-track" id="strmPhoto"></div></div>
+    </div>
+    <div class="veil" aria-hidden="true"></div>
+    <button class="ch-back" id="chBack" type="button" aria-label="벽으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>벽으로</button>
+    <h2 class="ch-q">당신이라면,<br>어떤 걸 남기시겠습니까?</h2>
+    <div class="ch-line" aria-hidden="true"></div>
+    <div class="halves" role="radiogroup" aria-label="그림 또는 사진">
+      <button class="half" data-k="paint" type="button" role="radio" aria-checked="false"><b>그림으로<br>남긴다</b><small>화가가 보고 그린 대로</small></button>
+      <button class="half" data-k="photo" type="button" role="radio" aria-checked="false"><b>사진으로<br>남긴다</b><small>렌즈 앞에 앉은 그대로</small></button>
+    </div>
 
-  <div class="shutter-row rise" style="--i:3">
-    <button class="shutter" id="shutter" type="button" aria-label="셔터"><span></span></button>
-    <div class="shutter-hint" id="shutterHint">셔터</div>
-  </div>
-  <p class="then">나다르는 1860년 카퓌신 대로 35번지로 사진관을 옮겼다. 1874년 첫 인상파 전시가 이 옛 사진관 자리에서 열렸다.</p>
-  </div>
-
-  <!-- ── 2 질문: 네 쌍을 그림 열 | 사진 열로. 열 제목이나 그림을 누르면 그 열이 앞으로, 다른 열은 물러난다 → "당신은 ○○ 쪽 · 확정". 꾹 누르면 그 쌍을 크게(2× 돋보기) -->
-  <section class="ask" id="ask" hidden>
-    <div class="ask-head">
-      <div class="eyebrow rise" style="--i:0">네 사람을 보았습니다</div>
-      <h2 class="ask-q rise" style="--i:1">사람을 남기는 데, 그림과 사진 중<br>어느 쪽이 낫습니까?</h2>
-    </div>
-    <div class="cols rise" id="cols" style="--i:2" role="radiogroup" aria-label="그림 열 또는 사진 열">
-      <button class="col-hd" data-k="paint" type="button" role="radio" aria-checked="false"><b>그림 열</b><small>화가가 보고 그린 대로</small></button>
-      <button class="col-hd" data-k="photo" type="button" role="radio" aria-checked="false"><b>사진 열</b><small>렌즈 앞에 앉은 그대로</small></button>
-    </div>
-    <div class="ask-foot" id="askFoot">
-      <p class="ask-note" id="askNote">열 제목이나 그림을 누르세요 · 꾹 누르면 크게 · 정답은 없습니다</p>
-      <button class="btn white" id="confirm" type="button" hidden></button>
-    </div>
-  </section>
-
-  <!-- ── 3 오늘의 관람객(점 하나 = 열 사람, 그림 열·사진 열 아래로 모인다 · js/crowd.js) · 그때는 이랬다 · 저장 -->
-  <section class="result crowd dark center" id="result" hidden>
-    <div class="rev" id="rev">
-      <div class="rev-col" data-k="paint"><b>그림 열</b><div class="rev-row" id="revPaint"></div></div>
-      <div class="rev-col" data-k="photo"><b>사진 열</b><div class="rev-row" id="revPhoto"></div></div>
-    </div>
-    <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
-    <div class="crowd-cols" id="crowdCols" aria-live="polite"></div>
-    <div class="crowd-cap">Aujourd'hui</div>
-    <div class="crowd-line" id="crowdLine">사람을 남기는 데 · 오늘의 관람객</div>
-    <div class="crowd-stamp" id="crowdStamp"></div>
-    <div class="hist-dark rise" style="--i:3"><b>그때는 이랬다</b>
-      <p>보들레르는 1859년 살롱평에서 사진 산업이 예술에 밀고 들어와 “가장 치명적인 적”이 된다고 썼다. 그 보들레르의 얼굴을 남긴 것도 나다르의 사진이다.<small>Baudelaire, Salon de 1859, II. Le public moderne et la photographie (Wikisource · Curiosités esthétiques) · 사진: 클리블랜드 미술관 CC0</small></p>
-      <p>1874년 4월, 나다르는 이 사진관을 화가들에게 전시장으로 내주었다.<small>Wikipedia · Nadar · BnF · Les Nadar · 무상 여부는 자료가 엇갈린다(Rewald 1973 / Wikipedia FR)</small></p>
-    </div>
-    <div class="mine-card" id="mineCard" hidden><span class="eyebrow">내 입장</span><b id="mineLabel"></b><small id="mineSub"></small></div>
-    <div class="me-actions rise" style="--i:4"><button class="btn white" id="saveStance" type="button">수집함에 저장</button><button class="btn dark-line" id="restartWall" type="button">처음부터</button></div>
+    <!-- 3 오늘의 관람객(점 하나 = 열 사람, 내 점은 주황) · 그때는 이랬다 · 저장 -->
+    <section class="reveal crowd dark center" id="reveal" aria-live="polite">
+      <div class="crowd-cap">Aujourd'hui</div>
+      <div class="crowd-line" id="crowdLine"></div>
+      <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
+      <div class="crowd-cols" id="crowdCols"></div>
+      <div class="crowd-stamp" id="crowdStamp"></div>
+      <div class="hist-dark"><b>그때는 이랬다</b>
+        <p>1874년 4월, 나다르는 이 사진관을 화가들에게 전시장으로 내주었다.<small>Wikipedia · Nadar · BnF · Les Nadar · 무상 여부는 자료가 엇갈린다(Rewald 1973 / Wikipedia FR)</small></p>
+      </div>
+      <div class="mine-card" id="mineCard" hidden><span class="eyebrow">내 입장</span><b id="mineLabel"></b><small id="mineSub"></small></div>
+      <div class="rv-actions"><button class="btn white" id="saveStance" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장</button><button class="btn dark-line" id="again" type="button">다시 고르기</button></div>
+    </section>
   </section>
 </main>
 
-<!-- 꾹 누르기: 그 쌍을 크게(위 그림 · 아래 사진), 손가락을 끌면 두 장의 같은 자리에 2× 돋보기. 손을 떼면 닫힌다 -->
-<div class="peek" id="peek" hidden aria-hidden="true">
-  <div class="peek-name" id="peekName"></div>
-  <div class="peek-in" id="peekIn">
-    <figure class="peek-f" data-k="paint"><div class="peek-img"><img id="peekPaint" alt="" draggable="false"></div><figcaption id="peekPaintCap"></figcaption></figure>
-    <figure class="peek-f" data-k="photo"><div class="peek-img"><img id="peekPhoto" alt="" draggable="false"></div><figcaption id="peekPhotoCap"></figcaption></figure>
-    <div class="loupe" id="loupeA" hidden></div><div class="loupe" id="loupeB" hidden></div>
+<!-- 액자 하나를 누르면: 흐름이 멈추고 그 사람이 크게. 세로 분할을 끌어 그림 ↔ 사진. 바깥을 누르면 다시 흐른다 -->
+<div class="peek" id="peek" hidden>
+  <div class="pk-in" id="pkIn">
+    <div class="pk-name" id="pkName"></div>
+    <div class="pk-face" id="pkFace">
+      <img id="pkPaint" alt="" draggable="false">
+      <div class="pk-photo" id="pkPhotoWrap"><img id="pkPhoto" alt="" draggable="false"></div>
+      <div class="pk-bar" id="pkBar"><i></i></div>
+    </div>
+    <div class="pk-cap"><span id="pkPaintCap"></span><span class="pk-arrow">↔</span><span id="pkPhotoCap"></span></div>
+    <div class="pk-src" id="pkSrc"></div>
   </div>
-  <div class="peek-hint">끌면 같은 자리가 2배로 · 손을 떼면 돌아갑니다</div>
+  <div class="pk-hint">가운데 선을 끌어 보세요 · 바깥을 누르면 벽으로</div>
 </div>
 
 <!-- ── 내 초상: 전면 카메라 → 노출 4초 → 기기 안에서 19세기 사진 → 카르트 드 비지트 틀 -->
@@ -132,7 +122,7 @@
   </div>
   <div class="me-actions" id="meDone" hidden>
     <button class="btn white" id="saveMe" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>초상 저장</button>
-    <button class="btn dark-line" id="again" type="button">다시 찍기</button>
+    <button class="btn dark-line" id="again2" type="button">다시 찍기</button>
   </div>
 
   <p class="then">당시 습판 사진은 밝은 날에도 몇 초의 노출이 필요했다. 사진은 기기에만 남는다.</p>
