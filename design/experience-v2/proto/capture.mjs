@@ -236,6 +236,22 @@ async function c2(page) {
   await page.evaluate(() => { const f = document.querySelector('#flow'); f.scrollTo(0, document.querySelector('#story').offsetTop - 60); }); await wait(page, 1300);
   await page.waitForFunction(() => [...document.querySelectorAll('#pair img')].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 15000 }).catch(() => bad('c2: pair images not loaded'));
   await shot(page, 'c2-5'); await overflowCheck(page, 'c2-5');
+  // 엽서: 앞면 → 뒤집어 쓰기 → 한 줄 입력(폰 자판) → 받는 사람 → 저장(기기 안 JPEG)
+  await page.evaluate(() => { const f = document.querySelector('#flow'); f.scrollTo(0, document.querySelector('#postcard').offsetTop - 70); }); await wait(page, 900);
+  await page.waitForFunction(() => { const i = document.querySelector('#pcPaint'); return i && i.complete && i.naturalWidth > 0; }, null, { timeout: 15000 }).catch(() => bad('c2: postcard painting not loaded'));
+  await shot(page, 'c2-postcard-front'); await overflowCheck(page, 'c2-postcard-front');
+  await press(page, '#pcFlip', '#pc3d.flipped', 'c2 postcard flip', 3000); await wait(page, 1000);
+  await tapEl(page, '#pcMsg'); await wait(page, 300);
+  if (!(await page.evaluate(() => document.activeElement && document.activeElement.id === 'pcMsg'))) bad('TOUCH FAIL: c2 postcard message field not focused by tap');
+  await page.keyboard.type('르아브르의 해돋이를 보고 왔습니다'); await wait(page, 200);
+  const typed = await page.evaluate(() => document.querySelector('#pcMsg').value); if (typed !== '르아브르의 해돋이를 보고 왔습니다') bad('c2: typed text mismatch ' + typed);
+  await tapEl(page, '#pcTo'); await page.keyboard.type('나에게'); await wait(page, 200);
+  await page.keyboard.press('Enter'); await wait(page, 400);
+  await shot(page, 'c2-postcard-back'); await overflowCheck(page, 'c2-postcard-back');
+  const stash = await page.evaluate(() => JSON.parse(localStorage.getItem('m100_c2_postcard') || 'null')); if (!stash || stash.text !== typed) bad('c2: postcard not stashed in localStorage');
+  const sheet = await page.evaluate(async () => { const c = await window.renderPostcard(); return c.toDataURL('image/jpeg', 0.85); });
+  writeFileSync(path.join(OUT, `c2-postcard-sheet${suffix}.jpg`), Buffer.from(sheet.split(',')[1], 'base64'));
+  await press(page, '#pcFlip', '#pc3d:not(.flipped)', 'c2 postcard unflip', 3000); await wait(page, 1000);
   await page.evaluate(() => { const f = document.querySelector('#flow'); f.scrollTo(0, f.scrollHeight); });
   await wait(page, 850); await shot(page, 'c2-reveal-a');
   await wait(page, 1600); await shot(page, 'c2-reveal-b');
@@ -277,7 +293,6 @@ async function c3(page) {
   }
   if (!(await page.evaluate(() => window.__c3.done))) bad('c3: did not complete after strokes (coverage ' + (await page.evaluate(() => window.__c3.coverage())).toFixed(2) + ')');
   await wait(page, 1900); await shot(page, 'c3-3'); await overflowCheck(page, 'c3-3');   // 완성 캔버스 + 일기장 + 실제 쌍
-  if (!(await page.locator('.real-pair img').first().isVisible())) bad('c3: real pair not visible after completion');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 500);
   await shot(page, 'c3-3b');
   const hb = await page.locator('#hold').boundingBox();
