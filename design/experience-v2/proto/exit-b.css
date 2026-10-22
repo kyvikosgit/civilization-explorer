@@ -1,5 +1,6 @@
 /* 출구 시안 B — 관람 기록 카드(연말 결산 카드 문법). 한 장 = 한 화면, 위로 넘긴다. 큰 글자 · 큰 그림 · 주황 숫자 하나
-   표지(주황 바탕 · 검정 글자) → 네 곳(검정 바탕 · 흰 글자) → 모아 보기(흰 바탕 · 검정 글자) */
+   표지 · 네 곳(검정 바탕 · 흰 글자) → 모아 보기(흰 바탕 · 검정 글자). 주황은 내 점과 내 비율만. 한글 자간 0 */
+body.xb h1, body.xb h2, body.xb .btn { letter-spacing: 0; }
 html { background: #121110; }
 body.xb { background: #121110; color: #fff; height: 100dvh; overflow: hidden; }
 
@@ -32,20 +33,21 @@ body.xb { background: #121110; color: #fff; height: 100dvh; overflow: hidden; }
 
 /* 표지 */
 .intro .xb-in { justify-content: space-between; }
-.xb-hero { font-size: clamp(84px, 30vw, 128px); line-height: .92; letter-spacing: -0.06em; margin-top: 18px; }
+.xb-hero { font-size: clamp(84px, 30vw, 128px); line-height: .98; margin-top: 18px; }
 /* 표지의 군중: 점 128개(하나 = 열 사람), 내 점은 흰 점 */
 .xb-crowd { flex: 1 1 auto; min-height: 90px; margin-top: 22px; display: grid; grid-template-columns: repeat(16, 1fr); align-content: end; gap: 9px 0; justify-items: center; }
-.xb-crowd i { width: 7px; height: 7px; border-radius: 50%; background: rgba(17,17,17,.82); opacity: 0; transform: scale(.4); transition: opacity .5s, transform .5s var(--ease-spring); transition-delay: var(--t, 0s); }
+.xb-crowd i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,247,234,.5); opacity: 0; transform: scale(.4); transition: opacity .5s, transform .5s var(--ease-spring); transition-delay: var(--t, 0s); }
 .xb-card.on .xb-crowd i { opacity: 1; transform: none; }
-.xb-crowd i.me { background: #fff; box-shadow: 0 0 0 3px rgba(17,17,17,.85), 0 0 0 7px rgba(255,255,255,.35); }
-.xb-lede { margin: 26px 0 0; font-size: 17px; line-height: 1.55; font-weight: 500; max-width: 300px; }
+.xb-crowd i.me { background: var(--point); box-shadow: 0 0 0 3px #121110, 0 0 0 5px #fff; }
+.xb-lede { margin: 26px 0 0; font-size: 17px; line-height: 1.55; font-weight: 500; max-width: 300px; color: rgba(255,255,255,.75); }
+.xb-lede b { color: #fff; }
 .xb-lede b { font-family: var(--display); font-weight: 800; }
-.xb-hint { margin-top: 40px; display: inline-flex; align-items: center; gap: 6px; font-family: var(--display); font-weight: 600; font-size: 13px; }
-.xb-hint svg { width: 18px; height: 18px; animation: nudge 1.8s ease-in-out infinite; }
+.xb-hint { margin-top: 40px; display: inline-flex; align-items: center; gap: 6px; font-family: var(--display); font-weight: 600; font-size: 13px; color: rgba(255,255,255,.55); }
+.xb-hint svg { width: 18px; height: 18px; }
 @keyframes nudge { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
 /* 네 곳 카드 */
-.xb-q { margin: 14px 0 0; font-family: var(--display); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; color: rgba(255,255,255,.72); flex: none; }
+.xb-q { margin: 14px 0 0; font-family: var(--display); font-weight: 600; font-size: 16px; color: rgba(255,255,255,.72); flex: none; }
 .xb-fig { position: relative; margin: 14px 0 0; flex: 1 1 auto; min-height: 150px; border-radius: 6px; overflow: hidden; background: #1C1A18; }
 .xb-fig > img.bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.1); transition: transform 7s cubic-bezier(.2,.6,.2,1); }
 .xb-card.on .xb-fig > img.bg { transform: scale(1); }
@@ -62,10 +64,10 @@ body.xb { background: #121110; color: #fff; height: 100dvh; overflow: hidden; }
 .xb-fig.wall .other { --s: min(30vw, 120px); transform: rotate(5deg) translate(-88%, -22%); filter: grayscale(.6) brightness(.55); }
 .xb-fig .cap { position: absolute; left: 12px; top: 10px; z-index: 3; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.75); text-shadow: 0 1px 4px rgba(0,0,0,.8); }
 
-.xb-choice { margin-top: 18px; font-size: clamp(30px, 9.6vw, 42px); line-height: 1.12; letter-spacing: -0.04em; flex: none; }
-.xb-sub { margin: 6px 0 0; font-size: 13px; color: rgba(255,255,255,.55); flex: none; }
+.xb-choice { margin-top: 18px; font-size: clamp(30px, 9.6vw, 42px); line-height: 1.15; flex: none; }
+.xb-sub { margin: 6px 0 0; font-size: 15px; color: rgba(255,255,255,.6); flex: none; }
 .xb-stat { margin-top: 16px; display: flex; align-items: baseline; gap: 6px; flex: none; font-family: var(--display); }
-.xb-stat .pre, .xb-stat .post { font-weight: 800; font-size: 22px; letter-spacing: -0.03em; }
+.xb-stat .pre, .xb-stat .post { font-weight: 800; font-size: 22px; }
 .xb-stat b { font-weight: 800; font-size: clamp(64px, 21vw, 92px); line-height: .82; letter-spacing: -0.06em; color: var(--point); font-variant-numeric: tabular-nums; }
 .xb-stat b i { font-style: normal; font-size: .5em; letter-spacing: -0.02em; margin-left: 2px; }
 .xb-dots { display: block; width: 100%; height: 50px; margin-top: 14px; flex: none; }
@@ -74,17 +76,19 @@ body.xb { background: #121110; color: #fff; height: 100dvh; overflow: hidden; }
 
 /* 모아 보기 */
 .sum .xb-meta { color: var(--dim); }
-.sum .xb-meta span:first-child { color: var(--point); letter-spacing: .04em; }
+.sum .xb-meta span:first-child { color: var(--ink); }
+.xb-sum-hd { margin-top: 18px; font-size: 34px; line-height: 1.2; flex: none; }
+.xb-sameline { margin: 12px 0 0; font-size: 13px; color: var(--dim); flex: none; }
 .xb-same { margin-top: 10px; font-family: var(--display); font-weight: 800; color: var(--point); line-height: .84; letter-spacing: -0.06em; flex: none; }
 .xb-same b { font-size: clamp(92px, 32vw, 128px); font-variant-numeric: tabular-nums; }
 .xb-same i { font-style: normal; font-size: 56px; letter-spacing: -0.02em; }
 .xb-same-lab { margin: 12px 0 0; font-family: var(--display); font-weight: 800; font-size: 20px; line-height: 1.35; letter-spacing: -0.03em; flex: none; }
 .xb-same-lab small { display: block; margin-top: 4px; font-family: var(--body); font-weight: 500; font-size: 13px; letter-spacing: 0; color: var(--dim); }
 .xb-list { list-style: none; margin: 18px 0 0; padding: 0; border-top: 2px solid #111; flex: none; }
-.xb-list li { display: grid; grid-template-columns: 26px 1fr auto; align-items: baseline; gap: 6px; padding: 9px 0; border-bottom: 1px solid var(--hair); }
-.xb-list .n { font-family: var(--display); font-weight: 800; font-size: 12px; color: var(--point); }
-.xb-list .c { min-width: 0; font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.xb-list .c small { font-family: var(--body); font-weight: 500; font-size: 11.5px; letter-spacing: 0; color: var(--dim); margin-right: 6px; }
+.xb-list li { display: grid; grid-template-columns: 26px 1fr auto; align-items: baseline; gap: 6px; padding: 11px 0; border-bottom: 1px solid var(--hair); }
+.xb-list .n { font-family: var(--display); font-weight: 800; font-size: 12px; color: var(--dim); }
+.xb-list .c { min-width: 0; font-family: var(--display); font-weight: 800; font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xb-list .c small { display: block; font-family: var(--body); font-weight: 500; font-size: 12.5px; color: var(--dim); margin-right: 6px; }
 .xb-list em { font-style: normal; font-family: var(--display); font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; }
 .xb-sumdots { display: block; width: 100%; height: 62px; margin-top: 18px; flex: none; }
 .xb-tray { margin-top: auto; padding-top: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: end; flex: none; }
@@ -98,10 +102,9 @@ body.xb { background: #121110; color: #fff; height: 100dvh; overflow: hidden; }
   .xb-choice { margin-top: 12px; font-size: 30px; }
   .xb-stat { margin-top: 10px; } .xb-stat b { font-size: 64px; }
   .xb-dots { height: 40px; margin-top: 10px; }
-  .xb-same b { font-size: 88px; } .xb-list li { padding: 7px 0; }
+  .xb-list li { padding: 7px 0; } .xb-sum-hd { font-size: 28px; }
   .xb-tray .x-th, .xb-tray .x-poster { --s: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ln, .xb-fig > img.bg, .xb-fig .medal, .xb-fig .tk { transition: none; }
-  .xb-hint svg { animation: none; }
 }

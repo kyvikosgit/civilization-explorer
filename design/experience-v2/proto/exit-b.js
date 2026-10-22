@@ -1,8 +1,8 @@
-// 출구 시안 B — 관람 기록 카드. 표지 → 네 곳(한 장씩: 큰 그림 · 내 선택 · "오늘 39%가 같았다" · 점 128개) → 모아 보기(나와 같은 길 · 가져가는 것)
+// 출구 시안 B — 관람 기록 카드. 표지 → 네 곳(한 장씩: 큰 그림 · 내 선택 · "오늘 39%가 같았다" · 점 128개) → 모아 보기(네 선택 · 가져가는 것. 네 곳 모두 같은 사람 수는 작은 한 줄)
 //   위로 넘기면 한 장씩 스냅, 카드를 누르면 다음 장. 점 하나 = 열 사람, 같은 쪽을 고른 점이 왼쪽부터 켜지고 내 점은 주황(맨 끝)
 import { clearChoices, reduceMotion } from './js/proto-common.js';
 import { rng } from './js/crowd.js';
-import { STATIONS, ARTS, VISITORS, same, sameN, anyReal, fmt, stampLine, posterHTML, artThumb, setupShare, loadImg, cover, drawPoster, fontsReady, POINT } from './exit-common.js';
+import { STATIONS, ARTS, VISITORS, sameN, anyReal, fmt, stampLine, posterHTML, artThumb, setupShare, loadImg, cover, drawPoster, fontsReady, POINT } from './exit-common.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const deck = $('#deck'), sum = $('#sum');
@@ -64,8 +64,7 @@ function playDots(c) {
 }
 
 // ── 모아 보기
-$('#sameBig').textContent = same;
-$('#sameLab').innerHTML = `${fmt(VISITORS)}명 가운데 ${fmt(sameN)}명이<br>네 곳 모두 나와 같은 쪽을 골랐다<small>100가지 길 가운데 하나 · 점 하나 = 열 사람</small>`;
+$('#sameLine').textContent = `네 곳 모두 나와 같은 쪽 · 오늘 ${fmt(sameN)}명`;
 $('#introN').textContent = `${fmt(VISITORS)}명`;
 $('#sumStamp').textContent = stampLine(VISITORS).replace(' · 수치는 예시', '');
 $('#sumList').innerHTML = STATIONS.map((s) => `<li><span class="n">0${s.no}</span><span class="c"><small>${s.q}</small>${s.choice}</span><em>${s.opt.pct}%</em></li>`).join('');
@@ -73,21 +72,6 @@ $('#tray').innerHTML = ARTS.map((a) => `<div class="it">${artThumb(a)}<span><b>$
 
 // 표지의 군중(128점) · 모아 보기의 점(같은 길 = 9점 남짓이 흩어져 켜진다)
 { const r = rng(3); $('#introDots').innerHTML = Array.from({ length: DOTS }, (_, i) => `<i${i === 87 ? ' class="me"' : ''} style="--t:${(0.1 + r() * 0.9).toFixed(2)}s"></i>`).join(''); }
-const sumCv = $('#sumDots');
-function drawSum() {
-  const r = sumCv.getBoundingClientRect(); if (!r.width) return;
-  const dpr = Math.min(2, devicePixelRatio || 1); sumCv.width = Math.round(r.width * dpr); sumCv.height = Math.round(r.height * dpr);
-  const g = sumCv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const rows = Math.ceil(DOTS / COLS), sx = r.width / COLS, sy = r.height / rows, rad = Math.min(sx, sy) * 0.27;
-  const lit = Math.max(1, Math.round(DOTS * same / 100)), rr = rng(41), pick = new Set(); while (pick.size < lit) pick.add(Math.floor(rr() * DOTS));
-  const me = [...pick][0];
-  for (let i = 0; i < DOTS; i++) {
-    const x = (i % COLS + 0.5) * sx, y = (Math.floor(i / COLS) + 0.5) * sy;
-    if (i === me) { g.fillStyle = 'rgba(217,103,47,.25)'; g.beginPath(); g.arc(x, y, rad * 2.6, 0, 6.2832); g.fill(); g.fillStyle = POINT; g.beginPath(); g.arc(x, y, rad * 1.5, 0, 6.2832); g.fill(); continue; }
-    g.fillStyle = pick.has(i) ? '#111' : 'rgba(17,17,17,.12)'; g.beginPath(); g.arc(x, y, rad, 0, 6.2832); g.fill();
-  }
-}
-
 // ── 넘기기 · 진행 막대
 const all = [...deck.querySelectorAll('.xb-card')];
 const prog = $('#prog'), vsw = $('#vsw');
@@ -98,10 +82,9 @@ function setCur(i) {
   all.forEach((el, k) => el.classList.toggle('on', k === i));
   [...prog.children].forEach((b, k) => b.classList.toggle('done', k <= i));
   const tone = all[i].dataset.tone;
-  prog.classList.toggle('on-light', tone === 'light'); prog.classList.toggle('on-point', tone === 'point');
+  prog.classList.toggle('on-light', tone === 'light');
   vsw.classList.toggle('light', tone === 'light');
   const c = cards.find((x) => x.el === all[i]); if (c) playDots(c);
-  if (all[i] === sum) drawSum();
 }
 const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting && e.intersectionRatio > 0.55) setCur(all.indexOf(e.target)); }); }, { root: deck, threshold: [0.55, 0.8] });
 all.forEach((el) => io.observe(el));
@@ -117,17 +100,15 @@ async function render() {
   const g = c.getContext('2d'); await fontsReady();
   const D = 'Paperlogy, Freesentation, sans-serif', B = 'Freesentation, sans-serif', L = 80;
   g.fillStyle = '#121110'; g.fillRect(0, 0, W, H);
-  // 위 주황 띠
-  g.fillStyle = POINT; g.fillRect(0, 0, W, 196);
-  g.fillStyle = '#111'; g.font = `700 28px ${B}`; g.textBaseline = 'alphabetic';
-  g.fillText('MONET 100 · The Next Impression', L, 120); g.textAlign = 'right'; g.fillText('2026.12.14', W - L, 120); g.textAlign = 'left';
-  let y = 330;
-  g.fillStyle = '#fff'; g.font = `800 112px ${D}`; g.fillText('나의 관람 기록', L - 6, y);
-  g.fillStyle = 'rgba(255,255,255,.55)'; g.font = `500 32px ${B}`; g.fillText(`모네의 방 네 곳에서 고른 것 · 오늘의 관람객 ${fmt(VISITORS)}명 사이에서`, L, y + 62);
+  g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `600 26px ${D}`; g.textBaseline = 'alphabetic';
+  g.fillText('MONET 100 · The Next Impression', L, 250); g.textAlign = 'right'; g.fillText(stampLine(VISITORS).split(' · ')[0], W - L, 250); g.textAlign = 'left';
+  let y = 360;
+  g.fillStyle = '#fff'; g.font = `800 96px ${D}`; g.fillText('나의 관람 기록', L - 4, y);
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.font = `500 30px ${B}`; g.fillText(`네 곳에서 고른 것 · 오늘의 관람객 ${fmt(VISITORS)}명 사이에서`, L, y + 58);
   // 2×2
-  const gw = 448, gh = 520, gx = [L, W - L - gw], gy = [y + 110, y + 110 + gh + 24];
+  const gw = 448, gh = 500, gx = [L, W - L - gw], gy = [y + 100, y + 100 + gh + 20];
   for (let i = 0; i < 4; i++) {
-    const s = STATIONS[i], x = gx[i % 2], yy = gy[Math.floor(i / 2)], ih = 300;
+    const s = STATIONS[i], x = gx[i % 2], yy = gy[Math.floor(i / 2)], ih = 290;
     if (s.id === 'c1') {
       g.fillStyle = '#211E1B'; g.fillRect(x, yy, gw, ih);
       g.save(); g.shadowColor = 'rgba(0,0,0,.6)'; g.shadowBlur = 30; g.shadowOffsetY = 12; const pw = 190, ph = 228;
@@ -138,20 +119,17 @@ async function render() {
       if (s.id === 'c0') { g.fillStyle = '#E7C46C'; g.beginPath(); g.arc(x + gw - 52, yy + ih - 52, 30, 0, 6.2832); g.fill(); g.strokeStyle = '#3B2A12'; g.lineWidth = 3; g.stroke(); }
       if (s.id === 'c2') { const t = await loadImg(s.ticket); if (t) { g.save(); g.translate(x + 24, yy + ih - 140); g.rotate(-0.08); g.shadowColor = 'rgba(0,0,0,.5)'; g.shadowBlur = 20; g.drawImage(t, 0, 0, 250, 250 * t.naturalHeight / t.naturalWidth); g.restore(); } }
     }
-    g.fillStyle = POINT; g.font = `800 26px ${D}`; g.fillText(`0${s.no}`, x, yy + ih + 52);
+    g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `800 26px ${D}`; g.fillText(`0${s.no}`, x, yy + ih + 52);
     g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `600 26px ${D}`; g.fillText(s.q, x + 50, yy + ih + 52);
     g.fillStyle = '#fff'; g.font = `800 ${s.choice.length > 9 ? 40 : 50}px ${D}`; g.fillText(s.choice, x, yy + ih + 118);
-    g.fillStyle = POINT; g.font = `800 64px ${D}`; const pt = `${s.opt.pct}%`; g.fillText(pt, x, yy + ih + 200);
-    const pw = g.measureText(pt).width; g.fillStyle = '#fff'; g.font = `800 32px ${D}`; g.fillText('가 같았다', x + pw + 10, yy + ih + 198);
+    g.fillStyle = POINT; g.font = `800 58px ${D}`; const pt = `${s.opt.pct}%`; g.fillText(pt, x, yy + ih + 186);
+    const pw = g.measureText(pt).width; g.fillStyle = '#fff'; g.font = `700 28px ${D}`; g.fillText('가 같았다', x + pw + 10, yy + ih + 184);
   }
-  // 나와 같은 길
-  const by = gy[1] + gh + 10;
-  g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(L, by, W - L * 2, 2);
-  g.fillStyle = POINT; g.font = `800 150px ${D}`; g.fillText(`${same}%`, L - 6, by + 160);
-  const sw = g.measureText(`${same}%`).width;
-  g.fillStyle = '#fff'; g.font = `800 40px ${D}`; g.fillText('나와 같은 길', L + sw + 30, by + 96);
-  g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `600 30px ${B}`; g.fillText(`${fmt(sameN)}명 · 네 곳 모두 같은 쪽`, L + sw + 30, by + 146);
-  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${B}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, H - 120);
+  // 네 곳 모두 같은 쪽 — 작은 한 줄
+  const by = gy[1] + gh + 4;
+  g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(L, by, W - L * 2, 2);
+  g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `600 26px ${B}`; g.fillText(`네 곳 모두 나와 같은 쪽 · 오늘 ${fmt(sameN)}명`, L, by + 48);
+  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 22px ${B}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, by + 90);
   return c;
 }
 setupShare($('#share'), render, 'monet100_관람기록.png');

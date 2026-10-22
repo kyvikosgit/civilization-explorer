@@ -26,7 +26,7 @@ body.xc { --page-bg: #E6E0D3; --ink-p: #2A241C; --ink-d: rgba(42,36,28,.62); --i
 .xc-rule { width: 64px; height: 3px; margin: 10px auto 0; border-top: 1px solid var(--ink-p); border-bottom: 1px solid var(--ink-p); }
 .xc-cat { margin-top: 12px; font-family: var(--didone); font-weight: 900; font-size: 40px; letter-spacing: .06em; line-height: 1; }
 .xc-it { margin-top: 6px; font-family: var(--serif); font-style: italic; font-size: 14px; }
-.xc-ko { margin-top: 10px; font-family: var(--display); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.xc-ko { margin-top: 10px; font-family: var(--display); font-weight: 600; font-size: 15px; }
 .xc-orn { position: relative; width: 64px; height: 10px; margin: 12px auto 8px; background: linear-gradient(var(--ink-p), var(--ink-p)) left center / 22px 1px no-repeat, linear-gradient(var(--ink-p), var(--ink-p)) right center / 22px 1px no-repeat; }
 .xc-orn i { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; background: var(--ink-p); transform: translate(-50%, -50%) rotate(45deg); }
 .xc-where { margin: 8px auto 0; max-width: 270px; font-size: 12px; line-height: 1.55; color: var(--ink-d); }
@@ -44,7 +44,7 @@ body.xc { --page-bg: #E6E0D3; --ink-p: #2A241C; --ink-d: rgba(42,36,28,.62); --i
 .xc-e-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .xc-e-hd .no { font-family: var(--didone); font-weight: 900; font-size: 22px; letter-spacing: -0.01em; }
 .xc-e-hd .room { font-family: var(--serif); font-style: italic; font-size: 11.5px; color: var(--ink-d); white-space: nowrap; }
-.xc-e-t { margin-top: 6px; font-family: var(--display); font-weight: 800; font-size: 21px; line-height: 1.25; letter-spacing: -0.03em; }
+.xc-e-t { margin-top: 6px; font-family: var(--display); font-weight: 800; font-size: 21px; line-height: 1.25; }
 .xc-e-by { margin: 3px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-d); }
 .xc-e-q { margin: 2px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-d); }
 
@@ -66,8 +66,8 @@ body.xc { --page-bg: #E6E0D3; --ink-p: #2A241C; --ink-d: rgba(42,36,28,.62); --i
 .xc-tab .l { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .xc-tab .ld { flex: 1; min-width: 12px; border-bottom: 1.5px dotted rgba(42,36,28,.42); transform: translateY(-3px); }
 .xc-tab .v { font-family: var(--serif); font-size: 13px; font-variant-numeric: tabular-nums; min-width: 18px; text-align: right; }
-.xc-tab li.me { color: var(--point); font-weight: 700; }
-.xc-tab li.me .k { color: var(--point); }
+.xc-tab li.me { color: #B4501F; font-weight: 700; }
+.xc-tab li.me .k { color: #B4501F; }
 .xc-tab li.me .ld { border-color: rgba(217,103,47,.6); }
 .xc-tab li.me .v { font-weight: 700; }
 
@@ -76,13 +76,12 @@ body.xc { --page-bg: #E6E0D3; --ink-p: #2A241C; --ink-d: rgba(42,36,28,.62); --i
 .xc-fig svg { display: block; width: 100%; height: 16px; }
 .xc-fig figcaption { margin-top: 6px; font-size: 11.5px; line-height: 1.45; color: var(--ink-d); }
 .xc-fig figcaption i { font-family: var(--serif); font-style: italic; color: var(--ink-p); margin-right: 4px; }
-.xc-fig figcaption b { font-family: var(--display); font-weight: 800; color: var(--point); }
+.xc-fig figcaption b { font-family: var(--display); font-weight: 800; color: #B4501F; }
 
 /* 간기 + 도장 */
 .xc-colo { position: relative; margin-top: 18px; padding: 18px 0 6px; border-top: 3px double var(--ink-p); text-align: center; }
 .xc-colo .xc-orn { margin-top: 0; }
-.xc-same { font-family: var(--display); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
-.xc-same b { font-weight: 800; font-size: 22px; color: var(--point); letter-spacing: -0.03em; }
+.xc-same { font-family: var(--body); font-weight: 500; font-size: 13px; color: var(--ink-d); }
 .xc-colo-p { margin: 8px auto 0; max-width: 240px; font-size: 11.5px; line-height: 1.6; color: var(--ink-d); }
 .xc-colo-fr { margin: 10px auto 0; max-width: 250px; font-family: var(--serif); font-style: italic; font-size: 11.5px; line-height: 1.5; color: var(--ink-d); }
 .xc-seal { position: relative; margin: 16px auto 0; width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; }
@@ -103,3 +102,5 @@ body.xc { --page-bg: #E6E0D3; --ink-p: #2A241C; --ink-d: rgba(42,36,28,.62); --i
   .xc-sheet, .xc-e, .xc-seal .guide { animation: none; opacity: 1; transform: none; }
   .xc-seal.stamped .ink { animation: none; opacity: .88; transform: rotate(-14deg); }
 }
+body.xc .tb-title, body.xc .btn, body.xc h1, body.xc h2, body.xc h3 { letter-spacing: 0; }
+body.xc .xc-cat { letter-spacing: .06em; }

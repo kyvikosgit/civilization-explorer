@@ -12,39 +12,38 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Freesentation,-apple-system,sans-serif;color:var(--ink);background:#fff;line-height:1.6;word-break:keep-all}
 .wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px}
-.kicker{font-size:12.5px;font-weight:700;color:var(--point);letter-spacing:.06em}
-h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:28px;line-height:1.25;margin-top:6px}
+.kicker{font-size:13px;font-weight:600;color:var(--sub)}
+h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:28px;line-height:1.3;margin-top:6px}
 .lead{margin-top:10px;color:var(--sub);font-size:15px}
 .list{margin-top:28px;border-top:2px solid var(--ink)}
-.item{display:flex;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
+.item{display:flex;gap:14px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--line);color:inherit;text-decoration:none}
 .item:hover{background:var(--fill)}
-.no{flex:none;width:44px;font-family:Paperlogy,sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.02em}
+.no{flex:none;width:48px;font-family:Paperlogy,sans-serif;font-weight:800;font-size:19px}
 .body{flex:1;min-width:0}
-.title{font-family:Paperlogy,sans-serif;font-weight:800;font-size:17px}
-.desc{font-size:13.5px;color:var(--sub);margin-top:2px}
-.tag{flex:none;font-size:11.5px;font-weight:700;padding:3px 8px;border:1px solid var(--line);color:var(--sub);border-radius:999px}
-.tag.on{border-color:var(--point);color:var(--point)}
-.foot{margin-top:28px;font-size:13px;color:var(--meta)}
+.title{display:block;font-family:Paperlogy,sans-serif;font-weight:800;font-size:17px}
+.desc{display:block;font-size:15px;line-height:1.5;color:var(--sub);margin-top:3px}
+.tag{flex:none;align-self:flex-start;margin-top:3px;font-size:12px;font-weight:600;color:var(--meta)}
+.foot{margin-top:28px;font-size:14px;color:var(--sub)}
 .foot a{color:var(--ink);font-weight:700;text-decoration:none}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <p class="kicker">MONET 100 · 4F 체험 재기획</p>
-  <h1>체험 프로토타입 모음</h1>
-  <p class="lead">같은 전시, 다른 받아들임. 네 곳에서 입장을 묻고(C0·C1·C2·C4), 한 곳에서 만들고(C3), 한 곳에서 보고(C5), 출구에서 모아 봅니다. 폰에서 열어 직접 눌러보세요. 수치는 모두 예시이고, 그림·문구 일부는 제작 전 임시입니다.</p>
+  <p class="kicker">MONET 100 · 4층 체험</p>
+  <h1>체험 프로토타입</h1>
+  <p class="lead">폰에서 열어 직접 눌러 보세요. 수치는 예시이고, 그림과 영상 일부는 제작 전 임시입니다.</p>
 
   <div class="list">
-    <a class="item" href="c0.html"><span class="no">C0</span><span class="body"><span class="title">아카데미 살롱 · 심사하기 · 올해의 메달</span><span class="desc">후보작 5점을 3D 금박 액자로 한 점씩 돌려 보고 붓질까지 확대한 뒤(옆으로 밀면 다음) 한 점에 올해의 메달을 주고, 오늘의 심사위원단이 점(하나 = 열 사람)으로 각자 메달을 준 액자 아래에 모이는 것을 본다</span></span><span class="tag on">선택</span></a>
-    <a class="item" href="c1.html"><span class="no">C1</span><span class="body"><span class="title">시민사회 · 어느 전시를 보러 갈까</span><span class="desc">3D 칼럼을 돌려 독립 전시 안내문을 찾아 펼치면, 칼럼에 살롱 1874 공고와 화가들의 전시 안내(둘 다 재현)가 나란히 붙는다. 1874년 봄 파리 시민으로서 이번 주말 보러 갈 전시의 포스터를 누른다</span></span><span class="tag on">선택</span></a>
-    <a class="item" href="../ticket/map-picker.html"><span class="no">C2</span><span class="body"><span class="title">산업혁명 · 어디까지</span><span class="desc">부스 C-2 화면 그대로(현장 단서 · 전면 지도 · 칩). 열면 바로 노르망디 지도 — 생라자르역은 출발지로 표시만. 행선지를 누르면 그 자리의 사진이 역 옆에 붙고, 표를 끊으면 3D 기차표 → 그 자리에서 그린 그림 한 점 → 엽서(앞면 그림 · 뒷면 한 줄) → 오늘의 관람객</span></span><span class="tag on">선택</span></a>
-    <a class="item" href="c3.html"><span class="no">C3</span><span class="body"><span class="title">화가의 아틀리에 · 빛을 밝히기</span><span class="desc">어두운 실내 그림을 굵은 붓으로 쓸면 야외의 색이 드러난다(3~5번이면 거의 다). 질문 없음</span></span><span class="tag">만들기</span></a>
-    <a class="item" href="c4.html"><span class="no">C4</span><span class="body"><span class="title">나다르 사진관 · 사람을 남긴다면, 그림입니까 사진입니까</span><span class="desc">질문 한 화면 — 왼쪽 벽엔 25명의 초상화(금박·타원 액자, 아주 느리게 위로), 오른쪽 벽엔 같은 사람들의 사진(카르트 드 비지트, 아래로). 가끔 같은 사람의 두 액자가 함께 빛나며 이름이 뜬다. 액자를 누르면 그림 | 사진 나란히 크게(확대). 반쪽을 고르면 그쪽이 화면을 채움 → 오늘의 관람객 → 카드 저장. 내 초상은 기념으로</span></span><span class="tag on">선택</span></a>
-    <a class="item" href="c5.html"><span class="no">C5</span><span class="body"><span class="title">인상, 해돋이 · 그림 → 그날 아침의 장면</span><span class="desc">마지막 방의 〈인상, 해돋이〉를 비추면 그림이 화면 가득 뜨고, 밝은 자리부터 1872년 11월 르아브르의 아침 장면(AI 재현, 지금은 임시 영상)으로 풀렸다가 다시 그림으로 돌아온다. “모네는 이 아침을 이렇게 남겼습니다.” 연작(살아 있는 연작)은 아래 “연작 보기”로. 질문 없음</span></span><span class="tag">보기</span></a>
-    <a class="item" href="exit-e.html"><span class="no">출구</span><span class="body"><span class="title">출구 · 시안 A–E (기본 E)</span><span class="desc">위의 A · B · C · D · E 로 바꿔 보며 비교. E 큰 선택 · 작은 선택(지금 안) — 가치 판단 둘(C1 그림이 걸릴 자격 · C4 그림인가 사진인가)을 한 화면씩 크게: 내 선택 → 그때(1874)와 오늘의 관람객(점)을 같은 칸에 나란히. 그 뒤 흰 쟁반 “그 밖에 고른 것”(C0 메달 · C2 행선지, 작게) → 가져가는 것 다섯 → 같은 위계의 1080×1920 공유 이미지. A 흐름도(지금 안) · B 관람 기록 카드(한 장씩 위로 넘김) · C 전시 도록 한 장(Nº 1–4 · 도판 · 1874–2026 도장) · D 오늘의 관람객 속의 나(점 1,284개가 질문마다 다시 서고 94명만 남는다). 시안 A: 흐름도 — 한 줄기 주황 길이 네 번 갈라지고(갈래 폭 = 오늘의 비율), 오늘의 관람객이 점으로 줄기를 흘러 내려가 나와 같은 길 N%만 남는다. 길가에 메달 카드 · 전시 안내 · 기차표와 엽서 · 캔버스 · 초상 카드 · 액자. 같은 흐름도의 1080×1920 공유 이미지</span></span><span class="tag">마무리</span></a>
+    <a class="item" href="c0.html"><span class="no">C0</span><span class="body"><span class="title">아카데미 살롱</span><span class="desc">후보작 다섯 점을 돌려 보고, 한 점에 올해의 메달을 준다</span></span><span class="tag">선택</span></a>
+    <a class="item" href="c1.html"><span class="no">C1</span><span class="body"><span class="title">시민사회</span><span class="desc">이번 주말 볼 전시를 고른다. 살롱 또는 화가들의 전시</span></span><span class="tag">선택</span></a>
+    <a class="item" href="../ticket/map-picker.html"><span class="no">C2</span><span class="body"><span class="title">산업혁명</span><span class="desc">생라자르역에서 행선지를 골라 그해의 기차표를 끊는다</span></span><span class="tag">선택</span></a>
+    <a class="item" href="c3.html"><span class="no">C3</span><span class="body"><span class="title">화가의 아틀리에</span><span class="desc">어두운 실내 캔버스를 굵은 붓으로 쓸어 밖의 빛으로 다시 칠한다</span></span><span class="tag">만들기</span></a>
+    <a class="item" href="c4.html"><span class="no">C4</span><span class="body"><span class="title">나다르 사진관</span><span class="desc">사람을 남긴다면, 그림입니까 사진입니까</span></span><span class="tag">선택</span></a>
+    <a class="item" href="c5.html"><span class="no">C5</span><span class="body"><span class="title">인상, 해돋이</span><span class="desc">그림을 비추면 그날 아침의 장면으로 풀렸다가 다시 그림으로 돌아온다</span></span><span class="tag">보기</span></a>
+    <a class="item" href="exit-e.html"><span class="no">출구</span><span class="body"><span class="title">나의 선택과 오늘의 관람객</span><span class="desc">C1 · C4의 선택을 1874년과 오늘 나란히. 시안 A–E는 화면 위에서 바꾼다</span></span><span class="tag">마무리</span></a>
   </div>
 
-  <p class="foot">기획 전체: <a href="../../experience-v2.html">체험 장치 재기획안</a> · 프로토타입은 서버 없이 폰 안에서만 동작합니다.</p>
+  <p class="foot">기획 전체는 <a href="../../experience-v2.html">체험 장치 재기획안</a>에. 서버 없이 폰 안에서만 동작합니다.</p>
 </div>
 </body>
 </html>

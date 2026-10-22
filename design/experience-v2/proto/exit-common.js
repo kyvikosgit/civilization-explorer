@@ -1,6 +1,6 @@
 // 출구 시안 B·C·D 공용 — 시안 A(exit.js)와 같은 선택지 · 예시 비율 · localStorage 읽기, 그리고 공유 미리보기 · 캔버스 도우미
 //   네 곳(C0 · C1 · C2 · C4)의 내 입장: 기기에 남은 것(m100_choice)이 있으면 그것, 없으면 예시 값. 서버는 숫자만(여기서는 예시 수치)
-//   가져가는 것: 메달 카드 · 전시 안내(재현) · 기차표와 엽서 · 초상 카드(내 초상이 기기에 있으면 그것)
+//   가져가는 것: 메달 카드 · 전시 안내(재현) · 기차표와 엽서 · 사진관 카드(C4에서 고른 쪽 얼굴들의 콜라주, 내 초상이 기기에 있으면 그것)
 import { loadChoices } from './js/proto-common.js';
 import { fmt, stampLine } from './js/crowd.js';
 export { fmt, stampLine };
@@ -17,8 +17,8 @@ export const C0 = {
   5: { title: '르 봉 보크', short: '르 봉 보크', src: '../works/c0-bonbock.jpg', pct: 7, artist: '에두아르 마네', year: '1873' },
 };
 export const C1 = {
-  jury: { label: '심사위원이 고른 전시', short: '살롱', pct: 38, where: '샹젤리제 궁 · 5월 1일 개막', fr: 'Salon de 1874' },
-  viewer: { label: '화가들이 직접 연 전시', short: '화가들의 전시', pct: 62, where: '카퓌신 대로 35번지 · 4월 15일 · 1프랑', fr: '35, boulevard des Capucines' },
+  jury: { label: '살롱', short: '살롱', pct: 38, where: '샹젤리제 궁 · 5월 1일 개막', fr: 'Salon de 1874' },
+  viewer: { label: '화가들의 전시', short: '화가들의 전시', pct: 62, where: '카퓌신 대로 35번지 · 4월 15일 개막 · 1프랑', fr: '35, boulevard des Capucines' },
 };
 export const C2 = {
   argenteuil: { label: '아르장퇴유', fr: 'Argenteuil', year: 1874, pct: 13, ticket: 'argenteuil', paint: '../works/c2-arg-coquelicots-orsay.jpg', cap: '양귀비 들판', info: '11 km · 25분' },
@@ -28,9 +28,29 @@ export const C2 = {
   lehavre: { label: '르아브르', fr: 'Le Havre', year: 1872, pct: 54, ticket: 'havre', paint: '../works/c2-havre-impression-marmottan.jpg', cap: '인상, 해돋이', info: '229 km · 급행 4시간 30분' },
 };
 export const C4 = {
-  paint: { label: '그림', pct: 44, src: '../works/c4-baudelaire-paint.jpg', pos: '68% 50%', by: '귀스타브 쿠르베 · 1848년경' },
-  photo: { label: '사진', pct: 56, src: '../works/c4-baudelaire-photo.jpg', pos: '50% 30%', by: '펠릭스 나다르 · 1856~58' },
+  paint: { label: '그림', full: '그림으로', pct: 44, line: '화가가 보고 그린 대로' },
+  photo: { label: '사진', full: '사진으로', pct: 56, line: '렌즈 앞에 앉은 그대로' },
 };
+// C4 사진관 카드 — C4(c4.js card())와 같은 25명 가운데 12명의 얼굴(img/c4p, 4:5)을 고른 쪽으로 3 × 4 콜라주. 기기 안에서 한 번 그려 이미지로 쓴다
+//   인물 목록은 C4 와 같은 js/c4-people.json 에서 읽는다(C4 가 사람을 빼거나 더해도 따라간다). 앞세우고 싶은 얼굴부터, 없으면 목록 순서로
+const FACE_PREF = ['monet', 'manet', 'morisot', 'renoir', 'zola', 'pissarro', 'hugo', 'courbet', 'bernhardt', 'bazille', 'cezanne', 'sand'];
+const PEOPLE_IDS = await fetch('js/c4-people.json').then((r) => r.json()).then((d) => d.people.map((p) => p.id)).catch(() => FACE_PREF);
+const FACE_ORDER = [...FACE_PREF.filter((id) => PEOPLE_IDS.includes(id)), ...PEOPLE_IDS.filter((id) => !FACE_PREF.includes(id))];
+export const C4_FACES = FACE_ORDER.slice(0, 12);
+// 둥근 판(타원 마스크) 얼굴은 콜라주에서 뺀다 — 네 귀퉁이가 아주 밝거나 아주 어두운 판(img/c4p 를 재어 확인: caillebotte · liszt · renoir 사진, gautier 그림)
+function whiteCorners(im) { try { const c = document.createElement('canvas'); c.width = 20; c.height = 25; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, 20, 25); const d = x.getImageData(0, 0, 20, 25).data; const v = [[0, 0], [19, 0], [0, 24], [19, 24]].map(([px, py]) => { const i = (py * 20 + px) * 4; return (d[i] + d[i + 1] + d[i + 2]) / 3; }); return v.filter((q) => q > 225).length >= 2 || v.filter((q) => q < 18).length >= 2; } catch (e) { return false; } }
+async function makeCollage(k) {
+  const cols = 3, rows = 4, cw = 200, ch = 250, gap = 14, pad = 34, W = pad * 2 + cols * cw + (cols - 1) * gap, H = pad * 2 + rows * ch + (rows - 1) * gap;
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0, 0, W, H); bg.addColorStop(0, k === 'paint' ? '#2E2219' : '#26241F'); bg.addColorStop(1, '#141210'); g.fillStyle = bg; g.fillRect(0, 0, W, H);
+  const ims = (await Promise.all(FACE_ORDER.slice(0, 18).map((id) => loadImg(`img/c4p/${id}-${k}.jpg`)))).filter((im) => im && !whiteCorners(im)).slice(0, cols * rows);
+  ims.forEach((im, i) => {
+    const x = pad + (i % cols) * (cw + gap), y = pad + Math.floor(i / cols) * (ch + gap);
+    if (k === 'paint') { g.fillStyle = '#8C6B33'; g.fillRect(x, y, cw, ch); g.fillStyle = '#C9A55A'; g.fillRect(x + 3, y + 3, cw - 6, ch - 6); g.fillStyle = '#4A3519'; g.fillRect(x + 7, y + 7, cw - 14, ch - 14); if (im) g.drawImage(im, x + 9, y + 9, cw - 18, ch - 18); }
+    else { g.fillStyle = '#E6DBC1'; g.fillRect(x, y, cw, ch); if (im) g.drawImage(im, x + 10, y + 10, cw - 20, ch - 34); }
+  });
+  return c.toDataURL('image/jpeg', 0.86);
+}
 
 // 기기에 남은 입장 + 예시 값
 const stored = loadChoices();
@@ -46,6 +66,7 @@ export const mine = {
 export const anyReal = Object.values(mine).some((m) => m.real);
 
 const m0 = C0[mine.c0.k], m1 = C1[mine.c1.k], m2 = C2[mine.c2.k], m4 = C4[mine.c4.k];
+const c4Collage = await makeCollage(mine.c4.k);
 const postcardLine = c2card && c2card.id === mine.c2.k && c2card.text ? c2card.text : '';
 
 // 네 곳 — 화면마다 같은 순서(바닥 순서 C0 → C1 → C2 → C4)
@@ -54,7 +75,7 @@ export const STATIONS = [
     opts: Object.keys(C0).map((k) => ({ k, lab: C0[k].short, full: `${k}번 〈${C0[k].title}〉`, pct: C0[k].pct })), me: mine.c0.k, real: mine.c0.real,
     choice: `〈${m0.title}〉`, choicePlain: m0.title, sub: `${m0.artist} · ${m0.year} · ${mine.c0.k}번 후보작`, img: m0.src,
     art: { kind: 'medal', src: m0.src, lb: '메달 카드', t: `〈${m0.title}〉` } },
-  { id: 'c1', no: 2, roman: 'II', room: 'C1 시민사회', roomFr: 'Paris, printemps 1874', q: '보러 간 전시', ask: '이번 주말, 어느 전시를 보러',
+  { id: 'c1', no: 2, roman: 'II', room: 'C1 시민사회', roomFr: 'Paris, printemps 1874', q: '보러 간 전시', ask: '어느 전시를 보러 가시겠습니까?',
     opts: Object.keys(C1).map((k) => ({ k, lab: C1[k].short, full: C1[k].label, pct: C1[k].pct })), me: mine.c1.k, real: mine.c1.real,
     choice: m1.label, choicePlain: m1.label, sub: m1.where, expo: mine.c1.k === 'viewer',
     art: { kind: 'poster', expo: mine.c1.k === 'viewer', lb: '전시 안내 · 재현', t: mine.c1.k === 'viewer' ? '카퓌신 대로 35번지' : '살롱 1874' } },
@@ -62,12 +83,12 @@ export const STATIONS = [
     opts: Object.keys(C2).map((k) => ({ k, lab: C2[k].label, full: `${C2[k].label} · ${C2[k].year}년 표`, pct: C2[k].pct })), me: mine.c2.k, real: mine.c2.real,
     choice: m2.label, choicePlain: m2.label, sub: `${m2.year}년 표 · ${m2.info}`, img: m2.paint, ticket: `../ticket/ticket-front-${m2.ticket}.png`, cap: m2.cap, fr: m2.fr,
     art: { kind: 'ticket', src: `../ticket/ticket-front-${m2.ticket}.png`, paint: m2.paint, lb: '기차표 · 엽서', t: postcardLine ? `“${postcardLine.slice(0, 14)}${postcardLine.length > 14 ? '…' : ''}”` : `${m2.label} · ${m2.year}` } },
-  { id: 'c4', no: 4, roman: 'IV', room: 'C4 나다르 사진관', roomFr: 'Atelier Nadar', q: '그림과 사진', ask: '보들레르의 초상, 어느 쪽을 간직할까',
-    opts: Object.keys(C4).map((k) => ({ k, lab: C4[k].label, full: C4[k].label, pct: C4[k].pct })), me: mine.c4.k, real: mine.c4.real,
-    choice: `${m4.label} 쪽`, choicePlain: m4.label, sub: `샤를 보들레르 · ${m4.by}`, img: m4.src, pos: m4.pos,
+  { id: 'c4', no: 4, roman: 'IV', room: 'C4 나다르 사진관', roomFr: 'Atelier Nadar', q: '사람을 남긴다면', ask: '사람을 남긴다면, 그림입니까 사진입니까?',
+    opts: Object.keys(C4).map((k) => ({ k, lab: C4[k].label, full: C4[k].full, pct: C4[k].pct })), me: mine.c4.k, real: mine.c4.real,
+    choice: m4.full, choicePlain: m4.label, sub: m4.line, img: c4Collage, pos: '50% 50%',
     art: myPortrait && myPortrait.thumb
       ? { kind: 'carte', src: myPortrait.thumb, pos: '50% 40%', lb: '내 초상', t: '카르트 드 비지트' }
-      : { kind: 'carte', src: m4.src, pos: m4.pos, lb: '초상 카드', t: `보들레르 · ${m4.label}` } },
+      : { kind: 'collage', src: c4Collage, pos: '50% 50%', lb: '사진관 카드', t: `나는 ${m4.full} 남긴다` } },
 ];
 STATIONS.forEach((s) => { s.opt = s.opts.find((o) => o.k === s.me); s.others = s.opts.filter((o) => o.k !== s.me); });
 

@@ -1,10 +1,11 @@
 // 출구 — 나의 길(흐름도). 질문 없음. 네 곳(C0·C1·C2·C4)에서 갈린 길 가운데 내가 지난 길을 한 줄기 주황으로, 갈래의 폭은 오늘의 비율, 점 하나 = 열 사람.
-//   오늘의 관람객(점)이 줄기를 따라 위에서 아래로 내려가며, 갈림마다 나와 같은 쪽만 다음 줄로 내려가고 나머지는 그 갈래 끝에 남는다. 맨 아래 남은 사람이 "나와 같은 길 7.3% · 94명".
-//   길가(오른쪽)에 가져가는 것: C0 메달 카드 · C1 전시 안내(재현) · C2 그해의 기차표 · C3 내 캔버스 · C4 간직한 초상 카드 · C5 내 액자. 바닥 순서(C0 → C1 → C2 → C3 → C4 → C5) 그대로.
+//   오늘의 관람객(점)이 줄기를 따라 위에서 아래로 내려가며, 갈림마다 나와 같은 쪽만 다음 줄로 내려가고 나머지는 그 갈래 끝에 남는다. 맨 아래 남은 사람 수는 작은 한 줄로만.
+//   길가(오른쪽)에 가져가는 것: C0 메달 카드 · C1 전시 안내(재현) · C2 그해의 기차표 · C3 내 캔버스 · C4 사진관 카드(고른 쪽 얼굴 콜라주) · C5 내 액자. 바닥 순서(C0 → C1 → C2 → C3 → C4 → C5) 그대로.
 //   저장·공유는 같은 흐름도를 1080×1920 으로 다시 그린다(같은 자리 계획·같은 씨앗). 다른 프로토타입이 localStorage(m100_choice · m100_c5_keep)에 남긴 것이 있으면 그것을, 없으면 예시 값을 쓴다. 서버는 숫자만(여기서는 예시 수치).
 import { toast, loadImage } from '../../../booth/js/common.js';
 import { loadChoices, clearChoices, reduceMotion } from './js/proto-common.js';
 import { createCrowd, dotsFor, packDisc, packRect, scatter, discRadius, split, stampLine, fmt, rng, POINT } from './js/crowd.js';
+import { STATIONS as XS } from './exit-common.js';          // C4 사진관 카드(고른 쪽 얼굴 콜라주)는 B–E 와 같은 것을 쓴다
 
 const $ = (s) => document.querySelector(s);
 const VISITORS = 1284;
@@ -17,7 +18,7 @@ const C0 = {
   4: { title: '봄날', src: '../works/c0-spring.jpg', pct: 39 },
   5: { title: '르 봉 보크', src: '../works/c0-bonbock.jpg', pct: 7 },
 };
-const C1 = { jury: { label: '심사위원이 고른 전시', short: '살롱', pct: 38 }, viewer: { label: '화가들이 직접 연 전시', short: '화가들의 전시', pct: 62 } };
+const C1 = { jury: { label: '살롱', short: '살롱', pct: 38 }, viewer: { label: '화가들의 전시', short: '화가들의 전시', pct: 62 } };
 const C2 = {
   argenteuil: { label: '아르장퇴유', year: 1874, pct: 13, ticket: 'argenteuil', paint: '../works/c2-arg-coquelicots-orsay.jpg' },
   vernon: { label: '베르농', year: 1883, pct: 11, ticket: 'vernon', paint: '../works/c2-giverny-footbridge-nga.jpg' },
@@ -25,7 +26,7 @@ const C2 = {
   lesifs: { label: '레지프', year: 1883, pct: 13, ticket: 'ifs', paint: '../works/c2-etretat-manneporte-met.jpg' },
   lehavre: { label: '르아브르', year: 1872, pct: 54, ticket: 'havre', paint: '../works/c2-havre-impression-marmottan.jpg' },
 };
-const C4 = { paint: { label: '그림', pct: 44, src: '../works/c4-baudelaire-paint.jpg', pos: '68% 50%' }, photo: { label: '사진', pct: 56, src: '../works/c4-baudelaire-photo.jpg', pos: '50% 30%' } };
+const C4 = { paint: { label: '그림으로', short: '그림', pct: 44 }, photo: { label: '사진으로', short: '사진', pct: 56 } };
 
 // 예시 값 + 기기에 남은 입장
 const stored = loadChoices();
@@ -46,8 +47,8 @@ const NODES = [
   { id: 'c2', st: 'C2 산업혁명', q: '어디까지', opts: Object.keys(C2).map((k) => ({ k, lab: C2[k].label, full: `${C2[k].label} · ${C2[k].year}년 표`, pct: C2[k].pct })), me: mine.c2.k, real: mine.c2.real,
     art: { kind: 'ticket', src: `../ticket/ticket-front-${C2[mine.c2.k].ticket}.png`, card: c2card && c2card.id === mine.c2.k ? c2card : null, paint: C2[mine.c2.k].paint, lb: '그해의 기차표 · 엽서', t: c2card && c2card.id === mine.c2.k && c2card.text ? `“${c2card.text.slice(0, 14)}${c2card.text.length > 14 ? '…' : ''}”` : `${C2[mine.c2.k].label} · ${C2[mine.c2.k].year}` },
     after: { kind: 'canvas', src: 'img/c3-outdoor.jpg', st: 'C3 화가의 아틀리에', lb: '내 캔버스', t: '밖의 빛으로 칠한 것' } },
-  { id: 'c4', st: 'C4 나다르 사진관', q: '그림인가 사진인가', opts: Object.keys(C4).map((k) => ({ k, lab: C4[k].label, full: C4[k].label, pct: C4[k].pct })), me: mine.c4.k, real: mine.c4.real,
-    art: { kind: 'carte', src: C4[mine.c4.k].src, pos: C4[mine.c4.k].pos, lb: '간직한 초상 카드', t: `보들레르 · ${C4[mine.c4.k].label}` },
+  { id: 'c4', st: 'C4 나다르 사진관', q: '사람을 남긴다면', opts: Object.keys(C4).map((k) => ({ k, lab: C4[k].short, full: C4[k].label, pct: C4[k].pct })), me: mine.c4.k, real: mine.c4.real,
+    art: { ...XS[3].art, kind: XS[3].art.kind === 'collage' ? 'collage' : 'carte' },
     after: { kind: 'frame', src: c5keep && c5keep.thumb ? c5keep.thumb : 'img/c5/haystacks/1.jpg', st: 'C5 모네 전시관', lb: '내 액자', t: c5keep ? `${c5keep.title} · ${c5keep.when}` : '건초더미 · 예시' } },
 ];
 const rows = NODES.map((n) => { const o = n.opts.find((x) => x.k === n.me); return { st: n.st, q: n.q, val: o.full, pct: o.pct, real: n.real }; });
@@ -154,7 +155,7 @@ function build() {
     h += artHtml(n.art, anyReal && !n.real ? 'none' : '');
     if (n.after) h += artHtml(n.after, 'after');
   });
-  h += `<div class="fc-end" style="left:${L.xT + 34}px;top:${L.end.y + 6}px"><div class="crowd-big" id="sameBig">${same}<i>%</i></div><div class="crowd-lab">나와 같은 길 · ${fmt(sameN)}명<small>네 곳 모두 나와 같은 쪽으로 간 관람객 · 100가지 길 중 하나</small></div></div>`;
+  h += `<div class="fc-end" id="sameBig" style="left:${L.xT + 34}px;top:${L.end.y + 6}px"><div class="crowd-lab">네 곳 모두 나와 같은 쪽<small>오늘 ${fmt(sameN)}명</small></div></div>`;
   html.innerHTML = h;
   $('#crowdCv').width = 1; $('#crowdCv').height = 1;
 }
@@ -194,9 +195,9 @@ async function render() {
   g.fillStyle = '#151413'; g.fillRect(0, 0, W, H);
   const Lm = 80, R = W - 80; let y = 250;
   g.fillStyle = 'rgba(255,255,255,.55)'; g.font = `700 26px ${BODY}`; g.textBaseline = 'alphabetic';
-  g.fillText('MONET 100 · The Next Impression · 2026.12.14', Lm, y); y += 86;
+  g.fillText('MONET 100 · The Next Impression', Lm, y); y += 86;
   g.fillStyle = '#FFFFFF'; g.font = `800 88px ${DISP}`; g.fillText('나의 길', Lm, y);
-  g.fillStyle = POINT; g.font = `600 30px ${DISP}`; g.fillText(`오늘의 관람객 ${fmt(VISITORS)}명 · 점 하나 = 열 사람`, Lm + 330, y - 6); y += 50;
+  g.fillStyle = 'rgba(255,255,255,.55)'; g.font = `600 30px ${DISP}`; g.fillText(`오늘의 관람객 ${fmt(VISITORS)}명 · 점 하나 = 열 사람`, Lm + 330, y - 6); y += 50;
   // 흐름도: 폭 920, 배율 — 세로가 1920-250-250-머리(≈190)-바닥(60) ≈ 1170 안에 들어오게
   const FW = R - Lm; const L1 = layoutFlow(FW, 1); const kk = Math.min(1.25, 1150 / L1.H); const L2 = layoutFlow(FW, kk);
   const top = y;
@@ -263,9 +264,8 @@ async function render() {
     g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `500 ${f(10.5)}px ${BODY}`; g.fillText(a.t, x, a.y + S / 2 + f(27));
   }
   // 끝
-  g.fillStyle = POINT; g.font = `800 ${f(40)}px ${DISP}`; g.fillText(`${same}%`, L2.xT + f(34), L2.end.y + f(14));
-  g.fillStyle = '#FFFFFF'; g.font = `600 ${f(12.5)}px ${DISP}`; g.fillText(`나와 같은 길 · ${fmt(sameN)}명`, L2.xT + f(34), L2.end.y + f(32));
-  g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `500 ${f(10.5)}px ${BODY}`; g.fillText('네 곳 모두 나와 같은 쪽으로 간 관람객 · 100가지 길 중 하나', L2.xT + f(34), L2.end.y + f(48));
+  g.fillStyle = 'rgba(255,255,255,.75)'; g.font = `600 ${f(12)}px ${DISP}`; g.fillText('네 곳 모두 나와 같은 쪽', L2.xT + f(34), L2.end.y + f(4));
+  g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `500 ${f(10.5)}px ${BODY}`; g.fillText(`오늘 ${fmt(sameN)}명`, L2.xT + f(34), L2.end.y + f(20));
   g.restore();
   g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${BODY}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, Lm, H - 250 - 20);
   shareBlob = await new Promise((r) => c.toBlob(r, 'image/png'));

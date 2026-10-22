@@ -1,7 +1,7 @@
 // 출구 시안 C — 전시 도록 한 장. 1874년 리브레처럼 Nº 1–4: 내가 고른 것 · 작가/자리 · 점선 이음 표(오늘의 비율) · Fig.(빗금 띠) · 끼워 붙인 도판(가져가는 것)
-//   간기에 "나와 같은 길 7.3% · 94명", 도장(1874–2026)은 눌러서 찍는다. 공유 이미지는 같은 한 장을 1080×1920 종이로
+//   간기에 작은 한 줄(네 곳 모두 나와 같은 쪽 · 오늘 N명), 도장(1874–2026)은 눌러서 찍는다. 공유 이미지는 같은 한 장을 1080×1920 종이로
 import { clearChoices, reduceMotion } from './js/proto-common.js';
-import { STATIONS, VISITORS, same, sameN, anyReal, fmt, stampLine, artThumb, setupShare, drawArt, fontsReady, POINT } from './exit-common.js';
+import { STATIONS, VISITORS, sameN, anyReal, fmt, stampLine, artThumb, setupShare, drawArt, fontsReady, POINT } from './exit-common.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const ROMAN = ['I', 'II', 'III', 'IV'];
@@ -17,7 +17,7 @@ function figSVG(s) {
 function tabRows(s) {
   return s.opts.map((o, i) => {
     const me = o.k === s.me, key = s.id === 'c0' ? o.k : String.fromCharCode(97 + i);
-    return `<li class="${me ? 'me' : ''}"><span class="k">${me ? '☞ ' : ''}${key}</span><span class="l">${s.id === 'c0' ? (o.full.replace(/^\d번 /, '')) : o.full}</span><span class="ld"></span><span class="v">${o.pct}</span></li>`;
+    return `<li class="${me ? 'me' : ''}"><span class="k">${key}</span><span class="l">${s.id === 'c0' ? (o.full.replace(/^\d번 /, '')) : o.full}</span><span class="ld"></span><span class="v">${o.pct}</span></li>`;
   }).join('');
 }
 const ROOM_FR = { c0: "Salon de l'Académie", c1: 'Paris, printemps 1874', c2: 'Gare Saint-Lazare', c4: 'Atelier Nadar' };
@@ -26,7 +26,7 @@ $('#entries').innerHTML = STATIONS.map((s, i) => `<li class="xc-e" style="--i:${
   <figure class="xc-plate" style="--rot:${ROT[i]}"><span class="mount">${artThumb(s.art)}</span><figcaption><i>Pl. ${ROMAN[i]}.</i> ${s.art.lb}</figcaption></figure>
   <h3 class="xc-e-t">${s.choice}</h3>
   <p class="xc-e-by">${s.sub}.</p>
-  <p class="xc-e-q">${s.room} — ${s.ask}.</p>
+  <p class="xc-e-q">${s.room} · ${s.ask}</p>
   <ul class="xc-tab">${tabRows(s)}</ul>
   <figure class="xc-fig">${figSVG(s)}<figcaption><i>Fig. ${s.no}.</i>오늘의 관람객 ${fmt(VISITORS)}명이 고른 쪽 · 나와 같은 쪽 <b>${s.opt.pct}%</b></figcaption></figure>
 </li>`).join('');
@@ -35,9 +35,8 @@ $('#entries').innerHTML = STATIONS.map((s, i) => `<li class="xc-e" style="--i:${
 const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const now = new Date();
 $('#visN').textContent = fmt(VISITORS);
-$('#same').textContent = `${same}%`;
-$('#sameN').textContent = `${fmt(sameN)}명`;
-$('#coloP').textContent = `네 곳 모두 나와 같은 쪽을 고른 오늘의 관람객. ${stampLine(VISITORS)}.`;
+$('#sameLine').textContent = `네 곳 모두 나와 같은 쪽 · 오늘 ${fmt(sameN)}명`;
+$('#coloP').textContent = `${stampLine(VISITORS)}`;
 $('#coloFr').textContent = `Achevé d'imprimer à Séoul, le ${now.getDate()} ${MOIS[now.getMonth()]} ${now.getFullYear()}.`;
 
 // 도장 — 누르면 쿵
@@ -87,7 +86,7 @@ async function render() {
   g.font = `italic 400 34px ${SERIF}`; g.fillText('des ouvrages choisis par un visiteur', cx, 412);
   g.font = `600 34px ${D}`; g.fillText('한 관람객이 고른 것들의 도록', cx, 476);
   g.fillRect(cx - 60, 528, 40, 1.5); g.fillRect(cx + 20, 528, 40, 1.5); g.save(); g.translate(cx, 528); g.rotate(Math.PI / 4); g.fillRect(-6, -6, 12, 12); g.restore();
-  g.fillStyle = DIM; g.font = `400 22px ${SERIF}`; sp('7px'); g.fillText('PARIS, 1874 — SÉOUL, 2026', cx, 590); sp('0px');
+  g.fillStyle = DIM; g.font = `400 22px ${SERIF}`; sp('7px'); g.fillText('PARIS, 1874 · SÉOUL, 2026', cx, 590); sp('0px');
   // 단 머리
   let y = 660; g.textAlign = 'left'; g.fillStyle = INK; g.font = `400 22px ${SERIF}`; sp('5px'); g.fillText('OUVRAGES CHOISIS', 96, y); const hw = g.measureText('OUVRAGES CHOISIS').width; sp('0px');
   g.fillRect(96 + hw + 20, y - 8, W - 96 * 2 - hw - 20, 2);
@@ -121,11 +120,8 @@ async function render() {
   y = y + 4 * EH + 20;
   g.fillStyle = INK; g.fillRect(96, y, W - 192, 2); g.fillRect(96, y + 7, W - 192, 2);
   g.textAlign = 'center'; g.fillRect(cx - 60, y + 56, 40, 1.5); g.fillRect(cx + 20, y + 56, 40, 1.5); g.save(); g.translate(cx, y + 56); g.rotate(Math.PI / 4); g.fillRect(-6, -6, 12, 12); g.restore();
-  g.font = `600 36px ${D}`; const a = '나와 같은 길 ', b = `${same}%`, d = ` · ${fmt(sameN)}명`;
-  g.font = `600 36px ${D}`; const wa = g.measureText(a).width, wd = g.measureText(d).width; g.font = `800 52px ${D}`; const wb = g.measureText(b).width;
-  let x0 = cx - (wa + wb + wd) / 2; g.textAlign = 'left';
-  g.font = `600 36px ${D}`; g.fillText(a, x0, y + 128); g.fillStyle = POINT; g.font = `800 52px ${D}`; g.fillText(b, x0 + wa, y + 128); g.fillStyle = INK; g.font = `600 36px ${D}`; g.fillText(d, x0 + wa + wb, y + 128);
-  g.textAlign = 'center'; g.fillStyle = DIM; g.font = `500 24px ${B}`; g.fillText(`네 곳 모두 나와 같은 쪽을 고른 오늘의 관람객 · ${stampLine(VISITORS)}`, cx, y + 174);
+  g.textAlign = 'center'; g.fillStyle = INK; g.font = `600 28px ${D}`; g.fillText(`네 곳 모두 나와 같은 쪽 · 오늘 ${fmt(sameN)}명`, cx, y + 124);
+  g.fillStyle = DIM; g.font = `500 24px ${B}`; g.fillText(stampLine(VISITORS), cx, y + 170);
   g.font = `italic 400 24px ${SERIF}`; g.fillText($('#coloFr').textContent, cx, y + 212);
   drawSeal(g, W - 175, y - 34, 88);
   return c;

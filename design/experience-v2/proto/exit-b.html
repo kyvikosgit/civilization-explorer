@@ -17,9 +17,9 @@
 <nav class="vsw float" id="vsw" aria-label="출구 시안"><span class="vsw-lb">출구 시안</span><a href="exit.html">A</a><a href="exit-b.html" aria-current="page">B</a><a href="exit-c.html">C</a><a href="exit-d.html">D</a><a href="exit-e.html">E</a><span class="vsw-nm">기록 카드</span></nav>
 <div class="xb-prog" id="prog" aria-hidden="true"></div>
 
-<!-- 카드 더미 — 한 장이 한 화면. 위로 넘기거나(스냅) 눌러서 다음 장. 표지(주황) → 네 곳(검정) → 모아 보기(흰) -->
+<!-- 카드 더미 — 한 장이 한 화면. 위로 넘기거나(스냅) 눌러서 다음 장. 표지(검정) → 네 곳(검정) → 모아 보기(흰) -->
 <main class="xb-deck" id="deck">
-  <section class="xb-card intro" data-tone="point">
+  <section class="xb-card intro" data-tone="dark">
     <div class="xb-in">
       <div class="xb-meta ln"><span>MONET 100</span><span>2026.12.14</span></div>
       <div class="xb-crowd ln" id="introDots" aria-hidden="true"></div>
@@ -31,11 +31,10 @@
   <!-- 네 곳 카드는 exit-b.js 가 채운다 -->
   <section class="xb-card sum" data-tone="light" id="sum">
     <div class="xb-in">
-      <div class="xb-meta ln"><span>나와 같은 길</span><span id="sumStamp"></span></div>
-      <div class="xb-same ln"><b id="sameBig">7.3</b><i>%</i></div>
-      <p class="xb-same-lab ln" id="sameLab"></p>
-      <canvas class="xb-sumdots ln" id="sumDots" aria-hidden="true"></canvas>
+      <div class="xb-meta ln"><span>MONET 100</span><span id="sumStamp"></span></div>
+      <h2 class="xb-sum-hd ln">나의 네 선택</h2>
       <ol class="xb-list ln" id="sumList"></ol>
+      <p class="xb-sameline ln" id="sameLine"></p>
       <div class="xb-tray ln" id="tray" aria-label="가져가는 것"></div>
       <div class="xb-acts ln">
         <button class="btn" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>

@@ -1,137 +1,115 @@
-/* 출구 시안 E — 큰 선택(한 화면씩, 크게) → 작은 선택(흰 쟁반, 작게) → 가져가는 것. 검정 · 흰 · 주황 한 색 */
+/* 출구 시안 E — 큰 선택(한 화면씩) → 작은 선택(흰 쟁반, 작게) → 가져가는 것. 검정 · 흰 · 주황 한 색(내 점과 내 비율만). 한글 자간 0 */
 html { background: #121110; }
 body.xe { background: #121110; color: #fff; height: 100dvh; overflow: hidden; }
+body.xe h1, body.xe h2, body.xe h3, body.xe .btn { letter-spacing: 0; }
 
-/* 덱 — 평범한 세로 스크롤(스냅 · 자동 넘김 없음). 장마다 1.4화면쯤 */
+/* 덱 — 평범한 세로 스크롤(스냅 · 자동 넘김 없음) */
 .xe-deck { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .xe-deck::-webkit-scrollbar { display: none; }
-
-/* ── 큰 선택 한 장 */
-.xe-ch { position: relative; min-height: max(145dvh, 940px); display: flex; flex-direction: column; overflow: hidden; isolation: isolate; }
-.xe-in { position: relative; z-index: 2; flex: 1; display: flex; flex-direction: column; padding: calc(64px + var(--safe-t)) 22px calc(18px + var(--safe-b)); }
+.xe-deck .vsw-row { padding-bottom: 4px; }
 
 /* 차례로 드러나기 — 보이는 만큼, 한 걸음씩(간격은 exit-e.js), 천천히 · 튀지 않게 */
-.rv { opacity: 0; transform: translateY(14px); transition: opacity .9s ease-out, transform 1s var(--ease-out); }
+.rv { opacity: 0; transform: translateY(12px); transition: opacity 1s ease-out, transform 1.1s var(--ease-out); }
 .rv.in { opacity: 1; transform: none; }
 
-/* 바탕 — 위쪽에 옅게, 아래로 어둠에 잠긴다 */
-.xe-bg { position: absolute; inset: 0 0 auto; height: 72dvh; z-index: 0; pointer-events: none; overflow: hidden; }
-.xe-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,17,16,.55) 0%, rgba(18,17,16,.35) 30%, rgba(18,17,16,.82) 70%, #121110 100%); }
-/* C1: 두 포스터(재현) — 내 쪽이 조금 밝고 앞에 */
-.xe-bg.posters .pp { position: absolute; top: 12%; transition: transform 1.8s var(--ease-out), opacity 1.6s ease-out; }
-.xe-bg.posters .pp .x-poster { --s: 188px; box-shadow: 0 30px 60px rgba(0,0,0,.6); }
-.xe-bg.posters .pp.l { left: -14px; transform: rotate(-6deg) translateY(16px); }
-.xe-bg.posters .pp.r { right: -18px; top: 17%; transform: rotate(5deg) translateY(16px); }
-.xe-bg.posters .pp { opacity: 0; filter: saturate(.85) brightness(.82); }
-.xe-bg.posters .pp.me { filter: none; z-index: 1; }
-.xe-ch.on .xe-bg.posters .pp { opacity: .36; transform: rotate(var(--rot)) translateY(0); }
-.xe-ch.on .xe-bg.posters .pp.me { opacity: .62; }
-.xe-bg.posters .pp.l { --rot: -6deg; } .xe-bg.posters .pp.r { --rot: 5deg; }
-/* C4: 얼굴 — 그림과 사진이 엇갈린 격자. 내 쪽(그림/사진) 타일이 더 밝다 */
-.xe-bg.faces { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 0; }
-.xe-bg.faces .f { position: relative; overflow: hidden; background: #1C1A18; opacity: 0; transform: scale(1.06); transition: opacity 1.4s ease-out, transform 2s var(--ease-out); transition-delay: calc(var(--i) * 110ms); }
-.xe-bg.faces .f img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: grayscale(.35) contrast(.95); }
-.xe-bg.faces .f.photo img { filter: grayscale(1) sepia(.25) contrast(1.05); }
-.xe-ch.on .xe-bg.faces .f { opacity: .26; transform: none; }
-.xe-ch.on .xe-bg.faces .f.me { opacity: .5; }
+/* ── 큰 선택 한 장 — 한 화면 안에 질문 · 물건 · 내 선택 · 그때와 오늘 */
+.xe-ch { position: relative; display: flex; flex-direction: column; padding: 28px 22px 72px; }
+.xe-ch + .xe-ch { border-top: 1px solid rgba(255,255,255,.08); padding-top: 56px; }
+.xe-room { font-family: var(--display); font-weight: 600; font-size: 13px; color: rgba(255,255,255,.5); }
+.xe-room .ex { margin-left: 6px; font-family: var(--body); font-weight: 500; font-size: 11px; color: rgba(255,255,255,.4); }
+.xe-q { margin-top: 10px; font-size: 26px; line-height: 1.32; color: #fff; }
 
-/* 머리 — 큰 선택 n / 2 · 방 */
-.xe-hd { flex: none; }
-.xe-tag { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-size: 12px; letter-spacing: .02em; }
-.xe-tag b { font-weight: 800; color: #fff; background: var(--point); padding: 3px 8px 2px; border-radius: 3px; }
-.xe-tag span { font-weight: 600; color: rgba(255,255,255,.75); font-variant-numeric: tabular-nums; }
-.xe-tag em { font-style: normal; font-weight: 600; color: rgba(255,255,255,.45); margin-left: auto; white-space: nowrap; }
-.xe-q { margin-top: 16px; font-size: 25px; line-height: 1.3; letter-spacing: -0.035em; color: rgba(255,255,255,.9); text-shadow: 0 2px 16px rgba(0,0,0,.5); }
+/* 그 방의 물건 — C1: 칼럼의 두 포스터(재현), 내 쪽만 또렷이 / C4: 고른 쪽 얼굴 다섯(그림이면 금박 액자, 사진이면 카르트 드 비지트) */
+.xe-obj { flex: none; display: flex; justify-content: center; align-items: flex-end; margin-top: 30px; }
+.xe-obj.posters { gap: 18px; }
+.xe-obj.posters .x-poster { --s: 112px; box-shadow: 0 18px 36px rgba(0,0,0,.55); transition: opacity 1.2s ease, transform 1.4s var(--ease-out); }
+.xe-obj.posters .x-poster:not(.me) { opacity: .32; transform: scale(.88); transform-origin: 50% 100%; }
+.xe-obj.posters .x-poster.me { transform: rotate(-2deg); }
+.xe-obj.faces { gap: 8px; }
+.xe-obj.faces .fc { flex: 1; max-width: 62px; aspect-ratio: 4 / 5; position: relative; box-shadow: 0 12px 22px rgba(0,0,0,.5); }
+.xe-obj.faces .fc img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.xe-obj.faces.paint .fc { padding: 4px; background: linear-gradient(135deg, #B08A45, #6A4D22 45%, #C4A158 70%, #4A3518); }
+.xe-obj.faces.photo .fc { padding: 4px 4px 11px; background: #E6DBC1; }
+.xe-obj.faces .fc:nth-child(odd) { transform: translateY(-10px); }
 
 /* 내 선택 — 가장 크게 */
-.xe-me { flex: none; display: flex; flex-direction: column; margin-top: 26dvh; padding: 6px 0 0; }
-.xe-me-lb { font-family: var(--display); font-weight: 600; font-size: 13px; color: var(--point); letter-spacing: .02em; }
-.xe-me-v { margin-top: 4px; font-family: var(--display); font-weight: 800; font-size: 42px; line-height: 1.12; letter-spacing: -0.045em; color: #fff; text-shadow: 0 4px 24px rgba(0,0,0,.55); }
-.xe-me-v.huge { font-size: 92px; line-height: 1; letter-spacing: -0.06em; }
-.xe-me-v small { font-size: .42em; letter-spacing: -0.03em; font-weight: 600; color: rgba(255,255,255,.7); margin-left: 6px; }
-.xe-me-sub { margin-top: 10px; font-size: 13.5px; color: rgba(255,255,255,.62); }
-.xe-me-sub .ex { display: inline-block; margin-left: 6px; font-size: 11px; padding: 0 5px; border: 1px dashed rgba(255,255,255,.35); border-radius: 3px; color: rgba(255,255,255,.55); }
+.xe-me { flex: none; margin-top: 30px; }
+.xe-me-lb { font-family: var(--display); font-weight: 600; font-size: 14px; color: rgba(255,255,255,.55); }
+.xe-me-v { margin-top: 4px; font-family: var(--display); font-weight: 800; font-size: 44px; line-height: 1.1; color: #fff; }
+.xe-me-sub { margin-top: 8px; font-size: 15px; color: rgba(255,255,255,.62); }
+.xe-me-sub .ex { margin-left: 6px; font-size: 12px; color: rgba(255,255,255,.4); }
 
 /* 그때 ↔ 오늘 — 같은 칸(선택지)에 맞춘 두 줄 */
-.xe-cmp { flex: none; margin-top: 12dvh; }
-.xe-then { border-top: 1px solid rgba(255,255,255,.28); }
-.xe-row.now { margin-top: 7dvh; }
-.xe-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 9px 0 0; font-family: var(--display); font-weight: 600; font-size: 12px; color: rgba(255,255,255,.45); }
-.xe-cols span { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.xe-cmp { flex: none; margin-top: 30px; }
+.xe-then { border-top: 1px solid rgba(255,255,255,.22); }
+.xe-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px 0 0; font-family: var(--display); font-weight: 600; font-size: 13px; color: rgba(255,255,255,.45); }
+.xe-cols span { display: flex; align-items: center; gap: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .xe-cols .me { color: #fff; }
-.xe-cols .me::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--point); box-shadow: 0 0 0 3px rgba(217,103,47,.22); }
-.xe-row { padding: 10px 0 0; }
-.xe-rl { display: flex; align-items: baseline; gap: 6px; font-family: var(--display); font-weight: 800; font-size: 11px; letter-spacing: .12em; color: rgba(255,255,255,.5); text-transform: uppercase; }
-.xe-rl b { font-weight: 800; letter-spacing: 0; text-transform: none; font-size: 13px; color: #fff; }
-.xe-rl small { margin-left: auto; font-family: var(--body); font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 11px; color: rgba(255,255,255,.4); }
+.xe-cols .me::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--point); }
+.xe-row { padding: 14px 0 0; }
+.xe-rl { display: flex; align-items: baseline; gap: 8px; font-family: var(--display); font-weight: 600; font-size: 12.5px; color: rgba(255,255,255,.5); }
+.xe-rl b { font-weight: 800; font-size: 14px; color: #fff; }
+.xe-rl small { margin-left: auto; font-family: var(--body); font-weight: 500; font-size: 12px; color: rgba(255,255,255,.4); }
 .xe-cells { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
 .xe-cell { position: relative; }
-.xe-cell .v { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.05; letter-spacing: -0.04em; color: rgba(255,255,255,.55); }
+.xe-cell .v { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; color: rgba(255,255,255,.5); }
 .xe-cell .v i { font-style: normal; font-size: .6em; margin-left: 1px; }
-.xe-cell .d { margin-top: 3px; font-size: 12px; line-height: 1.35; color: rgba(255,255,255,.45); }
+.xe-cell .d { margin-top: 4px; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,.45); }
 .xe-cell.me .v { color: #fff; }
 .xe-cell.me .d { color: rgba(255,255,255,.7); }
-.xe-then-line { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.86); }
-.xe-then-line + .xe-then-line { margin-top: 6px; font-size: 12.5px; color: rgba(255,255,255,.58); }
-.xe-src { margin-top: 5px; font-size: 10.5px; line-height: 1.4; color: rgba(255,255,255,.34); }
+.xe-then-line { margin: 6px 0 0; font-size: 15px; line-height: 1.55; color: rgba(255,255,255,.86); }
+.xe-then-line + .xe-then-line { color: rgba(255,255,255,.6); }
+.xe-src { margin-top: 8px; font-size: 11px; line-height: 1.4; color: rgba(255,255,255,.34); }
 
-/* 오늘 줄 — 점(군중) + 비율 */
-.xe-now { position: relative; margin-top: 4px; height: 92px; }
-.xe-now canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* 오늘 줄 — 점(군중) + 비율. 점이 모인 뒤에 비율이 뜬다 */
+.xe-row.now { margin-top: 22px; border-top: 1px solid rgba(255,255,255,.1); }
+.xe-now { position: relative; margin-top: 6px; height: 96px; }
+.xe-now canvas { position: absolute; inset: 0 0 34px; width: 100%; height: calc(100% - 34px); display: block; }
 .xe-now .xe-cells { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; pointer-events: none; }
-.xe-pct { font-family: var(--display); font-weight: 600; font-size: 15px; line-height: 1; color: rgba(255,255,255,.5); font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .9s ease-out; }
+.xe-pct { font-family: var(--display); font-weight: 600; font-size: 17px; line-height: 1; color: rgba(255,255,255,.5); font-variant-numeric: tabular-nums; opacity: 0; transition: opacity 1s ease-out; }
 .xe-pct i { font-style: normal; font-size: .7em; }
 .xe-pct.me { font-weight: 800; font-size: 30px; color: var(--point); }
-.xe-pct.me span { margin-left: 6px; font-size: 12px; font-weight: 600; color: #fff; letter-spacing: 0; }
+.xe-pct.me span { margin-left: 6px; font-size: 13px; font-weight: 600; color: #fff; }
 .xe-ch.done .xe-pct { opacity: 1; }
-.xe-moved { margin: 6dvh 0 0; padding-top: 11px; border-top: 1px solid rgba(255,255,255,.14); font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: -0.01em; color: rgba(255,255,255,.82); display: flex; align-items: center; gap: 8px; }
-.xe-moved::before { content: ''; width: 18px; height: 1.5px; background: var(--point); flex: none; }
-
-/* 장 끝 — "아래로" 작은 안내(누르는 단추 아님, 움직이지 않음) */
-.xe-hint { flex: none; align-self: center; margin-top: auto; padding-top: 9dvh; display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: var(--display); font-weight: 600; font-size: 11.5px; letter-spacing: .04em; color: rgba(255,255,255,.4); }
-.xe-hint i { width: 9px; height: 9px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
 
 /* ── 작은 선택 · 가져가는 것 — 흰 쟁반(작게) */
-.xe-end { position: relative; min-height: 100dvh; padding-top: calc(58px + var(--safe-t)); display: flex; flex-direction: column; }
-.xe-sheet { flex: 1; background: #fff; color: var(--ink); border-radius: 18px 18px 0 0; padding: 22px 20px calc(22px + var(--safe-b)); box-shadow: 0 -18px 40px rgba(0,0,0,.4); }
-.xe-sec-hd { display: flex; align-items: baseline; gap: 10px; }
-.xe-sec-hd h2 { font-size: 19px; letter-spacing: -0.03em; }
-.xe-sec-tag { order: 2; margin-left: auto; font-family: var(--display); font-weight: 600; font-size: 11.5px; color: var(--dim); }
-.xe-sec-hd.keep { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--hair); }
+.xe-end { position: relative; min-height: 100dvh; padding-top: 28px; display: flex; flex-direction: column; }
+.xe-sheet { flex: 1; background: #fff; color: var(--ink); border-radius: 18px 18px 0 0; padding: 26px 20px calc(26px + var(--safe-b)); }
+.xe-sec-hd { font-size: 20px; }
+.xe-sec-hd.keep { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--hair); }
 
-.xe-minor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.xe-minor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
 .xe-mc { display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--hair); border-radius: 10px; overflow: hidden; background: var(--panel); }
 .xe-mc .th { position: relative; height: 104px; overflow: hidden; background: #E9E7E2; display: grid; place-items: center; }
 .xe-mc .th.medal img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; }
 .xe-mc .th .x-medal { position: absolute; right: 10px; bottom: 10px; width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F6DE96, #E7C46C 45%, #B98C2E); box-shadow: 0 0 0 1.5px #3B2A12 inset, 0 2px 4px rgba(0,0,0,.4); }
 .xe-mc .th.trip .pc { position: absolute; left: 12%; right: 12%; bottom: 10px; height: 54%; object-fit: cover; width: 76%; box-shadow: 0 4px 10px rgba(0,0,0,.25); }
 .xe-mc .th.trip .tk { position: absolute; left: 9%; top: 12px; width: 70%; height: auto; transform: rotate(-5deg); box-shadow: 0 3px 8px rgba(0,0,0,.3); }
-.xe-mc .tx { padding: 9px 10px 11px; display: grid; gap: 2px; align-content: start; }
-.xe-mc .tx small { font-family: var(--display); font-weight: 600; font-size: 11px; color: var(--dim); }
-.xe-mc .tx b { font-family: var(--display); font-weight: 800; font-size: 14.5px; line-height: 1.25; letter-spacing: -0.025em; }
-.xe-mc .tx span { margin-top: 4px; font-size: 12px; color: #4A4A47; }
-.xe-mc .tx span em { font-style: normal; font-weight: 700; color: var(--point); }
+.xe-mc .tx { padding: 10px 11px 12px; display: grid; gap: 3px; align-content: start; }
+.xe-mc .tx small { font-family: var(--display); font-weight: 600; font-size: 12px; color: var(--dim); }
+.xe-mc .tx b { font-family: var(--display); font-weight: 800; font-size: 15px; line-height: 1.3; }
+.xe-mc .tx span { margin-top: 4px; font-size: 13px; color: #4A4A47; }
+.xe-mc .tx span em { font-style: normal; font-weight: 700; color: #B4501F; }
 
-.xe-keep { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 14px; align-items: end; }
-.xe-k { display: grid; justify-items: center; gap: 7px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 10.5px; line-height: 1.2; color: #333; }
+.xe-keep { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 16px; align-items: end; }
+.xe-k { display: grid; justify-items: center; gap: 8px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 11.5px; line-height: 1.25; color: #333; }
 .xe-k .x-th, .xe-k .x-poster { --s: 50px; }
 .xe-k .x-th.x-tk { width: 60px; height: 32px; background: transparent; box-shadow: none; overflow: visible; margin-bottom: 14px; }
 .xe-k .x-th.x-tk img { height: auto; box-shadow: 0 4px 10px rgba(0,0,0,.25); transform: rotate(-4deg); }
 .xe-k .x-th.x-pc { width: 58px; height: 42px; margin-bottom: 9px; border: 3px solid #F2EEE4; }
 .xe-k .x-th.x-pc .st { position: absolute; right: 3px; top: 3px; width: 9px; height: 11px; background: #5C6E8E; outline: 1.5px solid #F2EAD6; }
 
-.xe-acts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 24px; }
-.xe-foot { margin: 14px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--dim); }
-
-/* 쟁반 안 카드 · 가져가는 것도 같은 .rv 로 한 장씩(exit-e.js) */
+.xe-acts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 28px; }
+.xe-foot { margin: 14px 0 0; font-size: 12px; line-height: 1.5; color: var(--dim); }
 
 @media (max-height: 700px) {
-  .xe-q { font-size: 21px; margin-top: 12px; }
-  .xe-me-v { font-size: 34px; } .xe-me-v.huge { font-size: 72px; }
-  .xe-now { height: 74px; }
+  .xe-q { font-size: 22px; }
+  .xe-obj { margin-top: 20px; } .xe-obj.posters .x-poster { --s: 92px; } .xe-obj.faces .fc { max-width: 52px; }
+  .xe-me { margin-top: 22px; } .xe-me-v { font-size: 36px; }
+  .xe-cmp { margin-top: 22px; }
   .xe-cell .v { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .rv { opacity: 1; transform: none; }
-  .xe-bg *, .rv, .xe-pct { transition: none !important; }
+  .rv, .xe-pct, .xe-obj * { transition: none !important; }
 }

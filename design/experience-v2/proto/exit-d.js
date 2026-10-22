@@ -5,7 +5,7 @@
 //   한 사람의 답은 예시로 만든다(선택지별 비율은 정확히 맞추고, 넷 모두 같은 사람은 정확히 '나와 같은 길' 인원)
 import { clearChoices, reduceMotion } from './js/proto-common.js';
 import { createCrowd, rng, split, scatter } from './js/crowd.js';
-import { STATIONS, ARTS, VISITORS, same, sameN, anyReal, fmt, stampLine, artThumb, setupShare, fontsReady, POINT } from './exit-common.js';
+import { STATIONS, ARTS, VISITORS, sameN, anyReal, fmt, stampLine, artThumb, setupShare, fontsReady, POINT } from './exit-common.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const N = VISITORS, ME = N - 1, Q = STATIONS.length;
@@ -90,7 +90,7 @@ function header(room, q, sub, cls = '') {
 function countLine(qi) {
   if (qi < 0) { $('#count').innerHTML = ''; return; }
   const parts = chain.slice(0, qi + 2).map((n, i) => (i === qi + 1 ? `<b>${fmt(n)}명</b>` : fmt(n)));
-  $('#count').innerHTML = `<span class="cl">나와 같은 길</span> ${parts.join('<span class="arrow">→</span>')}`;
+  $('#count').innerHTML = `<span class="cl">지금까지 나와 같은 쪽</span> ${parts.join('<span class="arrow">·</span>')}`;
 }
 
 let timers = [];
@@ -101,7 +101,7 @@ function render(st, animate = true) {
   clearTimers();
   [...pips.children].forEach((e, i) => { e.classList.toggle('done', i < st - 1 || st > Q); e.classList.toggle('cur', i === st - 1); });
   if (st === 0) {
-    header("Aujourd'hui", `오늘 모네의 방을 나온<br>${fmt(N)}명`, '점 하나가 한 사람. 주황 점이 당신입니다.');
+    header('오늘의 관람객', `오늘 모네의 방을 나온<br>${fmt(N)}명`, '점 하나가 한 사람, 주황 점이 나');
     crowd.place(field(fullRect()), 0.55); countLine(-1); hideLabels();
     $('#next').textContent = '네 가지 질문으로 보기';
     return;
@@ -115,11 +115,11 @@ function render(st, animate = true) {
     else crowd.place(L.targets, (p) => L.alpha[p]);
     later(() => showLabels(L), animate ? 1100 : 0);
     later(() => countLine(qi), animate ? 1300 : 0);
-    $('#next').textContent = qi < Q - 1 ? '다음 질문' : '나와 같은 길 보기';
+    $('#next').textContent = qi < Q - 1 ? '다음 질문' : '모아 보기';
     return;
   }
   // 끝: 흩어졌다가 94명만 켜진다 → 쟁반
-  header('나와 같은 길', `<span class="big">${fmt(sameN)}명</span><br>네 곳 모두 나와 같은 쪽`, `오늘의 관람객 ${fmt(N)}명 가운데 ${same}% · 100가지 길 가운데 하나`, 'end');
+  header('오늘의 관람객', `오늘 모네의 방을 나온<br>${fmt(N)}명`, `켜진 점은 네 곳 모두 나와 같은 쪽 · ${fmt(sameN)}명`, 'end');
   hideLabels(); bar.classList.add('away');
   tray.hidden = false;
   const trayH = tray.getBoundingClientRect().height || 260, top = hd.getBoundingClientRect().bottom;
@@ -143,32 +143,30 @@ addEventListener('resize', () => { const was = step; resize(); crowd.stop(); ren
 // 쟁반
 $('#arts').innerHTML = ARTS.map((a, i) => `<div class="it" style="--i:${i}">${artThumb(a)}<span><b>${a.lb}</b>${a.t}</span></div>`).join('');
 
-// ── 저장 · 공유 — 1080×1920: 나와 같은 길(크게) → 군중 1,284(94명만 켜짐 · 나 주황) → 네 곳의 내 선택
+// ── 저장 · 공유 — 1080×1920(위·아래 250px 비움): 오늘의 관람객 → 군중 1,284(네 곳 모두 같은 94명만 켜짐 · 나 주황) → 네 곳의 내 선택
 async function renderShare() {
   const Wd = 1080, Hd = 1920, c = document.createElement('canvas'); c.width = Wd; c.height = Hd;
   const g = c.getContext('2d'); await fontsReady();
   const D = 'Paperlogy, Freesentation, sans-serif', B = 'Freesentation, sans-serif', L = 80;
   g.fillStyle = '#121110'; g.fillRect(0, 0, Wd, Hd); g.textBaseline = 'alphabetic';
-  g.fillStyle = POINT; g.font = `600 26px ${D}`; try { g.letterSpacing = '6px'; } catch (e) { /* noop */ } g.fillText("AUJOURD'HUI · MONET 100", L, 220); try { g.letterSpacing = '0px'; } catch (e) { /* noop */ }
-  g.fillStyle = '#fff'; g.font = `800 52px ${D}`; g.fillText(`오늘의 관람객 ${fmt(N)}명 가운데`, L, 300);
-  g.fillStyle = POINT; g.font = `800 176px ${D}`; g.fillText(`${fmt(sameN)}명`, L - 8, 470);
-  const w = g.measureText(`${fmt(sameN)}명`).width; g.fillStyle = '#fff'; g.font = `800 64px ${D}`; g.fillText(`· ${same}%`, L + w + 16, 468);
-  g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `500 30px ${B}`; g.fillText('네 곳 모두 나와 같은 쪽을 고른 사람 · 점 하나가 한 사람', L, 530);
+  g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `600 24px ${D}`; g.fillText('MONET 100 · The Next Impression', L, 270);
+  g.fillStyle = '#fff'; g.font = `800 60px ${D}`; g.fillText(`오늘 모네의 방을 나온 ${fmt(N)}명`, L, 350);
+  g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `500 28px ${B}`; g.fillText(`점 하나가 한 사람 · 켜진 점은 네 곳 모두 나와 같은 쪽 ${fmt(sameN)}명`, L, 404);
   // 군중
-  const rect = { x: L, y: 580, w: Wd - L * 2, h: 820 }, pts = scatter(N, rect, rng(5)), rr = rng(9);
-  pts.forEach((p, i) => { if (i === ME || SAME.has(i)) return; g.fillStyle = 'rgba(255,247,234,.1)'; g.beginPath(); g.arc(p.x, p.y, 3.6 * (0.8 + rr() * 0.4), 0, 6.2832); g.fill(); });
+  const rect = { x: L, y: 450, w: Wd - L * 2, h: 740 }, pts = scatter(N, rect, rng(5)), rr = rng(9);
+  pts.forEach((p, i) => { if (i === ME || SAME.has(i)) return; g.fillStyle = 'rgba(255,247,234,.12)'; g.beginPath(); g.arc(p.x, p.y, 3.6 * (0.8 + rr() * 0.4), 0, 6.2832); g.fill(); });
   pts.forEach((p, i) => { if (i === ME || !SAME.has(i)) return; g.fillStyle = 'rgba(255,247,234,.96)'; g.beginPath(); g.arc(p.x, p.y, 5, 0, 6.2832); g.fill(); });
-  const m = pts[ME]; g.fillStyle = 'rgba(217,103,47,.3)'; g.beginPath(); g.arc(m.x, m.y, 18, 0, 6.2832); g.fill(); g.fillStyle = POINT; g.beginPath(); g.arc(m.x, m.y, 8.5, 0, 6.2832); g.fill();
+  const m = pts[ME]; g.strokeStyle = '#fff'; g.lineWidth = 3; g.beginPath(); g.arc(m.x, m.y, 13, 0, 6.2832); g.stroke(); g.fillStyle = POINT; g.beginPath(); g.arc(m.x, m.y, 8.5, 0, 6.2832); g.fill();
   // 네 곳
-  let y = 1470; g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(L, y - 50, Wd - L * 2, 2);
+  let y = 1300; g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(L, y - 54, Wd - L * 2, 2);
   STATIONS.forEach((s, i) => {
-    const x = L + (i % 2) * 470, yy = y + Math.floor(i / 2) * 130;
-    g.fillStyle = POINT; g.font = `800 24px ${D}`; g.fillText(`0${s.no}`, x, yy);
+    const x = L + (i % 2) * 470, yy = y + Math.floor(i / 2) * 126;
+    g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `800 24px ${D}`; g.fillText(`0${s.no}`, x, yy);
     g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `600 24px ${D}`; g.fillText(s.q, x + 44, yy);
     g.fillStyle = '#fff'; g.font = `800 ${s.choice.length > 9 ? 32 : 38}px ${D}`; g.fillText(s.choice, x, yy + 52);
     const cw = g.measureText(s.choice).width; g.fillStyle = POINT; g.font = `800 30px ${D}`; g.fillText(`${s.opt.pct}%`, x + cw + 14, yy + 52);
   });
-  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${B}`; g.fillText(`${stampLine(N)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, 1800);
+  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${B}`; g.fillText(`${stampLine(N)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, 1610);
   return c;
 }
 setupShare($('#share'), renderShare, 'monet100_오늘의관람객.png');

@@ -6,6 +6,8 @@ body.exit { --page-bg: #151413; background: #151413; color: #FFFFFF; }
 
 /* 흐름도: svg(갈래 띠) + canvas(점) + html(글자·걸린 것) 세 겹, 높이는 js 가 정한다 */
 .flowchart { margin-top: 14px; }
+.fc-key { margin: 4px 0 0; font-size: 12.5px; color: rgba(255,255,255,.5); }
+body .wrap h1, .fc-head .crowd-line, .btn { letter-spacing: 0; }
 .fc-head .crowd-line span { font-weight: 600; color: rgba(255,255,255,.55); font-size: 13px; }
 .fc { position: relative; margin-top: 10px; }
 .fc-svg, .fc-cv, .fc-html { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
@@ -35,6 +37,7 @@ body.exit { --page-bg: #151413; background: #151413; color: #FFFFFF; }
 .fc-art .th.frame { padding: 4px; background: linear-gradient(135deg, #B8903F, #6E4F1E 30%, #D9B45C 52%, #7D5A22 75%, #3A2A12); }
 .fc-art .th.frame img { box-shadow: inset 0 0 0 1px rgba(0,0,0,.6); }
 .fc-art .th.carte { padding: 4px 4px 9px; background: #E3D6B6; }
+.fc-art .th.collage { width: 44px; height: 70px; }
 .fc-art .th.canvas { width: 72px; height: 60px; }
 .fc-art .th .medal { position: absolute; right: 4px; bottom: 4px; width: 16px; height: 16px; border-radius: 50%; background: #E7C46C; box-shadow: 0 0 0 1.5px #3B2A12 inset, 0 2px 4px rgba(0,0,0,.5); }
 /* 전시 안내(재현)의 작은 판 */
@@ -49,8 +52,8 @@ body.exit { --page-bg: #151413; background: #151413; color: #FFFFFF; }
 .fc-art.none .th { opacity: .5; }
 /* 끝: 나와 같은 길 */
 .fc-end { display: grid; gap: 2px; transform: translate(0, -50%); }
-.fc-end .crowd-big { font-size: 40px; opacity: 0; transition: opacity .5s; }
-.fc-end .crowd-big.show { opacity: 1; }
+.fc-end { opacity: 0; transition: opacity .8s; }
+.fc-end.show { opacity: 1; }
 .fc-end .crowd-lab { margin-top: 2px; }
 .fc-end .crowd-lab small { white-space: normal; max-width: 200px; }
 .crowd-stamp { margin-top: 12px; }
@@ -70,5 +73,5 @@ body.exit { --page-bg: #151413; background: #151413; color: #FFFFFF; }
 @media (max-height: 700px) { .screen .role-hd h1 { font-size: 21px; } }
 @media (prefers-reduced-motion: reduce) {
   .share-ov { animation: none; }
-  .fc-pct, .fc-art, .fc-end .crowd-big { transition: none; }
+  .fc-pct, .fc-art, .fc-end { transition: none; }
 }

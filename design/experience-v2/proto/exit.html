@@ -27,13 +27,12 @@
   <header class="role-hd rise" style="--i:0">
     <div class="eyebrow">당신은</div>
     <h1>모네의 방을 한 바퀴 돈<br>관람객입니다</h1>
-    <p class="sub">네 곳에서 갈린 길 가운데 당신이 지난 길이 주황색입니다. 갈래의 폭은 오늘의 관람객이 간 비율, 점 하나는 열 사람. 길가에 당신이 가져가는 것들이 걸려 있습니다.</p>
   </header>
 
   <!-- 흐름도 — 위에서 아래로 한 줄기(나의 길). 네 곳마다 갈라지고, 갈래 폭 = 오늘의 비율. 오늘의 관람객(점)이 줄기를 따라 내려가며 줄마다 나와 같은 쪽만 남는다.
        줄기 오른쪽에 걸린 것: 메달 카드 · 전시 안내 · 기차표 · 캔버스 · 초상 카드 · 액자. (js/crowd.js) -->
   <section class="flowchart crowd dark rise" id="flowchart" style="--i:1" aria-label="나의 길 · 오늘의 관람객">
-    <div class="fc-head"><div class="crowd-cap">Aujourd'hui</div><div class="crowd-line">나의 길 · 오늘의 관람객 <span id="gateN"></span></div></div>
+    <div class="fc-head"><div class="crowd-line">나의 길 · 오늘의 관람객 <span id="gateN"></span></div><p class="fc-key">갈래의 폭 = 오늘의 비율 · 점 하나 = 열 사람</p></div>
     <div class="fc" id="fc">
       <svg class="fc-svg" id="fcSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
       <canvas class="fc-cv" id="crowdCv" aria-hidden="true"></canvas>
@@ -46,7 +45,6 @@
     <button class="btn white" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>
     <button class="btn dark-line" id="restart" type="button">처음부터</button>
   </div>
-  <p class="note foot-note">출구 벽의 질문 “왜 같은 풍경을 계속 그렸을까?”는 벽에 그대로 두고, 앱은 답하지 않습니다. 수치는 예시이며 들르지 않은 곳은 예시 값으로 채웠습니다.</p>
 </main>
 
 <!-- 공유 이미지 미리보기 — 기기에서 1080×1920 으로 그린다(같은 흐름도) -->
