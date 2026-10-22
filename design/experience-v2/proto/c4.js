@@ -1,6 +1,7 @@
 // C4 나다르 사진관 — (1) 벽의 초상화 4점: 셔터를 누르면 조리개가 닫혔다 열리며 같은 인물의 나다르 사진이 습판처럼 떠오른다
-//                    (2) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js, WebGL → 워커 → 즉석) 재사용
-//                    (3) 네 쌍을 다 보면 질문 하나: 사람을 남기는 데 그림과 사진, 어느 쪽이 낫습니까 → 오늘의 비율 + 그때는 이랬다 → 수집함
+//                    (2) 나란히 보기: 한 사람씩 그림과 사진을 크게 나란히 — 꾹 누르면 하나만, 돋보기를 켜고 끌면 두 장의 같은 자리를 2배로(눈·손 비교)
+//                    (3) 질문 하나: 사람을 남기는 데 그림과 사진 중 어느 쪽을 간직할까 — 마지막 쌍 가운데 하나를 카르트 드 비지트 앨범 자리로 끌어 넣는다(눌러도 된다) → 앨범이 닫힌다 → 오늘의 관람객(그림 열·사진 열) + 그때는 이랬다 → 수집함
+//                    (4) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js, WebGL → 워커 → 즉석) 재사용
 // 서버 없음, 업로드 없음. 모든 처리는 기기 안. 입장은 기기(localStorage)에만 남고 출구 화면(exit)이 읽는다.
 import { toast, loadImage, startCamera, stopCamera, cameraErrorText } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
@@ -16,16 +17,16 @@ document.documentElement.style.setProperty('--k', K);
 const SITTERS = [
   { id: 'manet', name: '에두아르 마네', paint: '../works/c4-manet-paint.jpg', photo: '../works/c4-manet-photo.jpg',
     painter: '앙리 팡탱라투르', pyear: '1867', photog: '펠릭스 나다르(추정)', fyear: '1867~71년경',
-    src: '그림 시카고 미술관 CC0 · 사진 레이크스미술관 PDM', pos: '50% 15%', fpos: '50% 20%' },
+    src: '그림 시카고 미술관 CC0 · 사진 레이크스미술관 PDM', pmus: '시카고 미술관 · CC0', fmus: '레이크스미술관 · PDM', pos: '50% 15%', fpos: '50% 20%' },
   { id: 'hugo', name: '빅토르 위고', paint: '../works/c4-hugo-paint.jpg', photo: '../works/c4-hugo-photo.jpg',
     painter: '레옹 보나 원작 구도의 판본', pyear: '1879', photog: '펠릭스 나다르', fyear: '1878',
-    src: '그림·사진 빅토르 위고의 집 · Paris Musées CC0', pos: '50% 20%', fpos: '50% 40%' },
+    src: '그림·사진 빅토르 위고의 집 · Paris Musées CC0', pmus: '빅토르 위고의 집 · Paris Musées CC0', fmus: '빅토르 위고의 집 · Paris Musées CC0', pos: '50% 20%', fpos: '50% 40%' },
   { id: 'bernhardt', name: '사라 베르나르', paint: '../works/c4-bernhardt-paint.jpg', photo: '../works/c4-bernhardt-photo.jpg',
     painter: '조르주 클래랭', pyear: '1876', photog: '펠릭스 나다르', fyear: '원판 1864년경',
-    src: '그림 프티팔레 · Paris Musées CC0 · 사진 게티 미술관 Open Content', pos: '50% 30%', fpos: '50% 30%' },
+    src: '그림 프티팔레 · Paris Musées CC0 · 사진 게티 미술관 Open Content', pmus: '프티팔레 · Paris Musées CC0', fmus: '게티 미술관 · Open Content', pos: '50% 30%', fpos: '50% 30%' },
   { id: 'baudelaire', name: '샤를 보들레르', paint: '../works/c4-baudelaire-paint.jpg', photo: '../works/c4-baudelaire-photo.jpg',
     painter: '귀스타브 쿠르베', pyear: '1848년경', photog: '펠릭스 나다르', fyear: '1856~58',
-    src: '그림 파브르 미술관 · PD · 사진 클리블랜드 미술관 CC0', pos: '68% 50%', fpos: '50% 30%' },
+    src: '그림 파브르 미술관 · PD · 사진 클리블랜드 미술관 CC0', pmus: '파브르 미술관 · PD', fmus: '클리블랜드 미술관 · CC0', pos: '68% 50%', fpos: '50% 30%' },
 ];
 
 // ── 탭
@@ -68,7 +69,7 @@ function caption() {
   $('#capSrc').textContent = s.src;
   Array.from(dots.children).forEach((el, i) => { el.classList.toggle('on', i === cur); el.classList.toggle('dev', dev[i]); });
   $('#shutter').classList.toggle('next', d);
-  $('#shutterHint').textContent = dev.every(Boolean) ? '질문으로' : d ? '다음 손님' : '셔터';
+  $('#shutterHint').textContent = dev.every(Boolean) ? '나란히 보기' : d ? '다음 손님' : '셔터';
   $('#wallSub').textContent = d ? '같은 사람을 나다르가 찍었다' : '벽의 초상화 앞에서 셔터를 누르세요';
 }
 function goTo(i) {
@@ -88,7 +89,7 @@ function nextUndeveloped() { for (let k = 1; k <= SITTERS.length; k++) { const j
 function shoot() {
   if (busy) { pending = true; return; }
   clearTimeout(advanceT);
-  if (dev.every(Boolean)) { openAsk(); return; }
+  if (dev.every(Boolean)) { openCompare(); return; }
   if (dev[cur]) { goTo(nextUndeveloped()); return; }         // 이미 현상한 손님이면 다음 손님으로
   busy = true; pending = false;
   gallery.classList.add('busy');
@@ -103,7 +104,7 @@ function shoot() {
     dev[cur] = true;
     slides[cur].classList.add('dev');
     caption();
-    if (dev.every(Boolean)) { $('#askCta').hidden = false; $('#shutterHint').textContent = '질문으로'; }
+    if (dev.every(Boolean)) { $('#askCta').hidden = false; $('#shutterHint').textContent = '나란히 보기'; }
   }, REDUCED ? 60 : 320 * K);
   setTimeout(() => {
     iris.classList.remove('run'); flash.classList.remove('run'); busy = false; gallery.classList.remove('busy');
@@ -123,47 +124,137 @@ $('#shutter').addEventListener('click', shoot);
 window.addEventListener('resize', irisSize);
 goTo(0);
 
-// ── 질문 — 사람을 남기는 데 그림과 사진, 어느 쪽이 낫습니까 (정답 없음)
-//    두 줄(그림 | 사진)에 네 쌍을 늘어놓고, 줄 머리나 어느 그림이든 누르면 그 줄이 내 입장이 된다
+// ── 나란히 보기 — 한 사람씩 그림 | 사진. 꾹 누르면(260ms) 그 한 장만 크게, 돋보기를 켜고 끌면 두 장의 같은 자리에 2배 돋보기가 함께 뜬다
 const STANCES = { paint: { label: '그림', pct: 44 }, photo: { label: '사진', pct: 56 } };   // 예시 수치
 const VISITORS = '1,712';
-let stance = null;
-const cols = $('#cols');
-SITTERS.forEach((s, i) => {
-  const row = document.createDocumentFragment();
-  const mk = (k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cell'; b.dataset.k = k; b.setAttribute('aria-label', `${s.name} · ${k === 'paint' ? '그림' : '사진'}`);
-    b.innerHTML = `<img src="${k === 'paint' ? s.paint : s.photo}" alt="" style="object-position:${k === 'paint' ? s.pos : s.fpos}" draggable="false" loading="lazy">`; return b; };
-  const name = document.createElement('div'); name.className = 'pair-name'; name.innerHTML = `${s.name.replace(' ', '<br>')}<small>${s.pyear} · ${s.fyear.replace('년경', '').replace('원판 ', '')}</small>`;
-  row.append(mk('paint'), name, mk('photo'));
-  cols.appendChild(row);
-});
-cols.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-k]'); if (!b || stance) return;
-  choose(b.dataset.k);
-});
-function choose(k) {
-  stance = k;
-  cols.classList.add('picked');
-  cols.querySelectorAll('[data-k]').forEach((x) => { const on = x.dataset.k === k; x.classList.toggle('on', on); if (x.classList.contains('col-h')) x.setAttribute('aria-checked', on); });
-  $('#askNote').hidden = true;
-  const m = $('#askMine'); m.innerHTML = `사람을 남기는 데, 당신은 <b>${STANCES[k].label} 쪽</b>`; m.hidden = false;
-  if (navigator.vibrate) navigator.vibrate(14);
-  setTimeout(reveal, REDUCED ? 0 : 900);
+let stance = null, ci = 0, loupeOn = false;
+const cmpStage = $('#cmpStage'), loupes = { paint: $('#loupeA'), photo: $('#loupeB') };
+function showCmp(i) {
+  ci = i; const s = SITTERS[i];
+  $('#cmpName').textContent = s.name;
+  $('#cmpPaint').src = s.paint; $('#cmpPaint').style.objectPosition = s.pos; $('#cmpPaintCap').textContent = `${s.painter} · ${s.pyear}`; $('#cmpPaintMus').textContent = s.pmus;
+  $('#cmpPhoto').src = s.photo; $('#cmpPhoto').style.objectPosition = s.fpos; $('#cmpPhotoCap').textContent = `${s.photog} · ${s.fyear}`; $('#cmpPhotoMus').textContent = s.fmus;
+  Array.from($('#cmpProg').children).forEach((d, k) => { d.classList.toggle('on', k === i); d.classList.toggle('done', k < i); });
+  $('#cmpNext').textContent = i < SITTERS.length - 1 ? `다음 사람 · ${i + 2} / ${SITTERS.length}` : '한 가지 묻겠습니다';
+  cmpStage.classList.remove('swap'); void cmpStage.offsetWidth; cmpStage.classList.add('swap');
+  hideLoupes();
 }
+function openCompare() {
+  $('#wallBody').hidden = true; $('#result').hidden = true; $('#ask').hidden = true; $('#cmp').hidden = false;
+  showCmp(0); window.scrollTo(0, 0);
+}
+$('#toCmp').addEventListener('click', openCompare);
+$('#cmpNext').addEventListener('click', () => { if (ci < SITTERS.length - 1) showCmp(ci + 1); else openAsk(); });
+$('#loupeBtn').addEventListener('click', () => { loupeOn = !loupeOn; $('#loupeBtn').setAttribute('aria-pressed', loupeOn); cmpStage.classList.toggle('loupe-on', loupeOn); $('#cmpHint').textContent = loupeOn ? '그림이나 사진 위를 끌어 보세요 · 같은 자리가 2배로' : '꾹 누르면 하나만 · 돋보기를 켜고 끌면 눈과 손을 비교'; hideLoupes(); });
+// object-fit: cover 로 그려진 자리 계산 → 돋보기(2×) 배경 위치
+function coverGeom(img) {
+  const box = img.getBoundingClientRect(), iw = img.naturalWidth || 1, ih = img.naturalHeight || 1;
+  const sc = Math.max(box.width / iw, box.height / ih), dw = iw * sc, dh = ih * sc;
+  const [px, py] = (img.style.objectPosition || '50% 50%').split(' ').map((v) => parseFloat(v) / 100);
+  return { box, dw, dh, ox: (box.width - dw) * (isNaN(px) ? 0.5 : px), oy: (box.height - dh) * (isNaN(py) ? 0.5 : py) };
+}
+function placeLoupe(k, u, v) {
+  const fig = $(`.cmp-f[data-k="${k}"]`), img = fig.querySelector('img'), lp = loupes[k], g = coverGeom(img), sr = cmpStage.getBoundingClientRect();
+  const D = lp.offsetWidth || 112, Z = 2;
+  const px = g.box.left - sr.left + u * g.box.width, py = g.box.top - sr.top + v * g.box.height;   // 손가락 자리(무대 기준)
+  const lx = Math.max(0, Math.min(sr.width - D, px - D / 2)), ly = Math.max(0, py - D - 22);            // 손가락 위에 띄운다
+  lp.style.transform = `translate(${lx.toFixed(1)}px, ${ly.toFixed(1)}px)`;
+  lp.style.backgroundImage = `url("${img.src}")`;
+  lp.style.backgroundSize = `${(g.dw * Z).toFixed(1)}px ${(g.dh * Z).toFixed(1)}px`;
+  const ix = (u * g.box.width - g.ox) * Z, iy = (v * g.box.height - g.oy) * Z;
+  lp.style.backgroundPosition = `${(D / 2 - ix).toFixed(1)}px ${(D / 2 - iy).toFixed(1)}px`;
+  lp.hidden = false;
+}
+function hideLoupes() { Object.values(loupes).forEach((l) => { l.hidden = true; }); cmpStage.classList.remove('holding'); document.querySelectorAll('.cmp-f.solo').forEach((f) => f.classList.remove('solo')); }
+{
+  let holdT = 0, held = null, active = null;
+  cmpStage.addEventListener('pointerdown', (e) => {
+    const fig = e.target.closest('.cmp-f'); if (!fig) return;
+    e.preventDefault(); active = { id: e.pointerId, k: fig.dataset.k, x: e.clientX, y: e.clientY, moved: false };
+    try { cmpStage.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+    if (loupeOn) { moveLoupe(e); return; }
+    clearTimeout(holdT);
+    holdT = setTimeout(() => { if (!active || active.moved) return; held = fig; fig.classList.add('solo'); cmpStage.classList.add('holding'); if (navigator.vibrate) navigator.vibrate(8); }, 260);
+  });
+  function moveLoupe(e) {
+    const img = $(`.cmp-f[data-k="${active.k}"] img`), r = img.getBoundingClientRect();
+    const u = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), v = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+    placeLoupe(active.k, u, v); placeLoupe(active.k === 'paint' ? 'photo' : 'paint', u, v);
+  }
+  cmpStage.addEventListener('pointermove', (e) => {
+    if (!active || e.pointerId !== active.id) return;
+    if (Math.hypot(e.clientX - active.x, e.clientY - active.y) > 8) active.moved = true;
+    if (loupeOn) moveLoupe(e); else if (active.moved && !held) clearTimeout(holdT);
+  });
+  const up = (e) => { if (!active || e.pointerId !== active.id) return; clearTimeout(holdT); active = null; held = null; hideLoupes(); };
+  cmpStage.addEventListener('pointerup', up); cmpStage.addEventListener('pointercancel', up);
+  cmpStage.addEventListener('touchmove', (e) => { if (active) e.preventDefault(); }, { passive: false });
+  cmpStage.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+// ── 질문 — 마지막 쌍(보들레르) 가운데 간직할 쪽을 카르트 드 비지트 앨범 자리로 끌어 넣는다. 가까우면 자석처럼 붙고, 그냥 눌러도 들어간다. 정답 없음
+const LAST = SITTERS[SITTERS.length - 1];
+const cards = $('#cards'), album = $('#album'), slot = $('#slot');
 function openAsk() {
-  $('#wallBody').hidden = true; $('#result').hidden = true; $('#ask').hidden = false;
-  stance = null; cols.classList.remove('picked');
-  cols.querySelectorAll('[data-k]').forEach((x) => { x.classList.remove('on'); if (x.classList.contains('col-h')) x.setAttribute('aria-checked', 'false'); });
-  $('#askNote').hidden = false; $('#askMine').hidden = true;
+  $('#wallBody').hidden = true; $('#result').hidden = true; $('#cmp').hidden = true; $('#ask').hidden = false;
+  stance = null; album.classList.remove('closed', 'near'); cards.classList.remove('picked');
+  $('#cardPaint').src = LAST.paint; $('#cardPaint').style.objectPosition = LAST.pos; $('#cardPaintLb').innerHTML = `그림<small>${LAST.painter} · ${LAST.pyear}</small>`;
+  $('#cardPhoto').src = LAST.photo; $('#cardPhoto').style.objectPosition = LAST.fpos; $('#cardPhotoLb').innerHTML = `사진<small>${LAST.photog} · ${LAST.fyear}</small>`;
+  $('#albumWho').textContent = LAST.name;
+  cards.querySelectorAll('.card').forEach((c) => { c.classList.remove('lift', 'in', 'other'); c.style.transform = ''; c.setAttribute('aria-checked', 'false'); });
+  $('#askNote').hidden = false;
   window.scrollTo(0, 0);
 }
-$('#toAsk').addEventListener('click', openAsk);
-// 오늘의 관람객: 두 줄은 그대로 둔 채, 바로 아래로 점(하나 = 열 사람)이 흩어졌다가 그림 줄·사진 줄 밑에 모인다. 내 점은 주황, 맨 마지막에
+{
+  let d = null;
+  const near = (c) => { const r = c.getBoundingClientRect(), s = slot.getBoundingClientRect(); return Math.hypot(r.left + r.width / 2 - (s.left + s.width / 2), r.top + r.height / 2 - (s.top + s.height / 2)) < Math.max(70, s.width * 0.6); };
+  cards.addEventListener('pointerdown', (e) => {
+    const c = e.target.closest('.card'); if (!c || stance) return;
+    e.preventDefault(); d = { c, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
+    try { cards.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+    c.classList.add('lift');
+  });
+  cards.addEventListener('pointermove', (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (Math.hypot(dx, dy) > 6) d.moved = true;
+    d.c.style.transform = `translate(${dx}px, ${dy}px) scale(1.06) rotate(${(dx * 0.03).toFixed(1)}deg)`;
+    album.classList.toggle('near', near(d.c));
+  });
+  const up = (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    const c = d.c; const go = !d.moved || near(c); d = null;
+    album.classList.remove('near');
+    if (go) { slide(c); return; }
+    c.classList.remove('lift'); c.style.transform = '';                 // 멀면 제자리로
+  };
+  cards.addEventListener('pointerup', up); cards.addEventListener('pointercancel', up);
+  cards.addEventListener('touchmove', (e) => { if (d) e.preventDefault(); }, { passive: false });
+}
+// 카드가 앨범 자리로 미끄러져 들어간다(자석) → 앨범이 닫힌다 → 오늘의 관람객
+function slide(c) {
+  if (stance) return;
+  stance = c.dataset.k; cards.classList.add('picked');
+  cards.querySelectorAll('.card').forEach((x) => { x.classList.toggle('other', x !== c); x.setAttribute('aria-checked', x === c); });
+  const r = c.getBoundingClientRect(), s = slot.getBoundingClientRect();
+  const k = Math.min(s.width / r.width, s.height / r.height);
+  c.classList.remove('lift'); c.classList.add('in');
+  c.style.transform = `translate(${(s.left + s.width / 2 - (r.left + r.width / 2)).toFixed(1)}px, ${(s.top + s.height / 2 - (r.top + r.height / 2)).toFixed(1)}px) scale(${k.toFixed(3)})`;
+  $('#askNote').hidden = true;
+  if (navigator.vibrate) navigator.vibrate(12);
+  setTimeout(() => { album.classList.add('closed'); }, REDUCED ? 60 : 620);
+  setTimeout(reveal, REDUCED ? 200 : 1700);
+}
+window.addEventListener('resize', () => { const c = $('#cards .card.in'); if (c) { c.style.transition = 'none'; const r0 = c.getBoundingClientRect(); void r0; c.style.transform = ''; const r = c.getBoundingClientRect(), s = slot.getBoundingClientRect(); const k = Math.min(s.width / r.width, s.height / r.height); c.style.transform = `translate(${(s.left + s.width / 2 - (r.left + r.width / 2)).toFixed(1)}px, ${(s.top + s.height / 2 - (r.top + r.height / 2)).toFixed(1)}px) scale(${k.toFixed(3)})`; requestAnimationFrame(() => { c.style.transition = ''; }); } });
+
+// ── 오늘의 관람객: 그림 열·사진 열(네 쌍의 작은 그림)을 위에 두고, 바로 아래로 점(하나 = 열 사람)이 흩어졌다가 두 열 밑에 모인다. 내 점은 주황, 맨 마지막에
 const KEYS = ['paint', 'photo'];
 let crowd = null;
 function reveal() {
   $('#result').hidden = false;
-  $('#askMine').hidden = true;                       // "당신은 사진 쪽"은 아래 숫자 줄(사진 · 나)이 이어받는다
+  $('#revPaint').innerHTML = SITTERS.map((s) => `<img src="${s.paint}" alt="" style="object-position:${s.pos}">`).join('');
+  $('#revPhoto').innerHTML = SITTERS.map((s) => `<img src="${s.photo}" alt="" style="object-position:${s.fpos}">`).join('');
+  $$('.rev-col').forEach((c) => c.classList.toggle('me', c.dataset.k === stance));
   $('#crowdCols').innerHTML = KEYS.map((k) => { const s = STANCES[k], me = k === stance; return `<div class="crowd-col${me ? ' me' : ''}"><b class="n">${s.pct}<i>%</i></b><span class="lab">${s.label}${me ? ' · 나' : ''}</span></div>`; }).join('');
   $('#crowdLine').innerHTML = `사람을 남기는 데, 당신은 <em>${STANCES[stance].label} 쪽</em>`;
   $('#crowdStamp').textContent = stampLine(VISITORS);
@@ -173,16 +264,17 @@ function reveal() {
   requestAnimationFrame(() => {
     crowd.resize();
     const sr = stage.getBoundingClientRect();
-    const rects = KEYS.map((k) => { const r = $(`.col-h[data-k="${k}"]`).getBoundingClientRect(); return { x: r.left - sr.left + 6, y: 10, w: r.width - 12, h: sr.height - 18 }; });
+    const rects = KEYS.map((k) => { const r = $(`.rev-col[data-k="${k}"]`).getBoundingClientRect(); return { x: r.left - sr.left + 6, y: 10, w: r.width - 12, h: sr.height - 18 }; });
     const counts = split(n, KEYS.map((k) => STANCES[k].pct));
     const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
     crowd.place(scatter(n, { x: 0, y: 0, w: sr.width, h: sr.height }, crowd.rnd));
-    // 두 줄의 끝과 점·숫자가 한 화면에 들어오게
-    const top = window.scrollY + sr.top - window.innerHeight * 0.4;
+    // 두 열과 점·숫자가 한 화면에 들어오게
+    const top = window.scrollY + $('#rev').getBoundingClientRect().top - 72;
     window.scrollTo({ top: Math.max(0, top), behavior: REDUCED ? 'auto' : 'smooth' });
     setTimeout(() => crowd.move(targetsFor(crowd, groups, KEYS.indexOf(stance)), { duration: 1250, stagger: 380 }), REDUCED ? 0 : 420);
   });
 }
+const $$ = (q) => Array.from(document.querySelectorAll(q));
 $('#saveStance').addEventListener('click', () => {
   const s = STANCES[stance];
   saveChoice('c4', { stance, label: s.label, pct: s.pct });
@@ -194,7 +286,7 @@ $('#saveStance').addEventListener('click', () => {
 });
 $('#restartWall').addEventListener('click', () => {
   dev.fill(false); slides.forEach((s) => s.classList.remove('dev')); stance = null;
-  $('#askCta').hidden = true; $('#result').hidden = true; $('#ask').hidden = true; $('#wallBody').hidden = false;
+  $('#askCta').hidden = true; $('#result').hidden = true; $('#ask').hidden = true; $('#cmp').hidden = true; $('#wallBody').hidden = false;
   goTo(0); window.scrollTo(0, 0);
 });
 
@@ -309,4 +401,4 @@ $('#saveMe').addEventListener('click', async () => {
 meState('idle');
 void loadImage;
 // 검수용
-window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get busy() { return busy; }, get stance() { return stance; }, get crowd() { return crowd; }, choose, openAsk, shoot };
+window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get busy() { return busy; }, get stance() { return stance; }, get crowd() { return crowd; }, get ci() { return ci; }, get loupeOn() { return loupeOn; }, openCompare, openAsk, shoot, slide };

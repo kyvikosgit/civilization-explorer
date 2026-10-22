@@ -124,30 +124,70 @@
 </div>
 </template>
 
-<!-- 1 고르기 (지도) -->
-<section class="scr on" id="s1">
-  <div class="topbar"><a class="icon-btn" href="../proto/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a><div class="tb-title">C2 · 산업혁명</div><span></span></div>
-  <header class="hd">
-    <div class="eyebrow">C2 · Guichet · Gare Saint-Lazare</div>
-    <h2>어디까지 가시겠습니까</h2>
-    <p>벽에 걸린 노선도와 같은 지도입니다. 가고 싶은 지역이나 역을 누르면 생라자르에서 그곳까지 선이 이어집니다.</p>
-  </header>
+<!-- 1 고르기 — 부스 C-2 Step 2 화면(booth/c2.html · css/c2.css · js/c2.js)을 그대로 옮겨 왔다: 흰 상단 바(뒤로 · INDUSTRIAL REVOLUTION · 단계 수), 두 단계 칩, 현장 단서 서랍, 화면을 채우는 지도, 아래 칩 줄, 확인 시트.
+     ① 출발역 — 파리 종착역 5곳 지도에 생라자르만 켜져 있다(노르망디행 서부철도는 생라자르에서 떠났다) → "생라자르역에서 출발" 한 번
+     ② 도착지 — 파리 → 노르망디 해안으로 확대, 행선지 5곳(행정구역 영역 + 역점). 누르면 노선이 이어지고 그 자리의 사진이 역 옆에 붙는다 → "르아브르행 표를 끊을까요?" 시트 -->
+<section class="scr quiz on" id="s1">
   <div id="mapBox" class="map-box">
     <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="지도"></svg>
-    <div class="quiz-bottom"><div id="chips" class="chips" role="radiogroup" aria-label="목적지"></div></div>
   </div>
-  <div class="sel">
-    <div><b id="selFr">Le Havre<small id="selKo">르아브르</small></b><span id="selInfo">229 km · 급행 4시간 30분</span><small class="note" id="selZone">르아브르 칸통 1~6 · 1867~1875년 안내서 기준 · 2등 · 다른 곳을 누르면 바뀝니다</small></div>
-    <div class="km" id="selYear">표의 해<br>1872</div>
+  <header class="quiz-top">
+    <div class="quiz-bar">
+      <a class="icon-btn" href="../proto/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
+      <span class="quiz-count" id="stepCount">1/2</span>
+    </div>
+    <div class="progress" id="prog"><i class="on"></i><i></i></div>
+    <div class="banner">
+      <strong>생라자르역 매표창 앞.<br>어디까지 가시겠습니까?</strong>
+      <div class="stage-row">
+        <ol class="stages" aria-label="단계">
+          <li id="stg1" class="on"><b>1</b>출발역</li>
+          <li id="stg2"><b>2</b>도착지</li>
+        </ol>
+        <button id="openClues" class="clue-btn" type="button">현장 단서 <span>4</span></button>
+      </div>
+      <p id="stageHint" class="stage-hint"></p>
+    </div>
+  </header>
+  <!-- 행선지 사진 카드 — 고른 역 옆에 붙는다(지도를 밀면 같이 움직인다). 사진은 위키미디어 공용 자유 이용 사진, 크레딧은 카드 아래 -->
+  <button class="place-card" id="placeCard" type="button" hidden aria-label="표 끊기">
+    <span class="pc-img"><img id="pcImg" alt="" draggable="false"></span>
+    <span class="pc-t"><small>이곳을 그리러 가볼까요</small><b id="pcName"></b><em id="pcCredit"></em></span>
+    <span class="pc-go">표 끊기</span>
+  </button>
+  <div class="quiz-bottom">
+    <button class="btn depart" id="depart" type="button">생라자르역에서 출발</button>
+    <div id="chips" class="chips" role="radiogroup" aria-label="선택지"></div>
   </div>
-  <button class="btn" id="buy" disabled>표 끊기</button>
 </section>
+
+<!-- 현장 단서 — 부스 소품(벽면 그림 · 신문 · 시간표 · 엽서)을 앱에서 다시 보기. booth/js/c2.js CLUES 그대로 -->
+<div id="clueSheet" class="sheet clue-sheet" role="dialog" aria-label="현장 단서">
+  <div class="grip"></div>
+  <div class="eyebrow">현장 단서</div>
+  <h3 class="confirm-title">부스에서 찾은 단서</h3>
+  <p class="small muted" style="margin:6px 0 0">벽면의 그림, 신문, 책상 위 소품을 다시 살펴보세요. 옆으로 넘겨 볼 수 있습니다.</p>
+  <div id="clueRow" class="clue-row"></div>
+  <button class="btn" data-sheet-close style="margin-top:14px">닫기</button>
+</div>
+
+<!-- 확인 시트(부스 confirmSheet 그대로) — "르아브르행 표를 끊을까요?" -->
+<div id="confirmSheet" class="sheet" role="dialog" aria-label="표 끊기">
+  <div class="grip"></div>
+  <div class="eyebrow" id="cfWhat"></div>
+  <h3 class="confirm-title" id="cfTitle"></h3>
+  <p class="small muted" id="cfSub" style="margin:6px 0 0"></p>
+  <div class="btn-row" style="margin-top:18px">
+    <button id="cfRetry" class="btn line" type="button">다시 고르기</button>
+    <button id="buy" class="btn" type="button">표 끊기</button>
+  </div>
+</div>
 
 <!-- 2 발권 이후: 한 장의 스크롤 캔버스 (표 → 거리·소요·운임 → 이야기 → 오늘의 관람객) -->
 <div class="dim" id="dim"></div>
 <div class="flow" id="flow" hidden>
   <div class="flow-in" id="flowIn">
-    <div class="prog" aria-hidden="true"><i id="progBar"></i></div>
     <header class="hero" id="hero">
       <div class="hero-bar">
         <button class="icon-btn" id="flowBack" aria-label="지도로"></button>
@@ -171,9 +211,45 @@
       <div class="tiles" id="tkTiles"></div>
       <div class="why" id="tkWhy"></div>
       <section class="story" id="story">
-        <div class="track" id="track"><span class="st-lab top">PARIS</span><i class="train" id="train"><svg viewBox="0 0 24 24"><path d="M5 4h14a1 1 0 0 1 1 1v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5a1 1 0 0 1 1-1zm1 2v4h12V6zm2 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm8 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM7 18l-2 3h2l1-1.5h8L17 21h2l-2-3z"/></svg></i><span class="st-lab end" id="trackEnd">LE HAVRE</span></div>
-        <div class="story-h"><div class="eyebrow" id="stK"></div><h2 id="stH"></h2><p class="lead" id="stLead"></p></div>
-        <div id="beats"></div>
+        <div class="story-h"><div class="eyebrow" id="stK"></div><h2 id="stH"></h2></div>
+        <!-- 그 자리의 지금 사진(위키미디어 공용) + 거기서 그린 그림 한 점, 문장 하나씩 -->
+        <div class="pair" id="pair">
+          <figure class="pf place"><div class="img"><img id="pairPhoto" alt="" draggable="false"></div><figcaption><b id="pairPlace"></b><p id="pairPlaceT"></p><small id="pairPlaceCr"></small></figcaption></figure>
+          <div class="pair-k"><i></i>이 자리에서 그린 그림<i></i></div>
+          <figure class="pf paint"><div class="img"><img id="pairPaint" alt="" draggable="false"></div><figcaption><b id="pairTitle"></b><p id="pairPaintT"></p><small id="pairMeta"></small></figcaption></figure>
+        </div>
+      </section>
+      <!-- 엽서 — 앞면: 대표 그림 전면 + 당대풍 우표 + 둥근 소인(행선지 · 모네의 해), 그림 위에 글자 없음. 뒷면: 세로 구분선 · 주소 줄, 한 줄 메시지(≤60자) + 받는 사람. 뒤집기는 표의 3D 카드 문법. 저장은 기기 안에서 JPEG -->
+      <section class="postcard" id="postcard">
+        <div class="story-h"><div class="eyebrow">Carte postale</div><h2>이곳에서 엽서를 보냅니다</h2></div>
+        <div class="pc-wrap" id="pcWrap">
+          <div class="pc3d" id="pc3d">
+            <div class="pface front">
+              <img id="pcPaint" alt="" draggable="false">
+              <div class="grain"></div><div class="sheen"></div>
+              <div class="stamp-corner">
+                <div class="pstamp"><span>République<br>Française</span><b>15<sup>c</sup></b><small>Postes</small></div>
+                <svg class="postmark" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="pmArc" d="M50,50 m-33,0 a33,33 0 1,1 66,0 a33,33 0 1,1 -66,0"/></defs><circle cx="50" cy="50" r="44"/><circle cx="50" cy="50" r="23"/><text class="pm-arc"><textPath href="#pmArc" id="pmText" startOffset="2">LE HAVRE · 1872 ·</textPath></text><text class="pm-mid" x="50" y="48" text-anchor="middle" id="pmDate">21 OCT</text><text class="pm-mid s" x="50" y="58" text-anchor="middle" id="pmYear">1872</text></svg>
+              </div>
+            </div>
+            <div class="pface back">
+              <div class="pb-head"><b>Carte Postale</b><span>Chemins de fer de l’Ouest</span></div>
+              <div class="pb-l">
+                <label class="pb-msg"><input id="pcMsg" type="text" maxlength="60" placeholder="한 줄을 적어 보세요" enterkeyhint="done" autocomplete="off" autocapitalize="off"></label>
+                <div class="pb-count" id="pcCount">0 / 60</div>
+                <div class="pb-cap" id="pcCap"></div>
+              </div>
+              <div class="pb-div"></div>
+              <div class="pb-r">
+                <div class="pb-stampbox">Timbre</div>
+                <label class="pb-to"><span>받는 사람</span><input id="pcTo" type="text" maxlength="16" placeholder="나에게" enterkeyhint="done" autocomplete="off"></label>
+                <i></i><i></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pc-tools"><button class="btn line" id="pcFlip" type="button">뒤집어 쓰기</button><button class="btn" id="pcSave" type="button">엽서 저장 · 공유</button></div>
+        <p class="pc-note">엽서는 기기 안에서만 만들어지고 어디에도 보내지 않습니다. 뒷면을 누르면 글을 적을 수 있습니다.</p>
       </section>
       <!-- 오늘의 관람객 — 같은 지도 한 장에 점(하나 = 열 사람)이 흩어졌다가 고른 곳으로 모인다. 영역은 많이 고를수록 짙고, 내 곳은 주황 테두리 (proto/js/crowd.js) -->
       <section class="today crowd" id="today">
@@ -192,18 +268,28 @@
 <div class="toast" id="toast">수집함에 저장했습니다</div>
 
 <script type="module">
-// ── 부스 프로토타입 booth/js/c2.js 의 지도 엔진(el · proj · initMap 그리기 · smoothPath · drawRoute · 라벨 · 지역 강조)을 그대로 가져와
-//    시점만 파리→노르망디 해안으로 고정하고, 출발역 1곳(생라자르) + 목적지 5곳(행정구역 영역 + 역점)으로 바꿨다.
+// ── 부스 프로토타입 booth/js/c2.js 를 그대로 옮겼다: 지도 그리기(el · proj · initMap · smoothPath · drawRoute · 라벨 · 영역 강조), 두 단계(출발역 → 도착지)와 시점 전환(fitStage),
+//    팬·핀치 입력(bindInput), 칩(buildChips · markChips · regionThumb), 확인 시트, 현장 단서 서랍(CLUES).
+//    바꾼 것: ① 출발역은 생라자르 하나만 켜 둔다(노르망디행 서부철도의 출발역) → ② 도착지는 노르망디 5곳(행정구역 영역 + 역점, zones.json). 고르면 그 자리의 사진 카드가 역 옆에 붙고 "표를 끊을까요?" 시트.
 //    데이터: map.json = booth/assets/data/map.json 사본 · zones.json = france-geojson arrondissements/cantons를 같은 메르카토르로 투영
 const NS = 'http://www.w3.org/2000/svg';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const ORIGIN = { id: 'lazare', fr: 'Gare Saint-Lazare', ko: '생라자르역', ll: [2.3253, 48.8763], lab: [8, 24, 'end'] };
+// ── 1870년대 파리의 철도 종착역 5곳(부스 STATIONS, 실제 좌표). 이 체험에서는 생라자르만 고를 수 있다
+const STATIONS = [
+  { id: 'lazare', ko: '생라자르역', fr: 'Gare Saint-Lazare', ll: [2.3253, 48.8763], lab: [-10, -34, 'end'], co: '서부철도(Chemins de fer de l’Ouest)' },
+  { id: 'nord', ko: '북역', fr: 'Gare du Nord', ll: [2.3553, 48.8809], lab: [6, -40, 'start'] },
+  { id: 'est', ko: '동역', fr: 'Gare de l’Est', ll: [2.3592, 48.8768], lab: [18, 6, 'start'] },
+  { id: 'lyon', ko: '리옹역', fr: 'Gare de Lyon', ll: [2.3740, 48.8443], lab: [14, 34, 'start'] },
+  { id: 'mont', ko: '몽파르나스역', fr: 'Gare Montparnasse', ll: [2.3245, 48.8430], lab: [-14, 34, 'middle'] },
+];
+const ORIGIN = { ...STATIONS[0], lab: [8, 24, 'end'] };
 // 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 브레오테-뵈즈빌(0.40,49.61 — 페캉 지선 분기) · 아니에르
-const V = { mantes: [1.72, 48.99], vernon: [1.4850, 49.0930], rouen: [1.0993, 49.4431], yvetot: [0.753, 49.617], beuzeville: [0.40, 49.61],
-  asnieres: [2.285, 48.905] };
+const V = { mantes: [1.72, 48.99], vernon: [1.4850, 49.0930], rouen: [1.0993, 49.4431], yvetot: [0.753, 49.617], beuzeville: [0.40, 49.61], asnieres: [2.285, 48.905] };
 const DEST = [
   { id: 'argenteuil', fr: 'Argenteuil', ko: '아르장퇴유', ll: [2.2472, 48.9472], lab: [0, -30, 'middle'], info: '11 km · 25분', year: 1874, via: [V.asnieres] },
   { id: 'vernon', fr: 'Vernon', ko: '베르농', ll: [1.4850, 49.0930], lab: [0, 22, 'middle'], info: '80 km · 급행 1시간 30분', year: 1883, via: [V.mantes] },
@@ -211,14 +297,47 @@ const DEST = [
   { id: 'lesifs', fr: 'Les Ifs', ko: '레지프', ll: [0.4661, 49.6463], lab: [12, -4, 'start'], info: '214 km · 4시간 33분 + 마차 15 km', year: 1883, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
   { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, -14, 'middle'], labSel: [14, 6, 'start'], info: '229 km · 급행 4시간 30분', year: 1872, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
 ];
-// 목적지 영역 색 — 부스 지역 양피지 색 계열(노르망디 #C2C48E · 오드프랑스 #D6C08C · 브르타뉴 #CFB57F …)에서 고른 5색
+// 행선지의 지금 모습 — 모네가 그린 자리의 사진(위키미디어 공용, 자유 이용). 크레딧은 카드와 상세 판 출처에
+const PLACES = window.PLACES = {
+  argenteuil: { name: '아르장퇴유의 센강과 다리', img: 'img/places/argenteuil.jpg', credit: 'Remi Jouan · CC BY-SA 3.0', page: 'https://commons.wikimedia.org/wiki/File:Argenteuil_-_Pont_(11).jpg' },
+  vernon: { name: '지베르니 · 모네의 물의 정원', img: 'img/places/vernon.jpg', credit: 'Fondation Monet · CC BY-SA 3.0', page: 'https://commons.wikimedia.org/wiki/File:Le_%22Pont_Japonais%22,_vu_du_bassin_des_Nymph%C3%A9as.jpg' },
+  rouen: { name: '루앙 대성당 서쪽 정면', img: 'img/places/rouen.jpg', credit: 'Ввласенко · CC BY-SA 3.0', page: 'https://commons.wikimedia.org/wiki/File:Rouen_Cathedral,_front.jpg' },
+  lesifs: { name: '에트르타 · 마네포르트', img: 'img/places/lesifs.jpg', credit: 'Tobi 87 · CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:La_Manneporte-Etretat-Normandie.jpg' },
+  lehavre: { name: '르아브르 항구', img: 'img/places/lehavre.jpg', credit: 'Gary Dee · CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:(Sunset_Port_Le_Havre_France)_2015.jpg' },
+};
+// 목적지 영역 색 — 부스 지역 양피지 색 계열에서 고른 5색
 const ZTINT = { argenteuil: '#DDAE74', vernon: '#C3D0A4', rouen: '#D9BE8C', lesifs: '#E4D47E', lehavre: '#C89E72' };
 const ZORDER = ['argenteuil', 'vernon', 'rouen', 'lehavre', 'lesifs'];
-const FIT = { lon0: -0.45, lon1: 2.65, lat0: 48.72, lat1: 49.92 };    // 파리 → 노르망디 해안(바다 쪽 여유)
+const FIT = { lon0: -0.62, lon1: 2.7, lat0: 48.72, lat1: 49.92 };    // ② 파리 → 노르망디 해안(바다 쪽 여유)
+
+// ── 현장 단서 (부스 소품과 같은 것: 벽면 그림 · 신문 · 책상 위 시간표 · 엽서) — booth/js/c2.js CLUES 그대로
+const CLUES = [
+  { kind: 'img', img: '../../../booth/assets/clue/monet_gare_saint_lazare_1877.jpg', k: '벽면의 그림', t: '증기를 뿜는 기관차와 철골 유리 지붕 — 파리의 한 기차역입니다.', meta: '클로드 모네 〈생라자르역〉 1877 · 퍼블릭 도메인' },
+  { kind: 'news', k: '신문 광고 · 재현', t: '바다로 가는 ‘유람 열차’ 광고. 행선지는 모두 영불해협(라망슈) 해안 도시입니다.' },
+  { kind: 'table', k: '책상 위 시간표 · 재현', t: '서부철도의 파리–르아브르 선. 서부철도는 파리에 출발역이 두 곳 있었습니다 — 센강 오른쪽과 왼쪽.' },
+  { kind: 'img', img: '../../../booth/assets/clue/monet_manneporte_etretat_1883.jpg', k: '엽서', t: '바다 절벽의 마을 에트르타. 모네는 이 해안의 항구 도시 르아브르에서 자랐습니다.', meta: '클로드 모네 〈에트르타의 마네포르트〉 1883 · 퍼블릭 도메인' },
+];
+function clueCard(c) {
+  if (c.kind === 'img') return `<figure class="clue"><div class="clue-img"><img src="${c.img}" alt="" loading="lazy"></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p><div class="clue-meta">${c.meta}</div></figcaption></figure>`;
+  if (c.kind === 'news') return `<figure class="clue"><div class="clue-paper news"><div class="np-mast">LE PETIT JOURNAL<span>— annonces —</span></div><div class="np-rule"></div><div class="np-big">TRAINS DE PLAISIR</div><div class="np-mid">PARIS — LA MER</div><div class="np-sm">Dieppe · Le Havre · Trouville<br>Billets d’aller et retour</div></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p></figcaption></figure>`;
+  return `<figure class="clue"><div class="clue-paper table"><div class="tt-co">CHEMINS DE FER DE L’OUEST</div><div class="tt-line">Ligne de Paris au Havre</div><ol class="tt-st"><li>Paris</li><li>Mantes</li><li>Vernon</li><li>Rouen</li><li>Yvetot</li><li>Le Havre</li></ol></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p></figcaption></figure>`;
+}
+$('#clueRow').innerHTML = CLUES.map(clueCard).join('');
+// 바텀시트(부스 common.js sheet 그대로): 딤은 제자리에서 페이드, 시트만 올라온다
+function sheet(e) {
+  let dim = e.previousElementSibling;
+  if (!dim || !dim.classList.contains('sheet-dim')) { dim = document.createElement('div'); dim.className = 'sheet-dim'; e.parentNode.insertBefore(dim, e); }
+  const api = { open() { dim.classList.add('open'); e.classList.add('open'); }, close() { dim.classList.remove('open'); e.classList.remove('open'); }, get isOpen() { return e.classList.contains('open'); } };
+  dim.addEventListener('click', api.close); $$('[data-sheet-close]', e).forEach((b) => b.addEventListener('click', api.close));
+  return api;
+}
+const clueSheet = sheet($('#clueSheet')), confirmSheet = sheet($('#confirmSheet'));
+$('#openClues').addEventListener('click', () => clueSheet.open());
 
 let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null;
-const view = { s: 1, tx: 0, ty: 0 };
-let picked = null;
+const view = { s: 1, tx: 0, ty: 0, min: 0.1, max: 200 };
+let stage = 'station';                 // 'station' | 'region'
+let picked = null, busy = false;
 const proj = (lon, lat) => { const merc = (a) => (Math.log(Math.tan(Math.PI / 4 + (a * Math.PI) / 360)) * 180) / Math.PI; const P = M.projection; return [(lon - P.lon0) * P.k, (merc(P.lat1) - merc(lat)) * P.k]; };
 const mix = (hex, to, t) => { const a = hex.match(/\w\w/g).map((h) => parseInt(h, 16)), b = to.match(/\w\w/g).map((h) => parseInt(h, 16)); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
 
@@ -242,6 +361,7 @@ async function initMap() {
   ZORDER.forEach((id) => { zoneEls[id] = el('path', { d: Z.zones[id].d, fill: ZTINT[id], 'fill-opacity': 0.92, class: 'zone', 'data-id': id, stroke: '#8a6d47', 'stroke-width': 0.7, 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world); });
   el('path', { d: M.regionBorders, fill: 'none', stroke: '#8a6d47', 'stroke-width': 0.9, 'stroke-dasharray': '2 3', 'stroke-opacity': 0.7, 'vector-effect': 'non-scaling-stroke' }, world);
   el('path', { d: M.borders, fill: 'none', stroke: '#6b5235', 'stroke-width': 1.3, 'stroke-dasharray': '6 3 1 3', 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke' }, world);
+  // 파리 시가지(데파르트망 75) + 근교 — 출발역 고를 때 확대해서 보인다
   parisG = el('g', {}, world);
   el('path', { d: M.regions.petitecouronne, fill: '#DCC8A0', stroke: '#8a6d47', 'stroke-width': 0.8, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke' }, parisG);
   el('path', { d: M.regions.paris, fill: '#F1E2C0', stroke: '#6b5235', 'stroke-width': 1.4, 'vector-effect': 'non-scaling-stroke' }, parisG);
@@ -254,76 +374,144 @@ async function initMap() {
   pinG = el('g', { 'pointer-events': 'none', opacity: 0 }, svg);
   pinG.innerHTML = `<g class="pin-in"><path d="M0 0C-3-9-12-14-12-24a12 12 0 0 1 24 0C12-14 3-9 0 0z" fill="#E0482A" stroke="#fff" stroke-width="2"/><circle cy="-24" r="4.5" fill="#fff"/></g>`;
   labels = el('g', { 'pointer-events': 'none' }, svg);     // 이름표는 핀 위에 — 고른 역 이름이 가려지지 않게
-  buildChips(); bindInput(); fit();
-  window.addEventListener('resize', fit);
-  pick('lehavre');                                   // 패널의 예시(르아브르)와 같게 처음부터 골라 둔다 — 단추가 죽어 보이지 않게
+  $('#cfRetry').addEventListener('click', () => { confirmSheet.close(); });
+  $('#placeCard').addEventListener('click', () => { if (picked && !busy) openConfirm(); });
+  $('#depart').addEventListener('click', () => { if (stage === 'station') setStage('region'); });
+  bindInput();
+  setStage('station', false);
+  window.addEventListener('resize', () => fitStage(false));
   window.mapReady = true;
 }
-// 지도는 상자 높이에 맞춰 키우고, 남는 폭은 옆으로 밀어 본다(가로 이동만 · 세로 제스처는 페이지 스크롤)
-const pan = { x: 0, min: 0, max: 0, boxW: 0 };
-function fit() {
+
+// ── 시점: 단계마다 맞춰 부드럽게 확대·축소 (부스 fitStage 그대로. ②는 FIT 경위도 상자)
+function stageBounds() {
+  if (stage === 'station') {
+    const pts = STATIONS.map((s) => proj(...s.ll));
+    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const half = Math.max(Math.max(...xs) - Math.min(...xs), (Math.max(...ys) - Math.min(...ys)) * 1.2) * 1.75;
+    return [cx - half, cy - half * 0.9, cx + half, cy + half * 0.9];
+  }
+  const [x0, y0] = proj(FIT.lon0, FIT.lat1), [x1, y1] = proj(FIT.lon1, FIT.lat0);
+  return [x0, y0, x1, y1];
+}
+let tween = 0;
+function fitStage(animate = true) {
   const box = $('#mapBox').getBoundingClientRect();
   svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
-  const [x0, y0] = proj(FIT.lon0, FIT.lat1), [x1, y1] = proj(FIT.lon1, FIT.lat0);
-  const top = 10, bottom = box.height - ($('.quiz-bottom').offsetHeight || 90), pad = 14;
-  const sw = (box.width - pad * 2) / (x1 - x0), sh = (bottom - top - pad * 2) / (y1 - y0);
-  const s = Math.min(sh, sw * 1.18);                                   // 상자 폭의 최대 1.18배 — 르아브르와 생라자르가 함께 보이는 선
-  const mapW = (x1 - x0) * s;
-  view.s = s; view.ty = top + (bottom - top - (y1 - y0) * s) / 2 - y0 * s;
-  pan.boxW = box.width; pan.min = Math.min(0, box.width - mapW - pad); pan.max = pan.min < 0 ? pad : 0;
-  if (pan.x === 0 && pan.min < 0) pan.x = (box.width - mapW) / 2;     // 처음엔 가운데(르아브르 · 생라자르 둘 다 보인다)
-  setPan(pan.x, x0, s);
-}
-let fitX0 = 0;
-function setPan(x, x0, s) {
-  if (x0 !== undefined) fitX0 = x0;
-  pan.x = Math.max(pan.min, Math.min(pan.max, x));
-  view.tx = pan.x - fitX0 * (s || view.s);
-  world.setAttribute('transform', `translate(${view.tx} ${view.ty}) scale(${view.s})`);
-  drawLabels(); updatePin();
+  const top = ($('.quiz-top').getBoundingClientRect().bottom || 220) + 6;
+  const bottom = box.height - ($('.quiz-bottom').offsetHeight || 100);
+  const [x0, y0, x1, y1] = stageBounds();
+  const pad = 16;
+  const s = Math.min((box.width - pad * 2) / (x1 - x0), (bottom - top - pad * 2) / (y1 - y0));
+  const to = { s, tx: (box.width - (x1 - x0) * s) / 2 - x0 * s, ty: top + (bottom - top - (y1 - y0) * s) / 2 - y0 * s };
+  view.min = s * 0.7; view.max = s * (stage === 'station' ? 3 : 6);
+  if (!animate || RM) { Object.assign(view, to); applyView(); return; }
+  const from = { s: view.s, tx: view.tx, ty: view.ty }, t0 = performance.now(), D = 900, id = ++tween;
+  const cxw = (box.width / 2 - from.tx) / from.s, cyw = ((top + bottom) / 2 - from.ty) / from.s;
+  const cxt = (box.width / 2 - to.tx) / to.s, cyt = ((top + bottom) / 2 - to.ty) / to.s;
+  const step = (now) => {
+    if (id !== tween) return;
+    const k = Math.min((now - t0) / D, 1), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    const sc = Math.exp(Math.log(from.s) + (Math.log(to.s) - Math.log(from.s)) * e);
+    const wx = cxw + (cxt - cxw) * e, wy = cyw + (cyt - cyw) * e;
+    view.s = sc; view.tx = box.width / 2 - wx * sc; view.ty = (top + bottom) / 2 - wy * sc;
+    applyView();
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 const toScreen = ([x, y]) => [x * view.s + view.tx, y * view.s + view.ty];
 const toWorld = (sx, sy) => [(sx - view.tx) / view.s, (sy - view.ty) / view.s];
+function applyView() {
+  world.setAttribute('transform', `translate(${view.tx} ${view.ty}) scale(${view.s})`);
+  drawLabels(); updatePin(); placeCardPos();
+}
+
 function drawLabels() {
   let h = '';
-  const txt = (x, y, fr, ko, fs, anchor = 'middle', w = 600) =>
-    `<text class="lbl" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${fs}" font-weight="${w}" stroke-width="3">${fr}</text>` +
-    (ko ? `<text class="lbl-ko" x="${x}" y="${y + fs * 1.05}" text-anchor="${anchor}" font-size="${fs * 0.82}" stroke-width="3">${ko}</text>` : '');
-  const [sx, sy] = toScreen(proj(0.35, 49.86));
-  h += `<text class="lbl-sea" x="${sx}" y="${sy}" text-anchor="middle" font-size="13">La Manche</text>`;
-  const [px, py] = toScreen(M.anchors.paris);
-  h += `<text class="lbl-faint" x="${px}" y="${py + 30}" text-anchor="middle" font-size="18">PARIS</text>`;
-  // 영역 이름(행정구역명, 작은 대문자) — 영역 가운데, 자리가 있을 때만
-  ZORDER.forEach((id) => {
-    const z = Z.zones[id]; const a = z.anchor || [(z.bounds[0] + z.bounds[2]) / 2, (z.bounds[1] + z.bounds[3]) / 2];
-    const [x, y] = toScreen(a); const w = (z.bounds[2] - z.bounds[0]) * view.s;
-    if (w < 56 && !z.anchor) return;
-    const on = picked && picked.id === id;
-    h += `<text class="lbl-zone${on ? ' on' : ''}" x="${x}" y="${y}" text-anchor="middle" font-size="${w < 90 ? 7.5 : 9.5}">${(id === 'lehavre' ? 'LE HAVRE' : z.label).toUpperCase()}</text>`;
-  });
-  const dot = (s, on, origin) => {
-    const [x, y] = toScreen(proj(...s.ll)); const lab = on && s.labSel ? s.labSel : s.lab; const lx = x + lab[0], ly = y + lab[1];
-    h += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly + (lab[1] < 0 ? 4 : -12)}" stroke="#6b5235" stroke-width="1"/>`;
-    h += `<circle cx="${x}" cy="${y}" r="${on ? 9 : 7}" fill="${on || origin ? '#E0662C' : '#1E140C'}" stroke="#FFF1DC" stroke-width="2.5"/>`;
-    h += txt(lx, ly, s.fr, s.ko, origin ? 12 : 13, lab[2], on || origin ? 800 : 600);
-  };
-  DEST.forEach((s) => dot(s, picked && picked.id === s.id, false));
-  dot(ORIGIN, false, true);
+  const txt = (x, y, fr, ko, fs, anchor = 'middle', w = 600, dim = false) =>
+    `<text class="lbl${dim ? ' dim' : ''}" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${fs}" font-weight="${w}" stroke-width="3">${fr}</text>` +
+    (ko ? `<text class="lbl-ko${dim ? ' dim' : ''}" x="${x}" y="${y + fs * 1.05}" text-anchor="${anchor}" font-size="${fs * 0.82}" stroke-width="3">${ko}</text>` : '');
+  if (stage === 'station') {
+    // ① 파리의 종착역 5곳 — 생라자르만 켜져 있고(주황), 나머지는 흐리다
+    const [px, py] = toScreen(M.anchors.paris);
+    h += `<text class="lbl-faint" x="${px}" y="${py + 4}" text-anchor="middle" font-size="22">PARIS</text>`;
+    STATIONS.forEach((s) => {
+      const [x, y] = toScreen(proj(...s.ll)); const on = s.id === 'lazare';
+      const lx = x + s.lab[0], ly = y + s.lab[1];
+      h += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly + (s.lab[1] < 0 ? 4 : -12)}" stroke="#6b5235" stroke-width="1" opacity="${on ? 1 : 0.45}"/>`;
+      h += `<circle cx="${x}" cy="${y}" r="${on ? 9 : 6}" fill="${on ? '#E0662C' : '#8A7A66'}" stroke="#FFF1DC" stroke-width="2.5" opacity="${on ? 1 : 0.7}"/>`;
+      h += txt(lx, ly, s.fr, s.ko, 13, s.lab[2], on ? 800 : 600, !on);
+    });
+  } else {
+    const [sx, sy] = toScreen(proj(0.35, 49.86));
+    h += `<text class="lbl-sea" x="${sx}" y="${sy}" text-anchor="middle" font-size="13">La Manche</text>`;
+    const [px, py] = toScreen(M.anchors.paris);
+    h += `<text class="lbl-faint" x="${px}" y="${py + 30}" text-anchor="middle" font-size="18">PARIS</text>`;
+    // 영역 이름(행정구역명, 작은 대문자) — 영역 가운데, 자리가 있을 때만
+    ZORDER.forEach((id) => {
+      const z = Z.zones[id]; const a = z.anchor || [(z.bounds[0] + z.bounds[2]) / 2, (z.bounds[1] + z.bounds[3]) / 2];
+      const [x, y] = toScreen(a); const w = (z.bounds[2] - z.bounds[0]) * view.s;
+      if (w < 56 && !z.anchor) return;
+      const on = picked && picked.id === id;
+      h += `<text class="lbl-zone${on ? ' on' : ''}" x="${x}" y="${y}" text-anchor="middle" font-size="${w < 90 ? 7.5 : 9.5}">${(id === 'lehavre' ? 'LE HAVRE' : z.label).toUpperCase()}</text>`;
+    });
+    const dot = (s, on, origin) => {
+      const [x, y] = toScreen(proj(...s.ll)); const lab = on && s.labSel ? s.labSel : s.lab; const lx = x + lab[0], ly = y + lab[1];
+      h += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly + (lab[1] < 0 ? 4 : -12)}" stroke="#6b5235" stroke-width="1"/>`;
+      h += `<circle cx="${x}" cy="${y}" r="${on ? 9 : 7}" fill="${on || origin ? '#E0662C' : '#1E140C'}" stroke="#FFF1DC" stroke-width="2.5"/>`;
+      h += txt(lx, ly, s.fr, s.ko, origin ? 12 : 13, lab[2], on || origin ? 800 : 600);
+    };
+    DEST.forEach((s) => dot(s, picked && picked.id === s.id, false));
+    dot(ORIGIN, false, true);
+  }
   labels.innerHTML = h;
+}
+
+// ── 단계 전환 (부스 setStage 그대로 + 칩·단추·안내문)
+function setStage(st, animate = true) {
+  stage = st;
+  $('#stg1').classList.toggle('on', st === 'station'); $('#stg1').classList.toggle('done', st === 'region');
+  $('#stg2').classList.toggle('on', st === 'region');
+  $('#stepCount').textContent = st === 'station' ? '1/2' : '2/2';
+  $$('#prog i').forEach((i, k) => i.classList.toggle('on', k === 0 || st === 'region'));
+  $('#stageHint').innerHTML = st === 'station'
+    ? '① 1870년대 파리에는 방면마다 출발역이 따로 있었습니다. 노르망디행 서부철도는 <b>생라자르역</b>에서 떠났습니다.'
+    : '② <b>생라자르역</b>에서 출발합니다. 지도의 역이나 영역을 누르면 그곳까지 선이 이어집니다. <b>어디까지 가시겠습니까?</b>';
+  $('#depart').hidden = st !== 'station';
+  parisG.style.opacity = st === 'station' ? 1 : 0.6;
+  ZORDER.forEach((id) => { zoneEls[id].style.pointerEvents = st === 'region' ? 'auto' : 'none'; });
+  if (st === 'station') { picked = null; clearRoute(); placeCard(null); }
+  buildChips();
+  fitStage(animate);
 }
 function buildChips() {
   const box = $('#chips');
-  box.innerHTML = DEST.map((c) => `<button class="chip" role="radio" aria-checked="false" data-id="${c.id}"><span class="dot" style="background:${ZTINT[c.id]};box-shadow:0 0 0 1px #6b5235"></span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
-  $$('.chip', box).forEach((b) => b.addEventListener('click', () => pick(b.dataset.id)));
+  if (stage === 'station') {
+    box.innerHTML = STATIONS.map((c) => `<button class="chip station${c.id === 'lazare' ? '' : ' dim'}" role="radio" aria-checked="${c.id === 'lazare'}" data-id="${c.id}" ${c.id === 'lazare' ? '' : 'disabled'}><span class="dot"></span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
+  } else {
+    box.innerHTML = DEST.map((c) => `<button class="chip region" role="radio" aria-checked="false" data-id="${c.id}"><span class="thumb" style="--z:${ZTINT[c.id]}">${regionThumb(c.id)}</span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
+    $$('.chip', box).forEach((b) => b.addEventListener('click', () => pick(b.dataset.id)));
+  }
+  markChips();
 }
 function markChips() {
-  $$('#chips .chip').forEach((b) => { const on = picked && b.dataset.id === picked.id; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); });
+  const cur = stage === 'station' ? 'lazare' : picked && picked.id;
+  $$('#chips .chip').forEach((b) => { const on = b.dataset.id === cur; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: RM ? 'auto' : 'smooth' }); });
   ZORDER.forEach((id) => {
-    const on = picked && picked.id === id;
+    const on = stage === 'region' && cur === id;
     zoneHl[id].setAttribute('opacity', on ? 1 : 0);
     zoneEls[id].setAttribute('fill', on ? mix(ZTINT[id], '#F3E7CB', 0.35) : ZTINT[id]); zoneEls[id].setAttribute('fill-opacity', on ? 1 : 0.92);
   });
 }
+// 칩의 작은 영역 모양(부스 regionThumb — 여기서는 행정구역 영역)
+function regionThumb(id) {
+  const b = Z.zones[id].bounds; const w = b[2] - b[0], h = b[3] - b[1]; const m = Math.max(w, h) * 0.12;
+  return `<svg viewBox="${b[0] - m} ${b[1] - m} ${w + 2 * m} ${h + 2 * m}" aria-hidden="true"><path d="${Z.zones[id].d}"/></svg>`;
+}
+
+// ── 노선(부스 smoothPath · drawRoute 그대로: 실제 간선의 경유지를 따라)
 function smoothPath(pts) {
   let d = `M${pts[0][0]},${pts[0][1]}`;
   for (let i = 1; i < pts.length; i++) {
@@ -338,18 +526,55 @@ function drawRoute(dest) {
   const d = smoothPath(pts);
   [routeGlow, routeCore, routeLine].forEach((p) => p.setAttribute('d', d));
   const Lw = routeCore.getTotalLength() * view.s + 6;
-  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: 1000, easing: 'ease-out', fill: 'backwards' }); });
-  routeLine.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1000, easing: 'ease-in' });
+  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: RM ? 1 : 1000, easing: 'ease-out', fill: 'backwards' }); });
+  routeLine.animate([{ opacity: 0 }, { opacity: 1 }], { duration: RM ? 1 : 1000, easing: 'ease-in' });
   pinAt = pts[pts.length - 1]; updatePin();
-  pinG.querySelector('.pin-in').animate([{ transform: 'translateY(-18px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 380, delay: 800, fill: 'backwards', easing: 'cubic-bezier(.3,1.4,.5,1)' });
+  pinG.querySelector('.pin-in').animate([{ transform: 'translateY(-18px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: RM ? 1 : 380, delay: RM ? 0 : 800, fill: 'backwards', easing: 'cubic-bezier(.3,1.4,.5,1)' });
 }
+function clearRoute() { [routeGlow, routeCore, routeLine].forEach((p) => p.setAttribute('d', '')); pinAt = null; updatePin(); }
 function updatePin() { if (!pinAt) { pinG.setAttribute('opacity', 0); return; } const [x, y] = toScreen(pinAt); pinG.setAttribute('transform', `translate(${x} ${y})`); pinG.setAttribute('opacity', 1); }
-function pick(id) {
+
+// ── 사진 카드: 고른 역 옆에 붙어 지도와 함께 움직인다. 오른쪽이 좁으면 왼쪽, 아래가 좁으면 위로
+function placeCard(dest) {
+  const card = $('#placeCard');
+  if (!dest) { card.hidden = true; card.classList.remove('in'); return; }
+  const p = PLACES[dest.id];
+  $('#pcImg').src = p.img; $('#pcImg').alt = p.name; $('#pcName').textContent = p.name; $('#pcCredit').textContent = `사진 ${p.credit}`;
+  card.hidden = false; card.classList.remove('in'); void card.offsetWidth; card.classList.add('in');
+  placeCardPos();
+}
+function placeCardPos() {
+  const card = $('#placeCard'); if (card.hidden || !picked) return;
+  const box = $('#mapBox').getBoundingClientRect(); const [x, y] = toScreen(proj(...picked.ll));
+  const w = card.offsetWidth || 156, h = card.offsetHeight || 160, top = ($('.quiz-top').offsetHeight || 220) + 8, bottom = box.height - ($('.quiz-bottom').offsetHeight || 90) - 8;
+  // 역 점과 이름표를 가리지 않게: 점의 오른쪽 위에, 오른쪽이 좁으면 왼쪽 위에, 위가 좁으면 아래에
+  let cx = x + 16, cy = y - h - 12;
+  if (cx + w > box.width - 8) cx = x - 16 - w;
+  if (cy < top) cy = y + 16;
+  cx = clamp(cx, 8, box.width - w - 8);
+  cy = clamp(cy, top, Math.max(top, bottom - h));
+  card.style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px)`;
+}
+
+// ── 고르기 → 노선 애니메이션 + 사진 카드 → "표를 끊을까요?" 시트 (부스 pick 의 지역 단계 그대로)
+let pickRun = 0;
+async function pick(id) {
+  if (stage !== 'region' || busy || confirmSheet.isOpen) return;
+  const run = ++pickRun;
   picked = DEST.find((s) => s.id === id); if (!picked) return;
-  markChips(); drawLabels(); drawRoute(picked);
-  const z = Z.zones[id];
-  $('#selFr').childNodes[0].textContent = picked.fr; $('#buy').disabled = false; $('#selKo').textContent = picked.ko; $('#selInfo').textContent = picked.info; $('#selYear').innerHTML = `표의 해<br>${picked.year}`;
-  $('#selZone').textContent = `${z.kind === 'cantons' ? (id === 'lehavre' ? '르아브르 칸통 1~6' : '칸통 ' + z.names.join(' · ')) : 'arrondissement ' + z.label} · 1867~1875년 안내서 기준 · 2등 · 다른 곳을 누르면 바뀝니다`;
+  markChips(); drawLabels(); drawRoute(picked); placeCard(picked);
+  busy = true;
+  await new Promise((r) => setTimeout(r, RM ? 200 : 1500));
+  busy = false;
+  if (run !== pickRun) return;
+  openConfirm();
+}
+function openConfirm() {
+  const p = picked, z = Z.zones[p.id];
+  $('#cfWhat').textContent = `Paris (St-Lazare) → ${p.fr}`;
+  $('#cfTitle').textContent = `${p.ko}행 표를 끊을까요?`;
+  $('#cfSub').textContent = `${p.info} · 2등 · 표의 해 ${p.year} · ${z.kind === 'cantons' ? (p.id === 'lehavre' ? '르아브르 칸통 1~6' : '칸통 ' + z.names.join(' · ')) : 'arrondissement ' + z.label} · 1867~1875년 안내서 기준`;
+  confirmSheet.open();
 }
 function stationAt(sx, sy) {
   let best = null, bd = 26;
@@ -366,23 +591,48 @@ function zoneAt(sx, sy) {
   for (const id of [...ZORDER].reverse()) if (zoneEls[id].isPointInFill(pt)) return id;     // 위에 그려진 영역(레지프)이 르아브르보다 먼저
   return null;
 }
-// 입력: 탭 = 고르기 · 가로로 밀면 지도 이동(상자 안에서만) · 세로 제스처는 브라우저에 넘긴다(touch-action: pan-y)
+
+// ── 입력(부스 bindInput 그대로): 팬·핀치 줌, 탭 선택. 화면이 고정이라 세로 제스처도 지도가 받는다
 function bindInput() {
-  const box = $('#mapBox'); let down = null;
+  const box = $('#mapBox');
+  const pts = new Map();
+  let pan = null, pinch = null, down = null;
   const local = (e) => { const r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-  box.addEventListener('pointerdown', (e) => { if (e.target.closest('.chips')) return; down = { p: local(e), x: e.clientX, y: e.clientY, pan0: pan.x, moved: false, horiz: false, id: e.pointerId }; });
-  box.addEventListener('pointermove', (e) => {
-    if (!down || e.pointerId !== down.id) return;
-    const dx = e.clientX - down.x, dy = e.clientY - down.y;
-    if (!down.moved && Math.hypot(dx, dy) > 6) down.moved = true;
-    if (!down.horiz && Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.2) { down.horiz = true; try { box.setPointerCapture(e.pointerId); } catch (_) { /* noop */ } }
-    if (down.horiz && pan.min < 0) setPan(down.pan0 + dx);
+  box.addEventListener('pointerdown', (e) => {
+    box.setPointerCapture(e.pointerId); tween++;
+    const p = local(e); pts.set(e.pointerId, p);
+    if (pts.size === 2) { pan = null; const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), s: view.s, w: toWorld((a[0] + b[0]) / 2, (a[1] + b[1]) / 2) }; return; }
+    down = { p, moved: false };
+    pan = { p, tx: view.tx, ty: view.ty };
   });
-  const up = (e) => { if (down && e.type === 'pointerup' && !down.moved) { const [x, y] = local(e); const hit = stationAt(x, y) || zoneAt(x, y); if (hit) pick(hit); } down = null; };
+  box.addEventListener('pointermove', (e) => {
+    if (!pts.has(e.pointerId)) return;
+    const p = local(e); pts.set(e.pointerId, p);
+    if (down && Math.hypot(p[0] - down.p[0], p[1] - down.p[1]) > 6) down.moved = true;
+    if (pinch && pts.size >= 2) {
+      const [a, b] = [...pts.values()];
+      const ns = clamp(pinch.s * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d, view.min, view.max);
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+      view.s = ns; view.tx = mx - pinch.w[0] * ns; view.ty = my - pinch.w[1] * ns; applyView();
+    } else if (pan) { view.tx = pan.tx + p[0] - pan.p[0]; view.ty = pan.ty + p[1] - pan.p[1]; applyView(); }
+  });
+  const up = (e) => {
+    if (!pts.has(e.pointerId)) return;
+    const p = pts.get(e.pointerId); pts.delete(e.pointerId);
+    if (pts.size < 2) pinch = null;
+    if (down && !down.moved && e.type === 'pointerup' && stage === 'region') { const hit = stationAt(p[0], p[1]) || zoneAt(p[0], p[1]); if (hit) pick(hit); }
+    if (!pts.size) { pan = null; down = null; }
+  };
   box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
-  box.addEventListener('touchmove', (e) => { if (down && down.horiz) e.preventDefault(); }, { passive: false });
+  box.addEventListener('wheel', (e) => {
+    e.preventDefault(); tween++;
+    const [mx, my] = local(e); const w = toWorld(mx, my);
+    view.s = clamp(view.s * (1 - e.deltaY * 0.0015), view.min, view.max);
+    view.tx = mx - w[0] * view.s; view.ty = my - w[1] * view.s; applyView();
+  }, { passive: false });
 }
-window.pick = pick; window.getPicked = () => picked; window.DEST = DEST;
+window.pick = pick; window.getPicked = () => picked; window.DEST = DEST; window.setStage = setStage; window.getStage = () => stage; window.closeConfirm = () => confirmSheet.close();
+window.refit = () => fitStage(false); window.screenOf = (id) => toScreen(proj(...DEST.find((d) => d.id === id).ll));   // 검수용
 window.mapData = { get M() { return M; }, get Z() { return Z; }, proj, mix, ZTINT, ZORDER, DEST, ORIGIN };   // 발권 뒤 "오늘의 관람객" 작은 지도가 같은 자료를 쓴다
 initMap();
 </script>
@@ -391,7 +641,18 @@ initMap();
 import { createCrowd, dotsFor, split, packPoly, packDisc, discRadius, scatter, targetsFor, stampLine } from '../proto/js/crowd.js';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const TK = {"argenteuil": {"to": "ARGENTEUIL", "via": "", "prix": null}, "vernon": {"to": "VERNON", "via": "", "prix": null}, "rouen": {"to": "ROUEN", "via": "rive droite", "prix": null}, "lesifs": {"to": "LES IFS", "via": "par Beuzeville", "prix": null}, "lehavre": {"to": "LE HAVRE", "via": "par Rouen", "prix": "21<sup>f</sup>05"}};
-const NARR = {"argenteuil": {"h": "아르장퇴유에 가서, 배 위의 작업실에서 강과 들판을 그렸습니다", "lead": "", "cards": [{"t": "파리에서 9 km, 기차로 15분(1875년 시간표로는 25분, 매시 출발). 모네는 1871년 12월부터 1878년 1월까지 여기 살며 생라자르역으로 파리를 오갔다. 역이 집과 파리 일을 잇는 고리였고, 1876년 말에는 역 근처 뤼 몽세에 작업실을 얻었다.", "img": "../works/c2-arg-regates-orsay.jpg", "cap": "아르장퇴유의 레가타", "meta": "1872년경 · 오르세(RF 2778) · PD"}, {"t": "도비니를 본떠 배를 한 척 사서 판자 선실을 올리고, 이젤 하나 들어갈 자리에서 물 위에서 그렸다. 바토아틀리에.", "img": "../works/c2-arg-bateau-atelier-km.jpg", "cap": "바토아틀리에", "meta": "1874 · 크뢸러뮐러(KM 111.222) · PD"}, {"t": "요트 경주가 열리던 강과 마을 위쪽의 철교. 〈레가타〉(1872년경)는 카유보트가 갖고 있다가 국가에 남겼고, 철교는 1873~74년에 그렸다.", "img": "../works/c2-arg-pont-chemin-de-fer-orsay.jpg", "cap": "아르장퇴유의 철교", "meta": "1873~74 · 오르세(RF 1679) · PD"}, {"t": "1873년 여름, 마을 근처 양귀비 들판을 카미유와 장을 앞세워 그렸다. 〈양귀비 들판〉은 이듬해 1874년 첫 전시에 걸렸다.", "img": "../works/c2-arg-coquelicots-orsay.jpg", "cap": "양귀비 들판", "meta": "1873 · 오르세(RF 1676) · PD"}, {"t": "1875년, 언덕 위 바람 속의 카미유와 장. 〈파라솔을 든 여인〉은 1876년 4월 두 번째 인상파 전시에 모네 18점 가운데 하나로 나왔다.", "img": "../works/c2-arg-parasol-nga.jpg", "cap": "파라솔을 든 여인 – 모네 부인과 아들", "meta": "1875 · 내셔널 갤러리 워싱턴(1983.1.29) · CC0"}]}, "vernon": {"h": "베르농에 가서, 기차에서 본 마을에 정원을 만들었습니다", "lead": "파리–루앙선 베르농역, 파리에서 80 km. 1883년 4월, 푸아시 집을 떠나야 했던 모네는 의붓아들 장피에르 오슈데의 회고로는 베르농–지조르 작은 기차 창밖에서 지베르니를 보았다. 5월 3일 '르 프레수아르'를 빌렸다.", "cards": [{"t": "1890년 가을부터 이듬해 봄까지, 집 앞 이웃 케뤼엘의 밭에 선 건초더미를 25점 그렸다. 빛이 바뀌면 캔버스를 바꿨다. 1891년 5월 뒤랑뤼엘에서 15점을 걸었고 한 달 안에 거의 다 팔렸다.", "img": "../works/c2-giverny-haystacks-met.jpg", "cap": "건초더미(눈과 해의 효과)", "meta": "1891 · 메트로폴리탄(29.100.109) · CC0"}, {"t": "1891년 여름·가을, 엡트 강가의 포플러. 리메-빌레 마을이 나무를 경매에 내놓자 그림을 끝내려고 나무를 사들였다가 목재상에게 되팔았다.", "img": "../works/c2-giverny-four-trees-met.jpg", "cap": "네 그루의 나무(엡트 강의 포플러)", "meta": "1891 · 메트로폴리탄(29.100.110) · CC0"}, {"t": "1899년, 정원 연못 위 일본식 다리를 같은 자리에서 거듭 그렸다. 메트와 워싱턴 내셔널 갤러리의 두 점이 그해 것이다.", "img": "../works/c2-giverny-bridge-met.jpg", "cap": "수련 연못 위의 다리", "meta": "1899 · 메트로폴리탄(29.100.113) · CC0"}, {"t": "그 뒤 수련 연작 약 250점. 1899년부터 정원이 거의 유일한 주제가 됐다.", "img": "../works/c2-giverny-footbridge-nga.jpg", "cap": "일본식 다리", "meta": "1899 · 내셔널 갤러리 워싱턴(1992.9.1) · CC0"}]}, "rouen": {"h": "루앙에 가서, 대성당 맞은편 방에서 같은 정면을 거듭 그렸습니다", "lead": "", "cards": [{"t": "파리에서 140 km, 급행 2시간 40분(1875년 시간표). 1892년 2월 모네는 이복누이의 유산을 정리하러 루앙에 와서 대성당 광장 31번지의 빈 아파트에 자리를 잡았다. 지베르니에서는 같은 파리–루앙선 베르농역에서 60 km. 봄에 한 번 집에 다녀온 뒤 다시 루앙에 머물렀는데, 기차를 탔다는 기록은 찾지 못했다.", "img": "../works/c2-rouen-cathedrale-orsay.jpg", "cap": "루앙 대성당, 정문, 흐린 날", "meta": "1892(오르세 표기) · 오르세 · PD"}, {"t": "자리를 잃자 옷가게 주인 페르낭 레비가 2층 피팅룸을 내주었다. 병풍 뒤에서 손님들에게 등을 돌리고 그렸다. 1893년 2월 15일~4월 14일에는 그랑퐁 거리 81번지 에두아르 모키의 가게에서 마지막 여섯 점.", "img": "../works/c2-rouen-cathedrale-nga.jpg", "cap": "루앙 대성당, 서쪽 정면, 햇빛", "meta": "1894 · 내셔널 갤러리 워싱턴(1963.10.179) · CC0"}, {"t": "빛이 옮겨가면 캔버스를 바꿨다. 한 번에 열네 점까지. 알리스에게 썼다. \"이 대성당은 너무 힘들다, 끔찍하다.\"", "img": "../works/c2-rouen-cathedrale-met.jpg", "cap": "루앙 대성당, 정문(햇빛)", "meta": "1894 · 메트로폴리탄(30.95.250) · CC0"}, {"t": "스무 해 전인 1872년에도 형 레옹의 집에 머물며 강에서 본 도시를 그렸고 시립전람회에 두 점을 냈다.", "img": "../works/c2-rouen-seine-hermitage.jpg", "cap": "루앙의 센강", "meta": "1872 · 에르미타주(ГЭ-10612) · PD · 다섯째 컷"}]}, "lesifs": {"h": "레지프에 가서, 마차로 에트르타에 들어가 절벽을 그렸습니다", "lead": "", "cards": [{"t": "에트르타에는 철도가 없었다. 루앙·뵈즈빌을 거쳐 페캉 지선의 레지프역(파리에서 214 km, 급행 4시간 33분)에서 내려 마차로 15 km(1 fr. 50).", "img": "../works/c2-etretat-manneporte-met.jpg", "cap": "마네포르트(에트르타)", "meta": "1883 · 메트로폴리탄(51.30.5) · CC0"}, {"t": "1883년 1~2월, 관광객 없는 비수기에 묵었다. 2월 1일 알리스 오슈데에게: 오늘 잘 그렸다, 날씨는 맑고 조금 춥다, 에트르타 절벽의 큰 그림을 할 생각이다.", "img": "../works/c2-etretat-aiguille-1883.jpg", "cap": "썰물의 에트르타 바늘바위", "meta": "1883 · 개인 소장(W 831) · PD(크리스티 도판)"}, {"t": "쿠르베가 이미 그린 절벽이라는 것을 알고 그렸다. 바위문 마네포르트와 썰물의 바늘바위.", "img": "../works/c2-etretat-mer-agitee-lyon.jpg", "cap": "에트르타, 거친 바다", "meta": "1883 · 리옹 미술관(W 821) · PD"}]}, "lehavre": {"h": "르아브르에 가서, 호텔 창문에서 항구의 해돋이를 그렸습니다", "lead": "", "cards": [{"t": "파리에서 229 km, 급행 4시간 30분, 2등 21 fr. 05. 모네는 다섯 살이던 1845년 가족과 함께 이 항구 도시로 와서 자랐다.", "img": "../works/c2-havre-impression-marmottan.jpg", "cap": "인상, 해돋이", "meta": "1872 · 마르모탕 모네(inv. 4014) · PD"}, {"t": "1872년 11월경 오텔 드 라미로테에 묵으며, 방 창문에서 바깥 항구의 남동쪽을 몇 시간 만에 그렸다. 부두, 크레인, 굴뚝, 돛대. 나룻배와 해는 마지막에 넣었다.", "img": "../works/c2-havre-grand-quai-hermitage.jpg", "cap": "르아브르의 그랑 케", "meta": "1874 · 에르미타주 · PD"}, {"t": "1874년 첫 전시 카탈로그에 제목을 적어 달라기에 \"르아브르 풍경이라고는 차마 못 하겠다\"며 〈인상〉이라 했고, 루이 르루아의 기사 제목이 '인상주의자'가 됐다.", "img": "../works/c2-havre-bateaux-peche-lacma.jpg", "cap": "르아브르, 항구를 나서는 어선들", "meta": "1874 · LACMA(소장처는 2차 확인) · PD"}, {"t": "5년 전 여름에는 르아브르 옆 생타드레스의 가족 별장 테라스에서 바다를 그렸고, 1874년 가을에 다시 와 항구를 그렸다.", "img": "../works/c2-havre-sainte-adresse-met.jpg", "cap": "생타드레스의 정원", "meta": "1867 · 메트로폴리탄(67.241) · CC0"}]}};
+const NARR = {
+  argenteuil: { h: '아르장퇴유에 가서, 강과 들판을 그렸습니다', place: '파리에서 9 km. 모네는 1871년 12월부터 1878년 1월까지 여기 살며 생라자르역으로 파리를 오갔다.',
+    paint: { img: '../works/c2-arg-coquelicots-orsay.jpg', cap: '양귀비 들판', meta: '1873 · 오르세(RF 1676) · PD', t: '1873년 여름, 마을 근처 양귀비 들판을 카미유와 장을 앞세워 그렸다. 이듬해 1874년 첫 전시에 걸렸다.' } },
+  vernon: { h: '베르농에 가서, 기차에서 본 마을에 정원을 만들었습니다', place: '베르농역에서 5 km, 지베르니. 1883년 5월 ‘르 프레수아르’를 빌렸고, 뒤에 연못을 파고 일본식 다리를 놓았다.',
+    paint: { img: '../works/c2-giverny-footbridge-nga.jpg', cap: '일본식 다리', meta: '1899 · 내셔널 갤러리 워싱턴(1992.9.1) · CC0', t: '1899년, 정원 연못 위 다리를 같은 자리에서 거듭 그렸다. 그 뒤 수련 연작 약 250점.' } },
+  rouen: { h: '루앙에 가서, 대성당 맞은편 방에서 같은 정면을 거듭 그렸습니다', place: '파리에서 140 km. 1892년 2월, 대성당 광장 맞은편 2층 방에 자리를 잡았다. 병풍 뒤에서 손님들에게 등을 돌리고 그렸다.',
+    paint: { img: '../works/c2-rouen-cathedrale-nga.jpg', cap: '루앙 대성당, 서쪽 정면, 햇빛', meta: '1894 · 내셔널 갤러리 워싱턴(1963.10.179) · CC0', t: '빛이 옮겨가면 캔버스를 바꿨다. 한 번에 열네 점까지.' } },
+  lesifs: { h: '레지프에 가서, 마차로 에트르타에 들어가 절벽을 그렸습니다', place: '에트르타에는 철도가 없었다. 레지프역에서 마차로 15 km. 1883년 1~2월, 관광객 없는 비수기에 묵었다.',
+    paint: { img: '../works/c2-etretat-manneporte-met.jpg', cap: '마네포르트(에트르타)', meta: '1883 · 메트로폴리탄(51.30.5) · CC0', t: '쿠르베가 이미 그린 절벽이라는 것을 알고 그렸다. 바위문 마네포르트와 썰물의 바늘바위.' } },
+  lehavre: { h: '르아브르에 가서, 호텔 창문에서 항구의 해돋이를 그렸습니다', place: '파리에서 229 km. 모네는 다섯 살이던 1845년 가족과 함께 이 항구 도시로 와서 자랐다.',
+    paint: { img: '../works/c2-havre-impression-marmottan.jpg', cap: '인상, 해돋이', meta: '1872 · 마르모탕 모네(inv. 4014) · PD', t: '1872년 11월경 오텔 드 라미로테 창문에서 항구를 몇 시간 만에 그렸다. 1874년 첫 전시 카탈로그에 〈인상〉이라 적었고, 르루아의 기사 제목이 ‘인상주의자’가 됐다.' } },
+};
 const PCT = {"argenteuil": 13, "vernon": 11, "rouen": 9, "lesifs": 13, "lehavre": 54}, SEA = ['lesifs', 'lehavre'], VISITORS = 1508;   // 예시 수치
 const MF = ['JANV','FÉV','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'], MFL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const WD = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'], WK = ['일','월','화','수','목','금','토'];
@@ -400,6 +661,7 @@ const day = parseInt(q.get('d') || today.getDate(), 10), mon = parseInt(q.get('m
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const make = (id) => document.getElementById(id).content.firstElementChild.cloneNode(true);
+const loadImage = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 const flow = $('#flow'), flowIn = $('#flowIn'), hero = $('#hero'), wrap = $('#cardWrap'), card = $('#card3d'), shadow = $('#cardShadow'), sheens = $$('.sheen'), hint = $('#hint');
 let cur = null, no = '04173', saved = false;
 
@@ -476,14 +738,8 @@ const up = (e) => {
 wrap.addEventListener('pointerup', up); wrap.addEventListener('pointercancel', up);
 
 // ── 스크롤: 표가 작아져 상단에 붙고(보딩패스), 진행선·기차·패럴랙스·등장
-let W = 390, H = 844, storyTop = 0, storyH = 1, trackH = 1, beatEls = [], imgs = [];
-function layout() {
-  W = flow.clientWidth; H = flow.clientHeight;
-  const st = $('#story'); storyTop = st.offsetTop; storyH = st.offsetHeight; trackH = $('#track').offsetHeight - 56 - 86;
-  const ticks = $$('.tick', $('#track')); ticks.forEach((t) => t.remove());
-  beatEls.forEach((b) => { const i = document.createElement('i'); i.className = 'tick'; i.style.top = (b.offsetTop + b.offsetHeight * 0.42 - $('#track').offsetTop) + 'px'; $('#track').appendChild(i); });
-  onScroll();
-}
+let W = 390, H = 844;
+function layout() { W = flow.clientWidth; H = flow.clientHeight; onScroll(); }
 function onScroll() {
   const y = flow.scrollTop;
   const t = clamp(y / 230, 0, 1); R.t = t;
@@ -496,16 +752,10 @@ function onScroll() {
   hint.style.opacity = R.dragged ? 0 : clamp(1 - t * 3, 0, 1);
   $('#heroT').style.opacity = clamp((t - 0.55) / 0.45, 0, 1); $('#heroT').style.transform = `translateY(${((1 - clamp((t - 0.55) / 0.45, 0, 1)) * 6).toFixed(1)}px)`;
   hero.classList.toggle('pinned', t > 0.98);
-  // 이야기 진행: 화면 45% 지점이 이야기 구간을 지나는 비율
-  const p = clamp((y + H * 0.45 - storyTop) / storyH, 0, 1);
-  $('#progBar').style.transform = `scaleX(${p.toFixed(3)})`;
-  $('#train').style.transform = `translateY(${(p * trackH).toFixed(1)}px)`;
-  // 패럴랙스(그림만, transform)
-  imgs.forEach(([img, el]) => { const r = el.getBoundingClientRect(); const c = r.top + r.height / 2 - H / 2; img.style.transform = `translateY(${(clamp(-c, -H, H) * 0.06).toFixed(1)}px) scale(1.12)`; });
 }
 flow.addEventListener('scroll', onScroll, { passive: true });
 window.addEventListener('resize', layout);
-const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); if (x.target.id === 'today') startCrowd(); } }), { root: flow, threshold: 0.18 });
+const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); if (x.target.id === 'today') startCrowd(); } }), { root: flow, threshold: 0.12 });
 
 // ── 오늘의 관람객: 발권 지도와 같은 자료로 작은 지도 한 장(파리 → 노르망디 해안). 영역은 고른 사람이 많을수록 짙고, 내 곳은 주황 테두리. 역마다 작은 숫자
 const NS = 'http://www.w3.org/2000/svg';
@@ -561,19 +811,20 @@ function startCrowd() {
 
 // ── 발권: 지도가 어두워지고 창구 슬롯에서 표가 밀려 나온 뒤 날인이 찍힌다
 function issue() {
-  const p = window.getPicked(); if (!p) { const t = $('#toast'); t.textContent = '지도에서 역을 먼저 고르세요'; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); return; } cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
+  const p = window.getPicked(); if (!p) return; cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
   const d = { ...TK[p.id], year: p.year };
   const f = $('[data-slot=front]'), b = $('[data-slot=back]'); f.innerHTML = ''; b.innerHTML = ''; f.appendChild(fill(make('front'), d)); b.appendChild(fill(make('back'), d));
   $('#heroTitle').textContent = `${p.ko} · ${p.year}년 표`; $('#heroSub').textContent = `PARIS → ${d.to} · 2me classe`;
   const [km, dur] = p.info.split(' · ');
   $('#tkTiles').innerHTML = `<div><small>파리에서</small><b>${km}</b></div><div><small>소요</small><b>${dur.replace('급행 ', '')}</b></div><div><small>2등 운임</small><b>${d.prix ? '21 fr. 05' : '— —'}</b></div>`;
   $('#tkWhy').innerHTML = `<b>왜 ${d.year}년?</b> 모네가 ${p.ko}에 온 해입니다. 오늘 날짜(${mon}월 ${day}일)에 그 해를 붙여 찍었습니다.${d.prix ? ' 운임은 1874년 안내서의 2등 값.' : ' 그 해 ±3년 안내서에 운임이 없어 빈칸.'}`;
-  // 이야기
-  const n = NARR[p.id];
-  $('#stK').textContent = `${p.fr} · ${p.year} · ${n.cards.length}컷`; $('#stH').textContent = n.h; $('#stLead').textContent = n.lead; $('#stLead').hidden = !n.lead; $('#trackEnd').textContent = d.to;
-  $('#beats').innerHTML = n.cards.map((c, i) => `<article class="beat"><div class="num">${i + 1}</div><div class="img"><img src="${c.img}" alt="" loading="${i < 2 ? 'eager' : 'lazy'}" decoding="async"></div><p class="cap">${c.t}</p><div class="meta">〈${c.cap}〉 · ${c.meta}</div></article>`).join('');
-  beatEls = $$('.beat'); imgs = beatEls.map((b) => [b.querySelector('img'), b.querySelector('.img')]);
-  beatEls.forEach((b) => io.observe(b)); imgs.forEach(([img]) => img.addEventListener('load', layout, { once: true }));
+  // 이야기 — 그 자리의 사진 + 거기서 그린 그림 한 점
+  const n = NARR[p.id], pl = window.PLACES[p.id];
+  $('#stK').textContent = `${p.fr} · ${p.year}`; $('#stH').textContent = n.h;
+  $('#pairPhoto').src = pl.img; $('#pairPhoto').alt = pl.name; $('#pairPlace').textContent = `${pl.name} · 지금`; $('#pairPlaceT').textContent = n.place; $('#pairPlaceCr').textContent = `사진 ${pl.credit} · Wikimedia Commons`;
+  $('#pairPaint').src = n.paint.img; $('#pairPaint').alt = n.paint.cap; $('#pairTitle').textContent = `〈${n.paint.cap}〉`; $('#pairPaintT').textContent = n.paint.t; $('#pairMeta').textContent = n.paint.meta;
+  $('#pair').classList.remove('in'); io.observe($('#pair'));
+  setupPostcard(p, n, no);
   // 오늘의 관람객 — 작은 지도 + 점. 내 곳만 크게, 나머지는 작은 숫자로
   $('#todayFig').innerHTML = `<div class="crowd-big">${PCT[p.id]}<i>%</i></div><div class="crowd-lab">${p.ko} · 나<small>${p.fr} · ${p.info.split(' · ')[0]}</small></div>`;
   $('#todayOthers').innerHTML = window.DEST.filter((d) => d.id !== p.id).map((d) => `<span>${d.ko} <b>${PCT[d.id]}</b></span>`).join('');
@@ -595,9 +846,89 @@ function issue() {
     setTimeout(() => { hero.classList.remove('issuing'); R.issued = true; R.lastInput = performance.now() - 1000; }, RM ? 400 : 1350);
   }));
 }
-$('#buy').addEventListener('click', issue);
+// ── 엽서: 앞면(그림 + 우표 + 소인) ↔ 뒷면(한 줄 + 받는 사람). 뒤집기만 3D, 입력은 뒷면에서. 저장은 앞·뒷면을 한 장(1480×2060)의 JPEG 로 — 기기 안에서만
+const pc3d = $('#pc3d'), pcMsg = $('#pcMsg'), pcTo = $('#pcTo');
+let pcFlipped = false, pcData = null;
+function setupPostcard(p, n, no) {
+  pcData = { id: p.id, fr: p.fr, ko: p.ko, year: p.year, paint: n.paint, no };
+  $('#pcPaint').src = n.paint.img; $('#pcPaint').alt = n.paint.cap;
+  $('#pmText').textContent = `${p.fr.toUpperCase()} · ${p.year} ·`; $('#pmDate').textContent = `${day} ${MF[mon - 1]}`; $('#pmYear').textContent = p.year;
+  $('#pcCap').textContent = `〈${n.paint.cap}〉 · ${n.paint.meta.split(' · ').slice(0, 2).join(' · ')} · N° ${no}`;
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('m100_c2_postcard') || 'null'); } catch (e) { /* noop */ }
+  pcMsg.value = saved && saved.id === p.id ? saved.text || '' : ''; pcTo.value = saved && saved.id === p.id ? saved.to || '' : '';
+  $('#pcCount').textContent = `${pcMsg.value.length} / 60`;
+  setFlip(false);
+}
+function setFlip(on) { pcFlipped = on; pc3d.classList.toggle('flipped', on); $('#pcFlip').textContent = on ? '앞면 보기' : '뒤집어 쓰기'; if (!on) { pcMsg.blur(); pcTo.blur(); } }
+$('#pcFlip').addEventListener('click', () => setFlip(!pcFlipped));
+$('#pc3d').addEventListener('click', (e) => { if (e.target.closest('input')) return; if (!pcFlipped) setFlip(true); else if (e.target.closest('.front')) setFlip(false); });
+pcMsg.addEventListener('input', () => { $('#pcCount').textContent = `${pcMsg.value.length} / 60`; stashPostcard(); });
+pcTo.addEventListener('input', stashPostcard);
+pcMsg.addEventListener('keydown', (e) => { if (e.key === 'Enter') pcMsg.blur(); });
+function stashPostcard() { if (!pcData) return; try { localStorage.setItem('m100_c2_postcard', JSON.stringify({ id: pcData.id, ko: pcData.ko, year: pcData.year, text: pcMsg.value.slice(0, 60), to: pcTo.value.slice(0, 16), no: pcData.no, paint: pcData.paint.img, cap: pcData.paint.cap, at: Date.now() })); } catch (e) { /* 기기 안에만 */ } }
+// 캔버스에 앞·뒷면을 그린다(148×100 mm → 1480×1000, 위아래로)
+async function renderPostcard() {
+  const W = 1480, Hf = 1000, GAP = 60, c = document.createElement('canvas'); c.width = W; c.height = Hf * 2 + GAP; const g = c.getContext('2d');
+  try { await Promise.all(['500 44px Freesentation', '700 28px Freesentation', '700 40px "Old Standard TT"', '700 30px "Playfair Display"'].map((f) => document.fonts.load(f, '모네 Le Havre'))); } catch (e) { /* noop */ }
+  g.fillStyle = '#151413'; g.fillRect(0, 0, W, c.height);
+  const img = await loadImage(pcData.paint.img).catch(() => null);
+  // 앞면
+  g.save(); g.beginPath(); g.roundRect(0, 0, W, Hf, 18); g.clip();
+  g.fillStyle = '#DDD4BC'; g.fillRect(0, 0, W, Hf);
+  if (img) { const sc = Math.max(W / img.naturalWidth, Hf / img.naturalHeight), sw = W / sc, sh = Hf / sc; g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, W, Hf); }
+  g.restore();
+  // 우표(천공 테두리) + 소인
+  const sx = W - 300, sy = 60, sw2 = 200, sh2 = 240;
+  g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 10; g.shadowOffsetY = 3; g.fillStyle = '#F2EAD6'; g.fillRect(sx, sy, sw2, sh2); g.restore();
+  g.fillStyle = '#F2EAD6'; for (let i = 0; i <= sw2; i += 16) { g.beginPath(); g.arc(sx + i, sy, 6, 0, 6.2832); g.fill(); g.beginPath(); g.arc(sx + i, sy + sh2, 6, 0, 6.2832); g.fill(); } for (let i = 0; i <= sh2; i += 16) { g.beginPath(); g.arc(sx, sy + i, 6, 0, 6.2832); g.fill(); g.beginPath(); g.arc(sx + sw2, sy + i, 6, 0, 6.2832); g.fill(); }
+  g.fillStyle = '#5C6E8E'; g.fillRect(sx + 16, sy + 16, sw2 - 32, sh2 - 32); g.strokeStyle = '#F2EAD6'; g.lineWidth = 2; g.strokeRect(sx + 24, sy + 24, sw2 - 48, sh2 - 48);
+  g.fillStyle = '#F2EAD6'; g.textAlign = 'center'; g.font = '700 16px "Old Standard TT", Georgia, serif'; g.fillText('RÉPUBLIQUE', sx + sw2 / 2, sy + 58); g.fillText('FRANÇAISE', sx + sw2 / 2, sy + 78);
+  g.font = '700 74px "Playfair Display", Georgia, serif'; g.fillText('15', sx + sw2 / 2 - 8, sy + 158); g.font = '700 26px "Old Standard TT", Georgia, serif'; g.fillText('c', sx + sw2 / 2 + 44, sy + 128); g.font = '700 18px "Old Standard TT", Georgia, serif'; g.fillText('POSTES', sx + sw2 / 2, sy + 196);
+  const cx = sx - 30, cy = sy + sh2 - 40, r = 96;
+  g.strokeStyle = 'rgba(40,44,70,.85)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, r, 0, 6.2832); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, r * 0.52, 0, 6.2832); g.stroke();
+  const arcText = `${pcData.fr.toUpperCase()} · ${pcData.year} · `; g.fillStyle = 'rgba(40,44,70,.9)'; g.font = '700 22px "Old Standard TT", Georgia, serif';
+  const chars = arcText.split(''), rr = r * 0.76; let ang = -Math.PI / 2 - (chars.length * 0.16) / 2;
+  chars.forEach((ch) => { const wch = g.measureText(ch).width; const a = ang + 0.08; g.save(); g.translate(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); g.rotate(a + Math.PI / 2); g.fillText(ch, 0, 0); g.restore(); ang += Math.max(0.1, wch / rr); });
+  g.font = '700 18px "Old Standard TT", Georgia, serif'; g.fillText(`${day} ${MF[mon - 1]}`, cx, cy - 2); g.font = '700 16px "Old Standard TT", Georgia, serif'; g.fillText(String(pcData.year), cx, cy + 20);
+  // 뒷면
+  const by = Hf + GAP;
+  g.save(); g.beginPath(); g.roundRect(0, by, W, Hf, 18); g.clip(); g.fillStyle = '#EFE7D3'; g.fillRect(0, by, W, Hf); g.restore();
+  g.fillStyle = '#2A2420'; g.textAlign = 'left'; g.font = '700 40px "Playfair Display", Georgia, serif'; g.fillText('CARTE POSTALE', 70, by + 96);
+  g.fillStyle = 'rgba(42,36,32,.6)'; g.font = '400 22px "Old Standard TT", Georgia, serif'; g.fillText('CHEMINS DE FER DE L’OUEST', 70, by + 130);
+  g.strokeStyle = 'rgba(42,36,32,.6)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W / 2, by + 70); g.lineTo(W / 2, by + Hf - 70); g.stroke();
+  g.strokeStyle = 'rgba(42,36,32,.4)'; g.setLineDash([8, 8]); g.strokeRect(W - 290, by + 70, 200, 240); g.setLineDash([]);
+  g.fillStyle = 'rgba(42,36,32,.45)'; g.font = '400 20px "Old Standard TT", Georgia, serif'; g.textAlign = 'center'; g.fillText('TIMBRE', W - 190, by + 196); g.textAlign = 'left';
+  // 받는 사람 + 주소 줄
+  g.fillStyle = '#2A2420'; g.font = '700 26px Freesentation, sans-serif'; g.fillText('받는 사람', W / 2 + 60, by + 460);
+  g.font = '500 40px Freesentation, sans-serif'; g.fillText((pcTo.value || '나에게').slice(0, 16), W / 2 + 60, by + 540);
+  g.strokeStyle = 'rgba(42,36,32,.5)'; g.lineWidth = 2; [560, 660, 760].forEach((ly) => { g.beginPath(); g.moveTo(W / 2 + 60, by + ly); g.lineTo(W - 70, by + ly); g.stroke(); });
+  // 한 줄
+  const msg = (pcMsg.value || '').slice(0, 60); g.fillStyle = '#2A2420'; g.font = '500 44px Freesentation, sans-serif';
+  const words = msg.split(''); let line = '', ly = by + 300; const maxW = W / 2 - 140;
+  for (const ch of words) { if (g.measureText(line + ch).width > maxW) { g.fillText(line, 70, ly); line = ch; ly += 64; } else line += ch; } if (line) g.fillText(line, 70, ly);
+  if (!msg) { g.fillStyle = 'rgba(42,36,32,.3)'; g.fillText('…', 70, by + 300); }
+  g.fillStyle = 'rgba(42,36,32,.55)'; g.font = '500 20px Freesentation, sans-serif'; g.fillText($('#pcCap').textContent, 70, by + Hf - 70);
+  g.fillText(`MONET 100 · ${pcData.year}년 ${mon}월 ${day}일 · 기기 안에서 만든 엽서`, 70, by + Hf - 40);
+  return c;
+}
+$('#pcSave').addEventListener('click', async () => {
+  if (!pcData) return; const btn = $('#pcSave'); btn.disabled = true; stashPostcard();
+  try {
+    const c = await renderPostcard();
+    const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.9));
+    const file = new File([blob], `monet100_엽서_${pcData.fr}.jpg`, { type: 'image/jpeg' });
+    const touch = matchMedia('(pointer: coarse)').matches;
+    if (touch && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file] }); btn.disabled = false; return; } catch (e) { if (e && e.name === 'AbortError') { btn.disabled = false; return; } } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    const t = $('#toast'); t.textContent = '엽서를 저장했습니다 · 기기 안에만'; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500);
+  } catch (e) { console.error(e); }
+  btn.disabled = false;
+});
+window.renderPostcard = renderPostcard;
 function leave() { flow.hidden = true; flow.classList.remove('on'); $('#dim').classList.remove('on'); cancelAnimationFrame(raf); }
 $('#flowBack').addEventListener('click', leave); $('#again').addEventListener('click', leave);
+// 표 끊기: 확인 시트에서 → 시트를 닫고 발권
+$('#buy').addEventListener('click', () => { window.closeConfirm(); setTimeout(issue, RM ? 0 : 260); });
 $('#save').addEventListener('click', () => {
   if (saved) return; $('#toast').textContent = '수집함에 저장했습니다'; saved = true; $('#save').disabled = true; $('#save').textContent = '저장됨';
   try { const p = window.getPicked(); const all = JSON.parse(localStorage.getItem('m100_choice') || '{}') || {}; all.c2 = { id: p.id, label: p.ko, year: p.year, pct: PCT[p.id], at: Date.now() }; localStorage.setItem('m100_choice', JSON.stringify(all)); } catch (e) { /* 기기 안에만 · 마지막 화면(c5)이 읽는다 */ }

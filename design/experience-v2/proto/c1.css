@@ -1,4 +1,4 @@
-/* C1 시민사회 — 자격을 묻기 (부스 booth/css/c1.css 의 무대·점선 안내·캡션 문법을 가져옴). 단계: 1 스캔 · 2 돌려보기 · 3 살펴보기 · 4 안내문 · 5 질문 · 6 오늘 */
+/* C1 시민사회 — 어느 전시를 보러 갈까 (부스 booth/css/c1.css 의 무대·점선 안내·캡션 문법을 가져옴). 단계: 1 스캔 · 2 돌려보기 · 3 살펴보기 · 4 안내문 · 5 두 포스터 · 6 오늘 */
 body.c1 { background: #000; color: var(--on-dark); }
 .stage { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; background: #0B0B0C; overflow: hidden; }
 .street { position: absolute; inset: 0; background: #0B0B0C url('../../../booth/assets/img/morris_bg_capucines.jpg') center 30%/cover no-repeat; opacity: .32; transition: opacity .8s; }
@@ -103,23 +103,27 @@ body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: r
 .flyer.small.folded { transform: rotate(-4deg) scale(.92); }
 .unfold-body > [hidden] { display: none !important; }
 
-/* 5 질문 — 두 종이(살롱 공고 · 게르부아 전단지)가 칼럼에 붙어 있다. 하나를 누르면 남고, 다른 하나는 떨어진다 */
+/* 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(살롱 1874 공고 · 화가들의 전시 안내, 둘 다 재현). 보러 갈 포스터를 누르면 그 포스터가 눈앞으로 다가오고 다른 포스터는 뒤로 물러난다 */
 .ask { width: 100%; max-width: 360px; display: grid; gap: 8px; text-align: center; animation: scrIn .4s ease both; }
 .ask-q { font-size: 26px; line-height: 1.3; color: #fff; margin-top: 2px; }
 .ask-note { margin: 0; max-width: 300px; font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,.6); text-align: center; animation: scrIn .4s .3s ease both; }
 .papers { --pw: 148px; display: flex; justify-content: center; align-items: flex-start; gap: 20px; width: 100%; perspective: 1000px; padding: 10px 0 0; }
-.paper { position: relative; width: var(--pw); display: grid; gap: 8px; justify-items: center; color: #fff; text-align: center; transform-style: preserve-3d; transform-origin: 50% 0;
+.paper { position: relative; width: var(--pw); display: grid; gap: 8px; justify-items: center; color: #fff; text-align: center; transform-style: preserve-3d; transform-origin: 50% 40%;
   transition: transform .9s var(--ease-out), opacity .5s, filter .5s; pointer-events: auto; }
-.paper > .notice, .paper > .flyer-img { width: var(--pw); height: calc(var(--pw) * 1.5); border-radius: 2px; box-shadow: 0 12px 24px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.4); transition: transform .3s var(--ease-out), box-shadow .3s; }
-.paper:active > .notice, .paper:active > .flyer-img { transform: scale(.97); }
-.paper.salon { animation: pasteIn .6s var(--ease-out) .15s both; }
-.paper.flyer-p { animation: pasteIn .6s var(--ease-out) both; }
+.paper > .notice { width: var(--pw); height: calc(var(--pw) * 1.5); border-radius: 2px; box-shadow: 0 12px 24px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.4); transition: transform .3s var(--ease-out), box-shadow .3s; }
+.paper:active > .notice { transform: scale(.97); }
+.paper.salon { animation: pasteIn .6s var(--ease-out) both; }
+.paper.expo { animation: pasteIn .6s var(--ease-out) .15s both; }
 @keyframes pasteIn { 0% { opacity: 0; transform: translateY(14px) rotateX(-18deg); } 100% { opacity: 1; transform: none; } }
-.flyer-img { background: #E3DCC8 url('../../../booth/assets/img/fl_batignolles.jpg') center/100% 100% no-repeat; }
-/* 살롱 공고(재현) — 1874년 관청 공고의 활자 구성: 디돈 세리프, 겹줄 테두리 */
-.notice { position: relative; display: grid; align-content: center; gap: 4px; padding: 14px 10px; background: linear-gradient(170deg, #F3EBD6, #E6DCC0); color: #26211B; font-family: 'Old Standard TT', Georgia, serif; text-align: center; line-height: 1.15; overflow: hidden; }
+/* 공고 두 장(재현) — 1874년 벽보의 활자 구성: 디돈 세리프, 겹줄 테두리. 살롱 공고는 관청 종이, 화가들의 안내는 인쇄소의 누런 종이 */
+.notice { position: relative; display: grid; align-content: center; gap: 4px; padding: 14px 10px 24px; background: linear-gradient(170deg, #F3EBD6, #E6DCC0); color: #26211B; font-family: 'Old Standard TT', Georgia, serif; text-align: center; line-height: 1.15; overflow: hidden; }
 .notice::before { content: ''; position: absolute; inset: 5px; border: 1.5px solid rgba(38,33,27,.75); outline: .5px solid rgba(38,33,27,.55); outline-offset: 2px; pointer-events: none; }
 .notice::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 90%, rgba(90,70,30,.14), transparent 40%), repeating-linear-gradient(118deg, rgba(0,0,0,.02) 0 1px, transparent 1px 5px); pointer-events: none; }
+.notice.expo { background: linear-gradient(170deg, #EBDDB4, #DCCB9B); color: #2A2117; }
+.notice.expo::before { inset: 6px; border-width: 1px; outline: 1.5px solid rgba(42,33,23,.6); outline-offset: 2px; }
+.notice.expo .n-rep { font-size: 6.6px; letter-spacing: .08em; line-height: 1.25; }
+.notice.expo .n-big { font-size: 22px; letter-spacing: .06em; }
+.notice.expo .n-line.em { font-size: 9px; }
 .n-rep { font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; color: rgba(38,33,27,.7); }
 .n-big { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 24px; line-height: .98; letter-spacing: .02em; margin-top: 2px; }
 .n-rule { width: 44px; height: 1.5px; background: #26211B; margin: 4px auto; }
@@ -132,25 +136,18 @@ body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: r
 .paper-lb { display: grid; gap: 2px; }
 .paper-lb b { font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }
 .paper-lb small { font-size: 12.5px; color: rgba(255,255,255,.65); }
-.paper-pct { display: none; }
-/* 고른 뒤: 남는 종이는 눌러 붙고(살짝 커졌다가 제자리), 다른 종이는 위 모서리부터 벗겨져 떨어진다 */
+/* 고른 뒤: 고른 포스터는 눈앞으로 다가오고(조금 커지고 밝아진다), 다른 포스터는 뒤로 물러난다(작아지고 어두워진다). 붙이거나 떼는 동작이 아니다 */
 .papers.decided .paper { pointer-events: none; }
-.papers.decided .paper.keep > .notice, .papers.decided .paper.keep > .flyer-img { animation: pressOn .5s var(--ease-spring) both; box-shadow: 0 0 0 2px var(--point), 0 6px 14px rgba(0,0,0,.5); }
-.papers.decided .paper.keep .paper-lb b { color: #F0B98F; }
-@keyframes pressOn { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1); } }
-.papers.decided .paper.peel { animation: peel 1.05s cubic-bezier(.5,0,.6,1) both; }
-@keyframes peel {
-  0% { transform: none; opacity: 1; }
-  30% { transform: rotateX(42deg) translateY(4px); opacity: 1; }
-  100% { transform: rotateX(75deg) translateY(260px) rotateZ(-10deg); opacity: 0; }
-}
-/* 오늘: 같은 두 종이가 크기 그대로 칼럼에 — 내 종이만 주황 테두리. 이름표·숫자는 아래 군중 줄로 내려간다 */
+.papers.decided .paper.pick { transform: translateY(-8px) scale(1.07); z-index: 2; }
+.papers.decided .paper.pick > .notice { box-shadow: 0 0 0 2px var(--point), 0 22px 40px rgba(0,0,0,.65); }
+.papers.decided .paper.pick .paper-lb b { color: #F0B98F; }
+.papers.decided .paper.back { transform: translateY(6px) scale(.9); opacity: .42; filter: brightness(.72) saturate(.7); }
+/* 오늘: 같은 두 포스터가 크기 그대로 칼럼에 — 내 포스터만 주황 테두리. 이름표·숫자는 아래 군중 줄로 내려간다 */
 .papers.today { padding-top: 0; gap: 20px; }
-.papers.today .paper { animation: none; pointer-events: none; opacity: var(--o, 1); }
-.papers.today .paper.peel { opacity: .5; filter: saturate(.6); }
+.papers.today .paper { animation: none; pointer-events: none; opacity: var(--o, 1); transform: none; filter: none; }
 .papers.today .paper-lb { display: none; }
-.papers.today .paper.keep > .notice, .papers.today .paper.keep > .flyer-img { animation: none; box-shadow: 0 12px 24px rgba(0,0,0,.55); }
-.papers.today .paper.me > .notice, .papers.today .paper.me > .flyer-img { box-shadow: 0 0 0 2px var(--point), 0 12px 24px rgba(0,0,0,.55); }
+.papers.today .paper > .notice { animation: none; box-shadow: 0 12px 24px rgba(0,0,0,.55); }
+.papers.today .paper.me > .notice { box-shadow: 0 0 0 2px var(--point), 0 12px 24px rgba(0,0,0,.55); }
 .paper.away { transition: transform .8s cubic-bezier(.5,0,.3,1), opacity .35s .5s !important; opacity: 0 !important; }
 .paper.gone { visibility: hidden; }
 /* 6 오늘의 관람객 — 머리(캡 + 한 줄) → 두 종이 → 바로 아래 점이 모인다 → 종이 폭에 맞춘 두 기둥에 숫자 → 기준 시각 */
@@ -185,6 +182,13 @@ body[data-step="6"] .unfold-btns { margin-top: 4px; }
   .hist-dark { font-size: 13px; }
   .ask-q { font-size: 22px; }
   .papers { --pw: 118px; padding-top: 4px; }
+  .notice { gap: 2px; padding: 9px 7px 18px; }
+  .n-rep { font-size: 6px; } .notice.expo .n-rep { font-size: 5.4px; }
+  .n-big { font-size: 18px; } .notice.expo .n-big { font-size: 17px; }
+  .n-rule { margin: 2px auto; }
+  .n-line { font-size: 7px; } .notice.expo .n-line.em { font-size: 7.4px; }
+  .n-open { font-size: 10px; } .n-foot { font-size: 5.5px; margin-top: 2px; }
+  .n-tag { font-size: 8px; right: 6px; bottom: 6px; }
   .hist-dark small { margin-top: 4px; }
   .role-head h1 { font-size: 20px; }
   .role-head p { font-size: 14px; }
@@ -196,6 +200,5 @@ body[data-step="6"] .unfold-btns { margin-top: 4px; }
   .guide .g-line { animation: none; }
   .guide.found, .collect-ic.bump { animation: none; }
   .strip, .flyer, .chip, .hist-dark, .s, .paper { transition: none; }
-  .ask, .ask-note, .result, .crowd, .paper, .papers.decided .paper.keep > .notice, .papers.decided .paper.keep > .flyer-img { animation: none; }
-  .papers.decided .paper.peel { animation: none; opacity: 0; }
+  .ask, .ask-note, .result, .crowd, .paper { animation: none; }
 }

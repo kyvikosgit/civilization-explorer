@@ -1,6 +1,6 @@
 // C1 시민사회 — 자격을 묻기
 //   1 역할+스캔(점선을 누르면 칼럼이 바닥에서 솟는다) → 2 돌려보기(관성·자석·빛 쓸기, 전단지를 누르면 떠오른다)
-//   → 3 살펴보기(안내문이면 펼쳐 보기) → 4 안내문 펼침 → 5 질문(그림이 걸릴 자격은 누가 정해야 합니까) → 6 오늘의 관람객 · 그때는 → 수집함
+//   → 3 살펴보기(안내문이면 펼쳐 보기) → 4 안내문 펼침 → 5 질문(칼럼에 나란히 붙은 두 전시 포스터 — 이번 주말 어느 전시를 보러 갈까) → 6 오늘의 관람객 · 그때는 → 수집함
 //   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 문구는 보드 C1 · missions.ts 'flyer' 원고.
 //   머문 시간·시선 추적 없음. 서버는 입장 2개의 숫자만(여기서는 예시 수치).
 import * as THREE from 'three';
@@ -14,8 +14,8 @@ icons();
 const mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap'), guide = $('#guide'), camLoading = $('#camLoading');
 const TARGET = 0;                                           // 독립 전시 안내문 = 전단지 1(카페 게르부아)
 const STANCES = {
-  jury: { label: '심사위원이 정한다', pct: 38 },
-  viewer: { label: '보는 사람이 정한다', pct: 62 },         // 예시 수치
+  jury: { label: '심사위원이 고른 전시', pct: 38 },           // 살롱 1874
+  viewer: { label: '화가들이 직접 연 전시', pct: 62 },        // 카퓌신 대로 35번지 · 예시 수치
 };
 let step = 1, stance = null;
 function setStep(n) {
@@ -153,22 +153,22 @@ $('#openBtn').addEventListener('click', async () => {
   $('#histIntro').classList.add('show');
 });
 
-// ── 5 질문 — 두 종이 가운데 하나를 칼럼에 남긴다 (정답 없음)
-$('#toAsk').addEventListener('click', () => { setStep(5); papers.classList.remove('decided', 'today'); });
+// ── 5 질문 — 칼럼에 나란히 붙은 두 포스터. 보러 갈 전시의 포스터를 누르면 그 포스터가 눈앞으로 다가오고(눈여겨본 것처럼), 다른 포스터는 뒤로 물러난다 (정답 없음)
+$('#toAsk').addEventListener('click', () => { setStep(5); papers.classList.remove('decided', 'today'); $$('.paper', papers).forEach((x) => x.classList.remove('pick', 'back', 'me')); });
 const papers = $('#papers');
 let deciding = false;
 $$('.paper', papers).forEach((b) => b.addEventListener('click', async () => {
   if (step !== 5 || deciding) return;
   deciding = true; stance = b.dataset.k;
-  $$('.paper', papers).forEach((x) => { const on = x === b; x.classList.toggle('keep', on); x.classList.toggle('peel', !on); x.setAttribute('aria-checked', on); });
-  papers.classList.add('decided');                          // 남는 종이는 눌러 붙고, 다른 종이는 벗겨져 떨어진다
+  $$('.paper', papers).forEach((x) => { const on = x === b; x.classList.toggle('pick', on); x.classList.toggle('back', !on); x.setAttribute('aria-checked', on); });
+  papers.classList.add('decided');
   haptic(14);
-  await sleep(reduceMotion ? 120 : 1150);
+  await sleep(reduceMotion ? 120 : 1050);
   deciding = false;
   reveal();
 }));
 
-// ── 6 오늘의 관람객 — 두 종이는 크기 그대로, 그 아래로 오늘의 관람객(점 하나 = 열 사람)이 흩어졌다가 고른 종이 밑에 모인다. 내 점은 주황, 맨 마지막에
+// ── 6 오늘의 관람객 — 두 포스터는 크기 그대로, 그 아래로 오늘의 관람객(점 하나 = 열 사람)이 흩어졌다가 고른 포스터 밑에 모인다. 내 점은 주황, 맨 마지막에
 const KEYS = ['jury', 'viewer'];
 let crowd = null;
 function reveal() {
@@ -185,7 +185,7 @@ function reveal() {
   requestAnimationFrame(() => {
     crowd.resize();
     const sr = stage.getBoundingClientRect();
-    const rects = KEYS.map((k) => { const r = $(`.paper[data-k="${k}"] > .notice, .paper[data-k="${k}"] > .flyer-img`).getBoundingClientRect(); return { x: r.left - sr.left + 4, y: 10, w: r.width - 8, h: sr.height - 18 }; });
+    const rects = KEYS.map((k) => { const r = $(`.paper[data-k="${k}"] > .notice`).getBoundingClientRect(); return { x: r.left - sr.left + 4, y: 10, w: r.width - 8, h: sr.height - 18 }; });
     const counts = split(n, KEYS.map((k) => STANCES[k].pct));
     const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
     crowd.place(scatter(n, { x: 0, y: 0, w: sr.width, h: sr.height }, crowd.rnd));
@@ -194,18 +194,18 @@ function reveal() {
 }
 $('#collect').addEventListener('click', async () => {
   const btn = $('#collect'); btn.disabled = true;
-  // 내 종이가 수집함 아이콘으로 날아 들어간다
+  // 내 포스터가 수집함 아이콘으로 날아 들어간다
   const mine = $('.paper.me', papers);
   const ic = $('#collectIc').getBoundingClientRect(), fr = mine.getBoundingClientRect();
   const dx = (ic.left + ic.width / 2) - (fr.left + fr.width / 2), dy = (ic.top + ic.height / 2) - (fr.top + fr.height / 2);
   mine.classList.add('away');
   mine.style.transform = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.12) rotate(-14deg)`;
   await sleep(reduceMotion ? 50 : 760);
-  mine.classList.add('gone');                                        // 남은 종이는 제자리에(아래 점 무리와 맞춰서)
+  mine.classList.add('gone');                                        // 다른 포스터는 제자리에(아래 점 무리와 맞춰서)
   $('#collectIc').classList.add('bump'); $('#collectN').hidden = false;
   haptic(20);
   const s = STANCES[stance];
-  toast(`수집함에 저장했습니다 · ${stance === 'viewer' ? '카페 게르부아 안내문' : '살롱 공고(재현)'}`);
+  toast(`수집함에 저장했습니다 · ${stance === 'viewer' ? '화가들의 전시 안내(재현)' : '살롱 1874 공고(재현)'}`);
   saveChoice('c1', { stance, label: s.label, pct: s.pct });
   $('#mineLabel').textContent = s.label;
   $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 출구 화면에서 C0·C2·C4와 나란히`;

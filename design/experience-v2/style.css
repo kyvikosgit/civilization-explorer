@@ -477,3 +477,17 @@ table.bd{min-width:0;width:100%;font-size:13px;margin-top:6px}
 .map-fig .try{display:inline-block;margin:0 6px 0 2px;padding:2px 8px;border:1px solid var(--ink);border-radius:3px;font-weight:700;color:var(--ink)}
 @media (max-width:860px){.map-fig .six{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:520px){.map-fig .six{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+
+/* 출구 화면 레퍼런스 · 시안 비교 */
+.refs--5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:1100px){.refs--5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:700px){.refs--5{grid-template-columns:1fr}}
+.ref-src a+a{margin-top:2px}
+.mocks{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.mock{background:#FFF;border:1px solid var(--line);padding:14px}
+.mock.pick{border:2px solid var(--point)}
+.mock img{width:100%;max-width:390px;margin:0 auto;display:block;border:1px solid var(--line)}
+.mock-cap{margin-top:12px;font-size:14px;color:var(--sub)}
+.mock-cap b{display:block;color:var(--ink);font-weight:800}
+.mock-cap a{color:var(--ink);font-weight:700}
+@media (max-width:860px){.mocks{grid-template-columns:1fr}}

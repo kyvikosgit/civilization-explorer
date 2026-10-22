@@ -1,0 +1,57 @@
+{
+ "argenteuil": {
+  "file": "File:Argenteuil - Pont (11).jpg",
+  "artist": "Remi Jouan",
+  "license": "CC BY-SA 3.0",
+  "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/",
+  "page": "https://commons.wikimedia.org/wiki/File:Argenteuil_-_Pont_(11).jpg",
+  "date": "2007-06",
+  "w": 600,
+  "h": 390,
+  "bytes": 52355
+ },
+ "vernon": {
+  "file": "File:Le \"Pont Japonais\", vu du bassin des Nymphéas.jpg",
+  "artist": "Fondation Monet",
+  "license": "CC BY-SA 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Le_%22Pont_Japonais%22,_vu_du_bassin_des_Nymph%C3%A9as.jpg",
+  "date": "2013-01-08",
+  "w": 600,
+  "h": 399,
+  "bytes": 71054
+ },
+ "rouen": {
+  "file": "File:Rouen Cathedral, front.jpg",
+  "artist": "Ввласенко",
+  "license": "CC BY-SA 3.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Rouen_Cathedral,_front.jpg",
+  "date": "2011-09-13",
+  "w": 600,
+  "h": 391,
+  "bytes": 72049
+ },
+ "lesifs": {
+  "file": "File:La Manneporte-Etretat-Normandie.jpg",
+  "artist": "Tobi 87",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:La_Manneporte-Etretat-Normandie.jpg",
+  "date": "01.09.2008",
+  "w": 600,
+  "h": 354,
+  "bytes": 49713
+ },
+ "lehavre": {
+  "file": "File:(Sunset Port Le Havre France) 2015.jpg",
+  "artist": "Gary Dee",
+  "license": "CC BY-SA 4.0",
+  "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:(Sunset_Port_Le_Havre_France)_2015.jpg",
+  "date": "2015-06-19",
+  "w": 600,
+  "h": 400,
+  "bytes": 34532
+ }
+}

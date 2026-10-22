@@ -5,7 +5,7 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#000000">
-<title>C1 · 자격을 묻기</title>
+<title>C1 · 어느 전시를 보러 갈까</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="../ticket/fonts.css">
 <link rel="stylesheet" href="proto-base.css">
@@ -62,7 +62,7 @@
     <p class="s-desc" id="s3Desc"><span>바깥을 누르면 돌려놓기 · 계속 찾기</span></p>
   </div>
 
-  <!-- 4 안내문 펼치기 → 5 두 종이 가운데 하나를 칼럼에 남긴다 → 6 오늘의 관람객(두 종이의 크기) · 그때는 -->
+  <!-- 4 안내문 펼치기 → 5 칼럼의 두 포스터 가운데 보러 갈 전시를 고른다 → 6 오늘의 관람객(두 포스터 아래) · 그때는 -->
   <div class="s unfold" id="unfold">
     <div class="unfold-dim"></div>
     <div class="unfold-body">
@@ -71,20 +71,20 @@
 
       <!-- 4 -->
       <div class="hist-dark" id="histIntro" data-on="4"><b>안내문이 말하는 것</b>살롱의 심사위원도 아카데미의 교수도 아닌 화가들이 모여, 살롱의 심사를 거치지 않는 전시를 엽니다.<small>기획서 slide 16·20 원고 · 1874년 4월 15일 첫 독립 전시(프랑스 문화부)</small></div>
-      <div class="unfold-btns" data-on="4"><button class="btn white" id="toAsk">한 가지 묻겠습니다</button></div>
+      <div class="unfold-btns" data-on="4"><button class="btn white" id="toAsk">칼럼의 포스터를 보러</button></div>
 
-      <!-- 5 질문 — 전단지와 살롱 공고, 두 종이 가운데 하나만 칼럼에 남는다 -->
+      <!-- 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(둘 다 재현). 이번 주말 보러 갈 전시를 고른다 -->
       <div class="ask" id="ask" data-on="5">
-        <div class="cap light">C0에서 당신은 심사위원이었습니다</div>
-        <h2 class="ask-q">어느 종이를<br>칼럼에 남기겠습니까?</h2>
+        <div class="cap light">1874년 봄, 파리 시민인 당신</div>
+        <h2 class="ask-q">이번 주말, 어느 전시를<br>보러 가시겠습니까?</h2>
       </div>
 
       <!-- 6 머리: 작은 캡 + 한 줄 -->
-      <div class="crowd dark center crowd-head" data-on="6"><div class="crowd-cap">Aujourd'hui</div><div class="crowd-line">오늘 칼럼에 남은 종이</div></div>
+      <div class="crowd dark center crowd-head" data-on="6"><div class="crowd-cap">Aujourd'hui</div><div class="crowd-line">오늘 이 전시를 보러 간 관람객</div></div>
 
-      <!-- 5·6 공용: 두 종이 (6 에서는 크기 그대로, 아래에 오늘의 관람객이 점으로 모인다) -->
-      <div class="papers" id="papers" data-on="5 6" role="radiogroup" aria-label="칼럼에 남길 종이">
-        <button class="paper salon" data-k="jury" role="radio" aria-checked="false" aria-label="살롱 공고 · 심사위원이 정한다">
+      <!-- 5·6 공용: 칼럼 위의 두 포스터 (6 에서는 크기 그대로, 아래에 오늘의 관람객이 점으로 모인다) -->
+      <div class="papers" id="papers" data-on="5 6" role="radiogroup" aria-label="보러 갈 전시">
+        <button class="paper salon" data-k="jury" role="radio" aria-checked="false" aria-label="살롱 1874 공고(재현) · 심사위원이 고른 전시">
           <div class="notice" aria-hidden="true">
             <div class="n-rep">République Française</div>
             <div class="n-big">SALON<br>DE 1874</div>
@@ -96,16 +96,24 @@
             <div class="n-foot">Ouvrages admis par le Jury</div>
             <span class="n-tag">재현</span>
           </div>
-          <span class="paper-lb"><b>심사위원이 정한다</b><small>기준을 아는 사람이 먼저 거른다</small></span>
-          <span class="paper-pct" aria-hidden="true"></span>
+          <span class="paper-lb"><b>심사위원이 고른 전시</b><small>샹젤리제 궁 · 5월 1일 개막</small></span>
         </button>
-        <button class="paper flyer-p" data-k="viewer" role="radio" aria-checked="false" aria-label="카페 게르부아 안내문 · 보는 사람이 정한다">
-          <div class="flyer-img" aria-hidden="true"></div>
-          <span class="paper-lb"><b>보는 사람이 정한다</b><small>걸어 놓고 각자 보게 한다</small></span>
-          <span class="paper-pct" aria-hidden="true"></span>
+        <button class="paper expo" data-k="viewer" role="radio" aria-checked="false" aria-label="화가들의 전시 안내(재현) · 화가들이 직접 연 전시">
+          <div class="notice expo" aria-hidden="true">
+            <div class="n-rep">Société anonyme des artistes<br>peintres, sculpteurs, graveurs</div>
+            <div class="n-big">EXPO-<br>SITION</div>
+            <div class="n-rule"></div>
+            <div class="n-line em">35, boulevard<br>des Capucines</div>
+            <div class="n-line">du 15 avril au 15 mai</div>
+            <div class="n-rule"></div>
+            <div class="n-open">Ouverture<br>le 15 Avril</div>
+            <div class="n-foot">Entrée · 1 franc</div>
+            <span class="n-tag">재현</span>
+          </div>
+          <span class="paper-lb"><b>화가들이 직접 연 전시</b><small>카퓌신 대로 35번지 · 4월 15일 · 1프랑</small></span>
         </button>
       </div>
-      <p class="ask-note" data-on="5">하나를 누르면 그 종이가 남고 다른 종이는 떨어집니다. 정답은 없습니다.</p>
+      <p class="ask-note" data-on="5">보러 갈 전시의 포스터를 누르세요. 정답은 없습니다.</p>
 
       <!-- 6 오늘의 관람객 — 점 하나가 열 사람. 두 종이 아래로 모인다(js/crowd.js) -->
       <div class="crowd dark center" id="crowd" data-on="6">

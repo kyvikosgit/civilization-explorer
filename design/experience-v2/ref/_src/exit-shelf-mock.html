@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>출구 시안 B · 선반 (정적 목업)</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../../ticket/fonts.css">
+<link rel="stylesheet" href="../../proto/proto-base.css">
+<style>
+/* 출구 시안 B "선반" — 정적 목업. 어두운 선반 위에 가져가는 것들이 물건처럼 놓이고, 네 입장은 작은 새김판, 같은 길은 한 줄 */
+html { background: #151413; }
+body.shelf { --page-bg: #151413; background: #151413; color: #fff; }
+.role-hd { padding-top: 14px; }
+.role-hd .sub { color: rgba(255,255,255,.62); font-size: 14px; }
+.cabinet { position: relative; margin: 16px calc(-1 * var(--pad)) 0; padding: 18px 20px 10px; background: radial-gradient(120% 60% at 50% 0%, #2A2622, #171513 60%); }
+.shelf { position: relative; height: 150px; margin-top: 14px; }
+.shelf::after { content: ''; position: absolute; left: -20px; right: -20px; bottom: 0; height: 12px; background: linear-gradient(#4A3B2F, #2A211B 60%, #1A1411); box-shadow: 0 10px 18px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,235,200,.25); }
+.shelf::before { content: ''; position: absolute; left: -20px; right: -20px; bottom: 12px; height: 70px; background: linear-gradient(rgba(255,226,180,0), rgba(255,226,180,.07)); pointer-events: none; }
+.items { position: absolute; z-index: 3; left: 0; right: 0; bottom: 12px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px; }
+.obj { position: relative; filter: drop-shadow(0 10px 10px rgba(0,0,0,.6)); }
+.obj.card { width: 72px; height: 96px; background: #E3D6B6; padding: 5px 5px 14px; border-radius: 2px; transform: rotate(-3deg); }
+.obj.card img { width: 100%; height: 100%; object-fit: cover; }
+.obj.card .medal { position: absolute; right: -6px; bottom: 6px; width: 20px; height: 20px; border-radius: 50%; background: #E7C46C; box-shadow: inset 0 0 0 2px #3B2A12, 0 2px 4px rgba(0,0,0,.5); }
+.obj.poster { width: 66px; height: 94px; background: linear-gradient(170deg, #EBDDB4, #DCCB9B); display: grid; align-content: center; justify-items: center; gap: 2px; padding: 6px; color: #26211B; font-family: 'Old Standard TT', Georgia, serif; text-align: center; line-height: 1.05; transform: rotate(2deg); }
+.obj.poster::before { content: ''; position: absolute; inset: 3px; border: .8px solid rgba(38,33,27,.7); }
+.obj.poster b { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 12px; }
+.obj.poster small { font-size: 5px; letter-spacing: .08em; text-transform: uppercase; }
+.obj.poster i { width: 16px; height: 1px; background: #26211B; }
+.obj.ticket { width: 118px; transform: rotate(-6deg) translateY(-6px); }
+.obj.ticket img { width: 100%; border-radius: 3px; }
+.obj.postcard { width: 112px; height: 76px; background: #DDD4BC; overflow: hidden; border-radius: 2px; transform: rotate(3deg); }
+.obj.postcard img { width: 100%; height: 100%; object-fit: cover; }
+.obj.postcard i { position: absolute; right: 5px; top: 5px; width: 13px; height: 16px; background: #5C6E8E; box-shadow: 0 0 0 2px #F2EAD6; }
+.obj.carte { width: 64px; height: 90px; background: #E3D6B6; padding: 5px 5px 12px; transform: rotate(-2deg); }
+.obj.carte img { width: 100%; height: 100%; object-fit: cover; filter: sepia(.35) contrast(1.05); }
+.obj.canvas { width: 96px; height: 80px; padding: 3px; background: #D9D2C2; box-shadow: inset 0 0 0 1px rgba(0,0,0,.3); transform: rotate(1deg); }
+.obj.canvas img { width: 100%; height: 100%; object-fit: cover; }
+.obj.frame { width: 92px; height: 74px; padding: 6px; background: linear-gradient(135deg, #B8903F, #6E4F1E 30%, #D9B45C 52%, #7D5A22 75%, #3A2A12); }
+.obj.frame img { width: 100%; height: 100%; object-fit: cover; box-shadow: inset 0 0 0 1px rgba(0,0,0,.6); }
+.obj .tag { position: absolute; z-index: 4; left: 50%; bottom: -24px; transform: translateX(-50%); white-space: nowrap; font-size: 9.5px; color: rgba(255,255,255,.5); filter: none; }
+.plates { margin-top: 14px; display: grid; gap: 6px; }
+.plate { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; height: 38px; padding: 0 12px; background: linear-gradient(#2C2A27, #1C1A18); border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 -1px 0 rgba(0,0,0,.6), 0 2px 4px rgba(0,0,0,.4); font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .02em; color: rgba(255,240,220,.78); text-shadow: 0 1px 0 rgba(0,0,0,.8); }
+.plate small { font-family: var(--body); font-weight: 500; font-size: 10.5px; color: rgba(255,255,255,.4); margin-right: 6px; }
+.plate b { font-weight: 800; color: var(--point); font-size: 13px; }
+.same { margin-top: 18px; border-top: 1px solid rgba(255,255,255,.18); padding-top: 12px; display: flex; align-items: baseline; gap: 10px; }
+.same b { font-family: var(--display); font-weight: 800; font-size: 34px; color: var(--point); letter-spacing: -0.03em; }
+.same span { font-size: 14px; color: #fff; }
+.same small { font-size: 11.5px; color: rgba(255,255,255,.5); }
+.actions { display: grid; gap: 8px; margin-top: 22px; }
+.mock-tag { position: fixed; right: 10px; top: 10px; font-size: 10px; letter-spacing: .1em; padding: 3px 7px; border: 1px dashed rgba(255,255,255,.5); color: rgba(255,255,255,.7); z-index: 50; }
+</style>
+</head>
+<body class="page shelf">
+<span class="mock-tag">시안 B · 정적</span>
+<div class="topbar"><a class="icon-btn" href="#" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a><div class="tb-title">출구 · 나의 선반</div><span></span></div>
+<main class="wrap">
+  <header class="role-hd"><div class="eyebrow">당신은</div><h1>모네의 방을 한 바퀴 돈<br>관람객입니다</h1><p class="sub">여섯 곳에서 가져온 것을 선반에 올려 둡니다. 아래 새김판이 당신의 네 입장입니다.</p></header>
+  <div class="cabinet">
+    <div class="shelf"><div class="items">
+      <div class="obj card"><img src="../../works/c0-spring.jpg" alt=""><i class="medal"></i><span class="tag">C0 메달 카드 · 〈봄날〉</span></div>
+      <div class="obj poster"><small>Société anonyme</small><b>EXPO-<br>SITION</b><i></i><small>35, bd des Capucines</small><span class="tag">C1 전시 안내 · 재현</span></div>
+      <div class="obj ticket"><img src="../../ticket/ticket-front-havre.png" alt=""><span class="tag">C2 그해의 기차표</span></div>
+    </div></div>
+    <div class="shelf"><div class="items">
+      <div class="obj postcard"><img src="../../works/c2-havre-impression-marmottan.jpg" alt=""><i></i><span class="tag">C2 엽서</span></div>
+      <div class="obj canvas"><img src="../../proto/img/c3-outdoor.jpg" alt=""><span class="tag">C3 내 캔버스</span></div>
+      <div class="obj carte"><img src="../../works/c4-baudelaire-photo.jpg" alt="" style="object-position:50% 30%"><span class="tag">C4 초상 카드</span></div>
+    </div></div>
+    <div class="shelf" style="height:120px"><div class="items" style="justify-content:center">
+      <div class="obj frame"><img src="../../proto/img/c5/haystacks/1.jpg" alt=""><span class="tag">C5 내 액자 · 건초더미</span></div>
+    </div></div>
+  </div>
+  <div class="plates">
+    <div class="plate"><span><small>C0</small>4번 〈봄날〉</span><b>39%</b></div>
+    <div class="plate"><span><small>C1</small>화가들이 직접 연 전시</span><b>62%</b></div>
+    <div class="plate"><span><small>C2</small>르아브르 · 1872년 표</span><b>54%</b></div>
+    <div class="plate"><span><small>C4</small>사진</span><b>56%</b></div>
+  </div>
+  <div class="same"><b>7.3%</b><span>나와 같은 길 · 94명</span><small>오늘 1,284명 · 수치는 예시</small></div>
+  <div class="actions"><button class="btn white" type="button">저장 · 공유</button><button class="btn dark-line" type="button">처음부터</button></div>
+</main>
+</body>
+</html>

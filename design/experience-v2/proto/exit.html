@@ -5,8 +5,9 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#151413">
-<title>출구 · 오늘의 관람객</title>
+<title>출구 · 나의 길</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../ticket/fonts.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="css/crowd.css">
 <link rel="stylesheet" href="exit.css">
@@ -15,54 +16,40 @@
 
 <div class="topbar">
   <a class="icon-btn" href="c5.html" aria-label="뒤로" id="backLink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
-  <div class="tb-title">출구 · 모아 보기</div>
+  <div class="tb-title">출구 · 나의 길</div>
   <span></span>
 </div>
 
 <main class="wrap screen">
-  <!-- 진입 가벽 — 〈인상, 해돋이〉, 액자 없이 뒤에서 번지는 빛 -->
-  <section class="sunrise" aria-label="〈인상, 해돋이〉">
-    <div class="glow"></div>
-    <img id="sunrise" src="../works/c2-havre-impression-marmottan.jpg" alt="클로드 모네 〈인상, 해돋이〉 1872 · 마르모탕 모네 미술관" draggable="false">
-    <div class="sun-cap"><b>〈인상, 해돋이〉</b> 1872 · 마르모탕 모네</div>
-  </section>
-
-  <header class="role-hd rise" style="--i:1">
+  <header class="role-hd rise" style="--i:0">
     <div class="eyebrow">당신은</div>
     <h1>모네의 방을 한 바퀴 돈<br>관람객입니다</h1>
-    <p class="sub">같은 전시, 다른 받아들임. 네 곳에서 택한 당신의 입장을 오늘의 관람객 옆에 놓습니다.</p>
+    <p class="sub">네 곳에서 갈린 길 가운데 당신이 지난 길이 주황색입니다. 갈래의 폭은 오늘의 관람객이 간 비율, 점 하나는 열 사람. 길가에 당신이 가져가는 것들이 걸려 있습니다.</p>
   </header>
 
-  <!-- 나의 네 입장 · 오늘의 관람객 — 점(하나 = 열 사람)이 위에서 아래로 흐르며 줄마다 나와 같은 쪽만 남는다(js/crowd.js) -->
-  <section class="mine crowd dark rise" style="--i:2" aria-label="나의 네 입장 · 오늘의 관람객">
-    <div class="crowd-cap">Aujourd'hui</div>
-    <div class="crowd-line">나의 네 입장 · 오늘의 관람객</div>
-    <div class="flow" id="flow">
-      <div class="flow-stage" id="flowStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
-      <div class="flow-rows" id="rows">
-        <div class="flow-gate"><span>모네의 방을 나온 사람</span><b id="gateN"></b></div>
-      </div>
-      <div class="flow-end" id="same"></div>
+  <!-- 흐름도 — 위에서 아래로 한 줄기(나의 길). 네 곳마다 갈라지고, 갈래 폭 = 오늘의 비율. 오늘의 관람객(점)이 줄기를 따라 내려가며 줄마다 나와 같은 쪽만 남는다.
+       줄기 오른쪽에 걸린 것: 메달 카드 · 전시 안내 · 기차표 · 캔버스 · 초상 카드 · 액자. (js/crowd.js) -->
+  <section class="flowchart crowd dark rise" id="flowchart" style="--i:1" aria-label="나의 길 · 오늘의 관람객">
+    <div class="fc-head"><div class="crowd-cap">Aujourd'hui</div><div class="crowd-line">나의 길 · 오늘의 관람객 <span id="gateN"></span></div></div>
+    <div class="fc" id="fc">
+      <svg class="fc-svg" id="fcSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+      <canvas class="fc-cv" id="crowdCv" aria-hidden="true"></canvas>
+      <div class="fc-html" id="fcHtml"></div>
     </div>
     <div class="crowd-stamp" id="crowdStamp"></div>
   </section>
 
-  <section class="artifact rise" style="--i:3" aria-label="남은 것">
-    <div class="art-cap">남은 것 하나 · C2 그해의 기차표</div>
-    <div class="ticket-wrap"><img id="ticket" alt="" draggable="false"><div class="ticket-sub" id="ticketSub"></div></div>
-  </section>
-
-  <div class="actions rise" style="--i:4">
+  <div class="actions rise" style="--i:3">
     <button class="btn white" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>
     <button class="btn dark-line" id="restart" type="button">처음부터</button>
   </div>
   <p class="note foot-note">출구 벽의 질문 “왜 같은 풍경을 계속 그렸을까?”는 벽에 그대로 두고, 앱은 답하지 않습니다. 수치는 예시이며 들르지 않은 곳은 예시 값으로 채웠습니다.</p>
 </main>
 
-<!-- 공유 이미지 미리보기 — 기기에서 1080×1920 으로 그린다 -->
+<!-- 공유 이미지 미리보기 — 기기에서 1080×1920 으로 그린다(같은 흐름도) -->
 <div class="share-ov" id="shareOv" hidden>
   <div class="share-top"><span>공유 이미지 · 1080×1920</span><button class="icon-btn" id="shareClose" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <div class="share-body"><img id="shareImg" alt="나의 네 입장 · 오늘의 관람객 공유 이미지"></div>
+  <div class="share-body"><img id="shareImg" alt="나의 길 · 오늘의 관람객 공유 이미지"></div>
   <div class="share-btns"><button class="btn white" id="shareGo" type="button">사진첩에 저장 · 공유</button></div>
 </div>
 

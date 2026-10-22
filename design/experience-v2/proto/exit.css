@@ -1,52 +1,59 @@
-/* 출구 — 오늘의 관람객 모아 보기(옛 C5 마무리 화면). 어두운 방, 〈인상, 해돋이〉 위에, 아래에 나의 네 입장 · 오늘의 관람객. 포인트 주황 하나 */
+/* 출구 — 나의 길(흐름도). 어두운 방, 한 줄기 주황 길이 네 번 갈라지고 길가에 가져가는 것이 걸린다. 포인트 주황 하나 */
 html { background: #151413; }
 body.exit { --page-bg: #151413; background: #151413; color: #FFFFFF; }
+.screen .role-hd { padding-top: 14px; }
+.screen .role-hd .sub { color: rgba(255,255,255,.62); font-size: 14px; }
 
-/* 진입 가벽 */
-.sunrise { position: relative; margin: 0 calc(-1 * var(--pad)); padding: 22px 36px 14px; display: flex; flex-direction: column; align-items: center; background: #0C0B0A; overflow: hidden; }
-.glow { position: absolute; left: 50%; top: 50%; width: 130%; height: 130%; transform: translate(-50%, -52%);
-  background: radial-gradient(48% 46% at 50% 50%, rgba(255,214,170,.26), rgba(255,200,150,.07) 55%, rgba(0,0,0,0) 72%); }
-.sunrise img { position: relative; width: 100%; max-width: 300px; height: auto; display: block; border-radius: 1px;
-  box-shadow: 0 0 44px 10px rgba(255,232,196,.22), 0 0 100px 24px rgba(255,220,170,.1), 0 14px 30px rgba(0,0,0,.7); animation: spotIn .7s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes spotIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-.sun-cap { position: relative; margin-top: 12px; font-size: 12px; color: rgba(255,255,255,.55); }
-.sun-cap b { color: rgba(255,255,255,.85); font-weight: 600; }
-
-.screen .role-hd { padding-top: 18px; }
-.screen .role-hd .sub { color: rgba(255,255,255,.62); }
-
-/* 나의 네 입장 · 오늘의 관람객 — 왼쪽 기둥(캔버스)을 점이 위에서 아래로 흐르고, 오른쪽에 줄마다 역할 · 내 입장 · 작은 숫자. 맨 아래 "나와 같은 길" 만 크게 */
-.mine { margin-top: 14px; }
-.flow { --fw: 116px; position: relative; margin-top: 12px; display: grid; grid-template-columns: var(--fw) 1fr; gap: 0 12px; }
-.flow-stage { position: absolute; left: 0; top: 0; bottom: 0; width: var(--fw); }
-.flow-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.flow-rows { grid-column: 2; display: grid; }
-.flow-gate { height: 54px; display: flex; flex-direction: column; justify-content: center; gap: 2px; border-bottom: 1px solid rgba(255,255,255,.14); font-size: 11.5px; color: rgba(255,255,255,.5); }
-.flow-gate b { font-family: var(--display); font-weight: 600; font-size: 14px; color: rgba(255,255,255,.85); letter-spacing: -0.01em; }
-.row { position: relative; min-height: 92px; padding: 12px 0 11px; border-bottom: 1px solid rgba(255,255,255,.14); display: grid; align-content: center; gap: 2px; animation: rise .45s ease both; }
-.row .k { font-size: 11.5px; line-height: 1.35; color: rgba(255,255,255,.5); display: flex; justify-content: space-between; gap: 8px; }
-.row .k i { font-style: normal; color: rgba(255,255,255,.35); }
-.row .v { font-family: var(--display); font-weight: 800; font-size: 15.5px; line-height: 1.25; letter-spacing: -0.02em; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.row .v span { min-width: 0; }
-.row .n { font-family: var(--display); font-weight: 600; font-size: 14px; color: rgba(255,255,255,.6); white-space: nowrap; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .5s; }
-.row .n.show { opacity: 1; }
-.row .n b { font-weight: 800; color: var(--point); }
-.row .th { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 11.5px; color: rgba(255,255,255,.42); }
-.row .th img { width: 26px; height: 26px; border-radius: 3px; object-fit: cover; }
-.row.none .v span { color: rgba(255,255,255,.5); }
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.flow-end { grid-column: 2; min-height: 96px; display: grid; align-content: center; gap: 2px; padding: 12px 0 6px; }
-.flow-end .crowd-big { font-size: 40px; opacity: 0; transition: opacity .5s; }
-.flow-end .crowd-big.show { opacity: 1; }
-.flow-end .crowd-lab { margin-top: 4px; }
-.crowd-stamp { margin-top: 14px; }
-
-/* 남은 것 — 기차표 */
-.artifact { margin-top: 22px; }
-.art-cap { font-size: 11.5px; font-weight: 700; color: rgba(255,255,255,.5); }
-.ticket-wrap { margin-top: 8px; display: grid; grid-template-columns: 1fr; gap: 6px; }
-.ticket-wrap img { width: 100%; max-width: 250px; height: auto; display: block; border-radius: 4px; box-shadow: 0 10px 24px rgba(0,0,0,.6); transform: rotate(-1.2deg); }
-.ticket-sub { font-size: 13px; color: rgba(255,255,255,.6); }
+/* 흐름도: svg(갈래 띠) + canvas(점) + html(글자·걸린 것) 세 겹, 높이는 js 가 정한다 */
+.flowchart { margin-top: 14px; }
+.fc-head .crowd-line span { font-weight: 600; color: rgba(255,255,255,.55); font-size: 13px; }
+.fc { position: relative; margin-top: 10px; }
+.fc-svg, .fc-cv, .fc-html { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+.fc-svg { overflow: visible; }
+.fc-cv { pointer-events: none; }
+.fc-html { pointer-events: none; }
+.fc-html > * { position: absolute; }
+/* 글자: 줄 이름은 줄기 왼쪽에 오른끝 맞춤, 갈래 아래 숫자, 내 갈래 이름 */
+.fc-row { font-family: var(--display); font-weight: 600; font-size: 11px; line-height: 1.25; letter-spacing: -0.01em; color: rgba(255,255,255,.55); text-align: right; transform: translate(-100%, -50%); white-space: nowrap; }
+.fc-row b { display: block; font-weight: 800; font-size: 12px; color: rgba(255,255,255,.85); }
+.fc-gate { font-size: 11px; color: rgba(255,255,255,.5); text-align: right; transform: translate(-100%, -50%); white-space: nowrap; }
+.fc-gate b { font-family: var(--display); font-weight: 600; color: rgba(255,255,255,.85); }
+.fc-pct { font-family: var(--display); font-weight: 600; font-size: 10px; letter-spacing: -0.01em; color: rgba(255,255,255,.45); transform: translate(-50%, 0); white-space: nowrap; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .5s; }
+.fc-pct.show { opacity: 1; }
+.fc-pct.me { font-weight: 800; font-size: 13.5px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45); }
+.fc-pct.me small { display: block; font-family: var(--body); font-weight: 700; font-size: 11px; color: rgba(255,255,255,.9); letter-spacing: 0; margin-top: 1px; }
+.fc-legend { font-size: 10.5px; line-height: 1.4; color: rgba(255,255,255,.38); white-space: nowrap; transform: translate(-50%, 0); }
+.fc-legend b { font-weight: 600; color: rgba(255,255,255,.55); }
+/* 길가에 걸린 것: 작은 카드 + 한 줄 */
+.fc-art { width: 92px; display: grid; gap: 4px; justify-items: start; transform: translate(0, -50%); opacity: 0; transition: opacity .5s, transform .5s; }
+.fc-art.show { opacity: 1; }
+.fc-art .th { position: relative; width: 60px; height: 60px; border-radius: 4px; overflow: hidden; background: #1F1D1B; box-shadow: 0 6px 14px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.1); }
+.fc-art .th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fc-art .th.ticket { width: 62px; height: 33px; }
+.fc-art .th.postcard { width: 62px; height: 42px; margin-top: -1px; }
+.fc-art .th.postcard i { position: absolute; right: 3px; top: 3px; width: 9px; height: 11px; background: #5C6E8E; box-shadow: 0 0 0 1.5px #F2EAD6; }
+.fc-art .th.frame { padding: 4px; background: linear-gradient(135deg, #B8903F, #6E4F1E 30%, #D9B45C 52%, #7D5A22 75%, #3A2A12); }
+.fc-art .th.frame img { box-shadow: inset 0 0 0 1px rgba(0,0,0,.6); }
+.fc-art .th.carte { padding: 4px 4px 9px; background: #E3D6B6; }
+.fc-art .th.canvas { width: 72px; height: 60px; }
+.fc-art .th .medal { position: absolute; right: 4px; bottom: 4px; width: 16px; height: 16px; border-radius: 50%; background: #E7C46C; box-shadow: 0 0 0 1.5px #3B2A12 inset, 0 2px 4px rgba(0,0,0,.5); }
+/* 전시 안내(재현)의 작은 판 */
+.fc-art .th.poster { background: linear-gradient(170deg, #F3EBD6, #E6DCC0); display: grid; align-content: center; justify-items: center; gap: 2px; padding: 5px; color: #26211B; font-family: 'Old Standard TT', Georgia, serif; text-align: center; line-height: 1.05; }
+.fc-art .th.poster.expo { background: linear-gradient(170deg, #EBDDB4, #DCCB9B); }
+.fc-art .th.poster::before { content: ''; position: absolute; inset: 3px; border: .8px solid rgba(38,33,27,.7); pointer-events: none; }
+.fc-art .th.poster b { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 11px; letter-spacing: .02em; }
+.fc-art .th.poster small { font-size: 5px; letter-spacing: .08em; text-transform: uppercase; }
+.fc-art .th.poster i { width: 16px; height: 1px; background: #26211B; }
+.fc-art .lb { font-size: 10.5px; line-height: 1.3; color: rgba(255,255,255,.6); }
+.fc-art .lb b { display: block; font-family: var(--display); font-weight: 600; font-size: 11px; color: rgba(255,255,255,.88); letter-spacing: -0.01em; }
+.fc-art.none .th { opacity: .5; }
+/* 끝: 나와 같은 길 */
+.fc-end { display: grid; gap: 2px; transform: translate(0, -50%); }
+.fc-end .crowd-big { font-size: 40px; opacity: 0; transition: opacity .5s; }
+.fc-end .crowd-big.show { opacity: 1; }
+.fc-end .crowd-lab { margin-top: 2px; }
+.fc-end .crowd-lab small { white-space: normal; max-width: 200px; }
+.crowd-stamp { margin-top: 12px; }
 
 .actions { display: grid; gap: 8px; margin-top: 26px; }
 .foot-note { margin: 14px 0 0; line-height: 1.55; color: rgba(255,255,255,.45); }
@@ -60,11 +67,8 @@ body.exit { --page-bg: #151413; background: #151413; color: #FFFFFF; }
 .share-btns { flex: none; }
 @keyframes fadeTo { from { opacity: 0; } to { opacity: 1; } }
 
-@media (max-height: 700px) {
-  .sunrise img { max-width: 220px; }
-  .screen .role-hd h1 { font-size: 21px; }
-}
+@media (max-height: 700px) { .screen .role-hd h1 { font-size: 21px; } }
 @media (prefers-reduced-motion: reduce) {
-  .sunrise img, .row, .share-ov { animation: none; }
-  .row .n, .flow-end .crowd-big { transition: none; }
+  .share-ov { animation: none; }
+  .fc-pct, .fc-art, .fc-end .crowd-big { transition: none; }
 }
