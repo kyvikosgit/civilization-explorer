@@ -1,95 +1,87 @@
 /* C3 화가의 아틀리에 — 밖의 빛으로 칠하기
-   어두운 아틀리에(검정 바탕)에서 시작해, 다 칠하면 방이 밝아진다(흰 바탕). 포인트 주황 #D9672F 하나.
-   화면에는 역할 한 줄 · 캔버스 · 안내 한 줄뿐. 완성 뒤에 일기장 · 1841 · 단추. */
+   어두운 아틀리에(검정 바탕, 캔버스 위에만 등불 같은 따뜻한 빛)에서 시작해, 다 칠하면 잠시 뒤 방이 밝아진다(흰 바탕). 포인트 주황 #D9672F 하나.
+   화면에는 역할 한 줄 · 캔버스 · 이름표 한 줄 · 안내 한 줄뿐. 완성 뒤에 일기장 · 1841 · 저장. 한글 자간 0. */
 :root { --wood-1: #5A3E27; --wood-2: #2E1F13; --wood-3: #8A6238; }
-html { background: #161412; transition: background .9s ease; }
-html.done { background: #FFFFFF; }   /* 완성 뒤 스크롤 바깥(위·아래 여백)도 흰 방 */
-body.c3 { --page-bg: #161412; background: #161412; color: #FFFFFF; transition: background .9s ease, color .9s ease; }
-body.c3.done { --page-bg: #FFFFFF; background: #FFFFFF; color: var(--ink); }
-body.c3 .topbar { transition: background .9s ease; }
+html { background: #161412; transition: background 1.6s ease; }
+html.lit { background: #FFFFFF; }   /* 완성 뒤 스크롤 바깥(위·아래 여백)도 흰 방 */
+body.c3 { --page-bg: #161412; background: #161412; color: #FFFFFF; transition: background 1.6s ease, color 1.6s ease; }
+body.c3.lit { --page-bg: #FFFFFF; background: #FFFFFF; color: var(--ink); }
+body.c3 .topbar { transition: background 1.6s ease; }
+body.c3 h1, body.c3 h2, body.c3 .topbar .tb-title, body.c3 .btn { letter-spacing: 0; }
 
 .room { justify-content: flex-start; }
 .room .role-hd { padding-top: 6px; }
-.room .role-hd .sub { color: rgba(255,255,255,.66); transition: color .9s; }
-body.done .room .role-hd .sub { color: var(--dim); }
+.room .role-hd .sub { color: rgba(255,255,255,.62); transition: color 1.6s; }
+body.lit .room .role-hd .sub { color: var(--dim); }
 
-/* 이젤 — 얇은 나무 액자 안에 6:5 캔버스 */
-.easel { margin-top: 6px; }
+/* 이젤 — 얇은 나무 액자 안에 6:5 캔버스. 뒤 벽에 등불 빛 한 웅덩이 */
+.easel { position: relative; margin-top: 6px; }
+.easel::before { content: ''; position: absolute; left: calc(-1 * var(--pad)); right: calc(-1 * var(--pad)); top: -140px; bottom: -90px; z-index: -1; pointer-events: none;
+  background: radial-gradient(62% 46% at 50% 44%, rgba(255,196,128,.11), rgba(255,180,110,.04) 55%, transparent 78%); transition: opacity 1.6s ease; }
+body.lit .easel::before { opacity: 0; }
 /* 완성 전: 캔버스와 안내 한 줄이 남은 공간의 가운데에 — 위아래 여백이 같다 */
 body:not(.done) .easel { margin-top: auto; }
 body:not(.done) .hint { margin-bottom: auto; }
 .frame { width: 100%; padding: 7px; border-radius: 2px;
   background: linear-gradient(135deg, var(--wood-3), var(--wood-1) 40%, var(--wood-2));
-  box-shadow: 0 14px 40px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.08), inset 0 0 0 2px rgba(0,0,0,.35);
-  transition: box-shadow .9s; }
-body.done .frame { box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 0 0 1px rgba(255,255,255,.12), inset 0 0 0 2px rgba(0,0,0,.25); }
+  box-shadow: 0 18px 44px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.08), inset 0 0 0 2px rgba(0,0,0,.35);
+  transition: box-shadow 1.6s; }
+body.lit .frame { box-shadow: 0 14px 32px rgba(0,0,0,.18), inset 0 0 0 1px rgba(255,255,255,.12), inset 0 0 0 2px rgba(0,0,0,.25); }
 .canvas-wrap { position: relative; aspect-ratio: 6 / 5; overflow: hidden; background: #2A211A; touch-action: none; user-select: none; -webkit-user-select: none;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), inset 0 2px 6px rgba(0,0,0,.6); }
 .canvas-wrap img, .canvas-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.reveal { transition: opacity .22s ease; }
+.reveal { transition: opacity .35s ease; }
 .reveal.hide { opacity: 0; }
 .canvas-wrap .indoor { pointer-events: none; }
-.label { position: absolute; left: 8px; bottom: 8px; max-width: calc(100% - 16px); padding: 4px 8px 5px; display: flex; flex-direction: column; gap: 1px; border-radius: 4px;
-  background: rgba(0,0,0,.62); color: #FFF; font-size: 11.5px; font-weight: 600; line-height: 1.2; pointer-events: none; transition: background .3s, color .3s; }
-.label small { font-size: 10px; font-weight: 500; opacity: .78; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.label small:empty { display: none; }
-.label.out { background: rgba(255,255,255,.88); color: var(--ink); }
+
+/* 이름표 한 줄 — 액자 아래, 미술관 캡션처럼 작게. "임시"는 더 작게, 흐리게 */
+.cap-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; margin-top: 10px; }
+.label { margin: 0; display: flex; align-items: baseline; gap: 8px; font-family: var(--display); font-weight: 600; font-size: 13px; color: rgba(255,255,255,.72); transition: color 1.6s; }
+.label .tmp { font-style: normal; font-family: var(--body); font-weight: 500; font-size: 11px; color: rgba(255,255,255,.38); transition: color 1.6s; }
+body.lit .label { color: var(--ink); }
+body.lit .label .tmp { color: #A3A3A0; }
+#labelMain { transition: opacity .25s; }
+/* 누르고 있으면 실내 — 작은 테두리 단추. 누르는 동안 검정 */
+.hold { flex: none; height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid var(--hair-strong); color: var(--ink);
+  font-family: var(--body); font-weight: 600; font-size: 13px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  transition: background .2s, color .2s, border-color .2s, opacity .6s; }
+.hold.on { background: var(--ink); color: #FFF; border-color: var(--ink); }
+.hold.in { animation: fadeIn .8s ease both; }
 
 /* 안내 한 줄 — 캔버스 아래, 첫 터치에 사라진다 */
-.hint { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 0; min-height: 24px; font-size: 15px; color: rgba(255,255,255,.62); transition: opacity .4s; }
-.hint svg { width: 22px; height: 22px; animation: rub 1.8s ease-in-out infinite; }
-.hint.off { animation: none; opacity: 0; pointer-events: none; }
+.hint { margin: 14px 0 0; min-height: 24px; text-align: center; font-size: 15px; color: rgba(255,255,255,.55); transition: opacity .5s; }
+.hint.off { opacity: 0; pointer-events: none; }
 .hint[hidden] { display: none; }
-@keyframes rub { 0%, 100% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
 
-/* 튜브 물감 — 캔버스 오른쪽 아래 모서리에 숨어 있다가 첫 터치에 한 번 짜이고 가라앉는다 */
-.tube { position: absolute; right: 8px; bottom: 6px; width: 84px; height: 28px; pointer-events: none; opacity: 0; transform: translateY(8px); transition: opacity .3s, transform .3s; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
-.tube svg { width: 100%; height: 100%; overflow: visible; }
-.tube-body { transform-origin: 106px 20px; }
-.tube-paint { transform-origin: 18px 20px; transform: scale(0); opacity: 0; }
-.tube.squeeze { opacity: 1; transform: translateY(0); }
-.tube.squeeze .tube-body { animation: squeeze .7s cubic-bezier(.3,.9,.3,1) .15s both; }
-.tube.squeeze .tube-paint { animation: blob .7s cubic-bezier(.3,.9,.3,1) .15s both; }
-.tube.squeezed { opacity: 0; transform: translateY(6px); transition: opacity .6s 1.2s, transform .6s 1.2s; }
-@keyframes squeeze { 0% { transform: scaleX(1) scaleY(1); } 35% { transform: scaleX(.86) scaleY(1.1); } 100% { transform: scaleX(.9) scaleY(.88); } }
-@keyframes blob { 0% { transform: scale(0); opacity: 0; } 30% { transform: scale(.4); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-
-/* 다 칠한 뒤 */
-.after { margin-top: 22px; }
+/* 다 칠한 뒤 — 방이 밝아진 뒤에 차례로 */
+.after { margin-top: 26px; }
 .after[hidden] { display: none; }
+.after > * { opacity: 0; transform: translateY(8px); }
+.after.in > * { animation: riseIn .9s var(--ease-out) both; }
+.after.in > :nth-child(2) { animation-delay: .25s; }
+.after.in > :nth-child(3) { animation-delay: .5s; }
+.after.in > :nth-child(4) { animation-delay: .7s; }
 .diary { margin: 0; }
-.diary p { margin: 0; font-family: var(--display); font-weight: 600; font-size: 20px; line-height: 1.45; letter-spacing: -0.01em; }
+.diary p { margin: 0; font-family: var(--display); font-weight: 600; font-size: 20px; line-height: 1.5; }
 .diary cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: var(--dim); }
-/* 모네가 실제로 그린 같은 장면 — 작게 나란히, 같은 비율(0.64)로 자른 두 인물 */
-.real { margin-top: 22px; }
-.real-hd { margin: 0 0 10px; font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: -0.01em; color: var(--ink); }
-.real-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.real figure { margin: 0; }
-.real img { display: block; width: 100%; aspect-ratio: 0.64; object-fit: cover; border-radius: 4px; background: #2A211A; box-shadow: 0 1px 0 rgba(0,0,0,.08), inset 0 0 0 1px rgba(0,0,0,.08); }
-.real figcaption { margin-top: 8px; font-size: 12.5px; line-height: 1.45; }
-.real figcaption b { display: block; font-weight: 700; color: var(--ink); }
-.real figcaption span { display: block; margin-top: 2px; color: var(--ink); }
-.real figcaption cite { display: block; margin-top: 4px; font-style: normal; font-size: 11px; line-height: 1.4; color: var(--dim); }
-.fact { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; margin-top: 18px; padding: 14px 16px; border-radius: 10px; background: var(--panel); }
-.fact b { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; color: var(--point); letter-spacing: -0.02em; padding-top: 2px; }
+.fact { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; margin-top: 22px; padding: 16px 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.fact b { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; color: var(--ink); }
 .fact p { margin: 0; font-size: 15px; line-height: 1.5; }
-.fact p.muted { font-size: 13px; margin-top: 2px; color: var(--dim); }
-.actions { display: grid; gap: 8px; margin-top: 18px; }
-.hold { touch-action: none; user-select: none; -webkit-user-select: none; }
-.hold.on { background: var(--ink); color: #FFF; border-color: var(--ink); }
-.placeholder-note { margin: 16px 0 0; line-height: 1.5; }
-.placeholder-note code { font-family: inherit; }
+.fact p.muted { font-size: 15px; margin-top: 2px; color: var(--dim); }
+.actions { display: grid; gap: 8px; margin-top: 22px; }
+.placeholder-note { margin: 18px 0 0; font-size: 11.5px; line-height: 1.6; color: #A3A3A0; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* 작은 화면(375×667): 역할 문장과 캔버스가 한 화면에 들어가게 */
 @media (max-height: 700px) {
   .room .role-hd h1 { font-size: 21px; }
   .room .role-hd { padding-bottom: 10px; }
-  .hint { margin-top: 12px; }
+  .hint { margin-top: 8px; }
+  .cap-row { margin-top: 8px; min-height: 32px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hint svg { animation: none; }
-  .tube.squeeze .tube-body, .tube.squeeze .tube-paint { animation: none; }
-  .tube.squeeze .tube-body { transform: scaleX(.9) scaleY(.88); }
-  .tube.squeeze .tube-paint { transform: scale(1); opacity: 1; }
-  body.c3, .room .role-hd .sub, .frame, .tube { transition: none; }
+  html, body.c3, .room .role-hd .sub, .frame, .easel::before, .label, .label .tmp { transition-duration: .2s; }
+  .after > * { opacity: 1; transform: none; }
+  .after.in > * { animation: none; }
+  .hold.in { animation: none; }
 }

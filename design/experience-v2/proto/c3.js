@@ -7,9 +7,9 @@ import { toast, loadImage, clamp } from '../../../booth/js/common.js';
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const OUTDOOR = 'img/c3-outdoor.jpg';   // 임시: 모네 〈아르장퇴유의 화가의 집〉 1873 (AIC · CC0), 6:5 로 자른 1200×1000
-const stage = $('#stage'), reveal = $('#reveal'), hint = $('#hint'), label = $('#label'), tube = $('#tube');
-const LABEL = { indoor: ['실내 캔버스', '1860년대 아틀리에 팔레트로 재현 · 제작 전 임시'], outdoor: ['야외 캔버스', '모네 〈아르장퇴유의 화가의 집〉 1873 · 제작 전 임시'] };
-function setLabel(which) { $('#labelMain').textContent = LABEL[which][0]; $('#labelSub').textContent = LABEL[which][1]; label.classList.toggle('out', which === 'outdoor'); }
+const stage = $('#stage'), reveal = $('#reveal'), hint = $('#hint');
+const LABEL = { indoor: '실내 캔버스', outdoor: '야외 캔버스' };
+function setLabel(which) { $('#labelMain').textContent = LABEL[which]; }
 
 let W = 0, H = 0;                 // 작업 해상도 (6:5)
 let outdoor = null;               // 6:5 로 자른 야외 캔버스
@@ -126,9 +126,6 @@ function firstTouch() {
   if (touched) return;
   touched = true;
   hint.classList.add('off');
-  tube.classList.add('squeeze');                              // 캔버스 모서리의 튜브가 한 번 짜이고 가라앉는다
-  const settle = () => tube.classList.add('squeezed');
-  if (REDUCED) setTimeout(settle, 600); else tube.addEventListener('animationend', settle, { once: true });
 }
 
 function onDown(e) {
@@ -170,7 +167,7 @@ function complete(at) {
   if (done) return;
   done = true; painting = false;
   const cx = at ? at.x : W / 2, cy = at ? at.y : H / 2;
-  const dur = REDUCED ? 0 : (new URLSearchParams(location.search).has('slow') ? 6000 : 1500);   // ?slow: 검수용 느린 번짐
+  const dur = REDUCED ? 0 : (new URLSearchParams(location.search).has('slow') ? 6000 : 1900);   // ?slow: 검수용 느린 번짐
   const t0 = performance.now();
   const frame = () => {
     const t = dur ? clamp((performance.now() - t0) / dur, 0, 1) : 1;
@@ -184,7 +181,7 @@ function complete(at) {
       if (dur && t < 1) {
         const r = Math.max(W, H) * (0.1 + e * 1.1);
         const bloom = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-        const a = Math.sin(Math.PI * t) * 0.55;
+        const a = Math.sin(Math.PI * t) * 0.3;
         bloom.addColorStop(0, `rgba(255,250,235,${a})`); bloom.addColorStop(0.6, `rgba(255,245,220,${a * 0.5})`); bloom.addColorStop(1, 'rgba(255,245,220,0)');
         ctx.globalCompositeOperation = 'screen';
         ctx.fillStyle = bloom; ctx.fillRect(0, 0, W, H);
@@ -199,15 +196,24 @@ function finish() {
   // 완성: 마스크를 가득 채워 이후 렌더가 항상 야외 캔버스
   mctx.fillStyle = '#FFF'; mctx.fillRect(0, 0, W, H);
   render();
-  setLabel('outdoor');
-  document.body.classList.add('done'); document.documentElement.classList.add('done');
-  document.querySelector('meta[name=theme-color]').content = '#FFFFFF';
-  $('#roleSub').textContent = '같은 장면, 밖의 빛';
-  $('#after').hidden = false; hint.hidden = true;
-  // 완성 캔버스가 위에, 그 아래 일기장과 실제 쌍이 보이게 — 캔버스(이젤)를 화면 맨 위로
-  setTimeout(() => { $('.easel').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); }, REDUCED ? 0 : 350);
+  const label = $('#labelMain'); label.style.opacity = 0;
+  setTimeout(() => { setLabel('outdoor'); label.style.opacity = ''; }, 260);
+  // 다 칠한 캔버스를 어두운 방에서 잠시 본 뒤, 방이 천천히 밝아진다(1.6초). 그다음 아래 글이 차례로
+  const T_LIT = REDUCED ? 0 : 900, T_AFTER = REDUCED ? 0 : 1700;
+  setTimeout(() => {
+    document.body.classList.add('lit'); document.documentElement.classList.add('lit');
+    document.querySelector('meta[name=theme-color]').content = '#FFFFFF';
+  }, T_LIT);
+  setTimeout(() => {
+    const easel = $('.easel'), y0 = easel.getBoundingClientRect().top;
+    hint.hidden = true; $('#after').hidden = false;
+    document.body.classList.add('done');
+    window.scrollBy(0, easel.getBoundingClientRect().top - y0);      // 레이아웃이 바뀌어도 캔버스는 제자리
+    const hold = $('#hold'); hold.hidden = false; hold.classList.add('in');
+    $('#roleSub').textContent = '같은 장면, 밖의 빛';
+    requestAnimationFrame(() => $('#after').classList.add('in'));
+  }, T_AFTER);
 }
-
 // ── 누르고 있으면 실내 캔버스
 {
   const b = $('#hold');
@@ -228,17 +234,18 @@ $('#save').addEventListener('click', async () => {
   wood.addColorStop(0, '#8A6238'); wood.addColorStop(0.4, '#5A3E27'); wood.addColorStop(1, '#2E1F13');
   g.fillStyle = wood; g.fillRect(fx - 18, fy - 18, fw + 36, fh + 36);
   g.drawImage(outdoor, fx, fy, fw, fh);
-  g.fillStyle = '#D9672F'; g.font = '600 24px Paperlogy, Freesentation, sans-serif'; g.fillText('MONET 100 · C3 화가의 아틀리에', 60, 100);
+  g.fillStyle = '#707070'; g.font = '600 24px Paperlogy, Freesentation, sans-serif'; g.fillText('MONET 100 · 화가의 아틀리에', 60, 100);
   g.fillStyle = '#111111'; g.font = '800 44px Paperlogy, Freesentation, sans-serif';
   g.fillText('밖의 빛으로 다시 칠했다', 60, fy + fh + 110);
   g.font = '600 30px Paperlogy, Freesentation, sans-serif';
   g.fillText('“정오와 저녁의 햇빛은 같은 나무도', 60, fy + fh + 180); g.fillText('전혀 다른 색으로 만든다.”', 60, fy + fh + 224);
   g.fillStyle = '#707070'; g.font = '500 22px Freesentation, sans-serif';
-  g.fillText('화가의 일기장 · 1841 존 고프 랜드, 접는 금속 튜브 특허', 60, fy + fh + 280);
-  g.fillText('임시 · 제작 전 대체 이미지(모네 〈아르장퇴유의 화가의 집〉 1873, 시카고 AIC · CC0)', 60, CH - 60);
+  g.fillText('화가의 일기장', 60, fy + fh + 274);
+  g.fillStyle = '#A3A3A0'; g.font = '500 20px Freesentation, sans-serif';
+  g.fillText('임시 이미지 · 모네 〈아르장퇴유의 화가의 집〉 1873, 시카고 미술관', 60, CH - 60);
   const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.92));
   if (!blob) return toast('저장에 실패했습니다.');
-  const file = new File([blob], 'c3_밖의빛으로.jpg', { type: 'image/jpeg' });
+  const file = new File([blob], 'monet100_밖의빛으로.jpg', { type: 'image/jpeg' });
   const touch = matchMedia('(pointer: coarse)').matches;
   if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
