@@ -1,5 +1,5 @@
 /* C0 아카데미 살롱 — 올해의 메달 한 점
-   현장처럼 후보작 5점이 한 줄. 벽은 바꾸지 않는다. 그림을 누르면 살짝 들리고 스포트라이트, 메달을 올리면 확인, 그 뒤 액자 아래에 오늘의 비율.
+   후보작을 한 점씩 3D 금박 액자로 돌려 보고 확대해 본 뒤 "이 그림에 메달" → 확인 → 다섯 액자가 한 줄로 물러나고 아래에 오늘의 비율.
    살롱 벽은 experience/img/r_C0_a.jpg (전시실5 렌더)의 재료: 적갈색 다마스크 벽지 · 회반죽 코니스 · 나무 징두리 · 금박 액자 · 금색 번호판 · 붉은 로프 */
 
 /* 1 역할 */
@@ -40,68 +40,50 @@
 .cap { font-family: var(--display); font-weight: 600; font-size: 12.5px; color: var(--point); }
 .loc { margin: 4px 0 16px; line-height: 1.55; }
 
-/* 2·3 특별 액자 벽 */
-#s2 { background: #5E2424; }
-.stage { position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; background: #6B2A2B; }
-.wall-paper { position: absolute; inset: 0;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.13' stroke-width='1.2'%3E%3Cpath d='M32 4c6 8 12 12 24 14-12 2-18 6-24 14-6-8-12-12-24-14 12-2 18-6 24-14z'/%3E%3Cpath d='M0 36c6 8 12 12 24 14M64 36c-6 8-12 12-24 14'/%3E%3Ccircle cx='32' cy='18' r='3'/%3E%3Ccircle cx='32' cy='50' r='2'/%3E%3C/g%3E%3C/svg%3E") 0 0/64px 64px,
-    linear-gradient(180deg, #7A3233 0%, #6D2A2B 45%, #5A2122 100%); }
-.wall-light { position: absolute; inset: 0; pointer-events: none; transition: opacity .35s;
-  background: radial-gradient(90% 60% at 50% 42%, rgba(255,214,170,.14), rgba(255,214,170,0) 70%), linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,0) 22%, rgba(0,0,0,0) 70%, rgba(0,0,0,.28)); }
-.cornice { position: absolute; left: 0; right: 0; top: 0; height: calc(62px + var(--safe-t)); z-index: 2;
-  background: linear-gradient(180deg, #F0EADC 0%, #E2D9C6 60%, #CBC0A9 86%, #9E9279 100%);
-  box-shadow: 0 2px 0 rgba(60,30,20,.5), 0 10px 18px -6px rgba(0,0,0,.55); }
-.cornice::after { content: ''; position: absolute; left: 0; right: 0; bottom: 7px; height: 1px; background: rgba(90,70,40,.35); }
-.wall-top { position: absolute; left: 0; right: 0; top: 0; z-index: 3; color: #2B2017; }
-.wall-top .tb-title { color: #2B2017; }
-.lower { position: absolute; left: 0; right: 0; top: 0; height: 100%; z-index: 1; transform: translateY(80%); transition: transform .7s var(--ease-out); will-change: transform; }
-.lower .dado { height: 16px; background: linear-gradient(180deg, #A27A3E, #D9B266 35%, #8E6A2E 70%, #5C4218); box-shadow: 0 4px 10px rgba(0,0,0,.45); }
-.lower .wainscot { position: absolute; left: 0; right: 0; top: 16px; bottom: 0;
-  background:
-    repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 1px, transparent 1px 96px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 2px, transparent 2px 96px),
-    linear-gradient(180deg, #3B2419 0%, #2A1810 40%, #1A0F0A 100%); }
-.rope { position: absolute; left: 0; right: 0; bottom: calc(0px + var(--safe-b)); width: 100%; height: 96px; z-index: 2; transition: opacity .3s; }
-.stage.is-reveal .rope, .stage.is-reveal .award-bar, .stage.is-reveal .hint { opacity: 0; pointer-events: none; }
-.hint { position: absolute; left: 0; right: 0; top: 60%; z-index: 6; display: flex; justify-content: center; pointer-events: none; transition: opacity .3s; }
-.hint.off { opacity: 0; }
-.award-bar { position: absolute; left: 0; right: 0; bottom: calc(16px + var(--safe-b)); z-index: 22; padding: 0 var(--pad); transition: opacity .3s; }
-.award-bar .btn[disabled] { background: rgba(0,0,0,.5); color: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+/* 2 후보작 뷰어 — three.js 캔버스 한 장 + 그 위의 얇은 UI. 벽(다마스크)·액자·메달은 모두 3D 안에 */
+#s2 { background: #2A1012; }
+.stage { position: absolute; inset: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; background: #2A1012; color: #FFF7EA; }
+.gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+.vign { position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: radial-gradient(120% 70% at 50% 46%, rgba(0,0,0,0) 52%, rgba(12,4,4,.55) 100%), linear-gradient(180deg, rgba(10,3,3,.55), rgba(10,3,3,0) 20%, rgba(10,3,3,0) 72%, rgba(10,3,3,.6)); }
+.wall-top { position: absolute; left: 0; right: 0; top: 0; z-index: 5; color: #FFF7EA; }
+.wall-top .tb-title { color: rgba(255,247,234,.9); }
+.wall-top .idx { justify-self: end; padding-right: 4px; font-family: var(--display); font-weight: 600; font-size: 12.5px; color: rgba(255,247,234,.7); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.q { position: absolute; left: 0; right: 0; top: calc(52px + var(--safe-t)); z-index: 5; display: grid; justify-items: center; gap: 3px; padding: 2px var(--pad) 0; pointer-events: none; transition: opacity .35s; }
+.q small { font-family: var(--display); font-weight: 600; font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase; color: #E7C46C; }
+.q b { font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: -0.02em; color: #FFF7EA; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+.zoomtag { position: absolute; right: 14px; top: calc(118px + var(--safe-t)); z-index: 6; display: grid; justify-items: end; gap: 2px; padding: 7px 10px; border-radius: 10px; background: rgba(20,8,8,.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  font-size: 11px; color: rgba(255,247,234,.75); opacity: 0; transform: translateY(-4px); transition: opacity .25s, transform .25s; pointer-events: none; }
+.zoomtag b { font-family: var(--display); font-weight: 800; font-size: 16px; color: #E7C46C; font-variant-numeric: tabular-nums; }
+.zoomtag small { font-size: 10px; color: rgba(255,247,234,.55); }
+.zoomtag.on { opacity: 1; transform: none; }
+.gest { position: absolute; left: 0; right: 0; bottom: calc(176px + var(--safe-b)); z-index: 6; display: flex; justify-content: center; pointer-events: none; transition: opacity .4s; }
+.gest .pill { font-size: 12.5px; min-height: 32px; background: rgba(20,8,8,.62); }
+.gest.off { opacity: 0; }
 
-/* 스포트라이트 — 들린 액자 뒤의 따뜻한 빛. 나머지 벽은 조금 어두워진다 */
-.spot { position: absolute; left: 0; top: 0; width: 320px; height: 320px; margin: -160px 0 0 -160px; border-radius: 50%; z-index: 3; pointer-events: none; opacity: 0;
-  background: radial-gradient(circle, rgba(255,228,176,.58) 0%, rgba(255,228,176,.26) 32%, rgba(255,228,176,0) 68%); mix-blend-mode: screen; will-change: transform;
-  transition: opacity .35s, transform .5s var(--ease-out); }
-.spot.on { opacity: 1; }
-.stage.lit .wall-light { opacity: .6; }
+/* 아래 독: 넘김 + 메달 버튼 */
+.dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; padding: 0 var(--pad) calc(14px + var(--safe-b)); display: grid; gap: 8px; transition: opacity .3s, transform .4s var(--ease-out); }
+.dock .nav { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; color: rgba(255,247,234,.85); }
+.dock .nav .icon-btn[disabled] { opacity: .25; pointer-events: none; }
+.pips { display: flex; justify-content: center; gap: 8px; }
+.pips i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,247,234,.3); transition: width .3s var(--ease-out), background .3s; }
+.pips i.on { width: 20px; background: #E7C46C; }
+.btn.gild { position: relative; height: 54px; color: #2E1E05; font-weight: 800; letter-spacing: -0.01em;
+  background: linear-gradient(180deg, #F6E2A0 0%, #E2BC5E 46%, #B98C34 100%); box-shadow: inset 0 1px 0 rgba(255,250,225,.8), inset 0 -2px 0 rgba(90,60,10,.45), 0 10px 24px -10px rgba(0,0,0,.8); }
+.btn.gild .m { width: 26px; height: 26px; display: block; filter: drop-shadow(0 2px 2px rgba(60,35,0,.4)); }
+.btn.gild .m svg { display: block; width: 100%; height: 100%; }
+.dock-sub { margin: -2px 0 0; text-align: center; font-size: 11.5px; color: rgba(255,247,234,.55); }
+.dock.busy { opacity: .35; pointer-events: none; }
+.stage.is-reveal .dock, .stage.is-reveal .q, .stage.is-reveal .gest, .stage.is-reveal .zoomtag { opacity: 0; pointer-events: none; }
+.stage.is-reveal .dock { transform: translateY(30px); }
+.stage.is-reveal .wall-top .idx { opacity: 0; }
+.stage.zoomed .q, .stage.zoomed .dock .nav, .stage.zoomed .dock-sub { opacity: 0; }
+.q, .dock .nav, .dock-sub { transition: opacity .25s; }
 
-/* 액자 — 한 줄의 5점. 폭은 --fw, 위치·들림은 transform 으로만 */
-.row { position: absolute; inset: 0; z-index: 4; }
-.frame { position: absolute; left: 0; top: 0; width: var(--fw, 70px); padding: calc(var(--fw, 70px) * .07); border-radius: 1.5px; transform-origin: 50% 50%; will-change: transform;
-  transition: transform .55s var(--ease-out), filter .35s, box-shadow .35s;
-  box-shadow: inset 0 0 0 1px rgba(70,40,5,.6), inset 0 0 0 2px rgba(255,236,190,.35), inset 0 0 0 4.5px rgba(70,40,5,.22), inset 0 0 0 5.5px rgba(255,240,200,.28),
-    0 10px 14px -8px rgba(0,0,0,.8), 0 2px 4px rgba(0,0,0,.4); }
-.frame .mat { background: #1A100C; padding: 1.5px; box-shadow: inset 0 0 4px rgba(0,0,0,.8); }
-.frame img { width: 100%; height: auto; pointer-events: none; -webkit-user-drag: none; }
-.frame .plate { position: absolute; left: 50%; top: -27px; transform: translateX(-50%); font-family: var(--display); font-weight: 800; font-size: 21px; line-height: 1; color: #E7C46C;
-  text-shadow: 0 1px 0 #7A5410, 0 2px 6px rgba(0,0,0,.6); pointer-events: none; }
-.frame.sel { z-index: 12; box-shadow: inset 0 0 0 1px rgba(70,40,5,.6), inset 0 0 0 2px rgba(255,236,190,.35), inset 0 0 0 4.5px rgba(70,40,5,.22), inset 0 0 0 5.5px rgba(255,240,200,.28),
-  0 28px 30px -14px rgba(0,0,0,.9), 0 6px 10px rgba(0,0,0,.45); }
-.stage.lit .frame:not(.sel) { filter: brightness(.7); }
-.frame.near .mat { outline: 2px solid #F1D27C; outline-offset: 1.5px; }
-.frame.mine .mat { outline: 2px solid var(--point); outline-offset: 1.5px; }
-.frame.mine .plate { color: #FFD9C2; }
-
-/* 메달 — 금 월계관 원반. 징두리 선반 위에서 기다리다, 액자에 올라간다 */
-.medal { position: absolute; left: 0; top: 0; width: 64px; height: 64px; margin: -32px 0 0 -32px; z-index: 20; touch-action: none; cursor: grab; transform-origin: 50% 50%; will-change: transform;
-  transition: transform .55s var(--ease-spring); filter: drop-shadow(0 6px 8px rgba(0,0,0,.5)); }
-.medal::before { content: ''; position: absolute; inset: -14px; border-radius: 50%; pointer-events: none; box-shadow: 0 0 32px 10px rgba(255,214,150,.4); animation: glow 2.6s ease-in-out infinite; }
-.medal.on-frame::before, .medal.drag::before { animation: none; opacity: 0; }
-.medal.drag { transition: none; cursor: grabbing; z-index: 60; filter: drop-shadow(0 20px 18px rgba(0,0,0,.55)); }
-.medal.on-frame { z-index: 13; }
-.medal svg, .cf-medal svg, .card-medal svg, .today svg { display: block; width: 100%; height: 100%; }
-@keyframes glow { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+/* 결과: 한 줄로 물러난 액자 위 번호 · 아래 점 · 작은 숫자 · 오늘의 메달 표 */
+.rownum { position: absolute; left: 0; top: 0; font-family: var(--display); font-weight: 800; font-size: 17px; line-height: 1; color: #E7C46C; text-shadow: 0 1px 0 #7A5410, 0 2px 6px rgba(0,0,0,.6); opacity: 0; transition: opacity .45s; pointer-events: none; }
+.rownum.show { opacity: 1; }
+.rownum.me { color: #FFB27F; }
 
 /* 오늘의 심사위원단 — 액자 아래로 점(하나 = 열 사람)이 모이고, 그 밑에 작은 숫자. 가장 많은 그림엔 작은 메달 표 */
 .crowd-cv { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 25; pointer-events: none; }
@@ -131,7 +113,10 @@
 .reveal .btns { padding-left: 0; padding-right: 0; }
 
 /* 작은 액자(시트·카드) — 벽의 액자와 같은 재료, 제자리에 둔다 */
-.frame.mini { position: relative; --fw: 112px; left: auto; top: auto; transform: none; transition: none; will-change: auto; }
+.frame.mini { position: relative; --fw: 112px; width: var(--fw); padding: calc(var(--fw) * .07); border-radius: 1.5px;
+  box-shadow: inset 0 0 0 1px rgba(70,40,5,.6), inset 0 0 0 2px rgba(255,236,190,.35), inset 0 0 0 4.5px rgba(70,40,5,.22), inset 0 0 0 5.5px rgba(255,240,200,.28), 0 10px 14px -8px rgba(0,0,0,.8), 0 2px 4px rgba(0,0,0,.4); }
+.frame.mini .mat { background: #1A100C; padding: 1.5px; box-shadow: inset 0 0 4px rgba(0,0,0,.8); }
+.frame.mini img { display: block; width: 100%; height: auto; pointer-events: none; -webkit-user-drag: none; }
 .confirm-row { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: center; margin-top: 14px; padding: 14px; border-radius: 10px; background: #5E2424; }
 .cf-no { position: relative; }
 .cf-no span { display: block; font-size: 12px; color: rgba(255,255,255,.7); }
@@ -165,11 +150,11 @@
   .reveal .btns { padding-top: 10px; padding-bottom: calc(16px + var(--safe-b)); }
   .reveal .btn { height: 46px; }
   .role h1 { font-size: 26px; }
-  .frame .plate { font-size: 18px; top: -23px; }
+  .q b { font-size: 18px; }
+  .gest { bottom: calc(166px + var(--safe-b)); }
   .cands { padding-top: 26px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .medal::before { animation: none; opacity: .8; }
-  .lower, .reveal, .tag, .today, .frame, .medal, .spot, .hint, .crit summary i { transition: none; }
+  .reveal, .tag, .today, .rownum, .dock, .q, .gest, .zoomtag, .pips i, .crit summary i { transition: none; }
 }

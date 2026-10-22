@@ -10,6 +10,12 @@
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="css/crowd.css">
 <link rel="stylesheet" href="c0.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/"
+} }
+</script>
 </head>
 <body class="c0">
 
@@ -33,41 +39,29 @@
         <li>캔버스가 안 보이는 완벽한 채색</li>
       </ol>
     </details>
-    <div class="cands-cap"><span>후보작 5점 · 벽에 한 줄로</span><small>번호와 그림만 · 누르면 심사로</small></div>
+    <div class="cands-cap"><span>후보작 5점</span><small>번호와 그림만 · 누르면 그 그림부터</small></div>
     <div class="cands" id="candStrip"></div>
     <p class="note loc">4F · B · 전시실5 · 1873년 살롱 재현<br>입구와 좌우 벽의 QR로 시작합니다. 액자 앞에 설 필요 없이 번호로 고릅니다.</p>
   </div>
   <div class="btns one"><button class="btn" id="enter">심사위원 자격으로 입장하기</button></div>
 </section>
 
-<!-- 2·3 특별 액자 벽 — 한 줄의 후보작 5점. 그림을 누르면 들리고, 메달을 올리면 확인 → 오늘의 심사위원단 -->
+<!-- 2 후보작 뷰어 — 한 점씩 3D 금박 액자로. 끌면 돌아가고(관성·되돌아옴), 두 손가락으로 붓질까지 확대, 옆으로 밀면 다음 후보. "이 그림에 메달"(또는 길게 누르기) → 확인 → 3 오늘의 심사위원단 -->
 <section class="scr" id="s2">
   <div class="stage" id="stage">
-    <div class="wall-paper"></div>
-    <div class="wall-light"></div>
-    <div class="spot" id="spot"></div>
-    <div class="lower" id="lower">
-      <div class="dado"></div>
-      <div class="wainscot"></div>
-    </div>
-    <svg class="rope" viewBox="0 0 390 96" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
-      <defs>
-        <linearGradient id="brass" x1="0" x2="1"><stop offset="0" stop-color="#6E4F1C"/><stop offset=".45" stop-color="#E5C46E"/><stop offset="1" stop-color="#7A5A22"/></linearGradient>
-        <linearGradient id="ropeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C0393F"/><stop offset="1" stop-color="#6E1C22"/></linearGradient>
-      </defs>
-      <path d="M60 22 C 150 70, 240 70, 330 22" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="9" stroke-linecap="round" transform="translate(0 5)"/>
-      <path d="M60 22 C 150 70, 240 70, 330 22" fill="none" stroke="url(#ropeG)" stroke-width="7" stroke-linecap="round"/>
-      <rect x="55.5" y="16" width="9" height="80" fill="url(#brass)"/><circle cx="60" cy="12" r="7" fill="url(#brass)"/>
-      <rect x="325.5" y="16" width="9" height="80" fill="url(#brass)"/><circle cx="330" cy="12" r="7" fill="url(#brass)"/>
-    </svg>
-    <div class="cornice"></div>
-    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle">특별 액자 · 후보작 5점</div><span></span></div>
-    <div class="row" id="row"></div>
+    <canvas class="gl" id="gl" aria-label="후보작 3D 보기 · 끌어서 돌리기, 두 손가락으로 확대, 옆으로 밀어 다음 후보"></canvas>
+    <div class="vign" aria-hidden="true"></div>
+    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle">후보작 심사</div><span class="idx" id="idx">1 / 5</span></div>
+    <div class="q" id="q"><small>Salon de 1873 · 심사</small><b>올해의 메달을 줄 한 점</b></div>
+    <div class="zoomtag" id="zoomtag">붓질 <b id="zoomv">1.0×</b><small>두 번 탭하면 원래대로</small></div>
+    <div class="gest" id="gest"><span class="pill">끌어서 돌려 보기 · 두 손가락으로 확대 · 옆으로 밀면 다음</span></div>
     <canvas class="crowd-cv" id="crowdCv" aria-hidden="true"></canvas>
     <div class="tags" id="tags"></div>
-    <div class="medal" id="medal" role="button" aria-label="올해의 메달 · 끌어서 액자에 올리기"></div>
-    <div class="hint" id="hint"><span class="pill light" id="hintText">그림을 누르거나, 메달을 끌어 액자에 올리십시오</span></div>
-    <div class="award-bar" id="awardBar"><button class="btn white" id="award" disabled>메달 수여</button></div>
+    <div class="dock" id="dock">
+      <div class="nav"><button class="icon-btn" id="prev" aria-label="이전 후보"><i data-ic="back"></i></button><div class="pips" id="pips"></div><button class="icon-btn" id="next" aria-label="다음 후보"><i data-ic="arrow"></i></button></div>
+      <button class="btn gild" id="award"><span class="m" id="awardMedal"></span>이 그림에 메달</button>
+      <p class="dock-sub">그림을 길게 눌러도 됩니다</p>
+    </div>
   </div>
 
   <!-- 오늘의 심사위원단 — 아래에서 올라오는 결과 패널. 액자 줄은 그대로, 심사위원은 점(하나 = 열 사람)으로 액자 아래에 모인다(js/crowd.js) -->
@@ -107,7 +101,7 @@
   <h3>이 그림에 올해의 메달을 줄까요?</h3>
   <p class="sub">주고 나면 오늘의 심사위원단이 어떻게 갈렸는지 봅니다.</p>
   <div class="confirm-row"><div class="frame mini" id="cfFrame"><div class="mat"><img alt="" id="cfImg"></div></div><div class="cf-no"><span>후보작</span><b id="cfNo"></b><div class="cf-medal" id="cfMedal"></div></div></div>
-  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 고르기</button><button class="btn" id="cfOk">메달을 준다</button></div>
+  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">수여</button></div>
 </div>
 
 <script type="module" src="c0.js"></script>
