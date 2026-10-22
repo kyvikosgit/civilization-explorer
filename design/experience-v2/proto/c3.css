@@ -2,7 +2,8 @@
    어두운 아틀리에(검정 바탕)에서 시작해, 다 칠하면 방이 밝아진다(흰 바탕). 포인트 주황 #D9672F 하나.
    화면에는 역할 한 줄 · 캔버스 · 안내 한 줄뿐. 완성 뒤에 일기장 · 1841 · 단추. */
 :root { --wood-1: #5A3E27; --wood-2: #2E1F13; --wood-3: #8A6238; }
-html { background: #161412; }
+html { background: #161412; transition: background .9s ease; }
+html.done { background: #FFFFFF; }   /* 완성 뒤 스크롤 바깥(위·아래 여백)도 흰 방 */
 body.c3 { --page-bg: #161412; background: #161412; color: #FFFFFF; transition: background .9s ease, color .9s ease; }
 body.c3.done { --page-bg: #FFFFFF; background: #FFFFFF; color: var(--ink); }
 body.c3 .topbar { transition: background .9s ease; }
@@ -28,9 +29,11 @@ body.done .frame { box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 0 0 1px rgba
 .reveal { transition: opacity .22s ease; }
 .reveal.hide { opacity: 0; }
 .canvas-wrap .indoor { pointer-events: none; }
-.label { position: absolute; left: 8px; bottom: 8px; height: 22px; padding: 0 8px; display: flex; align-items: center; border-radius: 4px;
-  background: rgba(0,0,0,.6); color: #FFF; font-size: 11.5px; font-weight: 600; pointer-events: none; transition: background .3s, color .3s; }
-.label.out { background: rgba(255,255,255,.85); color: var(--ink); }
+.label { position: absolute; left: 8px; bottom: 8px; max-width: calc(100% - 16px); padding: 4px 8px 5px; display: flex; flex-direction: column; gap: 1px; border-radius: 4px;
+  background: rgba(0,0,0,.62); color: #FFF; font-size: 11.5px; font-weight: 600; line-height: 1.2; pointer-events: none; transition: background .3s, color .3s; }
+.label small { font-size: 10px; font-weight: 500; opacity: .78; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.label small:empty { display: none; }
+.label.out { background: rgba(255,255,255,.88); color: var(--ink); }
 
 /* 안내 한 줄 — 캔버스 아래, 첫 터치에 사라진다 */
 .hint { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 0; min-height: 24px; font-size: 15px; color: rgba(255,255,255,.62); transition: opacity .4s; }
@@ -57,6 +60,16 @@ body.done .frame { box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 0 0 1px rgba
 .diary { margin: 0; }
 .diary p { margin: 0; font-family: var(--display); font-weight: 600; font-size: 20px; line-height: 1.45; letter-spacing: -0.01em; }
 .diary cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: var(--dim); }
+/* 모네가 실제로 그린 같은 장면 — 작게 나란히, 같은 비율(0.64)로 자른 두 인물 */
+.real { margin-top: 22px; }
+.real-hd { margin: 0 0 10px; font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: -0.01em; color: var(--ink); }
+.real-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.real figure { margin: 0; }
+.real img { display: block; width: 100%; aspect-ratio: 0.64; object-fit: cover; border-radius: 4px; background: #2A211A; box-shadow: 0 1px 0 rgba(0,0,0,.08), inset 0 0 0 1px rgba(0,0,0,.08); }
+.real figcaption { margin-top: 8px; font-size: 12.5px; line-height: 1.45; }
+.real figcaption b { display: block; font-weight: 700; color: var(--ink); }
+.real figcaption span { display: block; margin-top: 2px; color: var(--ink); }
+.real figcaption cite { display: block; margin-top: 4px; font-style: normal; font-size: 11px; line-height: 1.4; color: var(--dim); }
 .fact { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; margin-top: 18px; padding: 14px 16px; border-radius: 10px; background: var(--panel); }
 .fact b { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; color: var(--point); letter-spacing: -0.02em; padding-top: 2px; }
 .fact p { margin: 0; font-size: 15px; line-height: 1.5; }
@@ -65,6 +78,7 @@ body.done .frame { box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 0 0 1px rgba
 .hold { touch-action: none; user-select: none; -webkit-user-select: none; }
 .hold.on { background: var(--ink); color: #FFF; border-color: var(--ink); }
 .placeholder-note { margin: 16px 0 0; line-height: 1.5; }
+.placeholder-note code { font-family: inherit; }
 
 /* 작은 화면(375×667): 역할 문장과 캔버스가 한 화면에 들어가게 */
 @media (max-height: 700px) {

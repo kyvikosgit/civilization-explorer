@@ -30,9 +30,9 @@
   <section class="easel rise" style="--i:1" aria-label="캔버스">
     <div class="frame" id="frame">
       <div class="canvas-wrap" id="stage">
-        <img id="indoor" class="indoor" src="img/c3-indoor-tmp.jpg" alt="실내 캔버스 (임시)" draggable="false">
+        <img id="indoor" class="indoor" src="img/c3-indoor.jpg" alt="실내 캔버스 — 1860년대 아틀리에 팔레트로 재현(제작 전 임시)" draggable="false">
         <canvas id="reveal" class="reveal" aria-label="문질러 칠하기"></canvas>
-        <div class="label" id="label">실내 캔버스</div>
+        <div class="label" id="label"><b id="labelMain">실내 캔버스</b><small id="labelSub">1860년대 아틀리에 팔레트로 재현 · 제작 전 임시</small></div>
         <div class="tube" id="tube" aria-hidden="true">
           <svg viewBox="0 0 120 40">
             <g class="tube-body">
@@ -58,15 +58,29 @@
       <p>“정오와 저녁의 햇빛은 같은 나무도<br>전혀 다른 색으로 만든다.”</p>
       <cite>화가의 일기장</cite>
     </blockquote>
-    <div class="fact rise" style="--i:1">
+    <!-- 모네가 실제로 남긴 같은 장면의 쌍 — 밖에서 그린 습작 / 아틀리에에서 완성한 큰 그림의 조각 (같은 두 인물로 잘라 비교) -->
+    <section class="real rise" style="--i:1" aria-label="모네가 실제로 그린 같은 장면">
+      <h2 class="real-hd">모네가 실제로 그린 같은 장면 — 밖에서 / 아틀리에에서</h2>
+      <div class="real-pair">
+        <figure>
+          <img src="img/c3-real-1865-study.jpg" alt="모네 〈바지유와 카미유〉 1865, 야외 습작, 워싱턴 내셔널 갤러리" loading="lazy" decoding="async">
+          <figcaption><b>그 자리에서 · 1865</b><span>퐁텐블로 숲에서 짧고 빠른 붓질로 기록한 습작. 빛이 옷에 닿는 모습이 그대로.</span><cite>〈바지유와 카미유〉 · 워싱턴 NGA 1970.17.41 · 퍼블릭 도메인</cite></figcaption>
+        </figure>
+        <figure>
+          <img src="img/c3-real-1866-studio.jpg" alt="모네 〈풀밭 위의 점심〉 왼쪽 조각 1865–66, 아틀리에 완성, 오르세" loading="lazy" decoding="async">
+          <figcaption><b>아틀리에에서 · 1865–66</b><span>파리 아틀리에에서 같은 두 사람을 큰 화면에 옮겨 마감. 면이 고르고 윤곽이 정리됐다.</span><cite>〈풀밭 위의 점심〉 왼쪽 조각 · 오르세 RF 1957 7 · 퍼블릭 도메인</cite></figcaption>
+        </figure>
+      </div>
+    </section>
+    <div class="fact rise" style="--i:2">
       <b>1841</b>
-      <div><p>존 고프 랜드, 접는 금속 튜브 특허</p><p class="muted">그 박스가 지금 옆에 있다</p></div>
+      <div><p>존 고프 랜드, 접는 금속 튜브 특허</p><p class="muted">물감을 들고 나가는 일을 가볍게 만든 도구 — 그 박스가 지금 옆에 있다</p></div>
     </div>
-    <div class="actions rise" style="--i:2">
+    <div class="actions rise" style="--i:3">
       <button class="btn line hold" id="hold" type="button">누르고 있으면 실내 캔버스</button>
       <button class="btn" id="save" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장</button>
     </div>
-    <p class="note placeholder-note rise" style="--i:3">임시 · 제작 전 대체 이미지. 실내·야외 캔버스 2점은 아직 없어 모네 〈양귀비 들판〉 1873(오르세 · 퍼블릭 도메인) 한 장으로 실내 판을 가공해 대신했다.</p>
+    <p class="note placeholder-note rise" style="--i:4">임시 · 제작 전 대체 이미지. 부스의 실내·야외 캔버스 2점은 아직 없다. 야외 판은 모네 〈아르장퇴유의 화가의 집〉 1873(시카고 AIC · CC0), 실내 판은 같은 그림을 1860년대 아틀리에 완성작(〈정원의 여인들〉 1866–67 · 오르세)의 색 통계로 다시 칠한 재현(img/c3-indoor.py).</p>
   </section>
 </main>
 

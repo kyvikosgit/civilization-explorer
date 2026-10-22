@@ -1,13 +1,15 @@
 // C3 화가의 아틀리에 — 밖의 빛으로 칠하기
-// 어두운 실내 캔버스(img) 위에 reveal 캔버스를 얹고, 손가락이 지나간 자리에 붓자국 마스크로 야외 캔버스를 드러낸다.
+// 어두운 실내 캔버스(img, 1860년대 아틀리에 팔레트로 재현 — img/c3-indoor.py) 위에 reveal 캔버스를 얹고, 손가락이 지나간 자리에 붓자국 마스크로 야외 캔버스를 드러낸다.
 // 마스크 = 짧은 결(브리슬) 획. 임파스토 하이라이트는 soft-light 로 얹는다. 약 70%(확률 표본 68%) 드러나면 남은 곳이 번지며 채워진다.
 // 숫자·진행률은 화면에 없다. 모든 처리는 기기 안 캔버스.
 import { toast, loadImage, clamp } from '../../../booth/js/common.js';
 
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const OUTDOOR = 'img/c3-outdoor-tmp.jpg';   // 임시: 모네 〈양귀비 들판〉 1873 원본
+const OUTDOOR = 'img/c3-outdoor.jpg';   // 임시: 모네 〈아르장퇴유의 화가의 집〉 1873 (AIC · CC0), 6:5 로 자른 1200×1000
 const stage = $('#stage'), reveal = $('#reveal'), hint = $('#hint'), label = $('#label'), tube = $('#tube');
+const LABEL = { indoor: ['실내 캔버스', '1860년대 아틀리에 팔레트로 재현 · 제작 전 임시'], outdoor: ['야외 캔버스', '모네 〈아르장퇴유의 화가의 집〉 1873 · 제작 전 임시'] };
+function setLabel(which) { $('#labelMain').textContent = LABEL[which][0]; $('#labelSub').textContent = LABEL[which][1]; label.classList.toggle('out', which === 'outdoor'); }
 
 let W = 0, H = 0;                 // 작업 해상도 (6:5)
 let outdoor = null;               // 6:5 로 자른 야외 캔버스
@@ -184,19 +186,20 @@ function finish() {
   // 완성: 마스크를 가득 채워 이후 렌더가 항상 야외 캔버스
   mctx.fillStyle = '#FFF'; mctx.fillRect(0, 0, W, H);
   render();
-  label.textContent = '야외 캔버스'; label.classList.add('out');
-  document.body.classList.add('done');
+  setLabel('outdoor');
+  document.body.classList.add('done'); document.documentElement.classList.add('done');
   document.querySelector('meta[name=theme-color]').content = '#FFFFFF';
   $('#roleSub').textContent = '같은 장면, 밖의 빛';
   $('#after').hidden = false; hint.hidden = true;
-  setTimeout(() => { $('#after').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); }, REDUCED ? 0 : 350);
+  // 완성 캔버스가 위에, 그 아래 일기장과 실제 쌍이 보이게 — 캔버스(이젤)를 화면 맨 위로
+  setTimeout(() => { $('.easel').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); }, REDUCED ? 0 : 350);
 }
 
 // ── 누르고 있으면 실내 캔버스
 {
   const b = $('#hold');
-  const on = (e) => { e.preventDefault(); b.classList.add('on'); reveal.classList.add('hide'); label.textContent = '실내 캔버스'; label.classList.remove('out'); b.setPointerCapture && b.setPointerCapture(e.pointerId); };
-  const off = () => { b.classList.remove('on'); reveal.classList.remove('hide'); label.textContent = '야외 캔버스'; label.classList.add('out'); };
+  const on = (e) => { e.preventDefault(); b.classList.add('on'); reveal.classList.add('hide'); setLabel('indoor'); b.setPointerCapture && b.setPointerCapture(e.pointerId); };
+  const off = () => { b.classList.remove('on'); reveal.classList.remove('hide'); setLabel('outdoor'); };
   b.addEventListener('pointerdown', on);
   b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
   b.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); on(e); } });
@@ -219,7 +222,7 @@ $('#save').addEventListener('click', async () => {
   g.fillText('“정오와 저녁의 햇빛은 같은 나무도', 60, fy + fh + 180); g.fillText('전혀 다른 색으로 만든다.”', 60, fy + fh + 224);
   g.fillStyle = '#707070'; g.font = '500 22px Freesentation, sans-serif';
   g.fillText('화가의 일기장 · 1841 존 고프 랜드, 접는 금속 튜브 특허', 60, fy + fh + 280);
-  g.fillText('임시 · 제작 전 대체 이미지(모네 〈양귀비 들판〉 1873, 오르세 · PD)', 60, CH - 60);
+  g.fillText('임시 · 제작 전 대체 이미지(모네 〈아르장퇴유의 화가의 집〉 1873, 시카고 AIC · CC0)', 60, CH - 60);
   const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.92));
   if (!blob) return toast('저장에 실패했습니다.');
   const file = new File([blob], 'c3_밖의빛으로.jpg', { type: 'image/jpeg' });
