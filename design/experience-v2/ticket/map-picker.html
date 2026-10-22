@@ -152,6 +152,14 @@
     <span class="pc-go">표 끊기</span>
   </button>
   <div class="quiz-bottom">
+    <!-- 아래 판: 처음엔 안내 한 줄, 고르면 행선지 + "표 끊기". 확인 시트는 "표 끊기"를 눌렀을 때만 -->
+    <div class="pick-panel" id="pickPanel" aria-live="polite">
+      <p class="pk-prompt" id="pkPrompt">지도의 역 · 영역이나 아래 이름을 눌러 행선지를 고르세요</p>
+      <div class="pk-sel" id="pkSel" hidden>
+        <span class="pk-t"><b id="pkName"></b><small id="pkInfo"></small></span>
+        <button class="pk-go" id="pkGo" type="button">표 끊기</button>
+      </div>
+    </div>
     <div id="chips" class="chips" role="radiogroup" aria-label="선택지"></div>
   </div>
 </section>
@@ -188,7 +196,7 @@
         <div class="hero-t" id="heroT"><b id="heroTitle">르아브르 · 1872년 표</b><span id="heroSub">PARIS → LE HAVRE</span></div>
         <button class="coll" id="coll" aria-label="수집함"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 5h18v3H3z"/><path d="M10 12h4"/></svg><i id="collN" hidden>1</i></button>
       </div>
-      <div class="guichet" id="guichet"><div class="slot-lip"></div><div class="slot"></div></div>
+      <div class="tk-scrim" id="tkScrim"></div>
       <div class="card-wrap" id="cardWrap">
         <div class="card-shadow" id="cardShadow"></div>
         <div class="card3d" id="card3d">
@@ -198,7 +206,7 @@
         </div>
         <div class="tak" id="tak">탁</div>
       </div>
-      <div class="hint" id="hint">끌어서 돌려보기 · 두 번 탭하면 뒷면</div>
+      <div class="hint" id="hint">끌어서 돌려보기 · 두 번 탭하면 뒷면 · 바깥을 누르면 제자리로</div>
     </header>
     <div class="canvas" id="canvas">
       <div class="hero-space"></div>
@@ -291,7 +299,7 @@ const DEST = [
   { id: 'vernon', fr: 'Vernon', ko: '베르농', ll: [1.4850, 49.0930], lab: [0, 22, 'middle'], info: '80 km · 급행 1시간 30분', year: 1883, via: [V.mantes] },
   { id: 'rouen', fr: 'Rouen', ko: '루앙', ll: [1.0993, 49.4431], lab: [12, 5, 'start'], info: '140 km · 급행 2시간 40분', year: 1892, via: [V.mantes, V.vernon] },
   { id: 'lesifs', fr: 'Les Ifs', ko: '레지프', ll: [0.4661, 49.6463], lab: [12, -4, 'start'], info: '214 km · 4시간 33분 + 마차 15 km', year: 1883, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
-  { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, -14, 'middle'], labSel: [14, 6, 'start'], info: '229 km · 급행 4시간 30분', year: 1872, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
+  { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, 24, 'middle'], info: '229 km · 급행 4시간 30분', year: 1872, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
 ];
 // 행선지의 지금 모습 — 모네가 그린 자리의 사진(위키미디어 공용, 자유 이용). 크레딧은 카드와 상세 판 출처에
 const PLACES = window.PLACES = {
@@ -304,6 +312,7 @@ const PLACES = window.PLACES = {
 // 목적지 영역 색 — 부스 지역 양피지 색 계열에서 고른 5색
 const ZTINT = { argenteuil: '#DDAE74', vernon: '#C3D0A4', rouen: '#D9BE8C', lesifs: '#E4D47E', lehavre: '#C89E72' };
 const ZORDER = ['argenteuil', 'vernon', 'rouen', 'lehavre', 'lesifs'];
+const ZLAB = { lesifs: [-14, -10, 'end'] };   // 영역 이름을 역 점 기준 화면 px 로 두는 곳 [dx, dy, text-anchor]
 const FIT = { lon0: -0.62, lon1: 2.7, lat0: 48.72, lat1: 49.92 };    // 파리 → 노르망디 해안(바다 쪽 여유)
 
 // ── 현장 단서 (부스 소품과 같은 것: 벽면 그림 · 신문 · 책상 위 시간표 · 엽서) — booth/js/c2.js CLUES 그대로
@@ -320,14 +329,37 @@ function clueCard(c) {
 }
 $('#clueRow').innerHTML = CLUES.map(clueCard).join('');
 // 바텀시트(부스 common.js sheet 그대로): 딤은 제자리에서 페이드, 시트만 올라온다
-function sheet(e) {
+//   close('dismiss') = 닫기 버튼 · 딤 탭 · 아래로 쓸기 → onDismiss. close('confirm') = 확인으로 닫기(onDismiss 없음)
+function sheet(e, { onDismiss = null, swipe = false } = {}) {
   let dim = e.previousElementSibling;
   if (!dim || !dim.classList.contains('sheet-dim')) { dim = document.createElement('div'); dim.className = 'sheet-dim'; e.parentNode.insertBefore(dim, e); }
-  const api = { open() { dim.classList.add('open'); e.classList.add('open'); }, close() { dim.classList.remove('open'); e.classList.remove('open'); }, get isOpen() { return e.classList.contains('open'); } };
-  dim.addEventListener('click', api.close); $$('[data-sheet-close]', e).forEach((b) => b.addEventListener('click', api.close));
+  const api = {
+    open() { e.style.transform = ''; dim.style.opacity = ''; dim.classList.add('open'); e.classList.add('open'); },
+    close(reason = 'dismiss') { const was = e.classList.contains('open'); e.style.transform = ''; dim.style.opacity = ''; dim.classList.remove('open'); e.classList.remove('open'); if (was && reason === 'dismiss' && onDismiss) onDismiss(); },
+    get isOpen() { return e.classList.contains('open'); },
+  };
+  dim.addEventListener('click', () => api.close('dismiss')); $$('[data-sheet-close]', e).forEach((b) => b.addEventListener('click', () => api.close('dismiss')));
+  // 아래로 쓸어 닫기: 6px 넘게 아래로 끌면 시트가 손가락을 따라오고, 80px 넘게(또는 빠르게) 놓으면 닫힌다
+  if (swipe) {
+    let d = null;
+    e.addEventListener('pointerdown', (ev) => { if (!api.isOpen || e.scrollTop > 0) return; d = { id: ev.pointerId, y: ev.clientY, t: performance.now(), dy: 0, on: false }; });
+    e.addEventListener('pointermove', (ev) => {
+      if (!d || ev.pointerId !== d.id) return;
+      const dy = ev.clientY - d.y;
+      if (!d.on && dy > 6) { d.on = true; try { e.setPointerCapture(ev.pointerId); } catch (_) { /* noop */ } e.classList.add('dragging'); }
+      if (d.on) { d.dy = Math.max(0, dy); e.style.transform = `translateY(${d.dy}px)`; dim.style.opacity = String(Math.max(0, 1 - d.dy / (e.offsetHeight || 300))); }
+    });
+    const end = (ev) => {
+      if (!d || ev.pointerId !== d.id) return; const was = d; d = null; e.classList.remove('dragging');
+      if (!was.on) return;
+      const v = was.dy / Math.max(1, performance.now() - was.t);
+      if (was.dy > 80 || v > 0.6) api.close('dismiss'); else { e.style.transform = ''; dim.style.opacity = ''; }
+    };
+    e.addEventListener('pointerup', end); e.addEventListener('pointercancel', end);
+  }
   return api;
 }
-const clueSheet = sheet($('#clueSheet')), confirmSheet = sheet($('#confirmSheet'));
+const clueSheet = sheet($('#clueSheet')), confirmSheet = sheet($('#confirmSheet'), { swipe: true, onDismiss: () => resetPick() });
 $('#openClues').addEventListener('click', () => clueSheet.open());
 
 let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null;
@@ -369,8 +401,10 @@ async function initMap() {
   pinG = el('g', { 'pointer-events': 'none', opacity: 0 }, svg);
   pinG.innerHTML = `<g class="pin-in"><path d="M0 0C-3-9-12-14-12-24a12 12 0 0 1 24 0C12-14 3-9 0 0z" fill="#E0482A" stroke="#fff" stroke-width="2"/><circle cy="-24" r="4.5" fill="#fff"/></g>`;
   labels = el('g', { 'pointer-events': 'none' }, svg);     // 이름표는 핀 위에 — 고른 역 이름이 가려지지 않게
-  $('#cfRetry').addEventListener('click', () => { confirmSheet.close(); });
-  $('#placeCard').addEventListener('click', () => { if (picked && !busy) openConfirm(); });
+  $('#cfRetry').addEventListener('click', () => confirmSheet.close('dismiss'));
+  $('#placeCard').addEventListener('click', () => { if (picked) openConfirm(); });
+  $('#pkGo').addEventListener('click', () => { if (picked) openConfirm(); });
+  Object.values(PLACES).forEach((p) => { const i = new Image(); i.src = p.img; });     // 사진 카드가 누르자마자 뜨도록 미리 받아 둔다
   bindInput();
   buildChips();
   fitStage(false);
@@ -425,14 +459,16 @@ function drawLabels() {
     const [sx, sy] = toScreen(proj(0.35, 49.86));
     h += `<text class="lbl-sea" x="${sx}" y="${sy}" text-anchor="middle" font-size="13">La Manche</text>`;
     const [px, py] = toScreen(M.anchors.paris);
-    h += `<text class="lbl-faint" x="${px}" y="${py + 30}" text-anchor="middle" font-size="18">PARIS</text>`;
+    h += `<text class="lbl-faint" x="${px}" y="${py + 58}" text-anchor="middle" font-size="18">PARIS</text>`;   // 생라자르역 이름표 아래(겹치지 않게)
     // 영역 이름(행정구역명, 작은 대문자) — 영역 가운데, 자리가 있을 때만
+    //   레지프 영역(에트르타 · 페캉, 칸통 셋을 합친 한 영역)은 좁아서 이름이 역 이름표·해안선과 겹친다 → 역 점 왼쪽 위, 바다 쪽에 오른쪽 끝을 맞춰 둔다
     ZORDER.forEach((id) => {
       const z = Z.zones[id]; const a = z.anchor || [(z.bounds[0] + z.bounds[2]) / 2, (z.bounds[1] + z.bounds[3]) / 2];
-      const [x, y] = toScreen(a); const w = (z.bounds[2] - z.bounds[0]) * view.s;
+      let [x, y] = toScreen(a); const w = (z.bounds[2] - z.bounds[0]) * view.s;
       if (w < 56 && !z.anchor) return;
-      const on = picked && picked.id === id;
-      h += `<text class="lbl-zone${on ? ' on' : ''}" x="${x}" y="${y}" text-anchor="middle" font-size="${w < 90 ? 7.5 : 9.5}">${(id === 'lehavre' ? 'LE HAVRE' : z.label).toUpperCase()}</text>`;
+      const on = picked && picked.id === id; let anchor = 'middle';
+      const zl = ZLAB[id]; if (zl) { const [dx, dy] = toScreen(proj(...DEST.find((d) => d.id === id).ll)); x = dx + zl[0]; y = dy + zl[1]; anchor = zl[2]; }
+      h += `<text class="lbl-zone${on ? ' on' : ''}" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${w < 90 ? 7.5 : 9.5}">${(id === 'lehavre' ? 'LE HAVRE' : z.label).toUpperCase()}</text>`;
     });
     const dot = (s, on, origin) => {
       const [x, y] = toScreen(proj(...s.ll)); const lab = on && s.labSel ? s.labSel : s.lab; const lx = x + lab[0], ly = y + lab[1];
@@ -483,12 +519,14 @@ function drawRoute(dest) {
   const d = smoothPath(pts);
   [routeGlow, routeCore, routeLine].forEach((p) => p.setAttribute('d', d));
   const Lw = routeCore.getTotalLength() * view.s + 6;
-  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: RM ? 1 : 1000, easing: 'ease-out', fill: 'backwards' }); });
-  routeLine.animate([{ opacity: 0 }, { opacity: 1 }], { duration: RM ? 1 : 1000, easing: 'ease-in' });
+  stopRouteAnims();
+  // 노선은 누르는 즉시 보이고(짧게 그어짐), 핀은 그 끝에 바로 내려앉는다 — 인위적 지연 없음
+  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; if (!RM) p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: 420, easing: 'cubic-bezier(.2,.7,.2,1)' }); });
   pinAt = pts[pts.length - 1]; updatePin();
-  pinG.querySelector('.pin-in').animate([{ transform: 'translateY(-18px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: RM ? 1 : 380, delay: RM ? 0 : 800, fill: 'backwards', easing: 'cubic-bezier(.3,1.4,.5,1)' });
+  if (!RM) pinG.querySelector('.pin-in').animate([{ transform: 'translateY(-12px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.3,1.4,.5,1)' });
 }
-function clearRoute() { [routeGlow, routeCore, routeLine].forEach((p) => p.setAttribute('d', '')); pinAt = null; updatePin(); }
+function stopRouteAnims() { [routeGlow, routeCore, routeLine, pinG.querySelector('.pin-in')].forEach((p) => p.getAnimations().forEach((a) => a.cancel())); }
+function clearRoute() { stopRouteAnims(); [routeGlow, routeCore, routeLine].forEach((p) => { p.setAttribute('d', ''); p.style.strokeDasharray = ''; }); pinAt = null; updatePin(); }
 function updatePin() { if (!pinAt) { pinG.setAttribute('opacity', 0); return; } const [x, y] = toScreen(pinAt); pinG.setAttribute('transform', `translate(${x} ${y})`); pinG.setAttribute('opacity', 1); }
 
 // ── 사진 카드: 고른 역 옆에 붙어 지도와 함께 움직인다. 오른쪽이 좁으면 왼쪽, 아래가 좁으면 위로
@@ -504,27 +542,48 @@ function placeCardPos() {
   const card = $('#placeCard'); if (card.hidden || !picked) return;
   const box = $('#mapBox').getBoundingClientRect(); const [x, y] = toScreen(proj(...picked.ll));
   const w = card.offsetWidth || 156, h = card.offsetHeight || 160, top = ($('.quiz-top').offsetHeight || 220) + 8, bottom = box.height - ($('.quiz-bottom').offsetHeight || 90) - 8;
-  // 역 점과 이름표를 가리지 않게: 점의 오른쪽 위에, 오른쪽이 좁으면 왼쪽 위에, 위가 좁으면 아래에
-  let cx = x + 16, cy = y - h - 12;
-  if (cx + w > box.width - 8) cx = x - 16 - w;
-  if (cy < top) cy = y + 16;
-  cx = clamp(cx, 8, box.width - w - 8);
-  cy = clamp(cy, top, Math.max(top, bottom - h));
-  card.style.transform = `translate(${cx.toFixed(1)}px, ${cy.toFixed(1)}px)`;
+  // 역 점 · 이름표(고른 곳과 다른 행선지 모두)를 가장 덜 가리는 자리를 고른다 — 다른 행선지를 지도에서 바로 누를 수 있게.
+  //   후보: 오른쪽 위 · 왼쪽 위 · 오른쪽 아래 · 왼쪽 아래 · 내 이름표 아래 · 오른쪽 · 왼쪽 (같은 점수면 이 순서). 지도를 밀 때 덜컥거리지 않게 지금 자리를 조금 우대
+  const obs = [];
+  $$('text, circle', labels).forEach((n) => {
+    const c = n.getAttribute('class') || ''; if (/lbl-sea|lbl-faint/.test(c)) return;
+    const b = n.getBBox(); obs.push([b.x - 3, b.y - 3, b.x + b.width + 3, b.y + b.height + 3, n.tagName === 'circle' ? 6 : /lbl-zone/.test(c) ? 1 : 3]);
+  });
+  obs.push([x - 14, y - 40, x + 14, y + 4, 12]);                       // 고른 역의 핀
+  let own = null; $$('text.lbl, text.lbl-ko', labels).forEach((n) => { if (n.textContent === picked.fr || n.textContent === picked.ko) { const b = n.getBBox(); own = own ? [Math.min(own[0], b.x), Math.min(own[1], b.y), Math.max(own[2], b.x + b.width), Math.max(own[3], b.y + b.height)] : [b.x, b.y, b.x + b.width, b.y + b.height]; } });
+  const cands = [[x + 16, y - h - 18], [x - 16 - w, y - h - 18], [x + 16, y + 16], [x - 16 - w, y + 16], [x - w / 2, (own ? own[3] : y + 20) + 8], [x + 18, y - h / 2], [x - 18 - w, y - h / 2]];
+  const scored = cands.map(([cx, cy], i) => {
+    cx = clamp(cx, 8, box.width - w - 8); cy = clamp(cy, top, Math.max(top, bottom - h));
+    let s = i * 2;
+    obs.forEach(([a, b, c, d, k]) => { const ox = Math.min(c, cx + w) - Math.max(a, cx), oy = Math.min(d, cy + h) - Math.max(b, cy); if (ox > 0 && oy > 0) s += ox * oy * k; });
+    return { cx, cy, s, i };
+  });
+  let best = scored.reduce((a, b) => (b.s < a.s ? b : a));
+  const prev = scored[placeCardPos.last];
+  if (prev && placeCardPos.lastId === picked.id && prev.s <= best.s + 400) best = prev;
+  placeCardPos.last = best.i; placeCardPos.lastId = picked.id;
+  card.style.transform = `translate(${best.cx.toFixed(1)}px, ${best.cy.toFixed(1)}px)`;
 }
 
-// ── 고르기 → 노선 애니메이션 + 사진 카드 → "표를 끊을까요?" 시트 (부스 pick 의 지역 단계 그대로)
-let pickRun = 0;
-async function pick(id) {
+// ── 고르기: 누르는 즉시 영역 강조 + 노선 + 사진 카드 + 아래 판("표 끊기"). 시트는 "표 끊기"를 눌렀을 때만.
+//    같은 곳을 다시 누르면 고르기 취소(처음 상태), 다른 곳을 누르면 그곳으로 바로 바뀐다
+function pick(id) {
   if (busy || confirmSheet.isOpen) return;
-  const run = ++pickRun;
-  picked = DEST.find((s) => s.id === id); if (!picked) return;
-  markChips(); drawLabels(); drawRoute(picked); placeCard(picked);
-  busy = true;
-  await new Promise((r) => setTimeout(r, RM ? 200 : 1500));
-  busy = false;
-  if (run !== pickRun) return;
-  openConfirm();
+  if (picked && picked.id === id) { resetPick(); return; }
+  const next = DEST.find((s) => s.id === id); if (!next) return;
+  picked = next;
+  markChips(); drawLabels(); drawRoute(picked); placeCard(picked); setPanel(picked);
+}
+// 처음 상태로: 고른 곳 없음 · 노선 없음 · 사진 카드 없음 · 칩 해제 · 아래 판은 안내 한 줄
+function resetPick() {
+  picked = null;
+  if (confirmSheet.isOpen) confirmSheet.close('confirm');
+  clearRoute(); placeCard(null); markChips(); drawLabels(); setPanel(null);
+}
+function setPanel(p) {
+  $('#pkPrompt').hidden = !!p; $('#pkSel').hidden = !p; $('#pickPanel').classList.toggle('on', !!p);
+  if (!p) return;
+  $('#pkName').textContent = `${p.ko}행`; $('#pkInfo').textContent = `${p.fr} · ${p.info.split(' · ')[0]} · ${p.year}`;
 }
 function openConfirm() {
   const p = picked, z = Z.zones[p.id];
@@ -588,8 +647,9 @@ function bindInput() {
     view.tx = mx - w[0] * view.s; view.ty = my - w[1] * view.s; applyView();
   }, { passive: false });
 }
-window.pick = pick; window.getPicked = () => picked; window.DEST = DEST; window.closeConfirm = () => confirmSheet.close();
-window.refit = () => fitStage(false); window.screenOf = (id) => toScreen(proj(...DEST.find((d) => d.id === id).ll));   // 검수용
+window.pick = pick; window.getPicked = () => picked; window.DEST = DEST; window.closeConfirm = () => confirmSheet.close('confirm'); window.resetPick = resetPick;
+window.mapState = () => ({ picked: picked && picked.id, route: !!routeCore.getAttribute('d'), card: !$('#placeCard').hidden, chips: $$('#chips .chip.on').length, panel: $('#pkSel').hidden ? 'prompt' : 'selected', sheet: confirmSheet.isOpen, hl: ZORDER.filter((id) => zoneHl[id].getAttribute('opacity') === '1') });   // 검수용
+window.refit = () => fitStage(false); window.worldToScreen = (p) => toScreen(p); window.screenOf = (id) => toScreen(proj(...DEST.find((d) => d.id === id).ll));   // 검수용
 window.mapData = { get M() { return M; }, get Z() { return Z; }, proj, mix, ZTINT, ZORDER, DEST, ORIGIN };   // 발권 뒤 "오늘의 관람객" 작은 지도가 같은 자료를 쓴다
 initMap();
 </script>
@@ -673,7 +733,7 @@ function loop(now) { applyCard(now); raf = requestAnimationFrame(loop); }
 //   표 밖·작아진 표: 평소대로 스크롤 (작아지면 .small 로 touch-action 을 돌려준다)
 let lastTap = 0;
 wrap.addEventListener('pointerdown', (e) => {
-  if (R.t > 0.25 || !R.issued) return;
+  if (TS.state !== 'open') return;
   try { wrap.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
   R.drag = { x: e.clientX, y: e.clientY, rx: R.rx, ry: R.ry, moved: 0, px: e.clientX, py: e.clientY, pt: performance.now() }; R.vx = R.vy = 0; R.lastInput = performance.now();
 });
@@ -694,23 +754,37 @@ const up = (e) => {
 };
 wrap.addEventListener('pointerup', up); wrap.addEventListener('pointercancel', up);
 
-// ── 스크롤: 표가 작아져 상단에 붙고(보딩패스), 진행선·기차·패럴랙스·등장
+// ── 표의 자리 셋(같은 요소 하나가 transform 으로 옮겨 다닌다 — 공유 요소 전환)
+//    centre: 화면 가운데 큰 표(발권 직후 · 눌러서 펼친 때) / dock: 상단 바 왼쪽의 작은 표(보딩패스처럼 고정) / coll: 수집함 아이콘(저장)
+//    state: 'create'(가운데에서 만들어지는 중) → 'docked' ⇄ 'open'(작은 표를 누르면 가운데로, 바깥을 누르면 제자리) · 'saved'
+const TW = 350, TH = 184.2, DOCK = { x: 50 + 52, y: 26, s: 0.30 };
+const TS = { state: 'idle', timers: [] };
 let W = 390, H = 844;
-function layout() { W = flow.clientWidth; H = flow.clientHeight; onScroll(); }
-function onScroll() {
-  const y = flow.scrollTop;
-  const t = clamp(y / 230, 0, 1); R.t = t;
-  const e = 1 - Math.pow(1 - t, 3);                       // ease-out
-  const s = 1 - 0.70 * e;                                   // 1 → .30
-  const cx0 = W / 2, cy0 = 64 + 92, cx1 = 50 + 52, cy1 = 26;   // 큰 표 중심 → 바 안 작은 표 중심
-  wrap.style.transform = `translate(${(cx0 + (cx1 - cx0) * e - 175).toFixed(1)}px, ${(cy0 + (cy1 - cy0) * e - 92).toFixed(1)}px) scale(${s.toFixed(3)})`;
-  wrap.classList.toggle('small', t > 0.25);
-  $('#guichet').style.opacity = clamp(1 - t * 2.2, 0, 1); $('#guichet').style.transform = `translateY(${(-y * 0.35).toFixed(1)}px)`;
-  hint.style.opacity = R.dragged ? 0 : clamp(1 - t * 3, 0, 1);
-  $('#heroT').style.opacity = clamp((t - 0.55) / 0.45, 0, 1); $('#heroT').style.transform = `translateY(${((1 - clamp((t - 0.55) / 0.45, 0, 1)) * 6).toFixed(1)}px)`;
-  hero.classList.toggle('pinned', t > 0.98);
+const centreXY = () => [W / 2, Math.round(H * 0.45)];
+const xf = (x, y, s) => `translate(${(x - TW / 2).toFixed(1)}px, ${(y - TH / 2).toFixed(1)}px) scale(${s})`;
+function cardAt(where) {
+  if (where === 'dock') return xf(DOCK.x, DOCK.y + (parseFloat(getComputedStyle($('.hero-bar')).paddingTop) || 0), DOCK.s);
+  const [x, y] = centreXY(); return xf(x, y, 1);
 }
+function placeHint() { const [, y] = centreXY(); hint.style.top = `${(y + TH / 2 + 22).toFixed(0)}px`; }
+function setTicket(state, animate = true) {
+  TS.state = state;
+  wrap.classList.toggle('moving', animate && !RM);
+  wrap.style.transform = cardAt(state === 'docked' || state === 'saved' ? 'dock' : 'centre');
+  const docked = state === 'docked';
+  R.t = docked ? 1 : 0;                                    // 작은 표는 기울기를 0으로 되돌린다(흔들림 없음)
+  wrap.classList.toggle('small', docked);
+  hero.classList.toggle('docked', docked || state === 'saved');
+  hero.classList.toggle('open', state === 'open');
+  if (state === 'open') { R.lastInput = performance.now(); placeHint(); hint.classList.toggle('off', R.dragged); } else hint.classList.add('off');
+  if (docked) { R.flip = Math.round(R.flip / 360) * 360; }  // 제자리로 갈 때는 앞면으로
+}
+function layout() { W = flow.clientWidth; H = flow.clientHeight; if (TS.state !== 'idle') { wrap.classList.remove('moving'); wrap.style.transform = cardAt(TS.state === 'docked' || TS.state === 'saved' ? 'dock' : 'centre'); placeHint(); } onScroll(); }
+function onScroll() { hero.classList.toggle('pinned', flow.scrollTop > 2); }
 flow.addEventListener('scroll', onScroll, { passive: true });
+// 작은 표를 누르면 가운데로 펼쳐지고(끌어서 돌리기 · 두 번 탭 뒤집기), 바깥(어두운 막)을 누르면 다시 바에 붙는다
+wrap.addEventListener('click', () => { if (TS.state === 'docked') setTicket('open'); });
+$('#tkScrim').addEventListener('click', () => { if (TS.state === 'open') setTicket('docked'); });
 window.addEventListener('resize', layout);
 const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); if (x.target.id === 'today') startCrowd(); } }), { root: flow, threshold: 0.12 });
 
@@ -797,16 +871,39 @@ function issue() {
   crowdPlan = { ...buildTodayMap(p), me: p.id };
   io.observe($('#today')); $('#today').classList.remove('in');
   $('#save').textContent = '수집함에 저장'; $('#save').disabled = false; $('#collN').hidden = true; wrap.classList.remove('fly'); hero.classList.remove('saved');
-  // 표시 + 발권 동작
-  R.rx = R.ry = R.vx = R.vy = 0; R.flip = R.flipT = 0; R.dragged = false; R.issued = false; hint.classList.remove('off');
-  card.style.transform = ''; flow.hidden = false; flow.scrollTop = 0; requestAnimationFrame(() => flow.classList.add('on')); $('#dim').classList.add('on'); hero.classList.add('issuing'); wrap.classList.remove('issued', 'stamped'); $('#tak').classList.remove('on');
-  layout(); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    wrap.classList.add('issued');
-    setTimeout(() => { wrap.classList.add('stamped'); $('#tak').classList.add('on'); if (!RM) { flowIn.classList.add('shake'); setTimeout(() => flowIn.classList.remove('shake'), 220); } }, RM ? 300 : 980);
-    setTimeout(() => { hero.classList.remove('issuing'); R.issued = true; R.lastInput = performance.now() - 1000; }, RM ? 400 : 1350);
-  }));
+  // 표시 + 발권 동작 — 지도가 어두워지고, 표가 화면 가운데에서 "쿵" 하고 만들어진 뒤(1.6 → 1.0, 짧은 되튐 · 2~3px 흔들림 · 그림자가 바닥에 붙음 · 한 박자 뒤 날짜 날인),
+  //   0.6초 머문 다음 같은 요소가 그대로 상단 바 왼쪽 자리로 날아가 붙고, 아래에서 이야기가 올라온다
+  TS.timers.forEach(clearTimeout); TS.timers = []; wrap.getAnimations().forEach((a) => a.cancel()); shadow.getAnimations().forEach((a) => a.cancel());
+  R.rx = R.ry = R.vx = R.vy = 0; R.flip = R.flipT = 0; R.dragged = false; R.issued = true; R.lastInput = performance.now(); hint.classList.add('off');
+  card.style.transform = ''; flow.hidden = false; flow.scrollTop = 0;
+  flow.classList.add('issuing', 'on'); $('#dim').classList.add('on'); hero.classList.add('issuing'); hero.classList.remove('docked', 'open', 'pinned'); wrap.classList.remove('stamped'); $('#tak').classList.remove('on');
+  layout(); setTicket('create', false); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+  const at = (ms, fn) => TS.timers.push(setTimeout(fn, ms));
+  const CREATE = RM ? 200 : 540, IMPACT = RM ? 0 : Math.round(CREATE * 0.6), STAMP = RM ? 220 : IMPACT + 200, DOCK_AT = RM ? 1000 : CREATE + 640;
+  const centre = cardAt('centre'), big = centre.replace(/scale\([^)]*\)/, 'scale(1.6)');
+  if (RM) wrap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: CREATE, easing: 'ease-out' });
+  else {
+    // 떨어지듯 가속해 1.0 아래(.965)로 살짝 눌렸다가 되돌아온다
+    wrap.animate([
+      { transform: big, opacity: 0, easing: 'cubic-bezier(.55,0,.85,.35)' },
+      { transform: centre.replace(/scale\([^)]*\)/, 'scale(.965)'), opacity: 1, offset: 0.6, easing: 'cubic-bezier(.2,.7,.3,1)' },
+      { transform: centre.replace(/scale\([^)]*\)/, 'scale(1.012)'), offset: 0.82, easing: 'ease-in-out' },
+      { transform: centre },
+    ], { duration: CREATE });
+    // 그림자: 높이 떠 있을 때는 크고 흐릿 → 닿는 순간 짙고 작게(쾅) → 제자리
+    shadow.animate([
+      { opacity: 0.08, transform: 'translate(0px, 70px) scale(1.3)', easing: 'cubic-bezier(.55,0,.85,.35)' },
+      { opacity: 0.9, transform: 'translate(0px, 5px) scale(.97)', offset: 0.6, easing: 'ease-out' },
+      { opacity: 0.55, transform: 'translate(0px, 14px) scale(.94)' },
+    ], { duration: CREATE + 160 });
+  }
+  at(IMPACT, () => { if (!RM) [flowIn, $('#s1')].forEach((n) => { n.classList.remove('shake'); void n.offsetWidth; n.classList.add('shake'); }); });
+  at(IMPACT + 260, () => [flowIn, $('#s1')].forEach((n) => n.classList.remove('shake')));
+  at(STAMP, () => { wrap.classList.add('stamped'); $('#tak').classList.add('on'); });
+  at(DOCK_AT, () => { flow.classList.remove('issuing'); hero.classList.remove('issuing'); setTicket('docked'); });
+  at(DOCK_AT + (RM ? 0 : 700), () => { R.lastInput = performance.now(); });
 }
+window.ticketState = () => TS.state;   // 검수용
 // ── 엽서: 앞면(그림 + 우표 + 소인 + 그림 위에 적는 한 줄) ↔ 뒷면(받는 사람 + 캡션 + 표 번호). 뒤집기만 3D.
 //    한 줄: 끌면 손가락을 따라오고, 놓으면 위·가운데·아래 셋 중 가까운 자리에 붙는다. 크기 둘(작게/크게 = 앞면 폭의 5.2% / 7%).
 //    글자색은 그 자리 그림 밝기(상대 휘도 평균)로 크림 또는 잉크, 부드러운 그림자. 저장은 앞면(글 포함)을 1480×1000 JPEG 로 — 기기 안에서만
@@ -964,15 +1061,20 @@ $('#pcSave').addEventListener('click', async () => {
   btn.disabled = false;
 });
 window.renderPostcard = renderPostcard;
-function leave() { flow.hidden = true; flow.classList.remove('on'); $('#dim').classList.remove('on'); cancelAnimationFrame(raf); }
-$('#flowBack').addEventListener('click', leave); $('#again').addEventListener('click', leave);
+function leave() { TS.timers.forEach(clearTimeout); TS.timers = []; TS.state = 'idle'; flow.hidden = true; flow.classList.remove('on', 'issuing'); hero.classList.remove('issuing', 'docked', 'open'); $('#dim').classList.remove('on'); cancelAnimationFrame(raf); }
+$('#flowBack').addEventListener('click', leave);
+$('#again').addEventListener('click', () => { leave(); window.resetPick(); });     // 다시 고르기 = 지도 처음 상태로
 // 표 끊기: 확인 시트에서 → 시트를 닫고 발권
 $('#buy').addEventListener('click', () => { window.closeConfirm(); setTimeout(issue, RM ? 0 : 260); });
 $('#save').addEventListener('click', () => {
   if (saved) return; $('#toast').textContent = '수집함에 저장했습니다'; saved = true; $('#save').disabled = true; $('#save').textContent = '저장됨';
   try { const p = window.getPicked(); const all = JSON.parse(localStorage.getItem('m100_choice') || '{}') || {}; all.c2 = { id: p.id, label: p.ko, year: p.year, pct: PCT[p.id], at: Date.now() }; localStorage.setItem('m100_choice', JSON.stringify(all)); } catch (e) { /* 기기 안에만 · 마지막 화면(c5)이 읽는다 */ }
-  flow.scrollTo({ top: 0, behavior: RM ? 'auto' : 'smooth' });
-  setTimeout(() => { wrap.classList.add('fly'); hero.classList.add('saved'); }, RM ? 0 : 500);
+  // 바에 붙은 작은 표가 그대로 수집함 아이콘으로 날아간다(같은 요소)
+  setTimeout(() => {
+    const hr = hero.getBoundingClientRect(), cr = $('#coll').getBoundingClientRect();
+    TS.state = 'saved'; wrap.classList.remove('moving'); wrap.classList.add('fly'); hero.classList.add('saved');
+    wrap.style.transform = xf(cr.left + cr.width / 2 - hr.left, cr.top + cr.height / 2 - hr.top, 0.06);
+  }, RM ? 0 : 150);
   setTimeout(() => { $('#collN').hidden = false; $('#coll').classList.add('bump'); setTimeout(() => $('#coll').classList.remove('bump'), 500); const t = $('#toast'); t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); }, RM ? 100 : 1250);
 });
 window.flow = { issue, leave, R, layout, get crowd() { return crowd; } };
