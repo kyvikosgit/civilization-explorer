@@ -42,11 +42,11 @@ MAJOR.forEach((m) => {
     ? `<div class="xe-cells">${m.cols.map((c) => `<div class="xe-cell${c.k === s.me ? ' me' : ''}"><div class="v">${m.then.cells[c.k].v}</div><div class="d">${m.then.cells[c.k].d}</div></div>`).join('')}</div>`
     : m.then.lines.map((l) => `<p class="xe-then-line">${l}</p>`).join('');
   const now = `<div class="xe-now"><canvas aria-hidden="true"></canvas><div class="xe-cells">${s.opts.map((o) => `<div class="xe-cell"><div class="xe-pct${o.k === s.me ? ' me' : ''}">${o.pct}<i>%</i>${o.k === s.me ? '<span>나</span>' : ''}</div></div>`).join('')}</div></div>`;
-  $(m.cmp).innerHTML = cols
-    + `<div class="xe-row"><div class="xe-rl">${m.then.label}</div>${then}<div class="xe-src">${m.then.src}</div></div>`
-    + `<div class="xe-row"><div class="xe-rl"><b>오늘의 관람객 ${fmt(VISITORS)}명</b><small>점 하나 = 열 사람</small></div>${now}</div>`
-    + (m.moved ? `<p class="xe-moved">${m.moved}</p>` : '');
+  $(m.cmp).innerHTML = `<div class="xe-then rv">${cols}<div class="xe-row"><div class="xe-rl">${m.then.label}</div>${then}<div class="xe-src">${m.then.src}</div></div></div>`
+    + `<div class="xe-row now rv"><div class="xe-rl"><b>오늘의 관람객 ${fmt(VISITORS)}명</b><small>점 하나 = 열 사람</small></div>${now}</div>`
+    + (m.moved ? `<p class="xe-moved rv">${m.moved}</p>` : '');
   m.cv = $(`${m.el} .xe-now canvas`);
+  m.nowRow = $(`${m.el} .xe-row.now`);
 });
 
 // ── 오늘 줄의 점: 처음엔 줄 전체에 흩어져 있다가, 장이 보이면 내 칸 · 다른 칸으로 모인다(덩어리 넓이 = 비율). 칸 왼쪽에 붙여 쌓는다
@@ -73,25 +73,44 @@ function gather(m) {
   const alpha = (i) => (mineIdx.has(i) ? 0.95 : 0.42);
   const fin = () => $(m.el).classList.add('done');
   if (reduceMotion) { m.crowd.place(t, alpha); fin(); return; }
-  setTimeout(() => m.crowd.move(t, { duration: 1150, stagger: 420, mineDelay: 560, bend: 0.16, alpha, onDone: fin }), 380);
+  m.crowd.move(t, { duration: 1500, stagger: 520, mineDelay: 720, bend: 0.12, alpha, onDone: fin });   // 약 2초에 걸쳐 가라앉는다
 }
 
-// ── 장 들어오기: 보이면 .on(바탕 · 내 선택), 큰 선택이면 점이 모인다
+// ── 차례로 드러나기 — 평범한 스크롤. 화면에 들어온 .rv 를 문서 순서대로 한 걸음씩(STEP 간격) 드러낸다. 스크롤을 대신 움직이지 않는다
 const deck = $('#deck');
-const io = new IntersectionObserver((es) => es.forEach((e) => {
-  if (!e.isIntersecting) return;
-  e.target.classList.add('on');
-  const m = MAJOR.find((x) => $(x.el) === e.target); if (m) gather(m);
-}), { root: deck, threshold: 0.5 });
-[...MAJOR.map((m) => $(m.el)), $('#minor')].forEach((el) => io.observe(el));
-document.querySelectorAll('.xe-next').forEach((b) => b.addEventListener('click', () => $('#' + b.dataset.to).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' })));
+const STEP = 320, revealQ = []; let lastAt = -Infinity, qT = 0;
+function reveal(el) {
+  el.classList.add('in'); lastAt = performance.now();
+  const sec = el.closest('.xe-ch'); if (sec && el.classList.contains('xe-hd')) sec.classList.add('on');   // 바탕은 제목과 함께
+  const m = MAJOR.find((x) => x.nowRow === el); if (m) { m.shownAt = lastAt; tryGather(m); }
+}
+function pump() {
+  if (qT || !revealQ.length) return;
+  qT = setTimeout(() => { qT = 0; const el = revealQ.shift(); if (el) reveal(el); pump(); }, Math.max(0, lastAt + STEP - performance.now()));
+}
+const rvIO = new IntersectionObserver((es) => es.forEach((e) => {
+  if (!e.isIntersecting || e.target.dataset.q) return;
+  e.target.dataset.q = '1'; rvIO.unobserve(e.target);
+  if (reduceMotion) { reveal(e.target); return; }
+  revealQ.push(e.target); revealQ.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)); pump();
+}), { root: deck, threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
+// 점은 "오늘의 관람객" 줄이 60% 이상 보이고, 그 줄이 다 드러난 뒤에야 모이기 시작한다
+const nowIO = new IntersectionObserver((es) => es.forEach((e) => {
+  const m = MAJOR.find((x) => x.nowRow === e.target); if (!m || e.intersectionRatio < 0.6) return;
+  m.seen = true; nowIO.unobserve(e.target); tryGather(m);
+}), { root: deck, threshold: [0.6, 0.8, 1] });
+function tryGather(m) {
+  if (!m.seen || m.shownAt == null || m.gT) return;
+  m.gT = setTimeout(() => gather(m), reduceMotion ? 0 : Math.max(0, m.shownAt + 700 - performance.now()));
+}
+MAJOR.forEach((m) => nowIO.observe(m.nowRow));
 
 // ── 작은 선택 — 흰 쟁반의 작은 카드 둘
 const c0 = S.c0, c2 = S.c2;
 $('#minorCards').innerHTML = `
-  <article class="xe-mc" style="--i:0"><div class="th medal"><img src="${c0.img}" alt=""><i class="x-medal"></i></div>
+  <article class="xe-mc rv"><div class="th medal"><img src="${c0.img}" alt=""><i class="x-medal"></i></div>
     <div class="tx"><small>메달을 준 그림${ex(c0)}</small><b>${c0.choice}</b><span>오늘 <em>${c0.opt.pct}%</em>가 같은 그림</span></div></article>
-  <article class="xe-mc" style="--i:1"><div class="th trip"><img class="pc" src="${c2.img}" alt=""><img class="tk" src="${c2.ticket}" alt=""></div>
+  <article class="xe-mc rv"><div class="th trip"><img class="pc" src="${c2.img}" alt=""><img class="tk" src="${c2.ticket}" alt=""></div>
     <div class="tx"><small>행선지${ex(c2)}</small><b>${c2.choice} · ${c2.sub.split(' · ')[0]}</b><span>오늘 <em>${c2.opt.pct}%</em>가 ${c2.choicePlain}</span></div></article>`;
 
 // ── 가져가는 것 다섯: 기차표 · 엽서 · 메달 카드 · 전시 포스터 · 초상 카드
@@ -102,7 +121,8 @@ const KEEP = [
   { lb: '전시 포스터', html: posterHTML(S.c1.expo, 'x-th') },
   { lb: S.c4.art.lb, html: artThumb(S.c4.art) },
 ];
-$('#keep').innerHTML = KEEP.map((k, i) => `<div class="xe-k" style="--i:${i + 2}">${k.html}<span>${k.lb}</span></div>`).join('');
+$('#keep').innerHTML = KEEP.map((k, i) => `<div class="xe-k rv">${k.html}<span>${k.lb}</span></div>`).join('');
+document.querySelectorAll('.rv').forEach((el) => rvIO.observe(el));
 $('#foot').textContent = `${stampLine(VISITORS)}${anyReal ? ' · 들르지 않은 곳은 예시 값' : ''}. 출구 벽의 질문은 벽에 그대로 두고, 앱은 답하지 않습니다.`;
 
 // ── 저장 · 공유 — 1080×1920, 같은 위계: 큰 선택 둘(위, 크게) → 그 밖에 고른 것(아래, 흰 쟁반, 작게)
