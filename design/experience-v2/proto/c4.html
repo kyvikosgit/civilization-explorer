@@ -5,7 +5,7 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0F0E0D">
-<title>C4 · 그림과 사진, 어느 쪽을 간직할까</title>
+<title>C4 · 그림과 사진, 어느 쪽이 낫습니까</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="css/crowd.css">
@@ -24,17 +24,17 @@
   <button class="tab" role="tab" aria-selected="false" data-tab="me" type="button">내 초상</button>
 </nav>
 
-<!-- ── 사진관 벽: 초상화 4점 → 셔터 → 나다르 사진 -->
+<!-- ── 1 사진관 벽: 초상화 4점 → 셔터 한 번 → 조리개·섬광 → 네 점이 함께(120ms 차례로) 나다르 사진으로 현상 → 바로 질문 -->
 <main class="wrap screen" id="wall" data-screen="wall">
   <div id="wallBody">
   <header class="role-hd rise" style="--i:0">
     <div class="eyebrow">당신은</div>
     <h1>나다르 사진관의 손님입니다</h1>
-    <p class="sub" id="wallSub">벽의 초상화 앞에서 셔터를 누르세요</p>
+    <p class="sub" id="wallSub">벽의 초상화 네 점 앞에서 셔터를 누르세요</p>
   </header>
 
   <section class="gallery rise" id="gallery" style="--i:1" aria-label="초상화 벽">
-    <div class="track" id="track"></div>
+    <div class="wall-grid" id="wallGrid"></div>
     <div class="finder" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <div class="iris" id="iris" aria-hidden="true">
       <div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div><div class="leaf"><b></b></div>
@@ -44,63 +44,34 @@
   </section>
 
   <div class="caption rise" id="caption" style="--i:2" aria-live="polite">
-    <div class="cap-state" id="capState">화가의 초상</div>
-    <div class="cap-name" id="capName"></div>
-    <div class="cap-line" id="capLine"></div>
-    <div class="cap-src" id="capSrc"></div>
+    <div class="cap-state" id="capState">화가의 초상 4점</div>
+    <div class="cap-line" id="capLine">마네 · 위고 · 베르나르 · 보들레르</div>
   </div>
 
-  <div class="dots rise" id="dots" style="--i:3" role="tablist" aria-label="손님 4명"></div>
-
-  <div class="shutter-row rise" style="--i:4">
+  <div class="shutter-row rise" style="--i:3">
     <button class="shutter" id="shutter" type="button" aria-label="셔터"><span></span></button>
     <div class="shutter-hint" id="shutterHint">셔터</div>
   </div>
-
-  <div class="ask-cta" id="askCta" hidden><button class="btn white" id="toCmp" type="button">네 사람을 모두 보았습니다 · 나란히 보기</button></div>
   <p class="then">나다르는 1860년 카퓌신 대로 35번지로 사진관을 옮겼다. 1874년 첫 인상파 전시가 이 옛 사진관 자리에서 열렸다.</p>
   </div>
 
-  <!-- 나란히 보기 — 한 사람씩, 그림과 나다르 사진을 크게 나란히. 꾹 누르면 하나만, 돋보기를 켜고 끌면 두 장의 같은 자리를 2배로 -->
-  <section class="cmp" id="cmp" hidden>
-    <div class="cmp-head">
-      <div class="eyebrow">그림과 사진을 나란히</div>
-      <h2 class="cmp-name" id="cmpName"></h2>
-      <div class="cmp-prog" id="cmpProg" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-    </div>
-    <div class="cmp-stage" id="cmpStage">
-      <figure class="cmp-f" data-k="paint"><div class="cmp-img"><img id="cmpPaint" alt="" draggable="false"></div><figcaption><b>그림</b><span id="cmpPaintCap"></span><small id="cmpPaintMus"></small></figcaption></figure>
-      <figure class="cmp-f" data-k="photo"><div class="cmp-img"><img id="cmpPhoto" alt="" draggable="false"></div><figcaption><b>사진</b><span id="cmpPhotoCap"></span><small id="cmpPhotoMus"></small></figcaption></figure>
-      <div class="loupe" id="loupeA" hidden></div><div class="loupe" id="loupeB" hidden></div>
-    </div>
-    <div class="cmp-tools">
-      <button class="tool" id="loupeBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20M10.5 7.5v6M7.5 10.5h6"/></svg>돋보기 2×</button>
-      <span class="cmp-hint" id="cmpHint">꾹 누르면 하나만 · 돋보기를 켜고 끌면 눈과 손을 비교</span>
-    </div>
-    <div class="cmp-next"><button class="btn white" id="cmpNext" type="button">다음 사람</button></div>
-  </section>
-
-  <!-- 질문 — 마지막 쌍(보들레르) 가운데 간직할 쪽을 카르트 드 비지트 앨범 자리로 끌어 넣는다(눌러도 된다). 앨범이 닫히면 오늘의 관람객 -->
+  <!-- ── 2 질문: 네 쌍을 그림 열 | 사진 열로. 열 제목이나 그림을 누르면 그 열이 앞으로, 다른 열은 물러난다 → "당신은 ○○ 쪽 · 확정". 꾹 누르면 그 쌍을 크게(2× 돋보기) -->
   <section class="ask" id="ask" hidden>
-    <div class="eyebrow rise" style="--i:0">네 사람을 보았습니다</div>
-    <h2 class="ask-q rise" style="--i:1">사람을 남기는 데, 그림과 사진 중<br>어느 쪽을 간직하시겠습니까?</h2>
-    <div class="album-stage rise" id="albumStage" style="--i:2">
-      <div class="cards" id="cards" role="radiogroup" aria-label="그림 또는 사진">
-        <button class="card" data-k="paint" type="button" role="radio" aria-checked="false"><span class="card-img"><img id="cardPaint" alt="" draggable="false"></span><span class="card-lb" id="cardPaintLb"></span></button>
-        <button class="card" data-k="photo" type="button" role="radio" aria-checked="false"><span class="card-img"><img id="cardPhoto" alt="" draggable="false"></span><span class="card-lb" id="cardPhotoLb"></span></button>
-      </div>
-      <div class="album" id="album">
-        <div class="album-base">
-          <div class="slot" id="slot"><i></i><i></i><i></i><i></i><span>여기에</span></div>
-          <div class="album-lb">Carte de visite · <span id="albumWho"></span></div>
-        </div>
-        <div class="album-cover" id="albumCover"><div class="cover-in"><b>ALBUM</b><small>Nadar · 35, boulevard des Capucines</small></div></div>
-      </div>
+    <div class="ask-head">
+      <div class="eyebrow rise" style="--i:0">네 사람을 보았습니다</div>
+      <h2 class="ask-q rise" style="--i:1">사람을 남기는 데, 그림과 사진 중<br>어느 쪽이 낫습니까?</h2>
     </div>
-    <p class="ask-note rise" id="askNote" style="--i:3">간직할 쪽을 앨범 자리로 끌어 넣으세요. 눌러도 됩니다. 정답은 없습니다.</p>
+    <div class="cols rise" id="cols" style="--i:2" role="radiogroup" aria-label="그림 열 또는 사진 열">
+      <button class="col-hd" data-k="paint" type="button" role="radio" aria-checked="false"><b>그림 열</b><small>화가가 보고 그린 대로</small></button>
+      <button class="col-hd" data-k="photo" type="button" role="radio" aria-checked="false"><b>사진 열</b><small>렌즈 앞에 앉은 그대로</small></button>
+    </div>
+    <div class="ask-foot" id="askFoot">
+      <p class="ask-note" id="askNote">열 제목이나 그림을 누르세요 · 꾹 누르면 크게 · 정답은 없습니다</p>
+      <button class="btn white" id="confirm" type="button" hidden></button>
+    </div>
   </section>
 
-  <!-- 오늘의 관람객(점 하나 = 열 사람, 그림 열·사진 열 아래로 모인다 · js/crowd.js) · 그때는 이랬다 -->
+  <!-- ── 3 오늘의 관람객(점 하나 = 열 사람, 그림 열·사진 열 아래로 모인다 · js/crowd.js) · 그때는 이랬다 · 저장 -->
   <section class="result crowd dark center" id="result" hidden>
     <div class="rev" id="rev">
       <div class="rev-col" data-k="paint"><b>그림 열</b><div class="rev-row" id="revPaint"></div></div>
@@ -119,6 +90,17 @@
     <div class="me-actions rise" style="--i:4"><button class="btn white" id="saveStance" type="button">수집함에 저장</button><button class="btn dark-line" id="restartWall" type="button">처음부터</button></div>
   </section>
 </main>
+
+<!-- 꾹 누르기: 그 쌍을 크게(위 그림 · 아래 사진), 손가락을 끌면 두 장의 같은 자리에 2× 돋보기. 손을 떼면 닫힌다 -->
+<div class="peek" id="peek" hidden aria-hidden="true">
+  <div class="peek-name" id="peekName"></div>
+  <div class="peek-in" id="peekIn">
+    <figure class="peek-f" data-k="paint"><div class="peek-img"><img id="peekPaint" alt="" draggable="false"></div><figcaption id="peekPaintCap"></figcaption></figure>
+    <figure class="peek-f" data-k="photo"><div class="peek-img"><img id="peekPhoto" alt="" draggable="false"></div><figcaption id="peekPhotoCap"></figcaption></figure>
+    <div class="loupe" id="loupeA" hidden></div><div class="loupe" id="loupeB" hidden></div>
+  </div>
+  <div class="peek-hint">끌면 같은 자리가 2배로 · 손을 떼면 돌아갑니다</div>
+</div>
 
 <!-- ── 내 초상: 전면 카메라 → 노출 4초 → 기기 안에서 19세기 사진 → 카르트 드 비지트 틀 -->
 <main class="wrap screen" id="me" data-screen="me" hidden>

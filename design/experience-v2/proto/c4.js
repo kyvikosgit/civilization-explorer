@@ -1,7 +1,8 @@
-// C4 나다르 사진관 — (1) 벽의 초상화 4점: 셔터를 누르면 조리개가 닫혔다 열리며 같은 인물의 나다르 사진이 습판처럼 떠오른다
-//                    (2) 나란히 보기: 한 사람씩 그림과 사진을 크게 나란히 — 꾹 누르면 하나만, 돋보기를 켜고 끌면 두 장의 같은 자리를 2배로(눈·손 비교)
-//                    (3) 질문 하나: 사람을 남기는 데 그림과 사진 중 어느 쪽을 간직할까 — 마지막 쌍 가운데 하나를 카르트 드 비지트 앨범 자리로 끌어 넣는다(눌러도 된다) → 앨범이 닫힌다 → 오늘의 관람객(그림 열·사진 열) + 그때는 이랬다 → 수집함
-//                    (4) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js, WebGL → 워커 → 즉석) 재사용
+// C4 나다르 사진관 — 세 걸음
+//   (1) 벽: 초상화 4점. 셔터 한 번 → 조리개가 닫혔다 열리며 섬광, 네 점이 120ms 차례로 나다르 사진으로 현상된다(1.4초) → 바로 질문
+//   (2) 질문: 네 쌍을 그림 열 | 사진 열로. 열 제목이나 그림을 누르면 그 열이 앞으로, 다른 열은 물러난다 → "당신은 ○○ 쪽 · 확정". 꾹 누르면 그 쌍을 크게(2× 돋보기, 선택 사항)
+//   (3) 오늘의 관람객(그림 열·사진 열 아래로 점, 내 점은 주황) + 그때는 이랬다 → 수집함
+//   (+) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js) 재사용
 // 서버 없음, 업로드 없음. 모든 처리는 기기 안. 입장은 기기(localStorage)에만 남고 출구 화면(exit)이 읽는다.
 import { toast, loadImage, startCamera, stopCamera, cameraErrorText } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
@@ -9,25 +10,27 @@ import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine }
 import * as N from '../../../booth/js/nadar.js';
 
 const $ = (s) => document.querySelector(s);
+const $$ = (q) => Array.from(document.querySelectorAll(q));
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const K = new URLSearchParams(location.search).has('slow') ? 5 : 1;   // 검수용 느린 재생
 document.documentElement.style.setProperty('--k', K);
 
-// 보드에서 확인한 4쌍 (그림·사진 모두 소장처 기록으로 작가·연도·퍼블릭 도메인 확인)
+// 보드에서 확인한 4쌍 (그림·사진 모두 소장처 기록으로 작가·연도·퍼블릭 도메인 확인). pshort/fshort 는 열 아래 짧은 캡션
 const SITTERS = [
   { id: 'manet', name: '에두아르 마네', paint: '../works/c4-manet-paint.jpg', photo: '../works/c4-manet-photo.jpg',
-    painter: '앙리 팡탱라투르', pyear: '1867', photog: '펠릭스 나다르(추정)', fyear: '1867~71년경',
-    src: '그림 시카고 미술관 CC0 · 사진 레이크스미술관 PDM', pmus: '시카고 미술관 · CC0', fmus: '레이크스미술관 · PDM', pos: '50% 15%', fpos: '50% 20%' },
+    painter: '앙리 팡탱라투르', pshort: '팡탱라투르', pyear: '1867', photog: '펠릭스 나다르(추정)', fshort: '나다르(추정)', fyear: '1867~71년경',
+    pmus: '시카고 미술관 · CC0', fmus: '레이크스미술관 · PDM', pos: '50% 15%', fpos: '50% 20%' },
   { id: 'hugo', name: '빅토르 위고', paint: '../works/c4-hugo-paint.jpg', photo: '../works/c4-hugo-photo.jpg',
-    painter: '레옹 보나 원작 구도의 판본', pyear: '1879', photog: '펠릭스 나다르', fyear: '1878',
-    src: '그림·사진 빅토르 위고의 집 · Paris Musées CC0', pmus: '빅토르 위고의 집 · Paris Musées CC0', fmus: '빅토르 위고의 집 · Paris Musées CC0', pos: '50% 20%', fpos: '50% 40%' },
+    painter: '레옹 보나 원작 구도의 판본', pshort: '보나 구도 판본', pyear: '1879', photog: '펠릭스 나다르', fshort: '나다르', fyear: '1878',
+    pmus: '빅토르 위고의 집 · Paris Musées CC0', fmus: '빅토르 위고의 집 · Paris Musées CC0', pos: '50% 20%', fpos: '50% 40%' },
   { id: 'bernhardt', name: '사라 베르나르', paint: '../works/c4-bernhardt-paint.jpg', photo: '../works/c4-bernhardt-photo.jpg',
-    painter: '조르주 클래랭', pyear: '1876', photog: '펠릭스 나다르', fyear: '원판 1864년경',
-    src: '그림 프티팔레 · Paris Musées CC0 · 사진 게티 미술관 Open Content', pmus: '프티팔레 · Paris Musées CC0', fmus: '게티 미술관 · Open Content', pos: '50% 30%', fpos: '50% 30%' },
+    painter: '조르주 클래랭', pshort: '클래랭', pyear: '1876', photog: '펠릭스 나다르', fshort: '나다르', fyear: '원판 1864년경',
+    pmus: '프티팔레 · Paris Musées CC0', fmus: '게티 미술관 · Open Content', pos: '50% 30%', fpos: '50% 30%' },
   { id: 'baudelaire', name: '샤를 보들레르', paint: '../works/c4-baudelaire-paint.jpg', photo: '../works/c4-baudelaire-photo.jpg',
-    painter: '귀스타브 쿠르베', pyear: '1848년경', photog: '펠릭스 나다르', fyear: '1856~58',
-    src: '그림 파브르 미술관 · PD · 사진 클리블랜드 미술관 CC0', pmus: '파브르 미술관 · PD', fmus: '클리블랜드 미술관 · CC0', pos: '68% 50%', fpos: '50% 30%' },
+    painter: '귀스타브 쿠르베', pshort: '쿠르베', pyear: '1848년경', photog: '펠릭스 나다르', fshort: '나다르', fyear: '1856~58',
+    pmus: '파브르 미술관 · PD', fmus: '클리블랜드 미술관 · CC0', pos: '68% 50%', fpos: '50% 30%' },
 ];
+const STAGGER = 120;   // ms — 네 점이 차례로 현상되는 간격
 
 // ── 탭
 document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => {
@@ -37,115 +40,93 @@ document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () 
   window.scrollTo(0, 0);
 }));
 
-// ── 벽
-const track = $('#track'), dots = $('#dots'), gallery = $('#gallery');
-let cur = 0, busy = false;
-const dev = SITTERS.map(() => false);
-track.innerHTML = SITTERS.map((s, i) => `
-  <div class="slide" data-i="${i}">
-    <div class="frame">
-      <div class="art">
-        <img class="paint" src="${s.paint}" alt="${s.name} 초상화" style="object-position:${s.pos}" draggable="false">
-        <div class="photo-layer">
-          <img class="photo" src="${s.photo}" alt="${s.name} 나다르 사진" style="object-position:${s.fpos}" draggable="false">
-          <div class="silver"></div><div class="vignette"></div><div class="grain"></div>
-        </div>
+// ── 벽: 금박 액자 4점, 2×2
+const gallery = $('#gallery'), grid = $('#wallGrid');
+let shot = false, busy = false;
+grid.innerHTML = SITTERS.map((s, i) => `
+  <div class="frame" data-i="${i}" style="--d:${i * STAGGER}ms">
+    <div class="art">
+      <img class="paint" src="${s.paint}" alt="${s.name} 초상화" style="object-position:${s.pos}" draggable="false">
+      <div class="photo-layer">
+        <img class="photo" src="${s.photo}" alt="${s.name} 나다르 사진" style="object-position:${s.fpos}" draggable="false">
+        <div class="silver"></div><div class="vignette"></div><div class="grain"></div>
       </div>
-      <span class="frame-no">${i + 1}</span>
     </div>
+    <span class="frame-no">${i + 1}</span>
   </div>`).join('');
-dots.innerHTML = SITTERS.map((s, i) => `<button type="button" role="tab" aria-label="${i + 1} ${s.name}"><i></i></button>`).join('');
-const slides = Array.from(track.children);
-Array.from(dots.children).forEach((b, i) => b.addEventListener('click', () => { if (!busy) goTo(i); }));
-
-function caption() {
-  const s = SITTERS[cur], d = dev[cur];
-  $('#capState').textContent = d ? '나다르의 사진' : '화가의 초상';
-  $('#capState').classList.toggle('photo', d);
-  $('#capName').textContent = s.name;
-  $('#capLine').innerHTML = d
-    ? `그림 ${s.painter} ${s.pyear}<span class="arrow">→</span><b>사진 ${s.photog} ${s.fyear}</b>`
-    : `<b>그림 ${s.painter} ${s.pyear}</b><span class="arrow">→</span>사진 ${s.photog} ${s.fyear}`;
-  $('#capSrc').textContent = s.src;
-  Array.from(dots.children).forEach((el, i) => { el.classList.toggle('on', i === cur); el.classList.toggle('dev', dev[i]); });
-  $('#shutter').classList.toggle('next', d);
-  $('#shutterHint').textContent = dev.every(Boolean) ? '나란히 보기' : d ? '다음 손님' : '셔터';
-  $('#wallSub').textContent = d ? '같은 사람을 나다르가 찍었다' : '벽의 초상화 앞에서 셔터를 누르세요';
-}
-function goTo(i) {
-  clearTimeout(advanceT);
-  cur = (i + SITTERS.length) % SITTERS.length;
-  track.style.transform = `translateX(${-cur * 100}%)`;
-  caption();
-}
+const frames = Array.from(grid.children);
 function irisSize() {
   // 조리개 날개 이동 거리 = 갤러리 대각선의 절반보다 넉넉하게
   const r = gallery.getBoundingClientRect();
   $('#iris').style.setProperty('--d', `${Math.ceil(Math.hypot(r.width, r.height) * 0.6)}px`);
 }
-// 셔터: 지금 손님을 현상한다 → 1.4초 뒤 다음 손님으로 저절로 넘어간다(네 번 누르면 네 사람). 현상 중에 누르면 한 번은 기억해 뒀다가 이어서 한다
-let pending = false, advanceT = 0;
-function nextUndeveloped() { for (let k = 1; k <= SITTERS.length; k++) { const j = (cur + k) % SITTERS.length; if (!dev[j]) return j; } return -1; }
+// 셔터 한 번: 조리개가 닫힌 순간(0.3s) 네 점이 차례로 현상(각 .75s, 120ms 간격) → 1.4s 뒤 질문 화면
 function shoot() {
-  if (busy) { pending = true; return; }
-  clearTimeout(advanceT);
-  if (dev.every(Boolean)) { openCompare(); return; }
-  if (dev[cur]) { goTo(nextUndeveloped()); return; }         // 이미 현상한 손님이면 다음 손님으로
-  busy = true; pending = false;
-  gallery.classList.add('busy');
+  if (busy || shot) return;
+  busy = true; gallery.classList.add('busy'); $('#shutter').disabled = true;
   irisSize();
   const iris = $('#iris'), flash = $('#flash');
   iris.classList.remove('run'); flash.classList.remove('run');
   void iris.offsetWidth;
   iris.classList.add('run'); flash.classList.add('run');
   if (navigator.vibrate) navigator.vibrate(20);
-  // 조리개가 닫힌 순간(0.38×0.8s) 사진으로 바꾼다
   setTimeout(() => {
-    dev[cur] = true;
-    slides[cur].classList.add('dev');
-    caption();
-    if (dev.every(Boolean)) { $('#askCta').hidden = false; $('#shutterHint').textContent = '나란히 보기'; }
-  }, REDUCED ? 60 : 320 * K);
+    shot = true;
+    frames.forEach((f) => f.classList.add('dev'));
+    $('#capState').textContent = '나다르의 사진 4장'; $('#capState').classList.add('photo');
+    $('#capLine').textContent = '같은 네 사람을 나다르가 찍었다';
+    $('#wallSub').textContent = '습판 위로 네 얼굴이 떠오릅니다';
+    $('#shutterHint').textContent = '현상 중';
+  }, REDUCED ? 60 : 300 * K);
   setTimeout(() => {
     iris.classList.remove('run'); flash.classList.remove('run'); busy = false; gallery.classList.remove('busy');
-    const all = dev.every(Boolean);
-    if (pending) { pending = false; if (all) openAsk(); else goTo(nextUndeveloped()); return; }
-    if (!all) advanceT = setTimeout(() => { if (!busy && dev[cur]) goTo(nextUndeveloped()); }, REDUCED ? 300 : 1400 * K);
-  }, REDUCED ? 400 : 850 * K);
+    openAsk();
+  }, REDUCED ? 400 : 1400 * K);
 }
 $('#shutter').addEventListener('click', shoot);
-// 좌우 끌기
-{
-  let x0 = null;
-  gallery.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
-  gallery.addEventListener('pointerup', (e) => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40 && !busy) goTo(cur + (dx < 0 ? 1 : -1)); });
-  gallery.addEventListener('pointercancel', () => { x0 = null; });
-}
 window.addEventListener('resize', irisSize);
-goTo(0);
 
-// ── 나란히 보기 — 한 사람씩 그림 | 사진. 꾹 누르면(260ms) 그 한 장만 크게, 돋보기를 켜고 끌면 두 장의 같은 자리에 2배 돋보기가 함께 뜬다
+// ── 질문: 그림 열 | 사진 열. 한 줄 = 한 사람(이름 줄 + 그림 + 사진). 열 제목이나 그림을 톡 → 그 열이 앞으로. 꾹(320ms) → 그 쌍을 크게
 const STANCES = { paint: { label: '그림', pct: 44 }, photo: { label: '사진', pct: 56 } };   // 예시 수치
 const VISITORS = '1,712';
-let stance = null, ci = 0, loupeOn = false;
-const cmpStage = $('#cmpStage'), loupes = { paint: $('#loupeA'), photo: $('#loupeB') };
-function showCmp(i) {
-  ci = i; const s = SITTERS[i];
-  $('#cmpName').textContent = s.name;
-  $('#cmpPaint').src = s.paint; $('#cmpPaint').style.objectPosition = s.pos; $('#cmpPaintCap').textContent = `${s.painter} · ${s.pyear}`; $('#cmpPaintMus').textContent = s.pmus;
-  $('#cmpPhoto').src = s.photo; $('#cmpPhoto').style.objectPosition = s.fpos; $('#cmpPhotoCap').textContent = `${s.photog} · ${s.fyear}`; $('#cmpPhotoMus').textContent = s.fmus;
-  Array.from($('#cmpProg').children).forEach((d, k) => { d.classList.toggle('on', k === i); d.classList.toggle('done', k < i); });
-  $('#cmpNext').textContent = i < SITTERS.length - 1 ? `다음 사람 · ${i + 2} / ${SITTERS.length}` : '한 가지 묻겠습니다';
-  cmpStage.classList.remove('swap'); void cmpStage.offsetWidth; cmpStage.classList.add('swap');
+let stance = null;
+const cols = $('#cols'), confirmBtn = $('#confirm');
+cols.insertAdjacentHTML('beforeend', SITTERS.map((s, i) => `
+  <div class="row-name">${s.name}</div>
+  <figure class="cell" data-k="paint" data-i="${i}"><div class="cell-img"><img src="${s.paint}" alt="${s.name} · 그림 ${s.painter} ${s.pyear}" style="object-position:${s.pos}" draggable="false"></div><figcaption>${s.pshort} · ${s.pyear}</figcaption></figure>
+  <figure class="cell" data-k="photo" data-i="${i}"><div class="cell-img"><img src="${s.photo}" alt="${s.name} · 사진 ${s.photog} ${s.fyear}" style="object-position:${s.fpos}" draggable="false"></div><figcaption>${s.fshort} · ${s.fyear}</figcaption></figure>`).join(''));
+function openAsk() {
+  $('#wallBody').hidden = true; $('#result').hidden = true; $('#ask').hidden = false;
+  pick(null);
+  window.scrollTo(0, 0);
+}
+function pick(k) {
+  stance = k;
+  if (k) cols.dataset.pick = k; else delete cols.dataset.pick;
+  $$('.col-hd').forEach((b) => b.setAttribute('aria-checked', b.dataset.k === k));
+  $('#askNote').hidden = !!k;
+  confirmBtn.hidden = !k;
+  if (k) { confirmBtn.textContent = `당신은 ${STANCES[k].label} 쪽 · 확정`; if (navigator.vibrate) navigator.vibrate(8); }
+}
+$$('.col-hd').forEach((b) => b.addEventListener('click', () => pick(b.dataset.k)));
+confirmBtn.addEventListener('click', () => { if (stance) reveal(); });
+
+// 꾹 누르기 → 그 쌍을 크게(위 그림 · 아래 사진). 손가락을 끌면 두 장의 같은 자리에 2× 돋보기. 손을 떼면 닫힌다. 톡(움직임 없이 짧게)은 그 열 고르기
+const peek = $('#peek'), peekIn = $('#peekIn'), loupes = { paint: $('#loupeA'), photo: $('#loupeB') };
+let hold = null;   // { id, i, k, x, y, t, on, moved, u, v }
+function openPeek(i, k) {
+  const s = SITTERS[i];
+  $('#peekName').textContent = s.name;
+  $('#peekPaint').src = s.paint; $('#peekPaint').style.objectPosition = s.pos; $('#peekPaintCap').textContent = `그림 · ${s.painter} · ${s.pyear} · ${s.pmus}`;
+  $('#peekPhoto').src = s.photo; $('#peekPhoto').style.objectPosition = s.fpos; $('#peekPhotoCap').textContent = `사진 · ${s.photog} · ${s.fyear} · ${s.fmus}`;
+  peek.hidden = false; peek.setAttribute('aria-hidden', 'false');
   hideLoupes();
+  if (navigator.vibrate) navigator.vibrate(10);
+  // 돋보기는 누른 장의 가운데에서 시작해 손가락 움직임만큼 옮겨 간다(손가락은 아직 아래 격자 위에 있으므로)
+  hold.u = 0.5; hold.v = 0.5;
+  requestAnimationFrame(() => { if (hold && hold.on) showLoupes(hold.u, hold.v); });
 }
-function openCompare() {
-  $('#wallBody').hidden = true; $('#result').hidden = true; $('#ask').hidden = true; $('#cmp').hidden = false;
-  showCmp(0); window.scrollTo(0, 0);
-}
-$('#toCmp').addEventListener('click', openCompare);
-$('#cmpNext').addEventListener('click', () => { if (ci < SITTERS.length - 1) showCmp(ci + 1); else openAsk(); });
-$('#loupeBtn').addEventListener('click', () => { loupeOn = !loupeOn; $('#loupeBtn').setAttribute('aria-pressed', loupeOn); cmpStage.classList.toggle('loupe-on', loupeOn); $('#cmpHint').textContent = loupeOn ? '그림이나 사진 위를 끌어 보세요 · 같은 자리가 2배로' : '꾹 누르면 하나만 · 돋보기를 켜고 끌면 눈과 손을 비교'; hideLoupes(); });
+function closePeek() { peek.hidden = true; peek.setAttribute('aria-hidden', 'true'); hideLoupes(); }
 // object-fit: cover 로 그려진 자리 계산 → 돋보기(2×) 배경 위치
 function coverGeom(img) {
   const box = img.getBoundingClientRect(), iw = img.naturalWidth || 1, ih = img.naturalHeight || 1;
@@ -154,104 +135,51 @@ function coverGeom(img) {
   return { box, dw, dh, ox: (box.width - dw) * (isNaN(px) ? 0.5 : px), oy: (box.height - dh) * (isNaN(py) ? 0.5 : py) };
 }
 function placeLoupe(k, u, v) {
-  const fig = $(`.cmp-f[data-k="${k}"]`), img = fig.querySelector('img'), lp = loupes[k], g = coverGeom(img), sr = cmpStage.getBoundingClientRect();
+  const img = $(`.peek-f[data-k="${k}"] img`), lp = loupes[k], g = coverGeom(img), sr = peekIn.getBoundingClientRect();
+  if (!g.box.width) return;
   const D = lp.offsetWidth || 112, Z = 2;
-  const px = g.box.left - sr.left + u * g.box.width, py = g.box.top - sr.top + v * g.box.height;   // 손가락 자리(무대 기준)
-  const lx = Math.max(0, Math.min(sr.width - D, px - D / 2)), ly = Math.max(0, py - D - 22);            // 손가락 위에 띄운다
-  lp.style.transform = `translate(${lx.toFixed(1)}px, ${ly.toFixed(1)}px)`;
+  const px = g.box.left - sr.left + u * g.box.width, py = g.box.top - sr.top + v * g.box.height;   // 보는 자리(무대 기준)
+  lp.style.transform = `translate(${(px - D / 2).toFixed(1)}px, ${(py - D / 2).toFixed(1)}px)`;
   lp.style.backgroundImage = `url("${img.src}")`;
   lp.style.backgroundSize = `${(g.dw * Z).toFixed(1)}px ${(g.dh * Z).toFixed(1)}px`;
   const ix = (u * g.box.width - g.ox) * Z, iy = (v * g.box.height - g.oy) * Z;
   lp.style.backgroundPosition = `${(D / 2 - ix).toFixed(1)}px ${(D / 2 - iy).toFixed(1)}px`;
   lp.hidden = false;
 }
-function hideLoupes() { Object.values(loupes).forEach((l) => { l.hidden = true; }); cmpStage.classList.remove('holding'); document.querySelectorAll('.cmp-f.solo').forEach((f) => f.classList.remove('solo')); }
-{
-  let holdT = 0, held = null, active = null;
-  cmpStage.addEventListener('pointerdown', (e) => {
-    const fig = e.target.closest('.cmp-f'); if (!fig) return;
-    e.preventDefault(); active = { id: e.pointerId, k: fig.dataset.k, x: e.clientX, y: e.clientY, moved: false };
-    try { cmpStage.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
-    if (loupeOn) { moveLoupe(e); return; }
-    clearTimeout(holdT);
-    holdT = setTimeout(() => { if (!active || active.moved) return; held = fig; fig.classList.add('solo'); cmpStage.classList.add('holding'); if (navigator.vibrate) navigator.vibrate(8); }, 260);
-  });
-  function moveLoupe(e) {
-    const img = $(`.cmp-f[data-k="${active.k}"] img`), r = img.getBoundingClientRect();
-    const u = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), v = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
-    placeLoupe(active.k, u, v); placeLoupe(active.k === 'paint' ? 'photo' : 'paint', u, v);
-  }
-  cmpStage.addEventListener('pointermove', (e) => {
-    if (!active || e.pointerId !== active.id) return;
-    if (Math.hypot(e.clientX - active.x, e.clientY - active.y) > 8) active.moved = true;
-    if (loupeOn) moveLoupe(e); else if (active.moved && !held) clearTimeout(holdT);
-  });
-  const up = (e) => { if (!active || e.pointerId !== active.id) return; clearTimeout(holdT); active = null; held = null; hideLoupes(); };
-  cmpStage.addEventListener('pointerup', up); cmpStage.addEventListener('pointercancel', up);
-  cmpStage.addEventListener('touchmove', (e) => { if (active) e.preventDefault(); }, { passive: false });
-  cmpStage.addEventListener('contextmenu', (e) => e.preventDefault());
-}
-
-// ── 질문 — 마지막 쌍(보들레르) 가운데 간직할 쪽을 카르트 드 비지트 앨범 자리로 끌어 넣는다. 가까우면 자석처럼 붙고, 그냥 눌러도 들어간다. 정답 없음
-const LAST = SITTERS[SITTERS.length - 1];
-const cards = $('#cards'), album = $('#album'), slot = $('#slot');
-function openAsk() {
-  $('#wallBody').hidden = true; $('#result').hidden = true; $('#cmp').hidden = true; $('#ask').hidden = false;
-  stance = null; album.classList.remove('closed', 'near'); cards.classList.remove('picked');
-  $('#cardPaint').src = LAST.paint; $('#cardPaint').style.objectPosition = LAST.pos; $('#cardPaintLb').innerHTML = `그림<small>${LAST.painter} · ${LAST.pyear}</small>`;
-  $('#cardPhoto').src = LAST.photo; $('#cardPhoto').style.objectPosition = LAST.fpos; $('#cardPhotoLb').innerHTML = `사진<small>${LAST.photog} · ${LAST.fyear}</small>`;
-  $('#albumWho').textContent = LAST.name;
-  cards.querySelectorAll('.card').forEach((c) => { c.classList.remove('lift', 'in', 'other'); c.style.transform = ''; c.setAttribute('aria-checked', 'false'); });
-  $('#askNote').hidden = false;
-  window.scrollTo(0, 0);
-}
-{
-  let d = null;
-  const near = (c) => { const r = c.getBoundingClientRect(), s = slot.getBoundingClientRect(); return Math.hypot(r.left + r.width / 2 - (s.left + s.width / 2), r.top + r.height / 2 - (s.top + s.height / 2)) < Math.max(70, s.width * 0.6); };
-  cards.addEventListener('pointerdown', (e) => {
-    const c = e.target.closest('.card'); if (!c || stance) return;
-    e.preventDefault(); d = { c, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
-    try { cards.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
-    c.classList.add('lift');
-  });
-  cards.addEventListener('pointermove', (e) => {
-    if (!d || e.pointerId !== d.id) return;
-    const dx = e.clientX - d.x, dy = e.clientY - d.y;
-    if (Math.hypot(dx, dy) > 6) d.moved = true;
-    d.c.style.transform = `translate(${dx}px, ${dy}px) scale(1.06) rotate(${(dx * 0.03).toFixed(1)}deg)`;
-    album.classList.toggle('near', near(d.c));
-  });
-  const up = (e) => {
-    if (!d || e.pointerId !== d.id) return;
-    const c = d.c; const go = !d.moved || near(c); d = null;
-    album.classList.remove('near');
-    if (go) { slide(c); return; }
-    c.classList.remove('lift'); c.style.transform = '';                 // 멀면 제자리로
-  };
-  cards.addEventListener('pointerup', up); cards.addEventListener('pointercancel', up);
-  cards.addEventListener('touchmove', (e) => { if (d) e.preventDefault(); }, { passive: false });
-}
-// 카드가 앨범 자리로 미끄러져 들어간다(자석) → 앨범이 닫힌다 → 오늘의 관람객
-function slide(c) {
-  if (stance) return;
-  stance = c.dataset.k; cards.classList.add('picked');
-  cards.querySelectorAll('.card').forEach((x) => { x.classList.toggle('other', x !== c); x.setAttribute('aria-checked', x === c); });
-  const r = c.getBoundingClientRect(), s = slot.getBoundingClientRect();
-  const k = Math.min(s.width / r.width, s.height / r.height);
-  c.classList.remove('lift'); c.classList.add('in');
-  c.style.transform = `translate(${(s.left + s.width / 2 - (r.left + r.width / 2)).toFixed(1)}px, ${(s.top + s.height / 2 - (r.top + r.height / 2)).toFixed(1)}px) scale(${k.toFixed(3)})`;
-  $('#askNote').hidden = true;
-  if (navigator.vibrate) navigator.vibrate(12);
-  setTimeout(() => { album.classList.add('closed'); }, REDUCED ? 60 : 620);
-  setTimeout(reveal, REDUCED ? 200 : 1700);
-}
-window.addEventListener('resize', () => { const c = $('#cards .card.in'); if (c) { c.style.transition = 'none'; const r0 = c.getBoundingClientRect(); void r0; c.style.transform = ''; const r = c.getBoundingClientRect(), s = slot.getBoundingClientRect(); const k = Math.min(s.width / r.width, s.height / r.height); c.style.transform = `translate(${(s.left + s.width / 2 - (r.left + r.width / 2)).toFixed(1)}px, ${(s.top + s.height / 2 - (r.top + r.height / 2)).toFixed(1)}px) scale(${k.toFixed(3)})`; requestAnimationFrame(() => { c.style.transition = ''; }); } });
+function showLoupes(u, v) { placeLoupe('paint', u, v); placeLoupe('photo', u, v); }
+function hideLoupes() { Object.values(loupes).forEach((l) => { l.hidden = true; }); }
+cols.addEventListener('pointerdown', (e) => {
+  const cell = e.target.closest('.cell'); if (!cell) return;
+  if (hold) clearTimeout(hold.t);
+  hold = { id: e.pointerId, i: +cell.dataset.i, k: cell.dataset.k, x: e.clientX, y: e.clientY, on: false, moved: false, u: 0.5, v: 0.5 };
+  try { cols.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+  hold.t = setTimeout(() => { if (!hold || hold.moved) return; hold.on = true; openPeek(hold.i, hold.k); }, 320);
+});
+cols.addEventListener('pointermove', (e) => {
+  if (!hold || e.pointerId !== hold.id) return;
+  const dx = e.clientX - hold.x, dy = e.clientY - hold.y;
+  if (!hold.on) { if (Math.hypot(dx, dy) > 8) { hold.moved = true; clearTimeout(hold.t); } return; }
+  // 손가락이 움직인 만큼 돋보기가 옮겨 간다(누른 장의 보이는 크기 기준)
+  const r = $(`.peek-f[data-k="${hold.k}"] img`).getBoundingClientRect();
+  hold.u = Math.max(0, Math.min(1, 0.5 + dx / (r.width || 1))); hold.v = Math.max(0, Math.min(1, 0.5 + dy / (r.height || 1)));
+  showLoupes(hold.u, hold.v);
+});
+const holdUp = (e) => {
+  if (!hold || e.pointerId !== hold.id) return;
+  clearTimeout(hold.t);
+  const h = hold; hold = null;
+  if (h.on) { closePeek(); return; }
+  if (!h.moved && e.type === 'pointerup') pick(h.k);           // 톡: 그 열 고르기
+};
+cols.addEventListener('pointerup', holdUp); cols.addEventListener('pointercancel', holdUp);
+cols.addEventListener('touchmove', (e) => { if (hold && hold.on) e.preventDefault(); }, { passive: false });
+cols.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // ── 오늘의 관람객: 그림 열·사진 열(네 쌍의 작은 그림)을 위에 두고, 바로 아래로 점(하나 = 열 사람)이 흩어졌다가 두 열 밑에 모인다. 내 점은 주황, 맨 마지막에
 const KEYS = ['paint', 'photo'];
 let crowd = null;
 function reveal() {
-  $('#result').hidden = false;
+  $('#ask').hidden = true; $('#result').hidden = false;
   $('#revPaint').innerHTML = SITTERS.map((s) => `<img src="${s.paint}" alt="" style="object-position:${s.pos}">`).join('');
   $('#revPhoto').innerHTML = SITTERS.map((s) => `<img src="${s.photo}" alt="" style="object-position:${s.fpos}">`).join('');
   $$('.rev-col').forEach((c) => c.classList.toggle('me', c.dataset.k === stance));
@@ -261,6 +189,7 @@ function reveal() {
   $('#mineCard').hidden = true; $('#saveStance').hidden = false; $('#saveStance').disabled = false;
   const stage = $('#crowdStage'), n = dotsFor(VISITORS);
   if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'dark', n, reduceMotion: REDUCED, seed: 5 });
+  window.scrollTo(0, 0);
   requestAnimationFrame(() => {
     crowd.resize();
     const sr = stage.getBoundingClientRect();
@@ -268,13 +197,9 @@ function reveal() {
     const counts = split(n, KEYS.map((k) => STANCES[k].pct));
     const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
     crowd.place(scatter(n, { x: 0, y: 0, w: sr.width, h: sr.height }, crowd.rnd));
-    // 두 열과 점·숫자가 한 화면에 들어오게
-    const top = window.scrollY + $('#rev').getBoundingClientRect().top - 72;
-    window.scrollTo({ top: Math.max(0, top), behavior: REDUCED ? 'auto' : 'smooth' });
     setTimeout(() => crowd.move(targetsFor(crowd, groups, KEYS.indexOf(stance)), { duration: 1250, stagger: 380 }), REDUCED ? 0 : 420);
   });
 }
-const $$ = (q) => Array.from(document.querySelectorAll(q));
 $('#saveStance').addEventListener('click', () => {
   const s = STANCES[stance];
   saveChoice('c4', { stance, label: s.label, pct: s.pct });
@@ -285,9 +210,11 @@ $('#saveStance').addEventListener('click', () => {
   toast('수집함에 저장했습니다 · 내 입장');
 });
 $('#restartWall').addEventListener('click', () => {
-  dev.fill(false); slides.forEach((s) => s.classList.remove('dev')); stance = null;
-  $('#askCta').hidden = true; $('#result').hidden = true; $('#ask').hidden = true; $('#cmp').hidden = true; $('#wallBody').hidden = false;
-  goTo(0); window.scrollTo(0, 0);
+  shot = false; frames.forEach((f) => f.classList.remove('dev')); stance = null; pick(null);
+  $('#capState').textContent = '화가의 초상 4점'; $('#capState').classList.remove('photo');
+  $('#capLine').textContent = '마네 · 위고 · 베르나르 · 보들레르'; $('#wallSub').textContent = '벽의 초상화 네 점 앞에서 셔터를 누르세요'; $('#shutterHint').textContent = '셔터'; $('#shutter').disabled = false;
+  $('#result').hidden = true; $('#ask').hidden = true; $('#wallBody').hidden = false;
+  window.scrollTo(0, 0);
 });
 
 // ── 내 초상
@@ -401,4 +328,4 @@ $('#saveMe').addEventListener('click', async () => {
 meState('idle');
 void loadImage;
 // 검수용
-window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get busy() { return busy; }, get stance() { return stance; }, get crowd() { return crowd; }, get ci() { return ci; }, get loupeOn() { return loupeOn; }, openCompare, openAsk, shoot, slide };
+window.__c4 = { get shot() { return shot; }, get busy() { return busy; }, get stance() { return stance; }, get crowd() { return crowd; }, get peek() { return !peek.hidden; }, openAsk, shoot, pick, reveal };

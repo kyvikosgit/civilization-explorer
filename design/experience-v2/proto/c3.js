@@ -1,6 +1,6 @@
 // C3 화가의 아틀리에 — 밖의 빛으로 칠하기
 // 어두운 실내 캔버스(img, 1860년대 아틀리에 팔레트로 재현 — img/c3-indoor.py) 위에 reveal 캔버스를 얹고, 손가락이 지나간 자리에 붓자국 마스크로 야외 캔버스를 드러낸다.
-// 마스크 = 짧은 결(브리슬) 획. 임파스토 하이라이트는 soft-light 로 얹는다. 약 70%(확률 표본 68%) 드러나면 남은 곳이 번지며 채워진다.
+// 마스크 = 굵은 결(브리슬) 획(작업 해상도 200~270px ≈ 폰 화면 95~125px) + 가장자리의 부드러운 번짐. 임파스토 하이라이트는 soft-light 로 얹는다. 3~5번 쓸면 대부분 드러나고, 약 70% 에서 남은 곳이 번지며 채워진다.
 // 숫자·진행률은 화면에 없다. 모든 처리는 기기 안 캔버스.
 import { toast, loadImage, clamp } from '../../../booth/js/common.js';
 
@@ -36,47 +36,60 @@ async function init() {
   render();
 }
 
-// ── 붓자국: 손가락이 지나간 자리에 짧은 획들이 이어진다
-//   한 획 = 결(브리슬) 선 여러 가닥이 같은 방향으로 눕고, 길이는 60~110px 에서 끊긴다. 획마다 굵기·불투명도·옆으로 휘는 결이 다르고,
-//   끊긴 자리는 조금 어긋나 다음 획이 시작된다. 가장자리에는 임파스토 빛·그늘이 얇게 얹힌다. (곧은 띠가 아니라 칠한 자국으로 읽히게)
+// ── 붓자국: 손가락이 지나간 자리에 굵은 획들이 이어진다
+//   한 획 = 결(브리슬) 선 30~40 가닥이 같은 방향으로 눕고(굵기 200~270px, 화면에서 약 95~125px), 길이는 130~220px 에서 끊긴다. 획마다 굵기·불투명도·옆으로 휘는 결이 다르고,
+//   끊긴 자리는 조금 어긋나 다음 획이 시작된다. 결 바깥으로 부드러운 번짐(할로)이 깃털처럼 퍼져, 한 번 쓸면 폭의 1.5배가 열린다. 가장자리에는 임파스토 빛·그늘이 얹힌다.
+const HALO = makeHalo();                            // 깃털 같은 번짐 — 가운데 1 → 가장자리 0 의 둥근 그라데이션 한 장(획마다 늘려 찍는다)
+function makeHalo() {
+  const c = makeCanvas(256, 256), g = c.getContext('2d');
+  const r = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.45, 'rgba(255,255,255,.55)'); r.addColorStop(0.8, 'rgba(255,255,255,.12)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 256, 256);
+  return c;
+}
 let stroke = null;                                  // 지금 그리는 획 { w, a, len, cap, phase, off, bristles: [{o, a, lw}] }
 function newStroke() {
-  const n = 12 + Math.floor(Math.random() * 6);
-  stroke = { w: 30 + Math.random() * 18, a: 0.55 + Math.random() * 0.4, len: 0, cap: 60 + Math.random() * 50, phase: Math.random() * Math.PI * 2,
-    curve: (Math.random() - 0.5) * 0.9, off: (Math.random() - 0.5) * 10, bristles: [] };
-  for (let i = 0; i < n; i++) stroke.bristles.push({ o: (i / (n - 1) - 0.5) + (Math.random() - 0.5) * 0.12, a: 0.35 + Math.random() * 0.65, lw: 1 + Math.random() * 2.2 });
+  const n = 30 + Math.floor(Math.random() * 11);
+  stroke = { w: 200 + Math.random() * 70, a: 0.6 + Math.random() * 0.35, len: 0, cap: 130 + Math.random() * 90, phase: Math.random() * Math.PI * 2,
+    curve: (Math.random() - 0.5) * 0.9, off: (Math.random() - 0.5) * 16, bristles: [] };
+  for (let i = 0; i < n; i++) stroke.bristles.push({ o: (i / (n - 1) - 0.5) + (Math.random() - 0.5) * 0.05, a: 0.4 + Math.random() * 0.6, lw: 2.5 + Math.random() * 4.5 });
 }
 function dab(x, y, dir, step) {
   if (!stroke) newStroke();
   const S = stroke;
   S.len += step;
   // 옆으로 살짝 휘고(결), 획마다 조금 어긋난다
-  const bend = Math.sin(S.len * 0.045 + S.phase) * 5 * S.curve + S.off;
+  const bend = Math.sin(S.len * 0.03 + S.phase) * 9 * S.curve + S.off;
   const nx = -Math.sin(dir), ny = Math.cos(dir);
   const cx = x + nx * bend, cy = y + ny * bend;
-  const w = S.w * (0.85 + 0.3 * Math.sin(S.len * 0.08 + S.phase));       // 눌렀다 떼는 굵기 변화
-  const tail = Math.min(1, (S.cap - S.len) / 14), head = Math.min(1, S.len / 10);   // 획의 시작·끝은 가늘게
-  const k = Math.max(0.15, Math.min(head, tail));
+  const w = S.w * (0.88 + 0.24 * Math.sin(S.len * 0.05 + S.phase));      // 눌렀다 떼는 굵기 변화
+  const tail = Math.min(1, (S.cap - S.len) / 28), head = Math.min(1, S.len / 20);   // 획의 시작·끝은 가늘게
+  const k = Math.max(0.25, Math.min(head, tail));
+  const L = step * 1.6 + 3;
+  // 번짐 — 결보다 넓게, 깃털처럼 (여기서 대부분이 열린다)
   mctx.save(); mctx.translate(cx, cy); mctx.rotate(dir);
+  mctx.globalAlpha = 0.16 * S.a * k;
+  const hr = w * 0.78;
+  mctx.drawImage(HALO, -L - hr * 0.3, -hr, (L + hr * 0.3) * 2, hr * 2);
+  // 결(브리슬)
   mctx.lineCap = 'round';
-  const L = step * 1.6 + 2;
   S.bristles.forEach((b) => {
     mctx.globalAlpha = S.a * b.a * k;
     mctx.strokeStyle = '#fff'; mctx.lineWidth = b.lw * (0.7 + 0.6 * k);
     const oy = b.o * w;
-    mctx.beginPath(); mctx.moveTo(-L, oy + (Math.random() - 0.5) * 1.2); mctx.lineTo(L * 0.6, oy + (Math.random() - 0.5) * 1.2); mctx.stroke();
+    mctx.beginPath(); mctx.moveTo(-L, oy + (Math.random() - 0.5) * 2); mctx.lineTo(L * 0.6, oy + (Math.random() - 0.5) * 2); mctx.stroke();
   });
   // 결 사이를 메우는 옅은 바탕(획 가운데만)
-  mctx.globalAlpha = 0.34 * S.a * k;
+  mctx.globalAlpha = 0.36 * S.a * k;
   mctx.fillStyle = '#fff';
-  mctx.beginPath(); mctx.ellipse(0, 0, L + w * 0.1, w * 0.38, 0, 0, Math.PI * 2); mctx.fill();
+  mctx.beginPath(); mctx.ellipse(0, 0, L + w * 0.1, w * 0.4, 0, 0, Math.PI * 2); mctx.fill();
   mctx.restore();
   // 임파스토 — 획 가장자리의 빛과 그늘 (soft-light 로 얹힌다)
-  gctx.save(); gctx.translate(cx, cy); gctx.rotate(dir); gctx.lineCap = 'round'; gctx.lineWidth = 1.1;
+  gctx.save(); gctx.translate(cx, cy); gctx.rotate(dir); gctx.lineCap = 'round'; gctx.lineWidth = 2.4;
   const e = w * 0.46;
   gctx.globalAlpha = 0.5 * k;
-  gctx.strokeStyle = 'rgba(255,248,225,.5)'; gctx.beginPath(); gctx.moveTo(-L, -e); gctx.lineTo(L * 0.6, -e + (Math.random() - 0.5) * 1.5); gctx.stroke();
-  gctx.strokeStyle = 'rgba(40,24,10,.28)'; gctx.beginPath(); gctx.moveTo(-L, e); gctx.lineTo(L * 0.6, e + (Math.random() - 0.5) * 1.5); gctx.stroke();
+  gctx.strokeStyle = 'rgba(255,248,225,.5)'; gctx.beginPath(); gctx.moveTo(-L, -e); gctx.lineTo(L * 0.6, -e + (Math.random() - 0.5) * 3); gctx.stroke();
+  gctx.strokeStyle = 'rgba(40,24,10,.28)'; gctx.beginPath(); gctx.moveTo(-L, e); gctx.lineTo(L * 0.6, e + (Math.random() - 0.5) * 3); gctx.stroke();
   gctx.restore();
   if (S.len >= S.cap) stroke = null;                // 획이 끝나면 다음 획은 새 굵기·결로
 }
@@ -144,9 +157,9 @@ function onMove(e) {
   }
   last = p; lastT = now;
   render();
-  if (dabs % 6 === 0 && coverage() >= 0.68) complete(p);
+  if (dabs % 6 === 0 && coverage() >= 0.7) complete(p);
 }
-function onUp() { if (painting && !done && outdoor && coverage() >= 0.68) complete(last); painting = false; last = null; stroke = null; }   // 손을 뗄 때도 확인
+function onUp() { if (painting && !done && outdoor && coverage() >= 0.7) complete(last); painting = false; last = null; stroke = null; }   // 손을 뗄 때도 확인
 stage.addEventListener('pointerdown', onDown);
 stage.addEventListener('pointermove', onMove);
 stage.addEventListener('pointerup', onUp);

@@ -124,9 +124,8 @@
 </div>
 </template>
 
-<!-- 1 고르기 — 부스 C-2 Step 2 화면(booth/c2.html · css/c2.css · js/c2.js)을 그대로 옮겨 왔다: 흰 상단 바(뒤로 · INDUSTRIAL REVOLUTION · 단계 수), 두 단계 칩, 현장 단서 서랍, 화면을 채우는 지도, 아래 칩 줄, 확인 시트.
-     ① 출발역 — 파리 종착역 5곳 지도에 생라자르만 켜져 있다(노르망디행 서부철도는 생라자르에서 떠났다) → "생라자르역에서 출발" 한 번
-     ② 도착지 — 파리 → 노르망디 해안으로 확대, 행선지 5곳(행정구역 영역 + 역점). 누르면 노선이 이어지고 그 자리의 사진이 역 옆에 붙는다 → "르아브르행 표를 끊을까요?" 시트 -->
+<!-- 1 고르기 — 부스 C-2 화면(booth/c2.html · css/c2.css · js/c2.js)의 도착지 단계를 그대로 옮겨 왔다: 흰 상단 바(뒤로 · INDUSTRIAL REVOLUTION), 현장 단서 서랍, 화면을 채우는 지도, 아래 칩 줄, 확인 시트.
+     열면 바로 파리 → 노르망디 해안 지도. 생라자르역은 출발지로 표시만 되고(고르지 않는다), 행선지 5곳(행정구역 영역 + 역점)을 누르면 노선이 이어지고 그 자리의 사진이 역 옆에 붙는다 → "르아브르행 표를 끊을까요?" 시트 -->
 <section class="scr quiz on" id="s1">
   <div id="mapBox" class="map-box">
     <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="지도"></svg>
@@ -135,19 +134,15 @@
     <div class="quiz-bar">
       <a class="icon-btn" href="../proto/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
       <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
-      <span class="quiz-count" id="stepCount">1/2</span>
+      <span class="quiz-count"></span>
     </div>
-    <div class="progress" id="prog"><i class="on"></i><i></i></div>
     <div class="banner">
       <strong>생라자르역 매표창 앞.<br>어디까지 가시겠습니까?</strong>
       <div class="stage-row">
-        <ol class="stages" aria-label="단계">
-          <li id="stg1" class="on"><b>1</b>출발역</li>
-          <li id="stg2"><b>2</b>도착지</li>
-        </ol>
+        <ol class="stages" aria-label="단계"><li class="on"><b></b>도착지</li></ol>
         <button id="openClues" class="clue-btn" type="button">현장 단서 <span>4</span></button>
       </div>
-      <p id="stageHint" class="stage-hint"></p>
+      <p id="stageHint" class="stage-hint"><b>생라자르역</b>에서 출발합니다. 지도의 역이나 영역을 누르면 그곳까지 선이 이어집니다. <b>어디까지 가시겠습니까?</b></p>
     </div>
   </header>
   <!-- 행선지 사진 카드 — 고른 역 옆에 붙는다(지도를 밀면 같이 움직인다). 사진은 위키미디어 공용 자유 이용 사진, 크레딧은 카드 아래 -->
@@ -157,7 +152,6 @@
     <span class="pc-go">표 끊기</span>
   </button>
   <div class="quiz-bottom">
-    <button class="btn depart" id="depart" type="button">생라자르역에서 출발</button>
     <div id="chips" class="chips" role="radiogroup" aria-label="선택지"></div>
   </div>
 </section>
@@ -268,9 +262,9 @@
 <div class="toast" id="toast">수집함에 저장했습니다</div>
 
 <script type="module">
-// ── 부스 프로토타입 booth/js/c2.js 를 그대로 옮겼다: 지도 그리기(el · proj · initMap · smoothPath · drawRoute · 라벨 · 영역 강조), 두 단계(출발역 → 도착지)와 시점 전환(fitStage),
+// ── 부스 프로토타입 booth/js/c2.js 의 도착지 단계를 그대로 옮겼다: 지도 그리기(el · proj · initMap · smoothPath · drawRoute · 라벨 · 영역 강조), 시점 맞춤(fitStage),
 //    팬·핀치 입력(bindInput), 칩(buildChips · markChips · regionThumb), 확인 시트, 현장 단서 서랍(CLUES).
-//    바꾼 것: ① 출발역은 생라자르 하나만 켜 둔다(노르망디행 서부철도의 출발역) → ② 도착지는 노르망디 5곳(행정구역 영역 + 역점, zones.json). 고르면 그 자리의 사진 카드가 역 옆에 붙고 "표를 끊을까요?" 시트.
+//    바꾼 것: 출발역 단계 없음 — 열면 바로 파리 → 노르망디 해안. 생라자르는 출발지로 표시만(노르망디행 서부철도의 출발역). 도착지는 노르망디 5곳(행정구역 영역 + 역점, zones.json). 고르면 그 자리의 사진 카드가 역 옆에 붙고 "표를 끊을까요?" 시트.
 //    데이터: map.json = booth/assets/data/map.json 사본 · zones.json = france-geojson arrondissements/cantons를 같은 메르카토르로 투영
 const NS = 'http://www.w3.org/2000/svg';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -279,15 +273,8 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// ── 1870년대 파리의 철도 종착역 5곳(부스 STATIONS, 실제 좌표). 이 체험에서는 생라자르만 고를 수 있다
-const STATIONS = [
-  { id: 'lazare', ko: '생라자르역', fr: 'Gare Saint-Lazare', ll: [2.3253, 48.8763], lab: [-10, -34, 'end'], co: '서부철도(Chemins de fer de l’Ouest)' },
-  { id: 'nord', ko: '북역', fr: 'Gare du Nord', ll: [2.3553, 48.8809], lab: [6, -40, 'start'] },
-  { id: 'est', ko: '동역', fr: 'Gare de l’Est', ll: [2.3592, 48.8768], lab: [18, 6, 'start'] },
-  { id: 'lyon', ko: '리옹역', fr: 'Gare de Lyon', ll: [2.3740, 48.8443], lab: [14, 34, 'start'] },
-  { id: 'mont', ko: '몽파르나스역', fr: 'Gare Montparnasse', ll: [2.3245, 48.8430], lab: [-14, 34, 'middle'] },
-];
-const ORIGIN = { ...STATIONS[0], lab: [8, 24, 'end'] };
+// ── 출발역: 생라자르(실제 좌표). 노르망디행 서부철도의 파리 종착역 — 지도에 출발지로 표시만 한다
+const ORIGIN = { id: 'lazare', ko: '생라자르역', fr: 'Gare Saint-Lazare', ll: [2.3253, 48.8763], lab: [8, 24, 'end'], co: '서부철도(Chemins de fer de l’Ouest)' };
 // 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 브레오테-뵈즈빌(0.40,49.61 — 페캉 지선 분기) · 아니에르
 const V = { mantes: [1.72, 48.99], vernon: [1.4850, 49.0930], rouen: [1.0993, 49.4431], yvetot: [0.753, 49.617], beuzeville: [0.40, 49.61], asnieres: [2.285, 48.905] };
 const DEST = [
@@ -308,7 +295,7 @@ const PLACES = window.PLACES = {
 // 목적지 영역 색 — 부스 지역 양피지 색 계열에서 고른 5색
 const ZTINT = { argenteuil: '#DDAE74', vernon: '#C3D0A4', rouen: '#D9BE8C', lesifs: '#E4D47E', lehavre: '#C89E72' };
 const ZORDER = ['argenteuil', 'vernon', 'rouen', 'lehavre', 'lesifs'];
-const FIT = { lon0: -0.62, lon1: 2.7, lat0: 48.72, lat1: 49.92 };    // ② 파리 → 노르망디 해안(바다 쪽 여유)
+const FIT = { lon0: -0.62, lon1: 2.7, lat0: 48.72, lat1: 49.92 };    // 파리 → 노르망디 해안(바다 쪽 여유)
 
 // ── 현장 단서 (부스 소품과 같은 것: 벽면 그림 · 신문 · 책상 위 시간표 · 엽서) — booth/js/c2.js CLUES 그대로
 const CLUES = [
@@ -336,7 +323,6 @@ $('#openClues').addEventListener('click', () => clueSheet.open());
 
 let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null;
 const view = { s: 1, tx: 0, ty: 0, min: 0.1, max: 200 };
-let stage = 'station';                 // 'station' | 'region'
 let picked = null, busy = false;
 const proj = (lon, lat) => { const merc = (a) => (Math.log(Math.tan(Math.PI / 4 + (a * Math.PI) / 360)) * 180) / Math.PI; const P = M.projection; return [(lon - P.lon0) * P.k, (merc(P.lat1) - merc(lat)) * P.k]; };
 const mix = (hex, to, t) => { const a = hex.match(/\w\w/g).map((h) => parseInt(h, 16)), b = to.match(/\w\w/g).map((h) => parseInt(h, 16)); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
@@ -361,8 +347,8 @@ async function initMap() {
   ZORDER.forEach((id) => { zoneEls[id] = el('path', { d: Z.zones[id].d, fill: ZTINT[id], 'fill-opacity': 0.92, class: 'zone', 'data-id': id, stroke: '#8a6d47', 'stroke-width': 0.7, 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world); });
   el('path', { d: M.regionBorders, fill: 'none', stroke: '#8a6d47', 'stroke-width': 0.9, 'stroke-dasharray': '2 3', 'stroke-opacity': 0.7, 'vector-effect': 'non-scaling-stroke' }, world);
   el('path', { d: M.borders, fill: 'none', stroke: '#6b5235', 'stroke-width': 1.3, 'stroke-dasharray': '6 3 1 3', 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke' }, world);
-  // 파리 시가지(데파르트망 75) + 근교 — 출발역 고를 때 확대해서 보인다
-  parisG = el('g', {}, world);
+  // 파리 시가지(데파르트망 75) + 근교 — 출발지 생라자르가 놓인 자리
+  parisG = el('g', { opacity: 0.6 }, world);
   el('path', { d: M.regions.petitecouronne, fill: '#DCC8A0', stroke: '#8a6d47', 'stroke-width': 0.8, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke' }, parisG);
   el('path', { d: M.regions.paris, fill: '#F1E2C0', stroke: '#6b5235', 'stroke-width': 1.4, 'vector-effect': 'non-scaling-stroke' }, parisG);
   ZORDER.forEach((id) => { zoneHl[id] = el('path', { d: Z.zones[id].d, fill: 'none', stroke: '#E0662C', 'stroke-width': 2.4, opacity: 0, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round', 'pointer-events': 'none' }, world); });
@@ -376,22 +362,15 @@ async function initMap() {
   labels = el('g', { 'pointer-events': 'none' }, svg);     // 이름표는 핀 위에 — 고른 역 이름이 가려지지 않게
   $('#cfRetry').addEventListener('click', () => { confirmSheet.close(); });
   $('#placeCard').addEventListener('click', () => { if (picked && !busy) openConfirm(); });
-  $('#depart').addEventListener('click', () => { if (stage === 'station') setStage('region'); });
   bindInput();
-  setStage('station', false);
+  buildChips();
+  fitStage(false);
   window.addEventListener('resize', () => fitStage(false));
   window.mapReady = true;
 }
 
-// ── 시점: 단계마다 맞춰 부드럽게 확대·축소 (부스 fitStage 그대로. ②는 FIT 경위도 상자)
+// ── 시점: 파리 → 노르망디 해안(FIT 경위도 상자)에 맞춰 부드럽게 (부스 fitStage 그대로)
 function stageBounds() {
-  if (stage === 'station') {
-    const pts = STATIONS.map((s) => proj(...s.ll));
-    const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
-    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
-    const half = Math.max(Math.max(...xs) - Math.min(...xs), (Math.max(...ys) - Math.min(...ys)) * 1.2) * 1.75;
-    return [cx - half, cy - half * 0.9, cx + half, cy + half * 0.9];
-  }
   const [x0, y0] = proj(FIT.lon0, FIT.lat1), [x1, y1] = proj(FIT.lon1, FIT.lat0);
   return [x0, y0, x1, y1];
 }
@@ -405,7 +384,7 @@ function fitStage(animate = true) {
   const pad = 16;
   const s = Math.min((box.width - pad * 2) / (x1 - x0), (bottom - top - pad * 2) / (y1 - y0));
   const to = { s, tx: (box.width - (x1 - x0) * s) / 2 - x0 * s, ty: top + (bottom - top - (y1 - y0) * s) / 2 - y0 * s };
-  view.min = s * 0.7; view.max = s * (stage === 'station' ? 3 : 6);
+  view.min = s * 0.7; view.max = s * 6;
   if (!animate || RM) { Object.assign(view, to); applyView(); return; }
   const from = { s: view.s, tx: view.tx, ty: view.ty }, t0 = performance.now(), D = 900, id = ++tween;
   const cxw = (box.width / 2 - from.tx) / from.s, cyw = ((top + bottom) / 2 - from.ty) / from.s;
@@ -433,18 +412,7 @@ function drawLabels() {
   const txt = (x, y, fr, ko, fs, anchor = 'middle', w = 600, dim = false) =>
     `<text class="lbl${dim ? ' dim' : ''}" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${fs}" font-weight="${w}" stroke-width="3">${fr}</text>` +
     (ko ? `<text class="lbl-ko${dim ? ' dim' : ''}" x="${x}" y="${y + fs * 1.05}" text-anchor="${anchor}" font-size="${fs * 0.82}" stroke-width="3">${ko}</text>` : '');
-  if (stage === 'station') {
-    // ① 파리의 종착역 5곳 — 생라자르만 켜져 있고(주황), 나머지는 흐리다
-    const [px, py] = toScreen(M.anchors.paris);
-    h += `<text class="lbl-faint" x="${px}" y="${py + 4}" text-anchor="middle" font-size="22">PARIS</text>`;
-    STATIONS.forEach((s) => {
-      const [x, y] = toScreen(proj(...s.ll)); const on = s.id === 'lazare';
-      const lx = x + s.lab[0], ly = y + s.lab[1];
-      h += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly + (s.lab[1] < 0 ? 4 : -12)}" stroke="#6b5235" stroke-width="1" opacity="${on ? 1 : 0.45}"/>`;
-      h += `<circle cx="${x}" cy="${y}" r="${on ? 9 : 6}" fill="${on ? '#E0662C' : '#8A7A66'}" stroke="#FFF1DC" stroke-width="2.5" opacity="${on ? 1 : 0.7}"/>`;
-      h += txt(lx, ly, s.fr, s.ko, 13, s.lab[2], on ? 800 : 600, !on);
-    });
-  } else {
+  {
     const [sx, sy] = toScreen(proj(0.35, 49.86));
     h += `<text class="lbl-sea" x="${sx}" y="${sy}" text-anchor="middle" font-size="13">La Manche</text>`;
     const [px, py] = toScreen(M.anchors.paris);
@@ -469,38 +437,18 @@ function drawLabels() {
   labels.innerHTML = h;
 }
 
-// ── 단계 전환 (부스 setStage 그대로 + 칩·단추·안내문)
-function setStage(st, animate = true) {
-  stage = st;
-  $('#stg1').classList.toggle('on', st === 'station'); $('#stg1').classList.toggle('done', st === 'region');
-  $('#stg2').classList.toggle('on', st === 'region');
-  $('#stepCount').textContent = st === 'station' ? '1/2' : '2/2';
-  $$('#prog i').forEach((i, k) => i.classList.toggle('on', k === 0 || st === 'region'));
-  $('#stageHint').innerHTML = st === 'station'
-    ? '① 1870년대 파리에는 방면마다 출발역이 따로 있었습니다. 노르망디행 서부철도는 <b>생라자르역</b>에서 떠났습니다.'
-    : '② <b>생라자르역</b>에서 출발합니다. 지도의 역이나 영역을 누르면 그곳까지 선이 이어집니다. <b>어디까지 가시겠습니까?</b>';
-  $('#depart').hidden = st !== 'station';
-  parisG.style.opacity = st === 'station' ? 1 : 0.6;
-  ZORDER.forEach((id) => { zoneEls[id].style.pointerEvents = st === 'region' ? 'auto' : 'none'; });
-  if (st === 'station') { picked = null; clearRoute(); placeCard(null); }
-  buildChips();
-  fitStage(animate);
-}
+// ── 칩 줄(부스 buildChips · markChips 의 도착지 단계 그대로)
 function buildChips() {
   const box = $('#chips');
-  if (stage === 'station') {
-    box.innerHTML = STATIONS.map((c) => `<button class="chip station${c.id === 'lazare' ? '' : ' dim'}" role="radio" aria-checked="${c.id === 'lazare'}" data-id="${c.id}" ${c.id === 'lazare' ? '' : 'disabled'}><span class="dot"></span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
-  } else {
-    box.innerHTML = DEST.map((c) => `<button class="chip region" role="radio" aria-checked="false" data-id="${c.id}"><span class="thumb" style="--z:${ZTINT[c.id]}">${regionThumb(c.id)}</span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
-    $$('.chip', box).forEach((b) => b.addEventListener('click', () => pick(b.dataset.id)));
-  }
+  box.innerHTML = DEST.map((c) => `<button class="chip region" role="radio" aria-checked="false" data-id="${c.id}"><span class="thumb" style="--z:${ZTINT[c.id]}">${regionThumb(c.id)}</span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
+  $$('.chip', box).forEach((b) => b.addEventListener('click', () => pick(b.dataset.id)));
   markChips();
 }
 function markChips() {
-  const cur = stage === 'station' ? 'lazare' : picked && picked.id;
+  const cur = picked && picked.id;
   $$('#chips .chip').forEach((b) => { const on = b.dataset.id === cur; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: RM ? 'auto' : 'smooth' }); });
   ZORDER.forEach((id) => {
-    const on = stage === 'region' && cur === id;
+    const on = cur === id;
     zoneHl[id].setAttribute('opacity', on ? 1 : 0);
     zoneEls[id].setAttribute('fill', on ? mix(ZTINT[id], '#F3E7CB', 0.35) : ZTINT[id]); zoneEls[id].setAttribute('fill-opacity', on ? 1 : 0.92);
   });
@@ -559,7 +507,7 @@ function placeCardPos() {
 // ── 고르기 → 노선 애니메이션 + 사진 카드 → "표를 끊을까요?" 시트 (부스 pick 의 지역 단계 그대로)
 let pickRun = 0;
 async function pick(id) {
-  if (stage !== 'region' || busy || confirmSheet.isOpen) return;
+  if (busy || confirmSheet.isOpen) return;
   const run = ++pickRun;
   picked = DEST.find((s) => s.id === id); if (!picked) return;
   markChips(); drawLabels(); drawRoute(picked); placeCard(picked);
@@ -620,7 +568,7 @@ function bindInput() {
     if (!pts.has(e.pointerId)) return;
     const p = pts.get(e.pointerId); pts.delete(e.pointerId);
     if (pts.size < 2) pinch = null;
-    if (down && !down.moved && e.type === 'pointerup' && stage === 'region') { const hit = stationAt(p[0], p[1]) || zoneAt(p[0], p[1]); if (hit) pick(hit); }
+    if (down && !down.moved && e.type === 'pointerup') { const hit = stationAt(p[0], p[1]) || zoneAt(p[0], p[1]); if (hit) pick(hit); }
     if (!pts.size) { pan = null; down = null; }
   };
   box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
@@ -631,7 +579,7 @@ function bindInput() {
     view.tx = mx - w[0] * view.s; view.ty = my - w[1] * view.s; applyView();
   }, { passive: false });
 }
-window.pick = pick; window.getPicked = () => picked; window.DEST = DEST; window.setStage = setStage; window.getStage = () => stage; window.closeConfirm = () => confirmSheet.close();
+window.pick = pick; window.getPicked = () => picked; window.DEST = DEST; window.closeConfirm = () => confirmSheet.close();
 window.refit = () => fitStage(false); window.screenOf = (id) => toScreen(proj(...DEST.find((d) => d.id === id).ll));   // 검수용
 window.mapData = { get M() { return M; }, get Z() { return Z; }, proj, mix, ZTINT, ZORDER, DEST, ORIGIN };   // 발권 뒤 "오늘의 관람객" 작은 지도가 같은 자료를 쓴다
 initMap();
