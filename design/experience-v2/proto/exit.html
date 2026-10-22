@@ -8,6 +8,7 @@
 <title>출구 · 오늘의 관람객</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="css/crowd.css">
 <link rel="stylesheet" href="exit.css">
 </head>
 <body class="page exit">
@@ -32,10 +33,18 @@
     <p class="sub">같은 전시, 다른 받아들임. 네 곳에서 택한 당신의 입장을 오늘의 관람객 옆에 놓습니다.</p>
   </header>
 
-  <section class="mine rise" style="--i:2" aria-label="나의 네 입장 · 오늘의 관람객">
-    <div class="mhead"><h2>나의 네 입장</h2><span class="cap" id="todayCap">오늘의 관람객 · 수치는 예시</span></div>
-    <div class="rows" id="rows"></div>
-    <div class="same" id="same"></div>
+  <!-- 나의 네 입장 · 오늘의 관람객 — 점(하나 = 열 사람)이 위에서 아래로 흐르며 줄마다 나와 같은 쪽만 남는다(js/crowd.js) -->
+  <section class="mine crowd dark rise" style="--i:2" aria-label="나의 네 입장 · 오늘의 관람객">
+    <div class="crowd-cap">Aujourd'hui</div>
+    <div class="crowd-line">나의 네 입장 · 오늘의 관람객</div>
+    <div class="flow" id="flow">
+      <div class="flow-stage" id="flowStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
+      <div class="flow-rows" id="rows">
+        <div class="flow-gate"><span>모네의 방을 나온 사람</span><b id="gateN"></b></div>
+      </div>
+      <div class="flow-end" id="same"></div>
+    </div>
+    <div class="crowd-stamp" id="crowdStamp"></div>
   </section>
 
   <section class="artifact rise" style="--i:3" aria-label="남은 것">

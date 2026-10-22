@@ -4,6 +4,7 @@
 // 서버 없음, 업로드 없음. 모든 처리는 기기 안. 입장은 기기(localStorage)에만 남고 출구 화면(exit)이 읽는다.
 import { toast, loadImage, startCamera, stopCamera, cameraErrorText } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
+import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine } from './js/crowd.js';
 import * as N from '../../../booth/js/nadar.js';
 
 const $ = (s) => document.querySelector(s);
@@ -157,13 +158,30 @@ function openAsk() {
   window.scrollTo(0, 0);
 }
 $('#toAsk').addEventListener('click', openAsk);
+// 오늘의 관람객: 두 줄은 그대로 둔 채, 바로 아래로 점(하나 = 열 사람)이 흩어졌다가 그림 줄·사진 줄 밑에 모인다. 내 점은 주황, 맨 마지막에
+const KEYS = ['paint', 'photo'];
+let crowd = null;
 function reveal() {
-  $('#result').hidden = false;                       // 두 줄은 그대로 둔 채 아래에 오늘의 비율이 이어진다
-  $('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
-  $('#bars').innerHTML = Object.entries(STANCES).map(([k, s], i) => `
-    <div class="bar ${k === stance ? 'me' : ''}" style="--i:${i}"><div class="lb"><span>${s.label}${k === stance ? ' · 나' : ''}</span><b>${s.pct}%</b></div><div class="tr"><div class="fl" style="width:${s.pct}%"></div></div></div>`).join('');
+  $('#result').hidden = false;
+  $('#askMine').hidden = true;                       // "당신은 사진 쪽"은 아래 숫자 줄(사진 · 나)이 이어받는다
+  $('#crowdCols').innerHTML = KEYS.map((k) => { const s = STANCES[k], me = k === stance; return `<div class="crowd-col${me ? ' me' : ''}"><b class="n">${s.pct}<i>%</i></b><span class="lab">${s.label}${me ? ' · 나' : ''}</span></div>`; }).join('');
+  $('#crowdLine').innerHTML = `사람을 남기는 데, 당신은 <em>${STANCES[stance].label} 쪽</em>`;
+  $('#crowdStamp').textContent = stampLine(VISITORS);
   $('#mineCard').hidden = true; $('#saveStance').hidden = false; $('#saveStance').disabled = false;
-  setTimeout(() => $('#result').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }), 60);
+  const stage = $('#crowdStage'), n = dotsFor(VISITORS);
+  if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'dark', n, reduceMotion: REDUCED, seed: 5 });
+  requestAnimationFrame(() => {
+    crowd.resize();
+    const sr = stage.getBoundingClientRect();
+    const rects = KEYS.map((k) => { const r = $(`.col-h[data-k="${k}"]`).getBoundingClientRect(); return { x: r.left - sr.left + 6, y: 10, w: r.width - 12, h: sr.height - 18 }; });
+    const counts = split(n, KEYS.map((k) => STANCES[k].pct));
+    const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
+    crowd.place(scatter(n, { x: 0, y: 0, w: sr.width, h: sr.height }, crowd.rnd));
+    // 두 줄의 끝과 점·숫자가 한 화면에 들어오게
+    const top = window.scrollY + sr.top - window.innerHeight * 0.4;
+    window.scrollTo({ top: Math.max(0, top), behavior: REDUCED ? 'auto' : 'smooth' });
+    setTimeout(() => crowd.move(targetsFor(crowd, groups, KEYS.indexOf(stance)), { duration: 1250, stagger: 380 }), REDUCED ? 0 : 420);
+  });
 }
 $('#saveStance').addEventListener('click', () => {
   const s = STANCES[stance];
@@ -291,4 +309,4 @@ $('#saveMe').addEventListener('click', async () => {
 meState('idle');
 void loadImage;
 // 검수용
-window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get busy() { return busy; }, get stance() { return stance; }, choose, openAsk, shoot };
+window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get busy() { return busy; }, get stance() { return stance; }, get crowd() { return crowd; }, choose, openAsk, shoot };

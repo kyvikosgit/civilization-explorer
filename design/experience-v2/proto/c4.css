@@ -139,16 +139,22 @@ body.c4 { --page-bg: #0F0E0D; background: #0F0E0D; color: #FFFFFF; }
 .ask-mine { margin: 2px 0 0; font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: -0.02em; color: #fff; animation: fadeTo .35s ease both; }
 .ask-mine[hidden] { display: none; }
 .ask-mine b { color: var(--point); }
-.result-h { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
-.result .bars { margin-top: 2px; }
-.result .hist-dark { margin-top: 8px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.2); text-align: left; font-size: 14.5px; line-height: 1.55; color: rgba(255,255,255,.88); }
+/* 오늘의 관람객 — 두 줄 바로 아래 점이 모이고, 그림|사진 기둥에 맞춘 숫자 */
+.result { padding-top: 0; gap: 0; }
+.result .crowd-stage { margin-top: 2px; }
+.result .crowd-cols { grid-template-columns: 1fr 64px 1fr; gap: 0 10px; }
+.result .crowd-col:last-child { grid-column: 3; }
+.result .crowd-cap { margin-top: 16px; }
+.result .crowd-stamp { margin-top: 10px; }
+.result .hist-dark { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.2); text-align: left; font-size: 14.5px; line-height: 1.55; color: rgba(255,255,255,.88); }
 .result .hist-dark p { margin: 6px 0 0; }
 .result .hist-dark small { margin-top: 4px; }
 .mine-card { display: grid; gap: 2px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,.1); text-align: left; animation: fadeTo .4s ease both; }
 .mine-card[hidden] { display: none; }
 .mine-card b { font-family: var(--display); font-weight: 800; font-size: 18px; }
 .mine-card small { font-size: 13px; color: rgba(255,255,255,.7); }
-.result .me-actions { margin-top: 10px; }
+.result .me-actions { margin-top: 14px; }
+.result .mine-card { margin-top: 12px; }
 @keyframes fadeTo { from { opacity: 0; } to { opacity: 1; } }
 
 /* ── 내 초상 */

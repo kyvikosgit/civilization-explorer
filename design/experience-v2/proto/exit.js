@@ -1,11 +1,13 @@
-// 출구 — 오늘의 관람객 모아 보기(옛 C5 마무리 화면). 질문 없음. 〈인상, 해돋이〉 앞에서 네 곳(C0·C1·C2·C4)의 내 입장과 오늘의 관람객 비율을 모아 본다.
-//   조합 5×2×5×2 = 100가지 → "같은 조합 N%". 남는 것은 C2 그해의 기차표 하나. 저장·공유는 기기에서 1080×1920 이미지를 그린다.
+// 출구 — 오늘의 관람객 모아 보기(옛 C5 마무리 화면). 질문 없음. 〈인상, 해돋이〉 앞에서 네 곳(C0·C1·C2·C4)의 내 입장을 오늘의 관람객 옆에 놓는다.
+//   오늘의 관람객은 점(하나 = 열 사람)으로 왼쪽 기둥을 위에서 아래로 흐른다. 줄마다 나와 같은 쪽만 다음 줄로 내려가고 나머지는 그 줄 왼쪽에 남는다.
+//   맨 아래 남은 사람이 "나와 같은 길 7.3% · 94명". 조합 5×2×5×2 = 100가지. 남는 것은 C2 그해의 기차표 하나. 저장·공유는 기기에서 1080×1920 이미지를 그린다.
 //   다른 프로토타입이 localStorage(m100_choice)에 남긴 입장이 있으면 그것을, 없으면 예시 값을 쓴다. 서버는 숫자만(여기서는 예시 수치).
 import { toast, loadImage } from '../../../booth/js/common.js';
-import { loadChoices, clearChoices } from './js/proto-common.js';
+import { loadChoices, clearChoices, reduceMotion } from './js/proto-common.js';
+import { createCrowd, dotsFor, packDisc, packRect, scatter, discRadius, stampLine, fmt, rng, POINT } from './js/crowd.js';
 
 const $ = (s) => document.querySelector(s);
-const VISITORS = '3,402';
+const VISITORS = 1284;
 
 // C0 후보작 5점(보드 C0 · c0.js WORKS) — 오늘의 비율은 예시
 const C0 = {
@@ -35,34 +37,89 @@ const mine = {
   c4: C4[stored.c4?.stance] ? { k: stored.c4.stance, real: true } : { k: 'photo', real: false },
 };
 const rows = [
-  { st: 'C0 아카데미 살롱', q: '메달을 준 그림', thumb: C0[mine.c0.n].src, val: `${mine.c0.n}번 〈${C0[mine.c0.n].title}〉`, pct: C0[mine.c0.n].pct, real: mine.c0.real },
-  { st: 'C1 시민사회', q: '그림이 걸릴 자격은 누가', big: mine.c1.k === 'jury' ? '심' : '보', val: C1[mine.c1.k].label, pct: C1[mine.c1.k].pct, real: mine.c1.real },
+  { st: 'C0 아카데미 살롱', q: '올해의 메달', thumb: C0[mine.c0.n].src, val: `${mine.c0.n}번 〈${C0[mine.c0.n].title}〉`, pct: C0[mine.c0.n].pct, real: mine.c0.real },
+  { st: 'C1 시민사회', q: '그림이 걸릴 자격은 누가', val: C1[mine.c1.k].label, pct: C1[mine.c1.k].pct, real: mine.c1.real },
   { st: 'C2 산업혁명', q: '어디까지 갈까', thumb: `../ticket/ticket-front-${C2[mine.c2.k].ticket}.png`, val: `${C2[mine.c2.k].label} · ${C2[mine.c2.k].year}년 표`, pct: C2[mine.c2.k].pct, real: mine.c2.real },
-  { st: 'C4 나다르 사진관', q: '그림인가 사진인가', big: C4[mine.c4.k].label, val: C4[mine.c4.k].label, pct: C4[mine.c4.k].pct, real: mine.c4.real },
+  { st: 'C4 나다르 사진관', q: '그림인가 사진인가', val: C4[mine.c4.k].label, pct: C4[mine.c4.k].pct, real: mine.c4.real },
 ];
 const anyReal = Object.values(mine).some((m) => m.real);
-$('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
-$('#rows').innerHTML = rows.map((r, i) => `
-  <div class="row" style="animation-delay:${i * 90}ms">
-    <div class="th">${r.thumb ? `<img src="${r.thumb}" alt="">` : `<b>${r.big}</b>`}</div>
-    <div>
-      <div class="k"><span>${r.st} · ${r.q}</span><i>${anyReal && !r.real ? '예시' : ''}</i></div>
-      <div class="v"><span>${r.val}</span><b>${r.pct}%</b></div>
-      <div class="tr"><div class="fl" style="width:${r.pct}%; animation-delay:${i * 90 + 200}ms"></div></div>
-    </div>
-  </div>`).join('');
-
-// 같은 조합 — 100가지 중 하나. 예시: 네 비율의 곱을 기준으로 결정적 값
+// 같은 길 — 100가지 조합 중 하나. 예시: 네 비율의 곱
 const comboKey = `${mine.c0.n}|${mine.c1.k}|${mine.c2.k}|${mine.c4.k}`;
 const product = rows.reduce((a, r) => a * r.pct / 100, 1);
 const same = Math.max(0.5, Math.round(product * 100 * 10) / 10);
-$('#same').innerHTML = `<b>${same}%</b><span>네 입장이 모두 나와 같은 관람객</span><small>100가지 조합 중 하나 · ${comboKey} · 수치는 예시</small>`;
+const sameN = Math.max(1, Math.round(VISITORS * same / 100));
+
+$('#gateN').textContent = `${fmt(VISITORS)}명`;
+$('#rows').insertAdjacentHTML('beforeend', rows.map((r, i) => `
+  <div class="row${anyReal && !r.real ? ' none' : ''}" style="animation-delay:${i * 90}ms">
+    <div class="k"><span>${r.st} · ${r.q}</span><i>${anyReal && !r.real ? '예시' : ''}</i></div>
+    <div class="v"><span>${r.val}</span><span class="n" data-row="${i}">같은 쪽 <b>${r.pct}%</b></span></div>
+    ${r.thumb ? `<div class="th"><img src="${r.thumb}" alt=""><span>${i === 0 ? '내가 메달을 준 그림' : '남은 것 · 그해의 표'}</span></div>` : ''}
+  </div>`).join(''));
+$('#same').innerHTML = `<div class="crowd-big" id="sameBig">${same}<i>%</i></div><div class="crowd-lab">나와 같은 길 · ${fmt(sameN)}명<small>네 입장이 모두 나와 같은 관람객 · 100가지 조합 중 하나 · ${comboKey}</small></div>`;
+$('#crowdStamp').textContent = stampLine(VISITORS);
+
+// ── 흐름 계획: 줄마다 나와 같은 쪽(오른쪽 무리)만 내려가고, 나머지는 그 줄 왼쪽에 흐리게 남는다. 살아 있는 화면과 공유 이미지가 같은 계획을 쓴다
+const N = dotsFor(VISITORS);
+const COUNTS = (() => { let c = N; const out = rows.map((r) => (c = Math.max(1, Math.round(c * r.pct / 100)))); out[out.length - 1] = Math.max(1, Math.round(N * same / 100)); return out; })();
+function planFlow(n, mineIdx, rand, geom) {
+  const pos = scatter(n, geom.gate, rand);
+  const stages = [{ targets: pos.slice() }];
+  let alive = [...Array(n).keys()];
+  const goX = geom.gate.x + geom.w * 0.66, pileX = geom.gate.x, pileW = Math.round(geom.w * 0.3);
+  COUNTS.forEach((c, i) => {
+    const row = geom.rows[i];
+    const others = alive.filter((k) => k !== mineIdx).sort((a, b) => pos[b].x - pos[a].x);
+    const go = [mineIdx, ...others.slice(0, Math.max(0, c - 1))], stay = others.slice(Math.max(0, c - 1));
+    const goPts = packDisc(go.length, goX, row.top + row.h / 2, discRadius(go.length, geom.k), rand);
+    const stayPts = packRect(stay.length, { x: pileX, y: row.top + 12, w: pileW, h: row.h - 24 }, rand, 3 * geom.k);
+    const targets = new Array(n).fill(null), alpha = new Array(n).fill(null);
+    go.forEach((k, j) => { targets[k] = goPts[j]; });
+    stay.forEach((k, j) => { targets[k] = stayPts[j]; alpha[k] = 0.3; });
+    targets.forEach((p, k) => { if (p) pos[k] = p; });
+    stages.push({ targets, alpha, row: i });
+    alive = go;
+  });
+  const endPts = packDisc(alive.length, geom.gate.x + geom.w * 0.5, geom.end.top + geom.end.h / 2, discRadius(alive.length, geom.k) + 2, rand);
+  const targets = new Array(n).fill(null); alive.forEach((k, j) => { targets[k] = endPts[j]; pos[k] = endPts[j]; });
+  stages.push({ targets, end: true });
+  return stages;
+}
+function geomOf(flowEl) {
+  const r = flowEl.getBoundingClientRect(), top = (el) => el.getBoundingClientRect().top - r.top;
+  const gate = $('.flow-gate'), rowEls = Array.from(document.querySelectorAll('#rows .row')), end = $('#same'), w = $('#flowStage').clientWidth;
+  return { w, k: 2.5, gate: { x: 4, y: top(gate) + 6, w: w - 8, h: gate.offsetHeight - 14 }, rows: rowEls.map((el) => ({ top: top(el), h: el.offsetHeight })), end: { top: top(end), h: end.offsetHeight } };
+}
+
+let crowd = null, started = false;
+function start() {
+  if (started) return; started = true;
+  crowd = createCrowd($('#crowdCv'), { theme: 'dark', n: N, reduceMotion, seed: 17 });
+  crowd.resize();
+  const stages = planFlow(N, crowd.mine, crowd.rnd, geomOf($('#flow')));
+  const showNum = (i) => $(`.row .n[data-row="${i}"]`).classList.add('show'), showEnd = () => $('#sameBig').classList.add('show');
+  crowd.place(stages[0].targets);
+  if (reduceMotion) { stages.slice(1).forEach((s) => crowd.place(s.targets, s.alpha ? (k) => s.alpha[k] : null)); rows.forEach((_, i) => showNum(i)); showEnd(); return; }
+  let t = 420;
+  stages.slice(1).forEach((s) => {
+    setTimeout(() => {
+      crowd.move(s.targets, { duration: 1000, stagger: 240, mineDelay: 380, bend: 0.18, alpha: s.alpha ? (k) => s.alpha[k] : null });
+      if (s.row != null) setTimeout(() => showNum(s.row), 520);
+      if (s.end) setTimeout(showEnd, 820);
+    }, t);
+    t += 940;
+  });
+}
+// 줄이 보일 때 흐르기 시작한다
+const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); start(); } }, { threshold: 0.3 });
+io.observe($('#flow'));
+setTimeout(() => { if (!started && $('#flow').getBoundingClientRect().top < window.innerHeight) start(); }, 1600);
 
 // 남은 것 — C2 기차표
 $('#ticket').src = `../ticket/ticket-front-${C2[mine.c2.k].ticket}.png`;
 $('#ticketSub').textContent = `파리 생라자르 → ${C2[mine.c2.k].label} · ${C2[mine.c2.k].year} · 2등`;
 
-// 저장 · 공유 — 1080×1920 (위·아래 250px 비움, 좌우 80px). 주황은 세 곳: 제목, 내 막대, 합계 숫자
+// 저장 · 공유 — 1080×1920 (위·아래 250px 비움, 좌우 80px). 왼쪽 기둥에 점의 흐름(모인 자리), 오른쪽에 네 줄. 주황은 세 곳: 제목, 내 점, 같은 길 숫자
 let shareBlob = null;
 async function render() {
   const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -74,29 +131,34 @@ async function render() {
   g.fillStyle = '#6B6B68'; g.font = `700 28px ${BODY}`; g.textBaseline = 'alphabetic';
   g.fillText('MONET 100 · The Next Impression · 2026.12.14', L, y); y += 92;
   g.fillStyle = '#111111'; g.font = `800 96px ${DISP}`; g.fillText('나의 네 입장', L, y); y += 104;
-  g.fillStyle = '#D9672F'; g.fillText('오늘의 관람객', L, y); y += 70;
-  const thumbs = await Promise.all(rows.map((r) => (r.thumb ? loadImage(r.thumb).catch(() => null) : null)));
+  g.fillStyle = POINT; g.fillText('오늘의 관람객', L, y); y += 56;
+  // 흐름 기둥(왼쪽 280px) + 줄(오른쪽). 화면과 같은 계획·씨앗
+  const FW = 280, TX = L + FW + 40, ROW = 150, GATE = 84, END = 132;
+  const gateTop = y, rowsTop = gateTop + GATE;
+  g.fillStyle = '#9A9A96'; g.font = `500 24px ${BODY}`; g.textAlign = 'right'; g.fillText(`모네의 방을 나온 사람 ${fmt(VISITORS)}명`, R, gateTop + 58); g.textAlign = 'left';
+  const geom = { w: FW, k: 5.4, gate: { x: L + 8, y: gateTop + 10, w: FW - 16, h: GATE - 24 }, rows: rows.map((_, i) => ({ top: rowsTop + i * ROW, h: ROW })), end: { top: rowsTop + rows.length * ROW, h: END } };
+  const rand = rng(17);
+  const dots = Array.from({ length: N }, () => ({ x: 0, y: 0, a: 0.78 + rand() * 0.2, r: 4.2 * (0.86 + rand() * 0.3) }));
+  planFlow(N, N - 1, rand, geom).forEach((s) => s.targets.forEach((p, k) => { if (p) { dots[k].x = p.x; dots[k].y = p.y; } if (s.alpha && s.alpha[k] != null) dots[k].a = s.alpha[k]; }));
+  dots.forEach((d, k) => { if (k === N - 1) return; g.fillStyle = `rgba(17,17,17,${d.a.toFixed(2)})`; g.beginPath(); g.arc(d.x, d.y, d.r, 0, 6.2832); g.fill(); });
+  const m = dots[N - 1]; g.fillStyle = 'rgba(217,103,47,.22)'; g.beginPath(); g.arc(m.x, m.y, 15, 0, 6.2832); g.fill(); g.fillStyle = POINT; g.beginPath(); g.arc(m.x, m.y, 8, 0, 6.2832); g.fill();
+  g.strokeStyle = '#E5E4E0'; g.lineWidth = 2; g.beginPath(); g.moveTo(TX, rowsTop); g.lineTo(R, rowsTop); g.stroke();
   for (const [i, r] of rows.entries()) {
-    g.strokeStyle = '#E5E4E0'; g.lineWidth = 2; g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); y += 34;
-    const tx = L + 120;
-    const thumb = thumbs[i];
-    if (thumb) { g.save(); g.beginPath(); g.roundRect(L, y - 6, 96, 96, 6); g.clip(); const s = Math.max(96 / thumb.naturalWidth, 96 / thumb.naturalHeight); g.drawImage(thumb, L + 48 - thumb.naturalWidth * s / 2, y - 6 + 48 - thumb.naturalHeight * s / 2, thumb.naturalWidth * s, thumb.naturalHeight * s); g.restore(); }
-    else { g.fillStyle = '#F5F5F3'; g.beginPath(); g.roundRect(L, y - 6, 96, 96, 6); g.fill(); g.fillStyle = '#111111'; g.font = `800 40px ${DISP}`; g.textAlign = 'center'; g.fillText(r.big, L + 48, y + 56); g.textAlign = 'left'; }
-    g.fillStyle = '#6B6B68'; g.font = `700 26px ${BODY}`; g.fillText(`${r.st} · ${r.q}`, tx, y + 18);
-    g.fillStyle = '#111111'; g.font = `800 46px ${DISP}`; g.fillText(r.val, tx, y + 74);
-    g.textAlign = 'right'; g.fillStyle = '#D9672F'; g.fillText(`${r.pct}%`, R, y + 74); g.textAlign = 'left';
-    g.fillStyle = '#ECEBE7'; g.fillRect(tx, y + 98, R - tx, 12);
-    g.fillStyle = '#D9672F'; g.fillRect(tx, y + 98, (R - tx) * r.pct / 100, 12);
-    y += 140;
+    const t = rowsTop + i * ROW;
+    g.fillStyle = '#6B6B68'; g.font = `600 24px ${BODY}`; g.fillText(`${r.st} · ${r.q}`, TX, t + 54);
+    g.fillStyle = '#111111'; g.font = `800 40px ${DISP}`; g.fillText(r.val, TX, t + 104);
+    g.textAlign = 'right'; g.fillStyle = '#6B6B68'; g.font = `600 26px ${DISP}`; g.fillText(`같은 쪽 ${r.pct}%`, R, t + 104); g.textAlign = 'left';
+    g.strokeStyle = '#E5E4E0'; g.beginPath(); g.moveTo(TX, t + ROW); g.lineTo(R, t + ROW); g.stroke();
   }
-  g.strokeStyle = '#111111'; g.lineWidth = 2; g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); y += 76;
-  g.fillStyle = '#D9672F'; g.font = `800 84px ${DISP}`; g.fillText(`${same}%`, L, y);
-  g.fillStyle = '#111111'; g.font = `500 30px ${BODY}`; g.fillText('네 입장이 모두 나와 같은 관람객', L + g.measureText(`${same}%`).width + 230, y - 6);
-  y += 70;
+  const et = geom.end.top;
+  g.fillStyle = POINT; g.font = `800 84px ${DISP}`; g.fillText(`${same}%`, TX, et + 78);
+  g.fillStyle = '#111111'; g.font = `600 28px ${DISP}`; g.fillText(`나와 같은 길 · ${fmt(sameN)}명`, TX, et + 118);
+  y = et + END + 30;
+  g.strokeStyle = '#111111'; g.lineWidth = 2; g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); y += 44;
   const tk = await loadImage($('#ticket').src).catch(() => null);
-  if (tk) { const tw = 440, th = tw * tk.naturalHeight / tk.naturalWidth; g.save(); g.translate(L + tw / 2, y + th / 2); g.rotate(-0.02); g.shadowColor = 'rgba(0,0,0,.25)'; g.shadowBlur = 30; g.shadowOffsetY = 12; g.drawImage(tk, -tw / 2, -th / 2, tw, th); g.restore();
+  if (tk) { const tw = 400, th = tw * tk.naturalHeight / tk.naturalWidth; g.save(); g.translate(L + tw / 2, y + th / 2); g.rotate(-0.02); g.shadowColor = 'rgba(0,0,0,.25)'; g.shadowBlur = 30; g.shadowOffsetY = 12; g.drawImage(tk, -tw / 2, -th / 2, tw, th); g.restore();
     g.fillStyle = '#6B6B68'; g.font = `500 24px ${BODY}`; g.fillText($('#ticketSub').textContent, L + tw + 30, y + th / 2 + 8); y += th + 40; }
-  g.fillStyle = '#9A9A96'; g.font = `500 24px ${BODY}`; g.fillText('문명탐험가 앱 · 신세계 더 헤리티지 · 수치는 예시', L, H - 250 - 20);
+  g.fillStyle = '#9A9A96'; g.font = `500 24px ${BODY}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, H - 250 - 20);
   shareBlob = await new Promise((r) => c.toBlob(r, 'image/png'));
   return c;
 }
@@ -124,4 +186,4 @@ $('#shareGo').addEventListener('click', async () => {
 $('#restart').addEventListener('click', () => { clearChoices(); location.href = 'index.html'; });
 $('#shareOv').addEventListener('click', (e) => { if (e.target === e.currentTarget) $('#shareOv').hidden = true; });
 
-window.__exit = { mine, rows, same, render };
+window.__exit = { mine, rows, same, sameN, render, start, get crowd() { return crowd; }, get started() { return started; } };

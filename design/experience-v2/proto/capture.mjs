@@ -167,6 +167,7 @@ async function c1(page) {
   await wait(page, 1700); await shot(page, 'c1-reveal-b');
   if (!(await page.evaluate(() => window.__c1.crowd && !window.__c1.crowd.busy))) bad('c1: crowd still moving after 2.3s');
   await shot(page, 'c1-6'); await overflowCheck(page, 'c1-6');
+  await page.evaluate(() => { const b = document.querySelector('.unfold-body'); b.scrollTop = b.scrollHeight; }); await wait(page, 300);   // 6 은 세로로 넘치면 안에서 스크롤
   await safeBottom(page, '#collect', 'c1');
   await press(page, '#collect', '#collectN:not([hidden])', 'c1 collect');
   await wait(page, 500); await shot(page, 'c1-6b');
@@ -435,7 +436,7 @@ async function exit(page) {
   // 오늘의 관람객: 네 줄을 흘러 내려가는 중(-a) · 다 내려간 뒤(-b)
   await page.evaluate(() => window.scrollTo(0, document.querySelector('.mine').offsetTop - 66));
   await wait(page, 900); await shot(page, 'exit-reveal-a');
-  await wait(page, 3800); await shot(page, 'exit-reveal-b');
+  await wait(page, 4800); await shot(page, 'exit-reveal-b');
   if (!(await page.evaluate(() => window.__exit.started && window.__exit.crowd && !window.__exit.crowd.busy))) bad('exit: crowd still moving after 6s');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 500);
   await shot(page, 'exit-1b'); await overflowCheck(page, 'exit-1b');

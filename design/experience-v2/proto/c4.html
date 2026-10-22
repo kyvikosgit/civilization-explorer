@@ -8,6 +8,7 @@
 <title>C4 · 그림인가 사진인가</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="css/crowd.css">
 <link rel="stylesheet" href="c4.css">
 </head>
 <body class="page c4">
@@ -73,11 +74,13 @@
     <p class="ask-mine" id="askMine" hidden></p>
   </section>
 
-  <!-- 오늘의 관람객 · 그때는 이랬다 -->
-  <section class="result" id="result" hidden>
-    <div class="eyebrow rise" id="todayCap" style="--i:0">오늘의 관람객 · 1,712명 · 수치는 예시</div>
-    <h2 class="result-h rise" style="--i:1">오늘은 이렇게 갈렸습니다</h2>
-    <div class="bars rise" id="bars" style="--i:2"></div>
+  <!-- 오늘의 관람객(점 하나 = 열 사람, 그림 줄·사진 줄 아래로 모인다 · js/crowd.js) · 그때는 이랬다 -->
+  <section class="result crowd dark center" id="result" hidden>
+    <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
+    <div class="crowd-cols" id="crowdCols" aria-live="polite"></div>
+    <div class="crowd-cap">Aujourd'hui</div>
+    <div class="crowd-line" id="crowdLine">사람을 남기는 데 · 오늘의 관람객</div>
+    <div class="crowd-stamp" id="crowdStamp"></div>
     <div class="hist-dark rise" style="--i:3"><b>그때는 이랬다</b>
       <p>보들레르는 1859년 살롱평에서 사진 산업이 예술에 밀고 들어와 “가장 치명적인 적”이 된다고 썼다. 그 보들레르의 얼굴을 남긴 것도 나다르의 사진이다.<small>Baudelaire, Salon de 1859, II. Le public moderne et la photographie (Wikisource · Curiosités esthétiques) · 사진: 클리블랜드 미술관 CC0</small></p>
       <p>1874년 4월, 나다르는 이 사진관을 화가들에게 전시장으로 내주었다.<small>Wikipedia · Nadar · BnF · Les Nadar · 무상 여부는 자료가 엇갈린다(Rewald 1973 / Wikipedia FR)</small></p>

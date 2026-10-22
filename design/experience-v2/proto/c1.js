@@ -8,6 +8,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, icons, toast, sleep, reduceMotion, haptic, saveChoice } from './js/proto-common.js';
 import { createMorrisViewer } from './js/morris-viewer-proto.js';
 import { ITEMS, FILLER, BACKDROP, VISITORS } from './js/morris-items-proto.js';
+import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine } from './js/crowd.js';
 
 icons();
 const mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap'), guide = $('#guide'), camLoading = $('#camLoading');
@@ -167,21 +168,29 @@ $$('.paper', papers).forEach((b) => b.addEventListener('click', async () => {
   reveal();
 }));
 
-// ── 6 오늘의 관람객 — 같은 두 종이가 비율대로(내 것은 크고 주황) + 그때는 이랬다
+// ── 6 오늘의 관람객 — 두 종이는 크기 그대로, 그 아래로 오늘의 관람객(점 하나 = 열 사람)이 흩어졌다가 고른 종이 밑에 모인다. 내 점은 주황, 맨 마지막에
+const KEYS = ['jury', 'viewer'];
+let crowd = null;
 function reveal() {
   setStep(6);
-  $('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
-  const max = Math.max(...Object.values(STANCES).map((s) => s.pct));
-  $$('.paper', papers).forEach((x) => {
-    const s = STANCES[x.dataset.k], me = x.dataset.k === stance;
-    x.classList.toggle('me', me);
-    x.style.setProperty('--k', Math.max(0.56, s.pct / max).toFixed(3));
-    x.style.setProperty('--o', me ? 1 : 0.55);
-    x.querySelector('.paper-pct').innerHTML = `${s.pct}%<small>${me ? '나' : '&nbsp;'}</small>`;
-  });
+  $$('.paper', papers).forEach((x) => { x.classList.toggle('me', x.dataset.k === stance); x.style.setProperty('--o', x.dataset.k === stance ? 1 : 0.55); });
   papers.classList.remove('decided'); papers.classList.add('today');
+  $('#crowdCols').innerHTML = KEYS.map((k) => { const s = STANCES[k], me = k === stance; return `<div class="crowd-col${me ? ' me' : ''}"><b class="n">${s.pct}<i>%</i></b><span class="lab">${s.label}${me ? ' · 나' : ''}</span></div>`; }).join('');
+  $('#crowdStamp').textContent = stampLine(VISITORS);
   $('#mineCard').classList.remove('show');
   $('#collect').hidden = false; $('#collect').disabled = false; $('#restart').hidden = true;
+  // 군중: 종이 폭에 맞춘 두 자리
+  const stage = $('#crowdStage'), n = dotsFor(VISITORS);
+  if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'dark', n, reduceMotion, seed: 3 });
+  requestAnimationFrame(() => {
+    crowd.resize();
+    const sr = stage.getBoundingClientRect();
+    const rects = KEYS.map((k) => { const r = $(`.paper[data-k="${k}"] > .notice, .paper[data-k="${k}"] > .flyer-img`).getBoundingClientRect(); return { x: r.left - sr.left + 4, y: 10, w: r.width - 8, h: sr.height - 18 }; });
+    const counts = split(n, KEYS.map((k) => STANCES[k].pct));
+    const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
+    crowd.place(scatter(n, { x: 0, y: 0, w: sr.width, h: sr.height }, crowd.rnd));
+    setTimeout(() => crowd.move(targetsFor(crowd, groups, KEYS.indexOf(stance)), { duration: 1250, stagger: 380 }), reduceMotion ? 0 : 260);
+  });
 }
 $('#collect').addEventListener('click', async () => {
   const btn = $('#collect'); btn.disabled = true;
@@ -192,7 +201,7 @@ $('#collect').addEventListener('click', async () => {
   mine.classList.add('away');
   mine.style.transform = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.12) rotate(-14deg)`;
   await sleep(reduceMotion ? 50 : 760);
-  mine.classList.add('gone'); papers.classList.add('one');          // 남은 종이는 가운데로
+  mine.classList.add('gone');                                        // 남은 종이는 제자리에(아래 점 무리와 맞춰서)
   $('#collectIc').classList.add('bump'); $('#collectN').hidden = false;
   haptic(20);
   const s = STANCES[stance];
@@ -218,5 +227,6 @@ setStep(1);
 window.__c1 = {
   get loaded() { return loaded; }, get step() { return step; }, viewer,
   scan, focus: (i) => viewer && viewer.focusItem(i), inspect: openPrint, project: (i) => viewer && viewer.project(i), get stance() { return stance; },
+  get crowd() { return crowd; },
 };
 if (new URLSearchParams(location.search).has('debug')) window.__mv = viewer;

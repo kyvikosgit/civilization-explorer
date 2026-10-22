@@ -2,6 +2,7 @@
 //   1 역할 → 2 특별 액자 벽(한 줄의 후보작 5점. 그림을 누르면 들리고 스포트라이트 → "메달 수여" 또는 메달 끌어 올리기) → 확인 → 3 오늘의 심사위원단(액자는 그대로, 아래에 비율) → 4 카드
 //   벽은 바꾸지 않는다. 현장에 한 줄로 걸린 5점이 그대로 화면의 한 줄이다. 후보작·문구: 보드 experience-v2.html C0-A, 앱 missions.ts 'salon'. 비율·인원은 예시 수치.
 import { $, $$, icons, sheet, toast, sleep, reduceMotion, showScreen, haptic, saveChoice } from './js/proto-common.js';
+import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine } from './js/crowd.js';
 
 const WORKS = [
   { n: 1, src: '../works/c0-cambyses.jpg',   w: 420, h: 304, title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '1873년 살롱 출품 · 미확인(Commons 설명만)' },
@@ -50,7 +51,7 @@ const stage = $('#stage'), row = $('#row'), tagsEl = $('#tags'), medal = $('#med
 medal.innerHTML = medalSVG('m');
 $('#cfMedal').innerHTML = medalSVG('c');
 $('#cardMedal').innerHTML = medalSVG('k');
-let W = 0, H = 0, areaH = 0, fw = 70, lineY = 0, maxFh = 0;
+let W = 0, H = 0, areaH = 0, fw = 70, lineY = 0, maxFh = 0, BAND = 44;
 let mode = 'pick';                     // pick | placed | reveal
 let sel = null, chosen = null;         // 들린 그림 · 메달을 올린 그림
 const M = { x: 0, y: 0, s: 1, home: { x: 0, y: 0 }, drag: null };
@@ -80,9 +81,10 @@ function measure() {
     c.fh = p * 2 + 3 + inner * c.w.h / c.w.w;
   });
   maxFh = Math.max(...cands.map((c) => c.fh));
-  lineY = Math.max(areaH * (mode === 'reveal' ? 0.5 : 0.47), 62 + 34 + maxFh * (mode === 'reveal' ? 1 : LIFT) / 2 + 6);
+  BAND = areaH < 420 ? 34 : 44;                                   // 액자 아래 점이 모이는 띠의 높이
+  lineY = Math.max(areaH * (mode === 'reveal' ? 0.42 : 0.47), 62 + 34 + maxFh * (mode === 'reveal' ? 1 : LIFT) / 2 + 6);
   cands.forEach((c, i) => { c.x = pad + fw / 2 + i * (fw + gap); c.y = lineY; });
-  const lowerY = Math.round(areaH * 0.805);
+  const lowerY = Math.round(areaH * (mode === 'reveal' ? 0.9 : 0.805));   // 결과에서는 징두리를 내려 점 무리·숫자·메달 표 자리를 준다
   lower.style.transform = `translateY(${lowerY}px)`;
   M.home = { x: W / 2, y: lowerY - 30 };                       // 징두리 선반 위에 놓인 메달
   hint.style.top = Math.min(lineY + maxFh / 2 + 56, lowerY - 80) + 'px';
@@ -92,8 +94,8 @@ function render() {
     const l = lifted(c), s = l ? LIFT : 1, dy = l ? LIFT_DY : 0;
     c.el.style.transform = `translate3d(${(c.x - fw / 2).toFixed(1)}px, ${(c.y - c.fh / 2 + dy).toFixed(1)}px, 0) scale(${s})`;
     c.el.classList.toggle('sel', l);
-    c.tag.style.transform = `translate(${c.x.toFixed(1)}px, ${(c.y + c.fh / 2 + 17).toFixed(1)}px) translate(-50%, -50%)`;
-    c.today.style.transform = `translate(${c.x.toFixed(1)}px, ${(c.y + c.fh / 2 + 17 + 26).toFixed(1)}px) translate(-50%, -50%)`;
+    c.tag.style.transform = `translate(${c.x.toFixed(1)}px, ${(c.y + c.fh / 2 + BAND + 18).toFixed(1)}px) translate(-50%, -50%)`;        // 점 무리 아래 작은 숫자
+    c.today.style.transform = `translate(${c.x.toFixed(1)}px, ${(c.y + c.fh / 2 + BAND + 18 + 24).toFixed(1)}px) translate(-50%, -50%)`;
   });
   const lit = sel && mode !== 'reveal';
   if (lit) spot.style.transform = `translate(${sel.x.toFixed(1)}px, ${(sel.y + LIFT_DY).toFixed(1)}px)`;
@@ -202,31 +204,44 @@ function unplace() {
 $('#cfBack').addEventListener('click', unplace);
 $('#cfOk').addEventListener('click', () => { confirm.close(); reveal(); });
 
-// ── 3 오늘의 심사위원단: 액자 줄은 그대로. 아래에 비율이 차례로, 가장 많은 그림엔 오늘의 메달
+// ── 3 오늘의 심사위원단: 액자 줄은 그대로. 심사위원(점 하나 = 열 사람)이 벽에 흩어져 있다가 메달을 준 액자 아래로 모인다. 내 점은 주황, 맨 마지막에.
+//    그 밑에 작은 숫자, 가장 많은 그림엔 오늘의 메달 표. 패널에는 내 그림의 비율만 크게
+let crowd = null;
+function crowdTargets() {
+  const n = crowd.n, order = cands.slice();                      // 왼쪽 액자부터 — 점이 덜 엇갈린다
+  const counts = split(n, order.map((c) => TODAY[c.w.n]));
+  const groups = order.map((c, i) => ({ pts: packRect(counts[i], { x: c.x - fw / 2 + 2, y: c.y + c.fh / 2 + 8, w: fw - 4, h: BAND - 6 }, crowd.rnd, 7) }));
+  return targetsFor(crowd, groups, order.indexOf(chosen));
+}
 async function reveal() {
   mode = 'reveal';
   const me = chosen; sel = null;
   const mineTop = me.w.n === TOP;
   $('#wallTitle').textContent = '오늘의 심사위원단';
-  $('#revCap').textContent = `오늘의 심사위원단 · 심사위원 ${JURY}명 · 수치는 예시`;
-  $('#revTitle').innerHTML = mineTop
-    ? `내가 메달을 준 ${me.w.n}번이 오늘의 메달 · <em>${TODAY[me.w.n]}%</em>`
-    : `내가 메달을 준 ${me.w.n}번은 오늘 <em>${TODAY[me.w.n]}%</em> · 오늘의 메달은 ${TOP}번`;
+  $('#revTitle').textContent = mineTop ? `내가 메달을 준 ${me.w.n}번이 오늘의 메달` : `내가 메달을 준 ${me.w.n}번 · 오늘의 메달은 ${TOP}번`;
+  $('#revFig').innerHTML = `<div class="crowd-big">${TODAY[me.w.n]}<i>%</i></div><div class="crowd-lab">${me.w.n}번 〈${me.w.title}〉 · 나<small>같은 그림에 메달을 준 심사위원</small></div>`;
+  $('#revOthers').innerHTML = cands.filter((c) => c !== me).sort((a, b) => TODAY[b.w.n] - TODAY[a.w.n]).map((c) => `<span>${c.w.n}번 <b>${TODAY[c.w.n]}</b></span>`).join('');
+  $('#revStamp').textContent = stampLine(JURY);
   cands.forEach((c) => {
     c.tag.className = 'tag' + (c === me ? ' me' : '');
-    c.tag.innerHTML = `${TODAY[c.w.n]}%<small>${c === me ? '나' : ''}</small>`;
+    c.tag.innerHTML = `${TODAY[c.w.n]}%${c === me ? '<small>나</small>' : ''}`;
   });
   $('#reveal').classList.add('on'); stage.classList.add('is-reveal');
   await sleep(reduceMotion ? 50 : 420);
   measure();
   me.el.classList.add('mine');
   render();
-  const order = cands.slice().sort((a, b) => TODAY[b.w.n] - TODAY[a.w.n]);
-  order.forEach((c, i) => setTimeout(() => c.tag.classList.add('show'), reduceMotion ? 0 : 160 * i + 520));
-  setTimeout(() => { byN(TOP).today.classList.add('show'); haptic(16); }, reduceMotion ? 0 : 160 * 5 + 700);
+  if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'dark', n: dotsFor(JURY), reduceMotion, seed: 2 });
+  crowd.resize();
+  // 벽(코니스 아래 ~ 액자 줄 위)에 흩어져 있다가 액자 아래로
+  crowd.place(scatter(crowd.n, { x: 12, y: 70, w: W - 24, h: Math.max(60, lineY - maxFh / 2 - 90) }, crowd.rnd));
+  const showNums = () => { cands.forEach((c) => c.tag.classList.add('show')); setTimeout(() => { byN(TOP).today.classList.add('show'); haptic(16); }, reduceMotion ? 0 : 260); };
+  setTimeout(() => crowd.move(crowdTargets(), { duration: 1300, stagger: 420, onDone: showNums }), reduceMotion ? 0 : 300);
+  if (reduceMotion) showNums();
 }
 $('#again').addEventListener('click', () => {
   mode = 'pick';
+  if (crowd) { crowd.stop(); crowd.clear(); }
   $('#reveal').classList.remove('on'); stage.classList.remove('is-reveal');
   cands.forEach((c) => { c.tag.classList.remove('show'); c.today.classList.remove('show'); c.el.classList.remove('mine'); });
   $('#wallTitle').textContent = '특별 액자 · 후보작 5점';
@@ -254,6 +269,7 @@ function enterWall() {
   showScreen('s2');
   mode = 'pick'; chosen = null; sel = null; award.disabled = true;
   cands.forEach((c) => { c.el.classList.remove('mine', 'sel', 'near'); c.tag.classList.remove('show'); c.today.classList.remove('show'); });
+  if (crowd) { crowd.stop(); crowd.clear(); }
   $('#reveal').classList.remove('on'); stage.classList.remove('is-reveal');
   $('#wallTitle').textContent = '특별 액자 · 후보작 5점';
   $('#hintText').textContent = '그림을 누르거나, 메달을 끌어 액자에 올리십시오';
@@ -273,12 +289,12 @@ $('#enter').addEventListener('click', enterWall);
 $('#back2').addEventListener('click', () => { confirm.close(); showScreen('s1'); });
 $('#back4').addEventListener('click', () => showScreen('s2'));
 $('#restart').addEventListener('click', () => showScreen('s1'));
-window.addEventListener('resize', () => { if ($('#s2').classList.contains('on')) { measure(); render(); } });
+window.addEventListener('resize', () => { if ($('#s2').classList.contains('on')) { measure(); render(); if (mode === 'reveal' && crowd) { crowd.stop(); crowd.resize(); crowd.place(crowdTargets()); } } });
 
 // 검수용
 window.__c0 = {
   center(n) { const c = byN(n); const r = stage.getBoundingClientRect(); return { x: r.left + c.x, y: r.top + c.y + (lifted(c) ? LIFT_DY : 0) }; },
   medal() { const r = stage.getBoundingClientRect(); return { x: r.left + M.x, y: r.top + M.y }; },
   get mode() { return mode; }, get sel() { return sel ? sel.w.n : null; }, get chosen() { return chosen ? chosen.w.n : null; },
-  enterWall, select: (n) => select(byN(n)), place: (n) => placeOn(byN(n)), reveal,
+  enterWall, select: (n) => select(byN(n)), place: (n) => placeOn(byN(n)), reveal, get crowd() { return crowd; },
 };

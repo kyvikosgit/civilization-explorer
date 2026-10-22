@@ -8,6 +8,7 @@
 <title>C0 · 당신은 오늘의 심사위원입니다</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="css/crowd.css">
 <link rel="stylesheet" href="c0.css">
 </head>
 <body class="c0">
@@ -62,17 +63,20 @@
     <div class="cornice"></div>
     <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle">특별 액자 · 후보작 5점</div><span></span></div>
     <div class="row" id="row"></div>
+    <canvas class="crowd-cv" id="crowdCv" aria-hidden="true"></canvas>
     <div class="tags" id="tags"></div>
     <div class="medal" id="medal" role="button" aria-label="올해의 메달 · 끌어서 액자에 올리기"></div>
     <div class="hint" id="hint"><span class="pill light" id="hintText">그림을 누르거나, 메달을 끌어 액자에 올리십시오</span></div>
     <div class="award-bar" id="awardBar"><button class="btn white" id="award" disabled>메달 수여</button></div>
   </div>
 
-  <!-- 오늘의 심사위원단 — 아래에서 올라오는 결과 패널. 액자 줄은 그대로, 비율만 아래에 -->
-  <div class="reveal" id="reveal">
-    <div class="cap" id="revCap">오늘의 심사위원단 · 심사위원 1,284명</div>
-    <h2 id="revTitle">내가 메달을 준 4번이 오늘의 메달</h2>
-    <p class="sub" id="revSub">액자 아래 숫자는 오늘 그 그림에 메달을 준 심사위원의 비율. 수치는 예시.</p>
+  <!-- 오늘의 심사위원단 — 아래에서 올라오는 결과 패널. 액자 줄은 그대로, 심사위원은 점(하나 = 열 사람)으로 액자 아래에 모인다(js/crowd.js) -->
+  <div class="reveal crowd" id="reveal">
+    <div class="crowd-cap">Aujourd'hui</div>
+    <div class="crowd-line" id="revTitle">내가 메달을 준 4번이 오늘의 메달</div>
+    <div class="crowd-fig" id="revFig"></div>
+    <div class="crowd-others" id="revOthers"></div>
+    <div class="crowd-stamp" id="revStamp"></div>
     <div class="hist" id="revHist"><b>그때는 이랬다</b>메달은 심사위원단이 정했다. 메달을 받은 화가는 ‘오르 콩쿠르(hors concours)’가 되어 더는 메달 후보에 오르지 않았고, 그 뒤로는 심사 없이 걸 수 있었다.<small>1873년 살롱 도록 일러두기 “H. C. = hors concours” (1차) · Sotheby’s 제르벡스 1874년 메달 노트 · 에노 《Paris-Salon 1890》 · 심사 면제는 2차 자료</small></div>
     <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">저장</button></div>
   </div>

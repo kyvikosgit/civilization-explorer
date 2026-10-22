@@ -103,14 +103,14 @@
 .medal svg, .cf-medal svg, .card-medal svg, .today svg { display: block; width: 100%; height: 100%; }
 @keyframes glow { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
 
-/* 오늘의 비율 — 액자 아래 표식. 가장 많은 그림엔 작은 메달 표 */
+/* 오늘의 심사위원단 — 액자 아래로 점(하나 = 열 사람)이 모이고, 그 밑에 작은 숫자. 가장 많은 그림엔 작은 메달 표 */
+.crowd-cv { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 25; pointer-events: none; }
 .tags { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
-.tag { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); display: inline-flex; align-items: baseline; gap: 3px; height: 24px; padding: 0 8px; border-radius: 12px;
-  background: rgba(255,255,255,.94); color: var(--ink); font-family: var(--display); font-weight: 800; font-size: 13.5px; letter-spacing: -0.02em; white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0,0,0,.35); opacity: 0; transition: opacity .45s, transform .55s var(--ease-out); will-change: transform; }
-.tag small { font-family: var(--body); font-weight: 600; font-size: 10.5px; color: var(--dim); }
-.tag.me { background: var(--point); color: #fff; }
-.tag.me small { color: rgba(255,255,255,.9); }
+.tag { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); display: inline-flex; align-items: baseline; gap: 5px; font-family: var(--display); font-weight: 600; font-size: 12.5px; line-height: 1; letter-spacing: -0.01em; color: rgba(255,247,234,.92); white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6); opacity: 0; transition: opacity .45s, transform .55s var(--ease-out); will-change: transform; font-variant-numeric: tabular-nums; }
+.tag small { font-family: var(--body); font-weight: 600; font-size: 10px; color: rgba(255,247,234,.6); }
+.tag.me { font-weight: 800; font-size: 15px; color: #FF9A5E; }
+.tag.me small { color: #FF9A5E; }
 .tag.show { opacity: 1; }
 .today { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px 0 3px; border-radius: 11px;
   background: linear-gradient(180deg, #F6E2A0, #D1A338); color: #3A2606; font-family: var(--display); font-weight: 800; font-size: 11px; white-space: nowrap;
@@ -118,14 +118,16 @@
 .today i { display: block; width: 16px; height: 16px; }
 .today.show { opacity: 1; }
 
-/* 결과 패널 */
-.reveal { position: absolute; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bg); border-radius: 16px 16px 0 0; padding: 18px var(--pad) 0;
+/* 결과 패널 — 작은 캡 + 한 줄 → 내 그림의 비율만 크게 → 나머지는 작은 숫자 → 기준 시각 → 그때는 이랬다 */
+.reveal { position: absolute; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--bg); border-radius: 16px 16px 0 0; padding: 16px var(--pad) 0;
   transform: translateY(110%); transition: transform .7s var(--ease-out); box-shadow: 0 -10px 30px rgba(0,0,0,.35); }
 .reveal.on { transform: translateY(0); }
-.reveal h2 { font-size: 20px; margin-top: 6px; }
-.reveal h2 em { font-style: normal; color: var(--point); }
-.reveal .sub { margin-top: 6px; font-size: 12.5px; }
-.reveal .hist { margin-top: 12px; }
+.reveal .crowd-line { font-size: 16px; }
+.reveal .crowd-fig { margin-top: 8px; padding-top: 8px; }
+.reveal .crowd-big { font-size: 40px; }
+.reveal .crowd-others { margin-top: 6px; }
+.reveal .crowd-stamp { margin-top: 8px; padding-top: 6px; }
+.reveal .hist { margin-top: 10px; padding-top: 10px; font-size: 14px; }
 .reveal .btns { padding-left: 0; padding-right: 0; }
 
 /* 작은 액자(시트·카드) — 벽의 액자와 같은 재료, 제자리에 둔다 */
@@ -154,10 +156,11 @@
 .card-wrap .note { margin-top: 12px; line-height: 1.5; }
 
 @media (max-height: 700px) {
-  .reveal { padding-top: 14px; }
-  .reveal .sub { display: none; }
-  .reveal h2 { font-size: 18px; }
-  .reveal .hist { margin-top: 10px; font-size: 13px; padding-top: 10px; }
+  .reveal { padding-top: 12px; }
+  .reveal .crowd-line { font-size: 15px; }
+  .reveal .crowd-big { font-size: 34px; }
+  .reveal .crowd-others { display: none; }
+  .reveal .hist { margin-top: 8px; font-size: 13px; padding-top: 8px; }
   .reveal .hist small { display: none; }
   .reveal .btns { padding-top: 10px; padding-bottom: calc(16px + var(--safe-b)); }
   .reveal .btn { height: 46px; }

@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="../ticket/fonts.css">
 <link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="css/crowd.css">
 <link rel="stylesheet" href="c1.css">
 <script type="importmap">
 { "imports": {
@@ -78,13 +79,10 @@
         <h2 class="ask-q">어느 종이를<br>칼럼에 남기겠습니까?</h2>
       </div>
 
-      <!-- 6 오늘 — 같은 두 종이가 오늘의 비율만큼 크고 작게 -->
-      <div class="result-top" id="resultTop" data-on="6">
-        <div class="cap light" id="todayCap">오늘의 관람객 · 2,031명 · 수치는 예시</div>
-        <h2 class="result-h" id="resultH">오늘은 이렇게 갈렸습니다</h2>
-      </div>
+      <!-- 6 머리: 작은 캡 + 한 줄 -->
+      <div class="crowd dark center crowd-head" data-on="6"><div class="crowd-cap">Aujourd'hui</div><div class="crowd-line">오늘 칼럼에 남은 종이</div></div>
 
-      <!-- 5·6 공용: 두 종이 -->
+      <!-- 5·6 공용: 두 종이 (6 에서는 크기 그대로, 아래에 오늘의 관람객이 점으로 모인다) -->
       <div class="papers" id="papers" data-on="5 6" role="radiogroup" aria-label="칼럼에 남길 종이">
         <button class="paper salon" data-k="jury" role="radio" aria-checked="false" aria-label="살롱 공고 · 심사위원이 정한다">
           <div class="notice" aria-hidden="true">
@@ -108,6 +106,13 @@
         </button>
       </div>
       <p class="ask-note" data-on="5">하나를 누르면 그 종이가 남고 다른 종이는 떨어집니다. 정답은 없습니다.</p>
+
+      <!-- 6 오늘의 관람객 — 점 하나가 열 사람. 두 종이 아래로 모인다(js/crowd.js) -->
+      <div class="crowd dark center" id="crowd" data-on="6">
+        <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
+        <div class="crowd-cols" id="crowdCols" aria-live="polite"></div>
+        <div class="crowd-stamp" id="crowdStamp"></div>
+      </div>
 
       <div class="result" id="result" data-on="6">
         <div class="hist-dark show" id="histDark"><b>그때는 이랬다</b>1874년 4월 15일, 카퓌신 대로 35번지 나다르의 옛 사진관. 화가들이 살롱 심사를 거치지 않고 스스로 연 전시였다. 입장료 1프랑, 한 달 동안 약 3,500명. 공식 살롱은 그해 5월 1일 샹젤리제 궁에서 열렸다.<small>프랑스 문화부 · 1874 Première exposition · Wikipedia · First Impressionist Exhibition (Rewald 1973) · 오르세 · Paris 1874 (Salon 1874.5.1 개막) · 살롱 공고 카드는 재현</small></div>
