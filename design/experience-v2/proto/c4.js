@@ -1,7 +1,9 @@
 // C4 나다르 사진관 — (1) 벽의 초상화 4점: 셔터를 누르면 조리개가 닫혔다 열리며 같은 인물의 나다르 사진이 습판처럼 떠오른다
 //                    (2) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js, WebGL → 워커 → 즉석) 재사용
-// 서버 없음, 업로드 없음. 모든 처리는 기기 안.
+//                    (3) 네 쌍을 다 보면 질문 하나: 사람을 남기는 데 그림과 사진, 어느 쪽이 낫습니까 → 오늘의 비율 + 그때는 이랬다 → 수집함
+// 서버 없음, 업로드 없음. 모든 처리는 기기 안. 입장은 기기(localStorage)에만 남고 마지막 화면(c5)이 읽는다.
 import { toast, loadImage, startCamera, stopCamera, cameraErrorText } from '../../../booth/js/common.js';
+import { saveChoice } from './js/proto-common.js';
 import * as N from '../../../booth/js/nadar.js';
 
 const $ = (s) => document.querySelector(s);
@@ -80,8 +82,8 @@ function irisSize() {
 function shoot() {
   if (busy) return;
   if (dev[cur]) {
-    // 다음 손님 — 한 바퀴 돌면 다시 초상화부터
-    if (cur === SITTERS.length - 1) { dev.fill(false); slides.forEach((s) => s.classList.remove('dev')); }
+    // 다음 손님 — 넷을 다 보았으면 질문으로
+    if (dev.every(Boolean)) { openAsk(); return; }
     goTo(cur + 1);
     return;
   }
@@ -97,6 +99,7 @@ function shoot() {
     dev[cur] = true;
     slides[cur].classList.add('dev');
     caption();
+    if (dev.every(Boolean)) { $('#askCta').hidden = false; $('#shutterHint').textContent = '질문으로'; }
   }, REDUCED ? 60 : 320 * K);
   setTimeout(() => { iris.classList.remove('run'); flash.classList.remove('run'); busy = false; }, REDUCED ? 400 : 850 * K);
 }
@@ -110,6 +113,45 @@ $('#shutter').addEventListener('click', shoot);
 }
 window.addEventListener('resize', irisSize);
 goTo(0);
+
+// ── 질문 — 사람을 남기는 데 그림과 사진, 어느 쪽이 낫습니까 (정답 없음)
+const STANCES = { paint: { label: '그림', pct: 44 }, photo: { label: '사진', pct: 56 } };   // 예시 수치
+const VISITORS = '1,712';
+let stance = null;
+function openAsk() {
+  $('#wallBody').hidden = true; $('#result').hidden = true; $('#ask').hidden = false;
+  document.querySelectorAll('.stance').forEach((x) => x.classList.remove('on'));
+  window.scrollTo(0, 0);
+}
+$('#toAsk').addEventListener('click', openAsk);
+document.querySelectorAll('.stance').forEach((b) => b.addEventListener('click', () => {
+  stance = b.dataset.k;
+  document.querySelectorAll('.stance').forEach((x) => x.classList.toggle('on', x === b));
+  if (navigator.vibrate) navigator.vibrate(14);
+  setTimeout(reveal, REDUCED ? 0 : 260);
+}));
+function reveal() {
+  $('#ask').hidden = true; $('#result').hidden = false;
+  $('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
+  $('#bars').innerHTML = Object.entries(STANCES).map(([k, s]) => `
+    <div class="bar ${k === stance ? 'me' : ''}"><div class="lb"><span>${s.label}${k === stance ? ' · 나' : ''}</span><b>${s.pct}%</b></div><div class="tr"><div class="fl" style="width:${s.pct}%"></div></div></div>`).join('');
+  $('#mineCard').hidden = true; $('#saveStance').hidden = false; $('#saveStance').disabled = false;
+  window.scrollTo(0, 0);
+}
+$('#saveStance').addEventListener('click', () => {
+  const s = STANCES[stance];
+  saveChoice('c4', { stance, label: s.label, pct: s.pct });
+  $('#mineLabel').textContent = s.label;
+  $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 마지막 화면(C5)에서 C0·C1·C2와 나란히`;
+  $('#mineCard').hidden = false;
+  $('#saveStance').hidden = true;
+  toast('수집함에 저장했습니다 · 내 입장');
+});
+$('#restartWall').addEventListener('click', () => {
+  dev.fill(false); slides.forEach((s) => s.classList.remove('dev')); stance = null;
+  $('#askCta').hidden = true; $('#result').hidden = true; $('#ask').hidden = true; $('#wallBody').hidden = false;
+  goTo(0);
+});
 
 // ── 내 초상
 const video = $('#cam'), plate = $('#plate'), result = $('#result'), still = $('#still');

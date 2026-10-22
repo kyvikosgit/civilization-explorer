@@ -506,6 +506,7 @@ function leave() { flow.hidden = true; flow.classList.remove('on'); $('#dim').cl
 $('#flowBack').addEventListener('click', leave); $('#again').addEventListener('click', leave);
 $('#save').addEventListener('click', () => {
   if (saved) return; saved = true; $('#save').disabled = true; $('#save').textContent = '저장됨';
+  try { const p = window.getPicked(); const all = JSON.parse(localStorage.getItem('m100_choice') || '{}') || {}; all.c2 = { id: p.id, label: p.ko, year: p.year, pct: PCT[p.id], at: Date.now() }; localStorage.setItem('m100_choice', JSON.stringify(all)); } catch (e) { /* 기기 안에만 · 마지막 화면(c5)이 읽는다 */ }
   flow.scrollTo({ top: 0, behavior: RM ? 'auto' : 'smooth' });
   setTimeout(() => { wrap.classList.add('fly'); hero.classList.add('saved'); }, RM ? 0 : 500);
   setTimeout(() => { $('#collN').hidden = false; $('#coll').classList.add('bump'); setTimeout(() => $('#coll').classList.remove('bump'), 500); const t = $('#toast'); t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); }, RM ? 100 : 1250);

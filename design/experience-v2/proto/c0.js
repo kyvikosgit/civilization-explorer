@@ -1,7 +1,7 @@
 // C0 아카데미 살롱 — 가장 좋은 자리 한 곳
 //   1 역할 → 2 살롱 벽(후보작을 끌어 가운데 눈높이 액자에 건다) → 확인 → 3 오늘의 살롱 벽(표대로 다시 건다) → 4 카드
 //   후보작·문구: 보드 experience-v2.html C0-A, 앱 missions.ts 'salon'. 비율·인원은 보드 와이어프레임의 예시 수치.
-import { $, $$, icons, sheet, toast, sleep, clamp, reduceMotion, showScreen, haptic } from './js/proto-common.js';
+import { $, $$, icons, sheet, toast, sleep, clamp, reduceMotion, showScreen, haptic, saveChoice } from './js/proto-common.js';
 
 const WORKS = [
   { n: 1, src: '../works/c0-cambyses.jpg',   w: 420, h: 304, title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '1873년 살롱 출품 · 미확인(Commons 설명만)' },
@@ -244,6 +244,7 @@ $('#save').addEventListener('click', () => {
   $('#cardTitle').textContent = `〈${me.w.title}〉`;
   $('#cardMeta').textContent = [me.w.artist, me.w.year, me.w.coll].filter(Boolean).join(' · ');
   $('#cardShown').textContent = me.w.shown;
+  saveChoice('c0', { n: me.w.n, title: me.w.title, pct: TODAY[me.w.n] });   // 기기 안에만 · 마지막 화면(c5)이 읽는다
   showScreen('s4');
   toast('수집함에 저장했습니다');
 });

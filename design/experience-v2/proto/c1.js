@@ -1,23 +1,31 @@
-// C1 시민사회 — 칼럼 돌려보기
-//   1 역할+스캔(점선을 누르면 칼럼이 바닥에서 솟는다) → 2 돌려보기(관성·자석·빛 쓸기, 전단지를 누르면 떠오른다) → 3 이 한 장 → 확인
-//   → 4 오늘의 관람객(표 순서대로 돌아가며 비율이 꽂힌다) → 5 그때는(독립 전시 전단지가 펼쳐져 수집함으로)
-//   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 문구는 보드 C1-A · missions.ts 'flyer' 원고.
+// C1 시민사회 — 자격을 묻기
+//   1 역할+스캔(점선을 누르면 칼럼이 바닥에서 솟는다) → 2 돌려보기(관성·자석·빛 쓸기, 전단지를 누르면 떠오른다)
+//   → 3 살펴보기(안내문이면 펼쳐 보기) → 4 안내문 펼침 → 5 질문(그림이 걸릴 자격은 누가 정해야 합니까) → 6 오늘의 관람객 · 그때는 → 수집함
+//   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 문구는 보드 C1 · missions.ts 'flyer' 원고.
+//   머문 시간·시선 추적 없음. 서버는 입장 2개의 숫자만(여기서는 예시 수치).
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { $, $$, icons, sheet, toast, sleep, reduceMotion, haptic } from './js/proto-common.js';
+import { $, $$, icons, toast, sleep, reduceMotion, haptic, saveChoice } from './js/proto-common.js';
 import { createMorrisViewer } from './js/morris-viewer-proto.js';
-import { ITEMS, FILLER, BACKDROP, TODAY, VISITORS } from './js/morris-items-proto.js';
+import { ITEMS, FILLER, BACKDROP, VISITORS } from './js/morris-items-proto.js';
 
 icons();
 const mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap'), guide = $('#guide'), camLoading = $('#camLoading');
-let step = 1;
-function setStep(n) { step = n; document.body.dataset.step = String(n); window.scrollTo(0, 0); }
+const TARGET = 0;                                           // 독립 전시 안내문 = 전단지 1(카페 게르부아)
+const STANCES = {
+  jury: { label: '심사위원이 정한다', pct: 38 },
+  viewer: { label: '보는 사람이 정한다', pct: 62 },         // 예시 수치
+};
+let step = 1, stance = null;
+function setStep(n) {
+  step = n; document.body.dataset.step = String(n); window.scrollTo(0, 0);
+  $$('[data-on]').forEach((el) => { el.hidden = !el.dataset.on.split(' ').includes(String(n)); });
+}
 
 // ── 3D 모리스 칼럼
 let loaded = false; const waiters = [];
 const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => waiters.push(r)));
-let picked = -1, choice = -1;
-const onFocused = {};
+let picked = -1;
 let viewer = null;
 try {
   viewer = createMorrisViewer(THREE, RoomEnvironment, mvEl, {
@@ -32,11 +40,9 @@ function onEvent(type, d) {
   else if (type === 'tap' && step === 2) openPrint(d.index);
   else if (type === 'settled' && step === 3) attachLoop();
   else if (type === 'release' && step === 3) { leaveInspect(); setStep(2); }
-  else if (type === 'released' && step === 4) startReveal();
   else if (type === 'centered') { markChip(d.index); if (step === 2) haptic(8); }
-  else if (type === 'focused') { markChip(d.index); if (onFocused[d.index]) { const f = onFocused[d.index]; delete onFocused[d.index]; f(); } }
+  else if (type === 'focused') markChip(d.index);
 }
-const waitFocused = (i) => new Promise((r) => { onFocused[i] = r; });
 
 // ── 1 스캔 안내: 칼럼 윤곽 점선 (3D 모델 실측 프로파일 — 부스 c1.js PROFILE 그대로)
 const PROFILE = [[0.55, 0], [0.585, 0.03], [0.612, 0.06], [0.618, 0.08], [0.618, 0.207], [0.61, 0.24], [0.6, 0.26], [0.578, 0.28],
@@ -117,6 +123,9 @@ function openPrint(i) {
   if (!viewer.inspect(i)) return;
   const it = ITEMS[i];
   $('#cTitle').textContent = `${it.n} · ${it.label}`; $('#cBody').textContent = it.body; $('#cMeta').textContent = it.meta;
+  const isTarget = i === TARGET;
+  $('#openBtn').hidden = !isTarget;
+  $('#s3Desc').innerHTML = isTarget ? '<span>살롱 밖의 전시 안내문입니다</span>' : '<span>이 전단지는 그대로 두고, 카페 게르부아 안내문을 찾아보세요 · 바깥을 누르면 돌려놓기</span>';
   $('#closeBtn').hidden = false;
   setStep(3);
 }
@@ -127,95 +136,58 @@ function leaveInspect() {
 }
 $('#closeBtn').addEventListener('click', () => { if (viewer && step === 3) viewer.release(); });
 
-// ── 고르기 → 확인
-const confirm = sheet($('#confirm'));
-$('#pickBtn').addEventListener('click', () => {
-  const it = ITEMS[picked];
-  $('#cfImg').src = it.src; $('#cfNo').textContent = `전단지 ${it.n}`; $('#cfLabel').textContent = it.label; $('#cfBody').textContent = it.body;
-  confirm.open();
-});
-$('#cfOk').addEventListener('click', () => {
-  confirm.close();
-  choice = picked;
+// ── 4 안내문이 펼쳐진다 (세 단 접힘)
+const flyer = $('#flyer');
+$('#openBtn').addEventListener('click', async () => {
+  if (step !== 3 || picked !== TARGET) return;
   leaveInspect();
-  setStep(4);
-  $('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
-  if (viewer) viewer.release();                           // 칼럼에 돌려놓은 뒤('released') 비율이 꽂힌다
-});
-
-// ── 4 오늘의 관람객 — 칼럼이 표 순서대로 돌아가며 전단지마다 비율 표식이 꽂힌다 (내 것은 주황)
-const colTags = $('#colTags');
-const tags = ITEMS.map((it, i) => {
-  const pos = document.createElement('div'); pos.className = 'ctag-pos';
-  const t = document.createElement('div'); t.className = 'ctag'; pos.appendChild(t); colTags.appendChild(pos);
-  return { pos, t, i, shown: false };
-});
-function tagLoop() {
-  if (step === 4 && viewer) {
-    tags.forEach((g) => {
-      const p = viewer.project(g.i); if (!p) return;
-      g.pos.style.transform = `translate3d(${p.x.toFixed(1)}px, ${(p.y + 6).toFixed(1)}px, 0)`;
-      g.pos.style.opacity = g.shown ? (p.facing > 0.18 ? Math.min(1, (p.facing - 0.18) * 4) : 0).toFixed(2) : 0;
-    });
-  }
-  requestAnimationFrame(tagLoop);
-}
-requestAnimationFrame(tagLoop);
-let revealRun = 0;
-async function startReveal() {
-  const run = ++revealRun;
-  if (!viewer) return;
-  viewer.setMagnet(false); viewer.setHighlight(false); viewer.setInteractive(false); viewer.setIdle(false);
-  const order = ITEMS.map((_, i) => i).sort((a, b) => TODAY[ITEMS[b].n] - TODAY[ITEMS[a].n]);
-  tags.forEach((g) => { g.shown = false; g.t.classList.remove('show', 'me'); g.t.innerHTML = `${TODAY[ITEMS[g.i].n]}%<small>${g.i === choice ? '나 · ' : ''}${ITEMS[g.i].n}</small>`; if (g.i === choice) g.t.classList.add('me'); });
-  await sleep(reduceMotion ? 50 : 350);
-  for (const i of order) {
-    if (run !== revealRun) return;
-    viewer.focusItem(i);
-    await Promise.race([waitFocused(i), sleep(2600)]);
-    if (run !== revealRun) return;
-    tags[i].shown = true; tags[i].t.classList.add('show');
-    haptic(10);
-    await sleep(reduceMotion ? 120 : 720);
-  }
-  if (run !== revealRun) return;
-  viewer.setIdle(true);                                     // 다 꽂히면 천천히 돈다
-  $('#toHist').hidden = false;
-  await sleep(reduceMotion ? 600 : 2600);
-  if (run === revealRun && step === 4) openHist();
-}
-$('#toHist').addEventListener('click', () => { revealRun++; openHist(); });
-
-// ── 5 그때는 — 독립 전시 전단지(카페 게르부아 안내문)가 펼쳐진다 → 수집함으로 접혀 들어간다
-const flyer = $('#flyer'), histDark = $('#histDark');
-async function openHist() {
-  if (step === 5) return;
-  setStep(5);
-  flyer.classList.add('folded'); flyer.classList.remove('away'); flyer.style.transform = '';
-  histDark.classList.remove('show');
-  $('#toHist').hidden = true;
+  setStep(4);                                               // 'release' 이벤트는 step 3에서만 2로 돌아가므로 먼저 단계를 바꾼다
+  if (viewer) { viewer.release(); viewer.setInteractive(false); viewer.setMagnet(false); viewer.setHighlight(false); }
+  flyer.classList.add('folded'); flyer.classList.remove('away', 'small'); flyer.style.transform = '';
+  $('#histIntro').classList.remove('show');
   await sleep(reduceMotion ? 50 : 420);
   flyer.classList.remove('folded');
   haptic(12);
   await sleep(reduceMotion ? 100 : 1250);
-  histDark.classList.add('show');
+  $('#histIntro').classList.add('show');
+});
+
+// ── 5 질문 — 두 입장, 정답 없음
+$('#toAsk').addEventListener('click', () => { setStep(5); });
+$$('.stance').forEach((b) => b.addEventListener('click', () => {
+  stance = b.dataset.k;
+  $$('.stance').forEach((x) => x.classList.toggle('on', x === b));
+  haptic(14);
+  setTimeout(reveal, reduceMotion ? 0 : 260);
+}));
+
+// ── 6 오늘의 관람객 — 막대 둘(내 것은 주황) + 그때는 이랬다
+function reveal() {
+  setStep(6);
+  flyer.classList.add('small');                             // 안내문은 작게 남아 수집품이 된다
+  $('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
+  $('#bars').innerHTML = Object.entries(STANCES).map(([k, s]) => `
+    <div class="bar ${k === stance ? 'me' : ''}"><div class="lb"><span>${s.label}${k === stance ? ' · 나' : ''}</span><b>${s.pct}%</b></div><div class="tr"><div class="fl" style="width:${s.pct}%"></div></div></div>`).join('');
+  $('#mineCard').classList.remove('show');
+  $('#collect').hidden = false; $('#collect').disabled = false; $('#restart').hidden = true;
 }
 $('#collect').addEventListener('click', async () => {
   const btn = $('#collect'); btn.disabled = true;
   flyer.classList.add('folded');
-  await sleep(reduceMotion ? 50 : 1000);
-  // 접힌 전단지가 수집함 아이콘으로 날아 들어간다
+  await sleep(reduceMotion ? 50 : 900);
+  // 접힌 안내문이 수집함 아이콘으로 날아 들어간다
   const ic = $('#collectIc').getBoundingClientRect(), fr = flyer.getBoundingClientRect();
   const dx = (ic.left + ic.width / 2) - (fr.left + fr.width / 2), dy = (ic.top + ic.height / 2) - (fr.top + fr.height / 2);
   flyer.classList.add('away');
-  flyer.style.transform = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.06) rotate(-14deg)`;
+  flyer.style.transform = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.12) rotate(-14deg)`;
   await sleep(reduceMotion ? 50 : 760);
   $('#collectIc').classList.add('bump'); $('#collectN').hidden = false;
   haptic(20);
   toast('수집함에 저장했습니다 · 카페 게르부아 안내문');
-  const it = ITEMS[choice];
-  $('#mineLabel').textContent = `${it.n} · ${it.label}`;
-  $('#mineSub').textContent = `오늘 같은 전단지를 고른 관람객 ${TODAY[it.n]}% · 마지막 화면에서 C0·C2·C5와 나란히`;
+  const s = STANCES[stance];
+  saveChoice('c1', { stance, label: s.label, pct: s.pct });
+  $('#mineLabel').textContent = s.label;
+  $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 마지막 화면(C5)에서 C0·C2·C4와 나란히`;
   $('#mineCard').classList.add('show');
   btn.hidden = true; $('#restart').hidden = false;
 });
@@ -225,9 +197,11 @@ $('#restart').addEventListener('click', () => location.replace(location.pathname
 $('#backBtn').addEventListener('click', () => {
   if (step === 3) { if (viewer) viewer.release(); return; }
   if (step === 2) { setStep(1); mvEl.classList.add('off'); guide.classList.remove('off', 'found'); setPill('칼럼을 스캔하세요'); if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); } return; }
-  if (step === 4 || step === 5) location.replace(location.pathname);
+  if (step === 5) { setStep(4); return; }
+  if (step === 4 || step === 6) location.replace(location.pathname);
 });
 
+setStep(1);
 // 검수용
 window.__c1 = {
   get loaded() { return loaded; }, get step() { return step; }, viewer,

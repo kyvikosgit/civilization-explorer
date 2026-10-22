@@ -5,7 +5,7 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#000000">
-<title>C1 · 칼럼 돌려보기</title>
+<title>C1 · 자격을 묻기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="c1.css">
@@ -40,7 +40,7 @@
     <div class="role-head">
       <div class="eyebrow">C1 · Colonne Morris · Avril 1874</div>
       <h1>당신은 1874년 4월,<br>이 칼럼 앞을 지나는 파리 시민입니다</h1>
-      <p>칼럼을 돌려 보세요. 전단지 여섯 장 중 가장 눈에 띈 한 장을 고릅니다.</p>
+      <p>칼럼을 돌려 보세요. 전단지 사이에 살롱 밖에서 열리는 전시의 안내문이 한 장 붙어 있습니다.</p>
     </div>
   </div>
   <button id="guide" class="guide" aria-label="칼럼을 스캔하세요 (데모로 진행)"><svg id="guideSvg" aria-hidden="true"></svg></button>
@@ -49,46 +49,53 @@
 
   <!-- 2 돌려보기 — 끌어서 돌리기(관성·자석), 전단지를 누르면 떠오른다 -->
   <div class="s s2 s2-bottom">
-    <p class="s-desc"><span>밀어서 돌리기 · 전단지를 눌러 살펴보기</span></p>
+    <p class="s-desc">카페 게르부아 안내문을 찾으세요<br><span>밀어서 돌리기 · 전단지를 눌러 살펴보기</span></p>
     <div class="chips" id="chips" role="group" aria-label="전단지 6장"></div>
   </div>
 
-  <!-- 3 살펴보기 — 떠 있는 전단지, 캡션, 이 한 장 -->
+  <!-- 3 살펴보기 — 떠 있는 전단지, 캡션. 안내문이면 펼쳐 보기 -->
   <div class="s s3 s3-bottom">
     <div class="caption" id="caption"><strong id="cTitle"></strong><p id="cBody"></p><p class="c-meta" id="cMeta"></p></div>
-    <button class="pick-btn" id="pickBtn"><span>가장 눈에 띈 한 장이라면</span><b>이 한 장</b></button>
-    <p class="s-desc"><span>끌어서 돌리기 · 바깥을 누르면 돌려놓기</span></p>
+    <button class="pick-btn" id="openBtn" hidden><span>살롱 밖의 전시 안내문</span><b>펼쳐 보기</b></button>
+    <p class="s-desc" id="s3Desc"><span>바깥을 누르면 돌려놓기 · 계속 찾기</span></p>
   </div>
 
-  <!-- 4 오늘의 관람객 — 칼럼이 표 순서대로 돌아가며 비율이 꽂힌다 -->
-  <div class="col-tags" id="colTags"></div>
-  <div class="s s4 s4-top">
-    <div class="today"><div class="cap" id="todayCap">오늘의 관람객 · 2,031명</div><h2 id="todayTitle">눈에 띈 전단지는 사람마다 달랐습니다</h2><p class="note" id="todayNote">수치는 예시 · 표가 많은 순서로 돌아갑니다</p></div>
-  </div>
-  <div class="s s4 s4-bottom"><button class="btn white" id="toHist" hidden>그때는 이랬다</button></div>
-
-  <!-- 5 그때는 — 독립 전시 전단지가 펼쳐져 수집품이 된다 -->
-  <div class="s s5 unfold" id="unfold">
+  <!-- 4 안내문 펼치기 → 5 질문 → 6 오늘의 관람객 · 그때는 -->
+  <div class="s unfold" id="unfold">
     <div class="unfold-dim"></div>
     <div class="unfold-body">
-      <div class="cap light" id="unfoldCap">수집품 · 카페 게르부아 안내문</div>
-      <div class="flyer-wrap"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
-      <div class="hist-dark" id="histDark"><b>그때는 이랬다</b>1874년 4월 15일, 카퓌신 대로 35번지 나다르의 옛 사진관. 입장료 1프랑, 한 달 동안 약 3,500명.<small>프랑스 문화부 · 1874 Première exposition · Wikipedia · First Impressionist Exhibition (Rewald 1973)</small></div>
-      <div class="mine-card" id="mineCard"><span class="cap">내 눈에 띈 전단지</span><b id="mineLabel"></b><small id="mineSub"></small></div>
-      <div class="unfold-btns"><button class="btn white" id="collect">수집함에 저장</button><button class="btn dark-line" id="restart" hidden>처음으로</button></div>
+      <div class="cap light" id="unfoldCap" data-on="4 6">독립 전시 안내문 · 카페 게르부아</div>
+      <div class="flyer-wrap" id="flyerWrap" data-on="4 6"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
+
+      <!-- 4 -->
+      <div class="hist-dark" id="histIntro" data-on="4"><b>안내문이 말하는 것</b>살롱의 심사위원도 아카데미의 교수도 아닌 화가들이 모여, 살롱의 심사를 거치지 않는 전시를 엽니다.<small>기획서 slide 16·20 원고 · 1874년 4월 15일 첫 독립 전시(프랑스 문화부)</small></div>
+      <div class="unfold-btns" data-on="4"><button class="btn white" id="toAsk">한 가지 묻겠습니다</button></div>
+
+      <!-- 5 질문 -->
+      <div class="ask" id="ask" data-on="5">
+        <div class="cap light">C0에서 당신은 심사위원이었습니다</div>
+        <p class="ask-back">방금 당신이 앉았던 그 자리,<br>필요합니까?</p>
+        <h2 class="ask-q">그림이 걸릴 자격은<br>누가 정해야 합니까?</h2>
+        <div class="stances">
+          <button class="stance" data-k="jury"><b>심사위원이 정한다</b><span>기준을 아는 사람이 먼저 거른다</span></button>
+          <button class="stance" data-k="viewer"><b>보는 사람이 정한다</b><span>걸어 놓고 각자 보게 한다</span></button>
+        </div>
+        <p class="ask-note">정답은 없습니다. 고르면 오늘의 관람객이 어떻게 갈렸는지 봅니다.</p>
+      </div>
+
+      <!-- 6 오늘 · 그때는 -->
+      <div class="result" id="result" data-on="6">
+        <div class="cap light" id="todayCap">오늘의 관람객 · 2,031명 · 수치는 예시</div>
+        <h2 class="result-h" id="resultH">오늘은 이렇게 갈렸습니다</h2>
+        <div class="bars" id="bars"></div>
+        <div class="hist-dark show" id="histDark"><b>그때는 이랬다</b>1874년 4월 15일, 카퓌신 대로 35번지 나다르의 옛 사진관. 화가들이 살롱 심사를 거치지 않고 스스로 연 전시였다. 입장료 1프랑, 한 달 동안 약 3,500명.<small>프랑스 문화부 · 1874 Première exposition · Wikipedia · First Impressionist Exhibition (Rewald 1973) · Wikipedia · Impressionism</small></div>
+        <div class="mine-card" id="mineCard"><span class="cap">내 입장</span><b id="mineLabel"></b><small id="mineSub"></small></div>
+      </div>
+      <div class="unfold-btns" data-on="6"><button class="btn white" id="collect">수집함에 저장</button><button class="btn dark-line" id="restart" hidden>처음으로</button></div>
     </div>
   </div>
 
   <div id="camLoading" class="cam-loading"><div class="spinner"></div><span>모리스 칼럼 불러오는 중</span></div>
-</div>
-
-<!-- 확인 시트 -->
-<div class="sheet" id="confirm">
-  <div class="grip"></div>
-  <h3>가장 눈에 띈 한 장</h3>
-  <p class="sub">정답은 없습니다. 고르고 나면 오늘의 관람객이 고른 비율을 봅니다.</p>
-  <div class="confirm-row"><img id="cfImg" alt=""><div><span class="cap" id="cfNo"></span><b id="cfLabel"></b><small id="cfBody"></small></div></div>
-  <div class="btns"><button class="btn line" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">이 한 장</button></div>
 </div>
 
 <script type="module" src="c1.js"></script>

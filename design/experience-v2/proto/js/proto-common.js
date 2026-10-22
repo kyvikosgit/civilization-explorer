@@ -47,3 +47,11 @@ export function showScreen(id) {
 }
 
 export function haptic(ms = 18) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* noop */ } }
+
+// 내 입장 저장 — 기기 안(localStorage)에만. 마지막 화면(c5)이 읽는다. 서버 없음
+const CHOICE_KEY = 'm100_choice';
+export function loadChoices() { try { return JSON.parse(localStorage.getItem(CHOICE_KEY) || '{}') || {}; } catch (e) { return {}; } }
+export function saveChoice(station, data) {
+  try { const all = loadChoices(); all[station] = { ...data, at: Date.now() }; localStorage.setItem(CHOICE_KEY, JSON.stringify(all)); } catch (e) { /* noop */ }
+}
+export function clearChoices() { try { localStorage.removeItem(CHOICE_KEY); } catch (e) { /* noop */ } }
