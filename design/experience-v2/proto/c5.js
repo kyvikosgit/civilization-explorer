@@ -11,7 +11,7 @@ import { $, $$, icons, reduceMotion, haptic } from './js/proto-common.js';
 
 icons();
 const IMG = 'img/c5/';
-const DAY_MS = 45000;                                   // 하루 한 바퀴(첫 때 → 마지막 때)
+const DAY_MS = 32000;                                   // 하루 한 바퀴(첫 때 → 마지막 때)
 const HOLD_MS = 2600, RETURN_MS = 3600;                 // 마지막 때에 잠시 머문 뒤, 처음으로 돌아가는 시간
 const DETAIL_LAG = 400;                                 // 겹칠: 세부가 색면을 따라오는 시간
 const PLACE = { haystacks: '지베르니 · 1890–91', rouen: '루앙 · 1892–94', parliament: '런던 · 1900–04', waterloo: '런던 · 1900–03', seine: '지베르니 · 1897' };
