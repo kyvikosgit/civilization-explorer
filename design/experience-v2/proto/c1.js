@@ -64,7 +64,12 @@ const PROFILE = [[0.55, 0], [0.585, 0.03], [0.612, 0.06], [0.618, 0.08], [0.618,
   svg.setAttribute('viewBox', `-0.68 -0.05 1.36 ${H + 0.1}`);
   svg.innerHTML = `<path class="g-fill" d="${outline}"/><path class="g-band" d="${bands}"/><path class="g-line" d="${outline}"/>`;
 })();
-function setPill(text, found = false) { pill.textContent = text || ''; pill.classList.toggle('found', found); pillWrap.classList.toggle('off', !text); }
+let pillT = 0;
+function setPill(text, found = false) {   // 끌 때는 글자를 남긴 채 사라지게 — 빈 알약이 잠깐 보이지 않게
+  clearTimeout(pillT);
+  if (!text) { pillWrap.classList.add('off'); pillT = setTimeout(() => { pill.textContent = ''; pill.classList.remove('found'); }, 320); return; }
+  pill.textContent = text; pill.classList.toggle('found', found); pillWrap.classList.remove('off');
+}
 
 let scanning = false;
 async function scan() {
@@ -123,10 +128,10 @@ function openPrint(i) {
   playLoop(i);
   if (!viewer.inspect(i)) return;
   const it = ITEMS[i];
-  $('#cTitle').textContent = `${it.n} · ${it.label}`; $('#cBody').textContent = it.body; $('#cMeta').textContent = it.meta;
+  $('#cTitle').textContent = it.label; $('#cBody').textContent = it.body; $('#cMeta').textContent = it.meta; $('#cMeta').hidden = !it.meta;
   const isTarget = i === TARGET;
   $('#openBtn').hidden = !isTarget;
-  $('#s3Desc').innerHTML = isTarget ? '<span>살롱 밖의 전시 안내문입니다</span>' : '<span>이 전단지는 그대로 두고, 카페 게르부아 안내문을 찾아보세요 · 바깥을 누르면 돌려놓기</span>';
+  $('#s3Desc').hidden = isTarget;
   $('#closeBtn').hidden = false;
   setStep(3);
 }
@@ -145,6 +150,7 @@ $('#openBtn').addEventListener('click', async () => {
   setStep(4);                                               // 'release' 이벤트는 step 3에서만 2로 돌아가므로 먼저 단계를 바꾼다
   if (viewer) { viewer.release(); viewer.setInteractive(false); viewer.setMagnet(false); viewer.setHighlight(false); }
   flyer.classList.add('folded'); flyer.classList.remove('away', 'small'); flyer.style.transform = '';
+  const fw = $('#flyerWrap'); fw.classList.remove('enter'); void fw.offsetWidth; fw.classList.add('enter');   // 칼럼으로 돌아가는 3D 전단지가 딤 아래로 사라진 뒤에 나타난다
   $('#histIntro').classList.remove('show');
   await sleep(reduceMotion ? 50 : 420);
   flyer.classList.remove('folded');
@@ -154,7 +160,7 @@ $('#openBtn').addEventListener('click', async () => {
 });
 
 // ── 5 질문 — 칼럼에 나란히 붙은 두 포스터. 보러 갈 전시의 포스터를 누르면 그 포스터가 눈앞으로 다가오고(눈여겨본 것처럼), 다른 포스터는 뒤로 물러난다 (정답 없음)
-$('#toAsk').addEventListener('click', () => { setStep(5); papers.classList.remove('decided', 'today'); $$('.paper', papers).forEach((x) => x.classList.remove('pick', 'back', 'me')); });
+$('#toAsk').addEventListener('click', () => { document.body.classList.remove('settled'); setStep(5); papers.classList.remove('decided', 'today'); $$('.paper', papers).forEach((x) => x.classList.remove('pick', 'back', 'me')); });
 const papers = $('#papers');
 let deciding = false;
 $$('.paper', papers).forEach((b) => b.addEventListener('click', async () => {
@@ -172,12 +178,17 @@ $$('.paper', papers).forEach((b) => b.addEventListener('click', async () => {
 const KEYS = ['jury', 'viewer'];
 let crowd = null;
 function reveal() {
+  document.body.classList.remove('settled');
+  const y0 = papers.getBoundingClientRect().top;
   setStep(6);
+
   $$('.paper', papers).forEach((x) => { x.classList.toggle('me', x.dataset.k === stance); x.style.setProperty('--o', x.dataset.k === stance ? 1 : 0.55); });
   papers.classList.remove('decided'); papers.classList.add('today');
+  // 두 포스터는 같은 종이 — 질문 자리에서 위로 미끄러져 올라간다(뚝 끊기지 않게)
+  const dy = y0 - papers.getBoundingClientRect().top;
+  if (!reduceMotion && Math.abs(dy) > 2) papers.animate([{ transform: `translateY(${dy.toFixed(1)}px)` }, { transform: 'none' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
   $('#crowdCols').innerHTML = KEYS.map((k) => { const s = STANCES[k], me = k === stance; return `<div class="crowd-col${me ? ' me' : ''}"><b class="n">${s.pct}<i>%</i></b><span class="lab">${s.label}${me ? ' · 나' : ''}</span></div>`; }).join('');
   $('#crowdStamp').textContent = stampLine(VISITORS);
-  $('#mineCard').classList.remove('show');
   $('#collect').hidden = false; $('#collect').disabled = false; $('#restart').hidden = true;
   // 군중: 종이 폭에 맞춘 두 자리
   const stage = $('#crowdStage'), n = dotsFor(VISITORS);
@@ -189,27 +200,28 @@ function reveal() {
     const counts = split(n, KEYS.map((k) => STANCES[k].pct));
     const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
     crowd.place(scatter(n, { x: 0, y: 0, w: sr.width, h: sr.height }, crowd.rnd));
-    setTimeout(() => crowd.move(targetsFor(crowd, groups, KEYS.indexOf(stance)), { duration: 1250, stagger: 380 }), reduceMotion ? 0 : 260);
+    setTimeout(() => crowd.move(targetsFor(crowd, groups, KEYS.indexOf(stance)), { duration: 1250, stagger: 380, onDone: () => document.body.classList.add('settled') }), reduceMotion ? 0 : 260);
   });
 }
 $('#collect').addEventListener('click', async () => {
   const btn = $('#collect'); btn.disabled = true;
-  // 내 포스터가 수집함 아이콘으로 날아 들어간다
-  const mine = $('.paper.me', papers);
+  // 내 포스터의 사본이 수집함 아이콘으로 줄어들며 들어간다 — 원본은 제자리(아래 점 무리와 짝이 맞게)
+  const mine = $('.paper.me > .notice', papers);
   const ic = $('#collectIc').getBoundingClientRect(), fr = mine.getBoundingClientRect();
+  const ghost = mine.cloneNode(true); ghost.classList.add('fly-ghost');
+  Object.assign(ghost.style, { left: fr.left + 'px', top: fr.top + 'px', width: fr.width + 'px', height: fr.height + 'px' });
+  document.body.appendChild(ghost);
   const dx = (ic.left + ic.width / 2) - (fr.left + fr.width / 2), dy = (ic.top + ic.height / 2) - (fr.top + fr.height / 2);
-  mine.classList.add('away');
-  mine.style.transform = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.12) rotate(-14deg)`;
-  await sleep(reduceMotion ? 50 : 760);
-  mine.classList.add('gone');                                        // 다른 포스터는 제자리에(아래 점 무리와 맞춰서)
-  $('#collectIc').classList.add('bump'); $('#collectN').hidden = false;
+  if (!reduceMotion) {
+    const a = ghost.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.1)`, opacity: 0.2 }], { duration: 720, easing: 'cubic-bezier(.5,0,.25,1)', fill: 'forwards' });
+    await a.finished.catch(() => {});
+  }
+  ghost.remove();
+  $('#collectIc').classList.remove('bump'); void $('#collectIc').offsetWidth; $('#collectIc').classList.add('bump'); $('#collectN').hidden = false;
   haptic(20);
   const s = STANCES[stance];
-  toast(`수집함에 저장했습니다 · ${stance === 'viewer' ? '화가들의 전시 안내(재현)' : '살롱 1874 공고(재현)'}`);
+  toast('수집함에 저장했습니다', 1600);
   saveChoice('c1', { stance, label: s.label, pct: s.pct });
-  $('#mineLabel').textContent = s.label;
-  $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 출구 화면에서 C0·C2·C4와 나란히`;
-  $('#mineCard').classList.add('show');
   btn.hidden = true; $('#restart').hidden = false;
 });
 $('#restart').addEventListener('click', () => location.replace(location.pathname));

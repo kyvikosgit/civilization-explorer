@@ -29,7 +29,7 @@
   <div class="stage-top">
     <div class="topbar dark">
       <button class="icon-btn" id="backBtn" aria-label="뒤로"><i data-ic="back"></i></button>
-      <div class="tb-title" id="tbTitle">C1 · 시민사회</div>
+      <div class="tb-title" id="tbTitle">시민사회</div>
       <span class="tb-right">
         <button class="icon-btn" id="closeBtn" aria-label="전단지를 칼럼에 돌려놓기" hidden><i data-ic="close"></i></button>
         <span class="collect-ic" id="collectIc" aria-label="수집함"><i data-ic="box"></i><b id="collectN" hidden>1</b></span>
@@ -40,42 +40,41 @@
   <!-- 1 역할 + 스캔 — 칼럼 윤곽 점선(3D 모델 실측 프로파일), 점선을 누르면 데모로 진행 -->
   <div class="s s1">
     <div class="role-head">
-      <div class="eyebrow">C1 · Colonne Morris · Avril 1874</div>
+      <div class="eyebrow">Colonne Morris · Avril 1874</div>
       <h1>당신은 1874년 4월,<br>이 칼럼 앞을 지나는 파리 시민입니다</h1>
       <p>칼럼을 돌려 보세요. 전단지 사이에 살롱 밖에서 열리는 전시의 안내문이 한 장 붙어 있습니다.</p>
     </div>
   </div>
   <button id="guide" class="guide" aria-label="칼럼을 스캔하세요 (데모로 진행)"><svg id="guideSvg" aria-hidden="true"></svg></button>
   <div id="pillWrap" class="pill-wrap"><span id="pill" class="pill">칼럼을 스캔하세요</span></div>
-  <div class="s s1 s1-bottom"><p class="s-desc">칼럼 양쪽 QR로 시작합니다. 점선 안에 칼럼을 맞추면 3D 칼럼이 뜹니다.<br><span>프로토타입: 점선을 눌러 데모로 진행</span></p></div>
+  <div class="s s1 s1-bottom"><p class="s-desc"><span>프로토타입 · 점선을 누르면 시작합니다</span></p></div>
 
   <!-- 2 돌려보기 — 끌어서 돌리기(관성·자석), 전단지를 누르면 떠오른다 -->
   <div class="s s2 s2-bottom">
-    <p class="s-desc">카페 게르부아 안내문을 찾으세요<br><span>밀어서 돌리기 · 전단지를 눌러 살펴보기</span></p>
+    <p class="s-desc">전단지를 눌러 살펴보세요</p>
     <div class="chips" id="chips" role="group" aria-label="전단지 6장"></div>
   </div>
 
   <!-- 3 살펴보기 — 떠 있는 전단지, 캡션. 안내문이면 펼쳐 보기 -->
   <div class="s s3 s3-bottom">
     <div class="caption" id="caption"><strong id="cTitle"></strong><p id="cBody"></p><p class="c-meta" id="cMeta"></p></div>
-    <button class="pick-btn" id="openBtn" hidden><span>살롱 밖의 전시 안내문</span><b>펼쳐 보기</b></button>
-    <p class="s-desc" id="s3Desc"><span>바깥을 누르면 돌려놓기 · 계속 찾기</span></p>
+    <button class="btn white" id="openBtn" hidden>안내문 펼쳐 보기</button>
+    <p class="s-desc" id="s3Desc"><span>바깥을 누르면 칼럼으로 돌아갑니다</span></p>
   </div>
 
   <!-- 4 안내문 펼치기 → 5 칼럼의 두 포스터 가운데 보러 갈 전시를 고른다 → 6 오늘의 관람객(두 포스터 아래) · 그때는 -->
   <div class="s unfold" id="unfold">
     <div class="unfold-dim"></div>
     <div class="unfold-body">
-      <div class="cap light" id="unfoldCap" data-on="4">독립 전시 안내문 · 카페 게르부아</div>
+      <div class="cap light" id="unfoldCap" data-on="4">카페 게르부아 안내문</div>
       <div class="flyer-wrap" id="flyerWrap" data-on="4"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
 
       <!-- 4 -->
-      <div class="hist-dark" id="histIntro" data-on="4"><b>안내문이 말하는 것</b>살롱의 심사위원도 아카데미의 교수도 아닌 화가들이 모여, 살롱의 심사를 거치지 않는 전시를 엽니다.<small>기획서 slide 16·20 원고 · 1874년 4월 15일 첫 독립 전시(프랑스 문화부)</small></div>
-      <div class="unfold-btns" data-on="4"><button class="btn white" id="toAsk">칼럼의 포스터를 보러</button></div>
+      <p class="hist-dark intro" id="histIntro" data-on="4">살롱의 심사위원도 아카데미의 교수도 아닌 화가들이 모여, 살롱의 심사를 거치지 않는 전시를 엽니다.</p>
+      <div class="unfold-btns" data-on="4"><button class="btn white" id="toAsk">다음</button></div>
 
       <!-- 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(둘 다 재현). 이번 주말 보러 갈 전시를 고른다 -->
       <div class="ask" id="ask" data-on="5">
-        <div class="cap light">1874년 봄, 파리 시민인 당신</div>
         <h2 class="ask-q">이번 주말, 어느 전시를<br>보러 가시겠습니까?</h2>
       </div>
 
@@ -96,7 +95,7 @@
             <div class="n-foot">Ouvrages admis par le Jury</div>
             <span class="n-tag">재현</span>
           </div>
-          <span class="paper-lb"><b>심사위원이 고른 전시</b><small>샹젤리제 궁 · 5월 1일 개막</small></span>
+          <span class="paper-lb"><b>심사위원이 고른 전시</b><small>샹젤리제 궁 · 5월 1일</small></span>
         </button>
         <button class="paper expo" data-k="viewer" role="radio" aria-checked="false" aria-label="화가들의 전시 안내(재현) · 화가들이 직접 연 전시">
           <div class="notice expo" aria-hidden="true">
@@ -110,10 +109,9 @@
             <div class="n-foot">Entrée · 1 franc</div>
             <span class="n-tag">재현</span>
           </div>
-          <span class="paper-lb"><b>화가들이 직접 연 전시</b><small>카퓌신 대로 35번지 · 4월 15일 · 1프랑</small></span>
+          <span class="paper-lb"><b>화가들이 직접 연 전시</b><small>카퓌신 대로 35번지 · 4월 15일</small></span>
         </button>
       </div>
-      <p class="ask-note" data-on="5">보러 갈 전시의 포스터를 누르세요. 정답은 없습니다.</p>
 
       <!-- 6 오늘의 관람객 — 점 하나가 열 사람. 두 종이 아래로 모인다(js/crowd.js) -->
       <div class="crowd dark center" id="crowd" data-on="6">
@@ -123,8 +121,7 @@
       </div>
 
       <div class="result" id="result" data-on="6">
-        <div class="hist-dark show" id="histDark"><b>그때는 이랬다</b>1874년 4월 15일, 카퓌신 대로 35번지 나다르의 옛 사진관. 화가들이 살롱 심사를 거치지 않고 스스로 연 전시였다. 입장료 1프랑, 한 달 동안 약 3,500명. 공식 살롱은 그해 5월 1일 샹젤리제 궁에서 열렸다.<small>프랑스 문화부 · 1874 Première exposition · Wikipedia · First Impressionist Exhibition (Rewald 1973) · 오르세 · Paris 1874 (Salon 1874.5.1 개막) · 살롱 공고 카드는 재현</small></div>
-        <div class="mine-card" id="mineCard"><span class="cap">내 입장</span><b id="mineLabel"></b><small id="mineSub"></small></div>
+        <div class="hist-dark show" id="histDark"><b>그때는 이랬다</b>1874년 4월 15일, 카퓌신 대로 35번지 나다르의 옛 사진관. 화가들이 살롱 심사를 거치지 않고 스스로 연 전시였다. 입장료 1프랑, 한 달 동안 약 3,500명. 공식 살롱은 그해 5월 1일 샹젤리제 궁에서 열렸다.<small>프랑스 문화부 · 오르세 미술관 〈Paris 1874〉 · Rewald 1973</small></div>
       </div>
       <div class="unfold-btns" data-on="6"><button class="btn white" id="collect">수집함에 저장</button><button class="btn dark-line" id="restart" hidden>처음으로</button></div>
     </div>

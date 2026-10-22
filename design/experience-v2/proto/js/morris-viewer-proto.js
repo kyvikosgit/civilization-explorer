@@ -525,14 +525,16 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     pv.project(camera);
     return { x: (pv.x + 1) / 2 * W(), y: (1 - pv.y) / 2 * H(), facing, onColumn: p.mesh.parent === column };
   }
+  function setColumnClip(planes) {
+    column.traverse((o) => { if (!o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { m.clippingPlanes = planes; m.needsUpdate = true; }); });
+  }
   function rise() {
     if (riseState.t >= 0) return;
     column.position.y = -TOTAL_H * 1.02;
-    renderer.clippingPlanes = [floorPlane];
-    // 잔상: 색 버퍼를 지우지 않고 반투명 배경을 덮어 그린다 → 직전 프레임이 흐릿하게 남는다(모션 블러 느낌). 깊이 버퍼는 매 프레임 지운다
-    renderer.autoClearColor = false;
-    backdropMesh.material.transparent = true; backdropMesh.material.opacity = 0.5; backdropMesh.material.needsUpdate = true;
-    riseState.t = 0; riseState.spin = reduceMotion ? 0 : 2.6; riseState.done = false;
+    // 바닥 아래는 칼럼만 자른다(배경은 그대로) — 전역 clippingPlanes 는 배경까지 잘라 빈 사각형이 보였다
+    renderer.localClippingEnabled = true; setColumnClip([floorPlane]);
+    // [proto · C1 품질 점검] 잔상(색 버퍼를 지우지 않는 모션 블러)과 종이 펄럭임은 뺐다 — 칼럼은 조용히 솟고 반 바퀴 남짓 천천히 돈다
+    riseState.t = 0; riseState.spin = reduceMotion ? 0 : 0.9; riseState.done = false;
     if (riseState.contact) riseState.contact.material.opacity = 0;
     idle = false; vel = 0; dirty = true;
   }
@@ -826,17 +828,14 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
         const t = riseState.t, e = reduceMotion ? 1 : 1 - Math.pow(1 - t, 3);
         const over = reduceMotion ? 0 : Math.sin(Math.min(1, t) * Math.PI) * 0.06 * (1 - t);
         column.position.y = -TOTAL_H * 1.02 * (1 - e) + over;
-        riseState.spin *= Math.pow(0.08, dt);
+        riseState.spin *= Math.pow(0.25, dt);
         rot += riseState.spin * dt;
-        riseState.flutter = Math.max(0, Math.sin(t * Math.PI)) * 1.0;
         overhead.intensity = 2.4 * e;
-        backdropMesh.material.opacity = 0.5 + 0.5 * Math.pow(t, 2);
         if (riseState.contact) riseState.contact.material.opacity = e;
         animating = true;
         if (t >= 1) {
-          riseState.t = -1; column.position.y = 0; renderer.clippingPlanes = []; renderer.autoClearColor = true;
-          backdropMesh.material.opacity = 1; backdropMesh.material.transparent = false; backdropMesh.material.needsUpdate = true;
-          riseState.done = true; idle = false; vel = 0.014; lastTouch = performance.now();
+          riseState.t = -1; column.position.y = 0; setColumnClip(null);
+          riseState.done = true; idle = false; vel = 0.006; lastTouch = performance.now();
           post('risen');
         }
       } else if (focusRot !== null) {           // 지정한 인쇄물이 정면에 오도록 돌린다

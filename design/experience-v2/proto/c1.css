@@ -16,8 +16,11 @@ body[data-step="rise"] .street, body[data-step="2"] .street, body[data-step="3"]
 .collect-ic { position: relative; width: 40px; height: 40px; display: grid; place-items: center; color: #fff; pointer-events: auto; }
 .collect-ic i { display: grid; width: 24px; height: 24px; }
 .collect-ic b { position: absolute; right: 4px; top: 5px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--point); color: #fff; font-family: var(--display); font-weight: 800; font-size: 10.5px; display: grid; place-items: center; }
-.collect-ic.bump { animation: bump .55s var(--ease-spring); }
-@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.collect-ic.bump { animation: bump .55s var(--ease-out); }
+/* 수집함 아이콘은 담을 것이 생기는 마지막 단계에서만 — 그 전엔 눌러도 할 일이 없는 아이콘을 두지 않는다 */
+body:not([data-step="6"]) .collect-ic { display: none; }
+.fly-ghost { position: fixed; z-index: 60; margin: 0; pointer-events: none; transform-origin: 50% 50%; box-shadow: 0 10px 20px rgba(0,0,0,.4); }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
 .cam-loading { position: absolute; inset: 0; z-index: 25; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; font-size: 14px; color: rgba(255,255,255,.9); background: rgba(0,0,0,.45); transition: opacity .3s; }
 .cam-loading.off { opacity: 0; pointer-events: none; }
 .spinner { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.25); border-top-color: var(--point); animation: spin 1s linear infinite; }
@@ -25,7 +28,7 @@ body[data-step="rise"] .street, body[data-step="2"] .street, body[data-step="3"]
 
 /* 단계별 UI — body[data-step] 로 켜고 끈다 */
 .s { position: absolute; left: 0; right: 0; z-index: 10; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .35s, visibility 0s linear .35s; }
-.s .btn, .s .chips, .s .pick-btn, .s .paper { pointer-events: auto; }
+.s .btn, .s .chips, .s .paper { pointer-events: auto; }
 body[data-step="1"] .s1, body[data-step="2"] .s2, body[data-step="3"] .s3, body[data-step="4"] .unfold, body[data-step="5"] .unfold, body[data-step="6"] .unfold { opacity: 1; visibility: visible; transition: opacity .4s .1s, visibility 0s; }
 .s-desc { margin: 0; font-size: 14.5px; line-height: 1.55; text-align: center; color: #FFFFFF; text-shadow: 0 1px 6px rgba(0,0,0,.7); }
 .s-desc span { font-size: 12.5px; opacity: .8; }
@@ -63,17 +66,12 @@ body[data-step="1"] .s1, body[data-step="2"] .s2, body[data-step="3"] .s3, body[
 .caption strong { display: block; font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: -0.3px; }
 .caption p { margin: 5px 0 0; font-size: 13px; line-height: 19px; color: rgba(255,255,255,.88); }
 .caption .c-meta { font-size: 11.5px; color: rgba(255,255,255,.65); }
-.pick-btn { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 8px 0 18px; border-radius: 28px; background: #FFFFFF; color: var(--ink);
-  box-shadow: 0 10px 24px rgba(0,0,0,.4); transition: transform .15s; }
-.pick-btn:active { transform: scale(.98); }
-.pick-btn span { font-size: 13px; color: var(--dim); font-weight: 600; }
-.pick-btn b { height: 40px; padding: 0 18px; border-radius: 20px; background: var(--point); color: #fff; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 15px; }
 .confirm-row { display: grid; grid-template-columns: 84px 1fr; gap: 14px; align-items: center; margin-top: 14px; }
 .confirm-row img { width: 84px; border-radius: 4px; box-shadow: 0 6px 14px rgba(0,0,0,.25); background: #E9E2D2; }
 .confirm-row b { display: block; font-family: var(--display); font-weight: 800; font-size: 18px; margin-top: 2px; }
 .confirm-row small { display: block; font-size: 12.5px; line-height: 1.5; color: var(--dim); margin-top: 4px; }
 .cap { font-family: var(--display); font-weight: 600; font-size: 12.5px; color: var(--point); }
-.cap.light { color: #F0B98F; }
+.cap.light { color: rgba(255,255,255,.62); }
 
 /* 4~6 안내문 펼치기 (세 단 접힘) → 질문 → 오늘 · 그때는 → 수집함으로 접혀 들어간다 */
 .unfold { inset: 0; z-index: 15; display: flex; flex-direction: column; }
@@ -81,7 +79,11 @@ body[data-step="1"] .s1, body[data-step="2"] .s2, body[data-step="3"] .s3, body[
 body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: rgba(0,0,0,.6); }
 .unfold-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 14px; overflow: hidden; padding: calc(56px + var(--safe-t)) var(--pad) calc(18px + var(--safe-b)); }
 .flyer-wrap { perspective: 900px; flex: none; }
-.flyer { --fw: 250px; width: var(--fw); height: calc(var(--fw) * 1.5); position: relative; transform-style: preserve-3d; transition: transform .7s var(--ease-out), opacity .4s; filter: drop-shadow(0 20px 28px rgba(0,0,0,.55)); }
+/* 그림자는 원근 상자에 — .flyer 에 filter 를 두면 3D 가 평면이 되어 접힌 단이 펴지는 도중 사라진다 */
+.flyer-wrap { filter: drop-shadow(0 20px 28px rgba(0,0,0,.55)); }
+.flyer-wrap.enter { animation: flyerIn .45s .28s var(--ease-out) both; }
+@keyframes flyerIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.flyer { --fw: 250px; width: var(--fw); height: calc(var(--fw) * 1.5); position: relative; transform-style: preserve-3d; transition: transform .7s var(--ease-out), opacity .4s; }
 .strip { position: absolute; left: 0; width: 100%; height: calc(100% / 3); transform-style: preserve-3d; transition: transform .75s cubic-bezier(.4,0,.2,1); }
 .strip i { position: absolute; inset: 0; display: block; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .strip .f { background: url('../../../booth/assets/img/fl_batignolles.jpg') center/100% auto no-repeat; }
@@ -106,8 +108,7 @@ body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: r
 /* 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(살롱 1874 공고 · 화가들의 전시 안내, 둘 다 재현). 보러 갈 포스터를 누르면 그 포스터가 눈앞으로 다가오고 다른 포스터는 뒤로 물러난다 */
 .ask { width: 100%; max-width: 360px; display: grid; gap: 8px; text-align: center; animation: scrIn .4s ease both; }
 .ask-q { font-size: 26px; line-height: 1.3; color: #fff; margin-top: 2px; }
-.ask-note { margin: 0; max-width: 300px; font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,.6); text-align: center; animation: scrIn .4s .3s ease both; }
-.papers { --pw: 148px; display: flex; justify-content: center; align-items: flex-start; gap: 20px; width: 100%; perspective: 1000px; padding: 10px 0 0; }
+.papers { display: flex; justify-content: center; align-items: flex-start; gap: 20px; width: 100%; perspective: 1000px; padding: 10px 0 0; }
 .paper { position: relative; width: var(--pw); display: grid; gap: 8px; justify-items: center; color: #fff; text-align: center; transform-style: preserve-3d; transform-origin: 50% 40%;
   transition: transform .9s var(--ease-out), opacity .5s, filter .5s; pointer-events: auto; }
 .paper > .notice { width: var(--pw); height: calc(var(--pw) * 1.5); border-radius: 2px; box-shadow: 0 12px 24px rgba(0,0,0,.55), 0 2px 4px rgba(0,0,0,.4); transition: transform .3s var(--ease-out), box-shadow .3s; }
@@ -116,7 +117,7 @@ body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: r
 .paper.expo { animation: pasteIn .6s var(--ease-out) .15s both; }
 @keyframes pasteIn { 0% { opacity: 0; transform: translateY(14px) rotateX(-18deg); } 100% { opacity: 1; transform: none; } }
 /* 공고 두 장(재현) — 1874년 벽보의 활자 구성: 디돈 세리프, 겹줄 테두리. 살롱 공고는 관청 종이, 화가들의 안내는 인쇄소의 누런 종이 */
-.notice { position: relative; display: grid; align-content: center; gap: 4px; padding: 14px 10px 24px; background: linear-gradient(170deg, #F3EBD6, #E6DCC0); color: #26211B; font-family: 'Old Standard TT', Georgia, serif; text-align: center; line-height: 1.15; overflow: hidden; }
+.notice { position: relative; display: grid; align-content: center; gap: 2px; padding: 12px 10px 30px; background: linear-gradient(170deg, #F3EBD6, #E6DCC0); color: #26211B; font-family: 'Old Standard TT', Georgia, serif; text-align: center; line-height: 1.15; overflow: hidden; }
 .notice::before { content: ''; position: absolute; inset: 5px; border: 1.5px solid rgba(38,33,27,.75); outline: .5px solid rgba(38,33,27,.55); outline-offset: 2px; pointer-events: none; }
 .notice::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 80% 90%, rgba(90,70,30,.14), transparent 40%), repeating-linear-gradient(118deg, rgba(0,0,0,.02) 0 1px, transparent 1px 5px); pointer-events: none; }
 .notice.expo { background: linear-gradient(170deg, #EBDDB4, #DCCB9B); color: #2A2117; }
@@ -126,14 +127,14 @@ body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: r
 .notice.expo .n-line.em { font-size: 9px; }
 .n-rep { font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; color: rgba(38,33,27,.7); }
 .n-big { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 24px; line-height: .98; letter-spacing: .02em; margin-top: 2px; }
-.n-rule { width: 44px; height: 1.5px; background: #26211B; margin: 4px auto; }
+.n-rule { width: 44px; height: 1.5px; background: #26211B; margin: 5px auto; }
 .n-line { font-size: 8.5px; letter-spacing: .06em; text-transform: uppercase; }
 .n-line.em { font-weight: 700; margin-top: 2px; }
 .n-open { font-size: 12px; font-style: italic; margin-top: 2px; line-height: 1.1; }
 .n-open sup { font-size: 7px; font-style: normal; }
 .n-foot { font-size: 6.5px; letter-spacing: .1em; text-transform: uppercase; color: rgba(38,33,27,.65); margin-top: 4px; }
-.n-tag { position: absolute; right: 8px; bottom: 8px; font-family: var(--body); font-size: 9px; font-weight: 600; letter-spacing: 0; color: rgba(38,33,27,.55); border: 1px dashed rgba(38,33,27,.45); border-radius: 3px; padding: 1px 4px; }
-.paper-lb { display: grid; gap: 2px; }
+.n-tag { position: absolute; right: 9px; bottom: 9px; font-family: var(--body); font-size: 9px; font-weight: 600; letter-spacing: 0; color: rgba(38,33,27,.55); border: 1px dashed rgba(38,33,27,.45); border-radius: 3px; padding: 1px 4px; }
+.paper-lb { display: grid; gap: 2px; white-space: nowrap; }
 .paper-lb b { font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }
 .paper-lb small { font-size: 12.5px; color: rgba(255,255,255,.65); }
 /* 고른 뒤: 고른 포스터는 눈앞으로 다가오고(조금 커지고 밝아진다), 다른 포스터는 뒤로 물러난다(작아지고 어두워진다). 붙이거나 떼는 동작이 아니다 */
@@ -150,42 +151,51 @@ body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: r
 .papers.today .paper.me > .notice { box-shadow: 0 0 0 2px var(--point), 0 12px 24px rgba(0,0,0,.55); }
 .paper.away { transition: transform .8s cubic-bezier(.5,0,.3,1), opacity .35s .5s !important; opacity: 0 !important; }
 .paper.gone { visibility: hidden; }
-/* 6 오늘의 관람객 — 머리(캡 + 한 줄) → 두 종이 → 바로 아래 점이 모인다 → 종이 폭에 맞춘 두 기둥에 숫자 → 기준 시각 */
+/* 6 오늘의 관람객 — 머리(캡 + 한 줄) → 두 종이 → 바로 아래 점이 모인다 → 종이 폭에 맞춘 두 기둥에 숫자 → 기준 시각
+   포스터 폭(--pw)은 .unfold-body 에 — 숫자 두 기둥이 포스터 아래에 맞춰 선다 */
+.unfold-body { --pw: 148px; }
 .crowd { width: 100%; max-width: 360px; animation: scrIn .4s ease both; }
 .crowd-head { padding-top: 4px; }
 .crowd-stage { height: 72px; margin-top: -8px; }
 .crowd-stage::before { content: ''; position: absolute; inset: -6px -10px; background: radial-gradient(50% 60% at 50% 50%, rgba(0,0,0,.42), rgba(0,0,0,0) 100%); pointer-events: none; }
 .crowd-cols { grid-template-columns: var(--pw) var(--pw); gap: 20px; justify-content: center; margin-top: 0; }
+.crowd-cols .lab { white-space: nowrap; }
 .crowd-stamp { margin-top: 8px; }
-body[data-step="6"] .unfold-body { overflow-y: auto; overscroll-behavior: contain; justify-content: flex-start; gap: 10px; padding-bottom: calc(22px + var(--safe-b)); }
+body[data-step="6"] .unfold-dim { background: rgba(8,8,9,.86); }
+body[data-step="6"] .unfold-body { overflow-y: auto; overscroll-behavior: contain; justify-content: safe center; gap: 10px; padding-bottom: calc(22px + var(--safe-b));
+  -webkit-mask-image: linear-gradient(transparent calc(40px + var(--safe-t)), #000 calc(60px + var(--safe-t))); mask-image: linear-gradient(transparent calc(40px + var(--safe-t)), #000 calc(60px + var(--safe-t))); }
+/* 숫자 · 그때는 · 버튼은 점이 다 모인 뒤에 — 비율을 먼저 보여 주지 않는다 */
+body[data-step="6"] .crowd-cols, body[data-step="6"] .crowd-stamp, body[data-step="6"] .result, body[data-step="6"] .unfold-btns { opacity: 0; transform: translateY(6px); transition: opacity .5s, transform .5s var(--ease-out); }
+body[data-step="6"].settled .crowd-cols, body[data-step="6"].settled .crowd-stamp { opacity: 1; transform: none; }
+body[data-step="6"].settled .result { opacity: 1; transform: none; transition-delay: .25s; }
+body[data-step="6"].settled .unfold-btns { opacity: 1; transform: none; transition-delay: .4s; }
 body[data-step="6"] .papers { padding-top: 0; }
 body[data-step="6"] .result .hist-dark { margin-top: 0; font-size: 14px; }
 body[data-step="6"] .unfold-btns { margin-top: 4px; }
 
 /* 6 그때는 이랬다 · 내 입장 */
-.result { width: 100%; max-width: 360px; display: grid; gap: 10px; text-align: center; animation: scrIn .4s .2s ease both; }
+.result { width: 100%; max-width: 360px; display: grid; gap: 10px; text-align: center; }
 .result .hist-dark { max-width: none; margin-top: 4px; }
 .hist-dark { max-width: 340px; color: #fff; font-size: 14.5px; line-height: 1.55; text-align: center; opacity: 0; transform: translateY(8px); transition: opacity .5s, transform .5s; }
-.hist-dark b { display: block; font-family: var(--display); font-weight: 800; font-size: 12px; color: #F0B98F; margin-bottom: 6px; }
+.hist-dark b { display: block; font-family: var(--display); font-weight: 800; font-size: 12px; color: var(--point); margin-bottom: 6px; }
 .hist-dark small { display: block; margin-top: 8px; font-size: 11px; line-height: 1.5; color: rgba(255,255,255,.6); }
 .hist-dark.show { opacity: 1; transform: translateY(0); }
+.hist-dark.intro { margin: 0; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,.88); }
 .unfold-btns { width: 100%; display: grid; gap: 8px; margin-top: auto; flex: none; }
-.mine-card { width: 100%; display: none; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: center; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,.1); color: #fff; }
-.mine-card.show { display: grid; animation: scrIn .4s ease both; }
-.mine-card .cap { grid-column: 1 / -1; }
-.mine-card b { font-family: var(--display); font-weight: 800; font-size: 17px; }
-.mine-card small { font-size: 13px; color: rgba(255,255,255,.75); }
 
 @media (max-height: 700px) {
   .flyer { --fw: 190px; }
   .unfold-body { gap: 10px; }
   .hist-dark { font-size: 13px; }
   .ask-q { font-size: 22px; }
-  .papers { --pw: 118px; padding-top: 4px; }
-  .notice { gap: 2px; padding: 9px 7px 18px; }
+  .unfold-body { --pw: 122px; }
+  .papers, .crowd-cols { gap: 18px !important; }
+  .paper-lb b { font-size: 14px; } .paper-lb small { font-size: 11px; }
+  .papers { padding-top: 4px; }
+  .notice { gap: 1px; padding: 8px 7px 24px; }
   .n-rep { font-size: 6px; } .notice.expo .n-rep { font-size: 5.4px; }
   .n-big { font-size: 18px; } .notice.expo .n-big { font-size: 17px; }
-  .n-rule { margin: 2px auto; }
+  .n-rule { margin: 3px auto; }
   .n-line { font-size: 7px; } .notice.expo .n-line.em { font-size: 7.4px; }
   .n-open { font-size: 10px; } .n-foot { font-size: 5.5px; margin-top: 2px; }
   .n-tag { font-size: 8px; right: 6px; bottom: 6px; }
@@ -198,7 +208,9 @@ body[data-step="6"] .unfold-btns { margin-top: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
   .guide .g-line { animation: none; }
-  .guide.found, .collect-ic.bump { animation: none; }
+  .guide.found, .collect-ic.bump, .flyer-wrap.enter { animation: none; }
   .strip, .flyer, .chip, .hist-dark, .s, .paper { transition: none; }
-  .ask, .ask-note, .result, .crowd, .paper { animation: none; }
+  .ask, .result, .crowd, .paper { animation: none; }
+  body[data-step="6"] .crowd-cols, body[data-step="6"] .crowd-stamp, body[data-step="6"] .result, body[data-step="6"] .unfold-btns { transition: none; }
 }
+.c1 .toast { background: rgba(255,255,255,.96); color: var(--ink); font-weight: 600; }
