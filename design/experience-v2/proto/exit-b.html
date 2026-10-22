@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#121110">
+<title>출구 · 관람 기록 카드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../ticket/fonts.css">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="exit-common.css">
+<link rel="stylesheet" href="exit-b.css">
+</head>
+<body class="xb">
+
+<nav class="vsw float" id="vsw" aria-label="출구 시안"><span class="vsw-lb">출구 시안</span><a href="exit.html">A</a><a href="exit-b.html" aria-current="page">B</a><a href="exit-c.html">C</a><a href="exit-d.html">D</a><span class="vsw-nm">기록 카드</span></nav>
+<div class="xb-prog" id="prog" aria-hidden="true"></div>
+
+<!-- 카드 더미 — 한 장이 한 화면. 위로 넘기거나(스냅) 눌러서 다음 장. 표지(주황) → 네 곳(검정) → 모아 보기(흰) -->
+<main class="xb-deck" id="deck">
+  <section class="xb-card intro" data-tone="point">
+    <div class="xb-in">
+      <div class="xb-meta ln"><span>MONET 100</span><span>2026.12.14</span></div>
+      <div class="xb-crowd ln" id="introDots" aria-hidden="true"></div>
+      <h1 class="xb-hero ln">나의<br>관람<br>기록</h1>
+      <p class="xb-lede ln">모네의 방을 한 바퀴 돌며 네 곳에서 고른 것.<br>오늘의 관람객 <b id="introN">1,284명</b> 사이에서.</p>
+      <div class="xb-hint ln"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>위로 넘기기</div>
+    </div>
+  </section>
+  <!-- 네 곳 카드는 exit-b.js 가 채운다 -->
+  <section class="xb-card sum" data-tone="light" id="sum">
+    <div class="xb-in">
+      <div class="xb-meta ln"><span>나와 같은 길</span><span id="sumStamp"></span></div>
+      <div class="xb-same ln"><b id="sameBig">7.3</b><i>%</i></div>
+      <p class="xb-same-lab ln" id="sameLab"></p>
+      <canvas class="xb-sumdots ln" id="sumDots" aria-hidden="true"></canvas>
+      <ol class="xb-list ln" id="sumList"></ol>
+      <div class="xb-tray ln" id="tray" aria-label="가져가는 것"></div>
+      <div class="xb-acts ln">
+        <button class="btn" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>
+        <button class="btn line" id="restart" type="button">처음부터</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script type="module" src="exit-b.js"></script>
+</body>
+</html>

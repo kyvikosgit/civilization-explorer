@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#121110">
+<title>출구 · 오늘의 관람객 속의 나</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../ticket/fonts.css">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="exit-common.css">
+<link rel="stylesheet" href="exit-d.css">
+</head>
+<body class="xd">
+
+<nav class="vsw float" aria-label="출구 시안"><span class="vsw-lb">출구 시안</span><a href="exit.html">A</a><a href="exit-b.html">B</a><a href="exit-c.html">C</a><a href="exit-d.html" aria-current="page">D</a><span class="vsw-nm">군중 속의 나</span></nav>
+
+<!-- 화면 전체가 오늘의 관람객(점 1,284개 = 1,284명). 질문 넷을 차례로 누르면 점이 그 질문의 답대로 기둥으로 다시 선다. 내 점은 늘 주황.
+     내 기둥 아래 밝은 덩어리 = 지금까지 모든 질문에서 나와 같았던 사람. 끝에 점이 제자리로 흩어지고 그중 94명만 켜진다 → 가져가는 것 쟁반 -->
+<canvas class="xd-cv" id="cv" aria-hidden="true"></canvas>
+
+<header class="xd-hd" id="hd">
+  <div class="xd-pips" id="pips" aria-hidden="true"></div>
+  <div class="xd-room" id="room">Aujourd'hui</div>
+  <h1 class="xd-q" id="q">오늘 모네의 방을 나온<br>1,284명</h1>
+  <p class="xd-sub" id="sub">점 하나가 한 사람. 주황 점이 당신입니다.</p>
+</header>
+
+<div class="xd-labs" id="labs" aria-live="polite"></div>
+
+<div class="xd-bar" id="bar">
+  <div class="xd-count" id="count"></div>
+  <button class="btn white" id="next" type="button">네 가지 질문으로 보기</button>
+</div>
+
+<!-- 끝: 가져가는 것 쟁반 -->
+<section class="xd-tray" id="tray" aria-label="가져가는 것" hidden>
+  <div class="grip"></div>
+  <div class="xd-tray-hd"><b>가져가는 것</b><span>수집함에 함께 담겼습니다</span></div>
+  <div class="xd-arts" id="arts"></div>
+  <div class="xd-acts">
+    <button class="btn" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>
+    <button class="btn line" id="restart" type="button">처음부터</button>
+  </div>
+</section>
+
+<script type="module" src="exit-d.js"></script>
+</body>
+</html>

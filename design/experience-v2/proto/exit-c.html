@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#E6E0D3">
+<title>출구 · 전시 도록 한 장</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../ticket/fonts.css">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="exit-common.css">
+<link rel="stylesheet" href="exit-c.css">
+</head>
+<body class="page xc">
+
+<div class="vsw-row"><nav class="vsw" aria-label="출구 시안"><span class="vsw-lb">출구 시안</span><a href="exit.html">A</a><a href="exit-b.html">B</a><a href="exit-c.html" aria-current="page">C</a><a href="exit-d.html">D</a><span class="vsw-nm">도록 한 장</span></nav></div>
+<div class="topbar">
+  <a class="icon-btn" href="c5.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="tb-title">출구 · 나의 도록</div>
+  <span></span>
+</div>
+
+<main class="wrap">
+  <!-- 한 장의 인쇄물: 1874년 전시 도록(리브레) 문법. 표제 → 고른 것 Nº 1–4(번호 · 제목 · 작은 인쇄 그림) + 끼워 붙인 도판 → 간기(나와 같은 길) + 1874–2026 도장 -->
+  <article class="xc-sheet" id="sheet">
+    <header class="xc-title">
+      <div class="xc-caps">Monet 100 · The Next Impression</div>
+      <div class="xc-rule"></div>
+      <h1 class="xc-cat">CATALOGUE</h1>
+      <div class="xc-it">des ouvrages choisis par un visiteur</div>
+      <div class="xc-ko">한 관람객이 고른 것들의 도록</div>
+      <div class="xc-orn" aria-hidden="true"><i></i></div>
+      <div class="xc-caps sm">Paris, 1874 — Séoul, 2026</div>
+      <div class="xc-where">신세계 더 헤리티지 4층 · 모네의 방 · 오늘의 관람객 <span id="visN">1,284</span>명 가운데 한 사람</div>
+    </header>
+
+    <div class="xc-sec"><span>Ouvrages choisis</span><i></i><em>고른 것</em></div>
+    <ol class="xc-entries" id="entries"></ol>
+
+    <footer class="xc-colo" id="colo">
+      <div class="xc-orn" aria-hidden="true"><i></i></div>
+      <div class="xc-same">나와 같은 길 <b id="same">7.3%</b> · <span id="sameN">94명</span></div>
+      <p class="xc-colo-p" id="coloP"></p>
+      <p class="xc-colo-fr" id="coloFr"></p>
+      <button class="xc-seal" id="seal" type="button" aria-label="도장 찍기">
+        <span class="guide">눌러서<br>도장</span>
+        <svg class="ink" viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <filter id="rough" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3.2"/><feComponentTransfer><feFuncA type="discrete" tableValues="0 .85 1 1"/></feComponentTransfer></filter>
+            <mask id="worn"><rect width="200" height="200" fill="#fff"/><g fill="#000" opacity=".55"><circle cx="40" cy="60" r="7"/><circle cx="150" cy="140" r="5"/><circle cx="120" cy="30" r="3"/><circle cx="70" cy="165" r="4"/></g></mask>
+            <path id="arc" d="M100,100 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0"/>
+          </defs>
+          <g filter="url(#rough)" mask="url(#worn)" fill="none" stroke="#D9672F">
+            <circle cx="100" cy="100" r="94" stroke-width="5"/>
+            <circle cx="100" cy="100" r="86" stroke-width="1.6"/>
+            <circle cx="100" cy="100" r="56" stroke-width="1.6"/>
+            <text fill="#D9672F" stroke="none" font-family="Old Standard TT, Georgia, serif" font-weight="700" font-size="15" letter-spacing="3.2"><textPath href="#arc" startOffset="0">MONET 100 · THE NEXT IMPRESSION ·</textPath></text>
+            <text x="100" y="94" text-anchor="middle" fill="#D9672F" stroke="none" font-family="Playfair Display, Georgia, serif" font-weight="900" font-size="30">1874</text>
+            <line x1="70" y1="104" x2="130" y2="104" stroke-width="1.6"/>
+            <text x="100" y="132" text-anchor="middle" fill="#D9672F" stroke="none" font-family="Playfair Display, Georgia, serif" font-weight="900" font-size="30">2026</text>
+          </g>
+        </svg>
+      </button>
+    </footer>
+  </article>
+
+  <div class="actions">
+    <button class="btn" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>
+    <button class="btn line" id="restart" type="button">처음부터</button>
+  </div>
+  <p class="note xc-note">수치는 예시이며 들르지 않은 곳은 예시 값으로 채웠습니다. 도판은 앱의 수집함에 함께 담깁니다.</p>
+</main>
+
+<script type="module" src="exit-c.js"></script>
+</body>
+</html>

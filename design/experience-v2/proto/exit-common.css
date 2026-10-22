@@ -1,0 +1,47 @@
+/* 출구 시안 A·B·C·D 공용 — 시안 바꾸기(A · B · C · D) · 가져가는 것 썸네일 · 공유 미리보기. 클래스는 모두 vsw- / x- / xs- 로 시작(시안 A 의 exit.css 와 겹치지 않게) */
+
+/* 시안 바꾸기 — 작은 알약. A·C 는 맨 위 한 줄(흐름 안), B·D 는 화면 위에 뜬다(.float) */
+.vsw-row { display: flex; justify-content: center; padding: calc(8px + var(--safe-t, 0px)) 0 0; flex: none; position: relative; z-index: 31; }
+.vsw { display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 3px 0 11px; border-radius: 14px;
+  background: rgba(17,17,17,.78); color: #fff; font-family: var(--display); font-size: 11px; font-weight: 600; letter-spacing: -0.01em;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset; }
+.vsw .vsw-lb { color: rgba(255,255,255,.55); margin-right: 5px; white-space: nowrap; }
+.vsw a { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 11px; color: rgba(255,255,255,.78); text-decoration: none; font-weight: 800; font-size: 11.5px; }
+.vsw a[aria-current] { background: var(--point, #D9672F); color: #fff; }
+.vsw a:not([aria-current]):active { background: rgba(255,255,255,.16); }
+.vsw .vsw-nm { margin: 0 8px 0 4px; white-space: nowrap; color: rgba(255,255,255,.9); }
+.vsw.float { position: fixed; z-index: 70; top: calc(14px + var(--safe-t, 0px)); left: 50%; transform: translateX(-50%); }
+.vsw.light { background: rgba(255,255,255,.82); color: #111; box-shadow: 0 0 0 1px rgba(17,17,17,.12) inset; }
+.vsw.light .vsw-lb { color: rgba(17,17,17,.5); }
+.vsw.light a { color: rgba(17,17,17,.7); }
+.vsw.light a[aria-current] { color: #fff; }
+.vsw.light .vsw-nm { color: #111; }
+
+/* 가져가는 것 — 썸네일(크기는 쓰는 곳에서 --s 로) */
+.x-th { --s: 64px; position: relative; display: block; width: var(--s); height: calc(var(--s) * 1.2); border-radius: 3px; overflow: hidden; background: #1F1D1B; flex: none;
+  box-shadow: 0 6px 14px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.08); }
+.x-th img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.x-th .x-medal { position: absolute; right: 12%; bottom: 10%; width: 26%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F6DE96, #E7C46C 45%, #B98C2E); box-shadow: 0 0 0 1.5px #3B2A12 inset, 0 2px 4px rgba(0,0,0,.5); }
+.x-th.x-carte { width: calc(var(--s) * .8); padding: 6% 6% 16%; background: #E3D6B6; }
+.x-th.x-ticket { background: transparent; box-shadow: none; overflow: visible; }
+.x-th.x-ticket .pc { position: absolute; left: 0; right: 0; bottom: 0; height: 64%; object-fit: cover; box-shadow: 0 6px 14px rgba(0,0,0,.28); }
+.x-th.x-ticket .tk { position: absolute; left: 4%; top: 2%; width: 92%; height: auto; transform: rotate(-4deg); box-shadow: 0 4px 10px rgba(0,0,0,.35); }
+/* 전시 안내(재현)의 작은 판 */
+.x-poster { --s: 64px; position: relative; width: var(--s); height: calc(var(--s) * 1.2); display: grid; align-content: center; justify-items: center; gap: calc(var(--s) * .04); padding: 8%;
+  background: linear-gradient(170deg, #F3EBD6, #E6DCC0); color: #26211B; font-family: 'Old Standard TT', Georgia, serif; text-align: center; line-height: 1.02; border-radius: 2px; flex: none; }
+.x-poster.expo { background: linear-gradient(170deg, #EBDDB4, #DCCB9B); }
+.x-poster::before { content: ''; position: absolute; inset: 5%; border: 1px solid rgba(38,33,27,.7); pointer-events: none; }
+.x-poster b { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: calc(var(--s) * .17); letter-spacing: .02em; }
+.x-poster small { font-size: calc(var(--s) * .075); letter-spacing: .08em; text-transform: uppercase; }
+.x-poster i { width: 26%; height: 1px; background: #26211B; }
+.x-poster.x-th { overflow: visible; box-shadow: 0 6px 14px rgba(0,0,0,.28); }
+
+/* 공유 미리보기 */
+.xs-ov { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.92); display: flex; flex-direction: column; padding: calc(10px + var(--safe-t, 0px)) var(--pad, 20px) calc(16px + var(--safe-b, 0px)); max-width: 480px; margin: 0 auto; animation: xsIn .25s ease both; color: #fff; }
+.xs-ov[hidden] { display: none; }
+.xs-top { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: rgba(255,255,255,.6); }
+.xs-body { flex: 1; min-height: 0; display: grid; place-items: center; padding: 8px 0; }
+.xs-body img { max-height: 100%; max-width: 100%; width: auto; height: auto; border-radius: 6px; box-shadow: 0 16px 40px rgba(0,0,0,.7); }
+.xs-btns { flex: none; }
+@keyframes xsIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .xs-ov { animation: none; } }
