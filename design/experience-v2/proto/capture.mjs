@@ -1,4 +1,4 @@
-// 프로토타입 화면 캡처 + 터치 QA — 헤드리스 Chromium 1개, localhost:8806 (python3 -m http.server 8806 --bind 127.0.0.1 를 kippu-site 에서 먼저)
+// 프로토타입 화면 캡처 + 터치 QA — 헤드리스 Chromium 1개, localhost:8807 (python3 -m http.server 8807 --bind 127.0.0.1 를 kippu-site 에서 먼저; PORT 로 바꿀 수 있다)
 // 실행: node capture.mjs [c0|c1|c2|c3|c4|c5|exit|board|all] [390x844|430x932|375x667]  → shots/<page>-<n>.png (@2x)
 //   모든 입력은 실제 터치(hasTouch · isMobile · CDP Input.dispatchTouchEvent). 콘솔 오류 · 가로 넘침 · 반응 없는 탭은 끝에 요약해 종료 코드로 알린다.
 //   board 는 1440·390 보드를 3000px 조각으로 찍는다(조각은 python 으로 이어 붙인다)
@@ -11,7 +11,7 @@ const require = createRequire('/Users/hare/Documents/monet/kippu-app/scripts/sto
 const { chromium } = require('playwright');
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const ORIGIN = 'http://127.0.0.1:8806';
+const ORIGIN = `http://127.0.0.1:${process.env.PORT || 8807}`;
 const BASE = ORIGIN + '/design/experience-v2/proto/';
 const which = process.argv[2] || 'all';
 const [VW, VH] = (process.argv[3] || '390x844').split('x').map(Number);
@@ -290,29 +290,60 @@ async function c4(page) {
   await wait(page, 500); await shot(page, 'c4-me-3'); await overflowCheck(page, 'c4-me-3');
 }
 
-// ── C5 시간 넘기기: 벽 → 연작 열기 → 옆으로 밀기 → 눈금 탭 → 벽으로(문장) → 출구 링크
+// ── C5 살아 있는 연작: 벽 → 모티프 열기 → 해 끌기(붓질 디졸브 중간 캡처) → 손 떼면 저절로 → 그림 탭(멈춤) → 남기기 → 한 장의 하루 → 끌기 → 남기기 → 벽으로(문장)
 async function c5(page) {
-  await page.goto(BASE + 'c5.html', { waitUntil: 'networkidle' }); await fonts(page); await wait(page, 800);
+  await page.goto(BASE + 'c5.html', { waitUntil: 'networkidle' }); await fonts(page);
+  await page.waitForFunction(() => window.__c5 && [...document.querySelectorAll('#strip img')].every((i) => i.complete), null, { timeout: 60000 }); await wait(page, 700);
   await shot(page, 'c5-1'); await overflowCheck(page, 'c5-1');
   if (!FULL) return;
-  await press(page, '.work[data-i="1"]', '#view:not([hidden])', 'c5 open series');
-  await page.waitForFunction(() => document.querySelector('#view .layer.on') && document.querySelector('#view .layer.on').complete, null, { timeout: 20000 });
-  await wait(page, 1200); await shot(page, 'c5-2'); await overflowCheck(page, 'c5-2');
-  const sb = await page.locator('#stage').boundingBox();
-  await expectChange(page, 'c5 swipe', () => window.__c5.idx, () => drag(page, { x: sb.x + sb.width * 0.8, y: sb.y + sb.height / 2 }, { x: sb.x + sb.width * 0.25, y: sb.y + sb.height / 2 + 6 }, 10, 220));
-  await wait(page, 700); await shot(page, 'c5-2b');
-  await wait(page, 900);
-  await press(page, '#rail .tick[data-k="4"]', '#rail .tick[data-k="4"].on', 'c5 tick', 3000);
-  await page.waitForFunction(() => { const l = document.querySelector('#view .layer.on'); return l && l.complete && l.naturalWidth > 0; }, null, { timeout: 20000 });
-  await wait(page, 1500); await shot(page, 'c5-3'); await overflowCheck(page, 'c5-3');
+  await press(page, '.motif[data-k="haystacks"]', '#view:not([hidden])', 'c5 open haystacks');
+  await page.waitForFunction(() => window.__c5.ready, null, { timeout: 60000 }); await wait(page, 500);
+  if (!(await page.evaluate(() => window.__c5.gl))) bad('c5: WebGL dissolve unavailable (2D fallback in use)');
+  await shot(page, 'c5-2'); await overflowCheck(page, 'c5-2');
+  // 해를 끈다 — 호를 따라 t=0 → 1.5 까지, 손을 떼지 않고 디졸브 중간을 찍는다
+  const N = await page.evaluate(() => window.__c5.FR.haystacks.frames.length);
+  const arcPt = (u) => page.evaluate((u) => window.__c5.sunPos(u), u);
+  const p0 = await arcPt(0);
+  await touch(page, 'touchStart', [{ x: p0.x, y: p0.y }]);
+  for (let i = 1; i <= 18; i++) { const u = (1.5 / (N - 1)) * (i / 18); const p = await arcPt(u); await touch(page, 'touchMove', [{ x: p.x, y: p.y }]); await page.waitForTimeout(30); }
+  await wait(page, 500);
+  const tMid = await page.evaluate(() => window.__c5.t);
+  if (Math.abs(tMid - 1.5) > 0.2) bad(`c5: sun drag did not reach mid (t=${tMid.toFixed(2)})`);
+  await shot(page, 'c5-3');                                   // 붓질로 번지는 중간
+  for (let i = 1; i <= 8; i++) { const u = (1.5 + 0.7 * i / 8) / (N - 1); const p = await arcPt(u); await touch(page, 'touchMove', [{ x: p.x, y: p.y }]); await page.waitForTimeout(30); }
+  await touch(page, 'touchEnd', []);
+  await wait(page, 400);
+  // 손을 떼면 해가 저절로 간다
+  const tA = await page.evaluate(() => window.__c5.t); await wait(page, 1500); const tB = await page.evaluate(() => window.__c5.t);
+  if (!RM && !(tB > tA + 0.02)) bad(`c5: sun did not drift after release (${tA.toFixed(3)} → ${tB.toFixed(3)})`);
+  if (!(await page.evaluate(() => window.__c5.playing)) && !RM) bad('c5: not playing after release');
+  // 그림을 누르면 멈춘다
+  const cb = await page.locator('#cv').boundingBox();
+  await tap(page, cb.x + cb.width / 2, cb.y + cb.height / 2); await wait(page, 300);
+  if (await page.evaluate(() => window.__c5.playing)) bad('TOUCH FAIL: c5 tap on painting did not pause');
+  const tP = await page.evaluate(() => window.__c5.t); await wait(page, 700); if (Math.abs((await page.evaluate(() => window.__c5.t)) - tP) > 0.01) bad('c5: still moving while paused');
+  await safeBottom(page, '#keep', 'c5 keep');
+  await press(page, '#keep', '#kept:not([hidden])', 'c5 keep');
+  await wait(page, 600); await shot(page, 'c5-4'); await overflowCheck(page, 'c5-4');
+  const line = await page.evaluate(() => document.querySelector('#keptLine').textContent); if (!/당신이 멈춘 시간: /.test(line)) bad('c5: kept line wrong: ' + line);
+  // 한 장의 하루
+  await press(page, '#modes button[data-mode="b"]', '#band:not([hidden])', 'c5 mode B');
+  await wait(page, 700); await shot(page, 'c5-5'); await overflowCheck(page, 'c5-5');
+  const c0 = await page.evaluate(() => window.__c5.centre);
+  await drag(page, { x: cb.x + cb.width * 0.75, y: cb.y + cb.height / 2 }, { x: cb.x + cb.width * 0.3, y: cb.y + cb.height / 2 + 4 }, 12, 260);
+  await wait(page, 300);
+  const c1 = await page.evaluate(() => window.__c5.centre); if (Math.abs(c1 - c0) < 0.2) bad(`c5: mode B drag did not move centre (${c0} → ${c1})`);
+  await press(page, '#keep', '#kept:not([hidden])', 'c5 keep B');
+  await wait(page, 600); await shot(page, 'c5-6'); await overflowCheck(page, 'c5-6');
   await press(page, '#viewClose', '#wallLine:not([hidden])', 'c5 close → wall line');
-  await wait(page, 1900);
-  if (await page.evaluate(() => document.querySelector('#wallLine').hidden)) bad('c5: wall line did not appear');
-  await shot(page, 'c5-4'); await overflowCheck(page, 'c5-4');
-  // 다른 연작 하나 더(건초더미) — 첫 프레임
-  await press(page, '.work[data-i="0"]', '#view:not([hidden])', 'c5 open haystacks');
-  await page.waitForFunction(() => { const l = document.querySelector('#view .layer.on'); return l && l.complete && l.naturalWidth > 0; }, null, { timeout: 20000 });
-  await wait(page, 1200); await shot(page, 'c5-5');
+  await wait(page, 1900); await shot(page, 'c5-7'); await overflowCheck(page, 'c5-7');
+  // 루앙 대성당 — 세로 그림, 디졸브 중간 한 장
+  await press(page, '.motif[data-k="rouen"]', '#view:not([hidden])', 'c5 open rouen');
+  await page.waitForFunction(() => window.__c5.ready, null, { timeout: 60000 }); await wait(page, 300);
+  const q0 = await arcPt(0); await touch(page, 'touchStart', [{ x: q0.x, y: q0.y }]);
+  for (let i = 1; i <= 16; i++) { const p = await arcPt(2.5 / 4 * i / 16); await touch(page, 'touchMove', [{ x: p.x, y: p.y }]); await page.waitForTimeout(30); }
+  await wait(page, 500); await shot(page, 'c5-8'); await overflowCheck(page, 'c5-8');
+  await touch(page, 'touchEnd', []);
   await press(page, '#viewClose', '#strip', 'c5 close'); await wait(page, 400);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 300);
   await safeBottom(page, '#toExit', 'c5');

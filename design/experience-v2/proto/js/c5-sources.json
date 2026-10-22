@@ -432,5 +432,63 @@
     "source_url": "https://commons.wikimedia.org/wiki/File:Claude_Monet_-_Nymph%C3%A9as,_effet_du_soir_W1504_-_Mus%C3%A9e_Marmottan-Monet.jpg",
     "image_url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Claude_Monet_-_Nymph%C3%A9as%2C_effet_du_soir_W1504_-_Mus%C3%A9e_Marmottan-Monet.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
     "effect": "저녁"
+  },
+  {
+    "file": "c5-haystacks-morning-snow-mfa.jpg",
+    "series": "haystacks",
+    "title_en": "Grainstack (Snow Effect)",
+    "title_fr": "Meule, effet de neige, le matin (W 1280)",
+    "title_ko": "밀짚더미 (눈의 효과, 아침)",
+    "year": "1891",
+    "museum_ko": "보스턴 미술관",
+    "museum_en": "Museum of Fine Arts, Boston",
+    "accession": "1970.253",
+    "license": "PD",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Monet_grainstack-in-the-morning-snow-effect-1891_W1280.jpg",
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Monet_grainstack-in-the-morning-snow-effect-1891_W1280.jpg/1920px-Monet_grainstack-in-the-morning-snow-effect-1891_W1280.jpg",
+    "effect": "아침"
+  },
+  {
+    "file": "c5-haystacks-sunlight-snow-barberini.jpg",
+    "series": "haystacks",
+    "title_en": "Grainstack in the Sunlight, Snow Effect",
+    "title_fr": "Meule, effet de neige, soleil (W 1287)",
+    "title_ko": "밀짚더미, 햇빛, 눈의 효과",
+    "year": "1891",
+    "museum_ko": "바르베리니 미술관 (포츠담)",
+    "museum_en": "Museum Barberini, Potsdam",
+    "accession": "",
+    "license": "PD",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Claude_Monet_-_W_1287_-_Meule,_effet_de_neige,_soleil.jpg",
+    "image_url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Claude_Monet_-_W_1287_-_Meule%2C_effet_de_neige%2C_soleil.jpg",
+    "effect": "햇빛 · 눈"
+  },
+  {
+    "file": "c5-rouen-sunlight-nga.jpg",
+    "series": "rouen",
+    "title_en": "Rouen Cathedral, West Façade, Sunlight",
+    "title_ko": "루앙 대성당, 서쪽 파사드, 햇빛",
+    "year": "1894",
+    "museum_ko": "워싱턴 국립미술관",
+    "museum_en": "National Gallery of Art, Washington",
+    "accession": "1963.10.179",
+    "license": "CC0",
+    "source_url": "https://www.nga.gov/collection/art-object-page.46654.html",
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7f/Claude_Monet%2C_Rouen_Cathedral%2C_West_Fa%C3%A7ade%2C_Sunlight%2C_1894%2C_NGA_46654.jpg/1920px-Claude_Monet%2C_Rouen_Cathedral%2C_West_Fa%C3%A7ade%2C_Sunlight%2C_1894%2C_NGA_46654.jpg",
+    "effect": "햇빛"
+  },
+  {
+    "file": "c5-rouen-temps-gris-orsay.jpg",
+    "series": "rouen",
+    "title_en": "La cathédrale de Rouen. Le portail, temps gris",
+    "title_ko": "루앙 대성당. 정문, 흐린 날",
+    "year": "1892",
+    "museum_ko": "오르세 미술관",
+    "museum_en": "Musée d'Orsay",
+    "accession": "RF 1999",
+    "license": "PD",
+    "source_url": "https://commons.wikimedia.org/wiki/File:Claude_Monet_-_The_Cathedral_in_Rouen._The_portal,_Grey_Weather_-_Google_Art_Project.jpg",
+    "image_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6c/Claude_Monet_-_The_Cathedral_in_Rouen._The_portal%2C_Grey_Weather_-_Google_Art_Project.jpg/1920px-Claude_Monet_-_The_Cathedral_in_Rouen._The_portal%2C_Grey_Weather_-_Google_Art_Project.jpg",
+    "effect": "흐린 날"
   }
 ]

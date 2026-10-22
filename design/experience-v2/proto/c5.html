@@ -5,7 +5,7 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0E0D0C">
-<title>C5 · 시간 넘기기</title>
+<title>C5 · 살아 있는 연작</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="c5.css">
@@ -18,12 +18,12 @@
   <span></span>
 </div>
 
-<!-- 어두운 방 — 연작 벽. 그림 하나를 누르면 그 자리가 화면을 채운다 -->
+<!-- 어두운 방 — 연작 벽. 벽에는 그림이 따로따로 걸려 있다. 한 줄을 누르면 그 연작이 한 점이 되어 화면을 채운다 -->
 <main class="wrap room">
   <header class="role-hd rise" style="--i:0">
     <div class="eyebrow">당신은</div>
     <h1>연작 벽 앞에 선<br>관람객입니다</h1>
-    <p class="sub">벽의 그림 하나를 누르면, 같은 자리를 다른 때에 그린 그림으로 넘어갑니다. 질문은 없습니다.</p>
+    <p class="sub">벽에는 같은 자리를 다른 때에 그린 그림이 따로 걸려 있습니다. 앱 안에서는 그 그림들이 하루에 따라 변하는 한 점이 됩니다.</p>
   </header>
 
   <section class="wall rise" style="--i:1" aria-label="연작 벽">
@@ -36,25 +36,48 @@
   <div class="exit-link rise" style="--i:2"><a class="btn quiet" id="toExit" href="exit.html">출구에서 오늘의 관람객 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></a></div>
 </main>
 
-<!-- 한 자리, 여러 때 — 전체 화면 -->
+<!-- 한 점이 된 연작 — 전체 화면. A: 해를 끌어 하루를 돌리기 / B: 한 장의 하루 -->
 <div class="view" id="view" hidden>
   <div class="topbar dark">
     <button class="icon-btn" id="viewClose" type="button" aria-label="벽으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
     <div class="tb-title" id="viewTitle"></div>
     <span class="tb-right"><span class="view-count" id="viewCount"></span></span>
   </div>
+
+  <div class="modes" id="modes" role="tablist" aria-label="보는 방식">
+    <button type="button" role="tab" data-mode="a" class="on" aria-selected="true">해를 끌기</button>
+    <button type="button" role="tab" data-mode="b" aria-selected="false">한 장의 하루</button>
+  </div>
+
+  <!-- A · 하늘: 호 위의 해를 끌면 때가 바뀐다. 손을 떼면 해가 저절로 느리게 간다(하루 45초) -->
+  <div class="sky" id="sky" aria-label="해를 끌어 때를 바꾸기">
+    <svg id="arc" aria-hidden="true"></svg>
+    <div class="sun" id="sun" role="slider" aria-label="때" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" tabindex="0"></div>
+  </div>
+
+  <!-- B · 하루 띠: 왼쪽이 아침, 오른쪽이 끝. 그림을 옆으로 끌면 가운데에 오는 때가 바뀐다 -->
+  <div class="band" id="band" hidden aria-hidden="true">
+    <div class="band-line"></div>
+    <div class="band-labels" id="bandLabels"></div>
+    <div class="band-hint" id="bandHint">그림을 옆으로 끌면 가운데 시간이 옮겨집니다</div>
+  </div>
+
   <div class="stage" id="stage">
-    <img class="layer" id="layerA" alt="" draggable="false">
-    <img class="layer" id="layerB" alt="" draggable="false">
-    <div class="sweep" id="sweep" aria-hidden="true"></div>
-    <div class="swipe-hint" id="swipeHint"><span>옆으로 밀어 다른 때로</span></div>
+    <div class="frame" id="frame"><canvas id="cv" aria-label="연작 한 점"></canvas><div class="paused" id="paused" hidden>멈춤</div></div>
+    <div class="caption" id="caption" aria-live="polite">
+      <div class="cap-when" id="capWhen"></div>
+      <div class="cap-title" id="capTitle"></div>
+      <div class="cap-meta" id="capMeta"></div>
+    </div>
   </div>
-  <div class="caption" id="caption" aria-live="polite">
-    <div class="cap-when" id="capWhen"></div>
-    <div class="cap-title" id="capTitle"></div>
-    <div class="cap-meta" id="capMeta"></div>
+
+  <div class="actions" id="actions">
+    <button class="keep" id="keep" type="button">이 시간을 남기기</button>
+    <div class="kept" id="kept" hidden>
+      <img id="keptImg" alt="" draggable="false">
+      <div class="kept-txt"><b id="keptLine"></b><small id="keptMeta"></small><a id="keptDl" download="monet-c5.jpg" href="#">사진으로 내려받기</a></div>
+    </div>
   </div>
-  <div class="rail" id="rail" role="tablist" aria-label="때"></div>
 </div>
 
 <script type="module" src="c5.js"></script>

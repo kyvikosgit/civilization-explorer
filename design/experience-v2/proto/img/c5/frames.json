@@ -1,0 +1,148 @@
+{
+ "haystacks": {
+  "name": "건초더미",
+  "dir": [
+   1.0,
+   -0.14
+  ],
+  "w": 1200,
+  "h": 966,
+  "ref": "c5-haystacks-thaw-sunset-aic.jpg",
+  "crop": [
+   79,
+   64,
+   1222,
+   984
+  ],
+  "frames": [
+   {
+    "n": 1,
+    "file": "haystacks/1.jpg",
+    "src": "c5-haystacks-morning-snow-mfa.jpg",
+    "when": "아침",
+    "scale": 0.8878,
+    "offset": [
+     20.6,
+     61.0
+    ]
+   },
+   {
+    "n": 2,
+    "file": "haystacks/2.jpg",
+    "src": "c5-haystacks-sun-mist-mia.jpg",
+    "when": "안개 속의 해",
+    "scale": 1.4379,
+    "offset": [
+     -443.0,
+     14.4
+    ]
+   },
+   {
+    "n": 3,
+    "file": "haystacks/3.jpg",
+    "src": "c5-haystacks-sunlight-snow-barberini.jpg",
+    "when": "햇빛 · 눈",
+    "scale": 1.3296,
+    "offset": [
+     -347.8,
+     62.0
+    ]
+   },
+   {
+    "n": 4,
+    "file": "haystacks/4.jpg",
+    "src": "c5-haystacks-thaw-sunset-aic.jpg",
+    "when": "해 질 녘",
+    "scale": 1.0,
+    "offset": [
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "n": 5,
+    "file": "haystacks/5.jpg",
+    "src": "c5-haystacks-snow-overcast-aic.jpg",
+    "when": "흐린 날",
+    "scale": 0.9582,
+    "offset": [
+     76.9,
+     33.9
+    ]
+   }
+  ]
+ },
+ "rouen": {
+  "name": "루앙 대성당",
+  "dir": [
+   0.08,
+   1.0
+  ],
+  "w": 691,
+  "h": 1200,
+  "ref": "c5-rouen-sunlight-nga.jpg",
+  "crop": [
+   52,
+   79,
+   858,
+   1489
+  ],
+  "frames": [
+   {
+    "n": 1,
+    "file": "rouen/1.jpg",
+    "src": "c5-rouen-harmonie-bleue-orsay.jpg",
+    "when": "아침 햇살",
+    "scale": 0.9686,
+    "offset": [
+     47.7,
+     20.6
+    ]
+   },
+   {
+    "n": 2,
+    "file": "rouen/2.jpg",
+    "src": "c5-rouen-noon-pushkin.jpg",
+    "when": "정오",
+    "scale": 1.0615,
+    "offset": [
+     -161.9,
+     -84.5
+    ]
+   },
+   {
+    "n": 3,
+    "file": "rouen/3.jpg",
+    "src": "c5-rouen-sunlight-nga.jpg",
+    "when": "햇빛",
+    "scale": 1.0,
+    "offset": [
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "n": 4,
+    "file": "rouen/4.jpg",
+    "src": "c5-rouen-evening-pushkin.jpg",
+    "when": "저녁",
+    "scale": 0.9922,
+    "offset": [
+     34.7,
+     31.9
+    ]
+   },
+   {
+    "n": 5,
+    "file": "rouen/5.jpg",
+    "src": "c5-rouen-temps-gris-orsay.jpg",
+    "when": "흐린 날",
+    "scale": 0.9509,
+    "offset": [
+     49.3,
+     76.1
+    ]
+   }
+  ]
+ }
+}
