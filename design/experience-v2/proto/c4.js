@@ -1,7 +1,7 @@
 // C4 나다르 사진관 — (1) 벽의 초상화 4점: 셔터를 누르면 조리개가 닫혔다 열리며 같은 인물의 나다르 사진이 습판처럼 떠오른다
 //                    (2) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js, WebGL → 워커 → 즉석) 재사용
 //                    (3) 네 쌍을 다 보면 질문 하나: 사람을 남기는 데 그림과 사진, 어느 쪽이 낫습니까 → 오늘의 비율 + 그때는 이랬다 → 수집함
-// 서버 없음, 업로드 없음. 모든 처리는 기기 안. 입장은 기기(localStorage)에만 남고 마지막 화면(c5)이 읽는다.
+// 서버 없음, 업로드 없음. 모든 처리는 기기 안. 입장은 기기(localStorage)에만 남고 출구 화면(exit)이 읽는다.
 import { toast, loadImage, startCamera, stopCamera, cameraErrorText } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
 import * as N from '../../../booth/js/nadar.js';
@@ -52,8 +52,9 @@ track.innerHTML = SITTERS.map((s, i) => `
       <span class="frame-no">${i + 1}</span>
     </div>
   </div>`).join('');
-dots.innerHTML = SITTERS.map(() => '<i></i>').join('');
+dots.innerHTML = SITTERS.map((s, i) => `<button type="button" role="tab" aria-label="${i + 1} ${s.name}"><i></i></button>`).join('');
 const slides = Array.from(track.children);
+Array.from(dots.children).forEach((b, i) => b.addEventListener('click', () => { if (!busy) goTo(i); }));
 
 function caption() {
   const s = SITTERS[cur], d = dev[cur];
@@ -115,34 +116,53 @@ window.addEventListener('resize', irisSize);
 goTo(0);
 
 // ── 질문 — 사람을 남기는 데 그림과 사진, 어느 쪽이 낫습니까 (정답 없음)
+//    두 줄(그림 | 사진)에 네 쌍을 늘어놓고, 줄 머리나 어느 그림이든 누르면 그 줄이 내 입장이 된다
 const STANCES = { paint: { label: '그림', pct: 44 }, photo: { label: '사진', pct: 56 } };   // 예시 수치
 const VISITORS = '1,712';
 let stance = null;
+const cols = $('#cols');
+SITTERS.forEach((s, i) => {
+  const row = document.createDocumentFragment();
+  const mk = (k) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'cell'; b.dataset.k = k; b.setAttribute('aria-label', `${s.name} · ${k === 'paint' ? '그림' : '사진'}`);
+    b.innerHTML = `<img src="${k === 'paint' ? s.paint : s.photo}" alt="" style="object-position:${k === 'paint' ? s.pos : s.fpos}" draggable="false" loading="lazy">`; return b; };
+  const name = document.createElement('div'); name.className = 'pair-name'; name.innerHTML = `${s.name.replace(' ', '<br>')}<small>${s.pyear} · ${s.fyear.replace('년경', '').replace('원판 ', '')}</small>`;
+  row.append(mk('paint'), name, mk('photo'));
+  cols.appendChild(row);
+});
+cols.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-k]'); if (!b || stance) return;
+  choose(b.dataset.k);
+});
+function choose(k) {
+  stance = k;
+  cols.classList.add('picked');
+  cols.querySelectorAll('[data-k]').forEach((x) => { const on = x.dataset.k === k; x.classList.toggle('on', on); if (x.classList.contains('col-h')) x.setAttribute('aria-checked', on); });
+  $('#askNote').hidden = true;
+  const m = $('#askMine'); m.innerHTML = `사람을 남기는 데, 당신은 <b>${STANCES[k].label} 쪽</b>`; m.hidden = false;
+  if (navigator.vibrate) navigator.vibrate(14);
+  setTimeout(reveal, REDUCED ? 0 : 900);
+}
 function openAsk() {
   $('#wallBody').hidden = true; $('#result').hidden = true; $('#ask').hidden = false;
-  document.querySelectorAll('.stance').forEach((x) => x.classList.remove('on'));
+  stance = null; cols.classList.remove('picked');
+  cols.querySelectorAll('[data-k]').forEach((x) => { x.classList.remove('on'); if (x.classList.contains('col-h')) x.setAttribute('aria-checked', 'false'); });
+  $('#askNote').hidden = false; $('#askMine').hidden = true;
   window.scrollTo(0, 0);
 }
 $('#toAsk').addEventListener('click', openAsk);
-document.querySelectorAll('.stance').forEach((b) => b.addEventListener('click', () => {
-  stance = b.dataset.k;
-  document.querySelectorAll('.stance').forEach((x) => x.classList.toggle('on', x === b));
-  if (navigator.vibrate) navigator.vibrate(14);
-  setTimeout(reveal, REDUCED ? 0 : 260);
-}));
 function reveal() {
-  $('#ask').hidden = true; $('#result').hidden = false;
+  $('#result').hidden = false;                       // 두 줄은 그대로 둔 채 아래에 오늘의 비율이 이어진다
   $('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
-  $('#bars').innerHTML = Object.entries(STANCES).map(([k, s]) => `
-    <div class="bar ${k === stance ? 'me' : ''}"><div class="lb"><span>${s.label}${k === stance ? ' · 나' : ''}</span><b>${s.pct}%</b></div><div class="tr"><div class="fl" style="width:${s.pct}%"></div></div></div>`).join('');
+  $('#bars').innerHTML = Object.entries(STANCES).map(([k, s], i) => `
+    <div class="bar ${k === stance ? 'me' : ''}" style="--i:${i}"><div class="lb"><span>${s.label}${k === stance ? ' · 나' : ''}</span><b>${s.pct}%</b></div><div class="tr"><div class="fl" style="width:${s.pct}%"></div></div></div>`).join('');
   $('#mineCard').hidden = true; $('#saveStance').hidden = false; $('#saveStance').disabled = false;
-  window.scrollTo(0, 0);
+  setTimeout(() => $('#result').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }), 60);
 }
 $('#saveStance').addEventListener('click', () => {
   const s = STANCES[stance];
   saveChoice('c4', { stance, label: s.label, pct: s.pct });
   $('#mineLabel').textContent = s.label;
-  $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 마지막 화면(C5)에서 C0·C1·C2와 나란히`;
+  $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 출구 화면에서 C0·C1·C2와 나란히`;
   $('#mineCard').hidden = false;
   $('#saveStance').hidden = true;
   toast('수집함에 저장했습니다 · 내 입장');
@@ -150,11 +170,11 @@ $('#saveStance').addEventListener('click', () => {
 $('#restartWall').addEventListener('click', () => {
   dev.fill(false); slides.forEach((s) => s.classList.remove('dev')); stance = null;
   $('#askCta').hidden = true; $('#result').hidden = true; $('#ask').hidden = true; $('#wallBody').hidden = false;
-  goTo(0);
+  goTo(0); window.scrollTo(0, 0);
 });
 
 // ── 내 초상
-const video = $('#cam'), plate = $('#plate'), result = $('#result'), still = $('#still');
+const video = $('#cam'), plate = $('#plate'), result = $('#photoOut'), still = $('#still');
 let source = null;   // 'cam' | 'demo'
 const DEMO = '../../../booth/assets/concept/c4_demo_portrait.jpg';
 function meState(s) {
@@ -263,3 +283,5 @@ $('#saveMe').addEventListener('click', async () => {
 });
 meState('idle');
 void loadImage;
+// 검수용
+window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get stance() { return stance; }, choose, openAsk, shoot };

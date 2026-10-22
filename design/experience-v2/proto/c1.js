@@ -152,42 +152,54 @@ $('#openBtn').addEventListener('click', async () => {
   $('#histIntro').classList.add('show');
 });
 
-// ── 5 질문 — 두 입장, 정답 없음
-$('#toAsk').addEventListener('click', () => { setStep(5); });
-$$('.stance').forEach((b) => b.addEventListener('click', () => {
-  stance = b.dataset.k;
-  $$('.stance').forEach((x) => x.classList.toggle('on', x === b));
+// ── 5 질문 — 두 종이 가운데 하나를 칼럼에 남긴다 (정답 없음)
+$('#toAsk').addEventListener('click', () => { setStep(5); papers.classList.remove('decided', 'today'); });
+const papers = $('#papers');
+let deciding = false;
+$$('.paper', papers).forEach((b) => b.addEventListener('click', async () => {
+  if (step !== 5 || deciding) return;
+  deciding = true; stance = b.dataset.k;
+  $$('.paper', papers).forEach((x) => { const on = x === b; x.classList.toggle('keep', on); x.classList.toggle('peel', !on); x.setAttribute('aria-checked', on); });
+  papers.classList.add('decided');                          // 남는 종이는 눌러 붙고, 다른 종이는 벗겨져 떨어진다
   haptic(14);
-  setTimeout(reveal, reduceMotion ? 0 : 260);
+  await sleep(reduceMotion ? 120 : 1150);
+  deciding = false;
+  reveal();
 }));
 
-// ── 6 오늘의 관람객 — 막대 둘(내 것은 주황) + 그때는 이랬다
+// ── 6 오늘의 관람객 — 같은 두 종이가 비율대로(내 것은 크고 주황) + 그때는 이랬다
 function reveal() {
   setStep(6);
-  flyer.classList.add('small');                             // 안내문은 작게 남아 수집품이 된다
   $('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
-  $('#bars').innerHTML = Object.entries(STANCES).map(([k, s]) => `
-    <div class="bar ${k === stance ? 'me' : ''}"><div class="lb"><span>${s.label}${k === stance ? ' · 나' : ''}</span><b>${s.pct}%</b></div><div class="tr"><div class="fl" style="width:${s.pct}%"></div></div></div>`).join('');
+  const max = Math.max(...Object.values(STANCES).map((s) => s.pct));
+  $$('.paper', papers).forEach((x) => {
+    const s = STANCES[x.dataset.k], me = x.dataset.k === stance;
+    x.classList.toggle('me', me);
+    x.style.setProperty('--k', Math.max(0.56, s.pct / max).toFixed(3));
+    x.style.setProperty('--o', me ? 1 : 0.55);
+    x.querySelector('.paper-pct').innerHTML = `${s.pct}%<small>${me ? '나' : '&nbsp;'}</small>`;
+  });
+  papers.classList.remove('decided'); papers.classList.add('today');
   $('#mineCard').classList.remove('show');
   $('#collect').hidden = false; $('#collect').disabled = false; $('#restart').hidden = true;
 }
 $('#collect').addEventListener('click', async () => {
   const btn = $('#collect'); btn.disabled = true;
-  flyer.classList.add('folded');
-  await sleep(reduceMotion ? 50 : 900);
-  // 접힌 안내문이 수집함 아이콘으로 날아 들어간다
-  const ic = $('#collectIc').getBoundingClientRect(), fr = flyer.getBoundingClientRect();
+  // 내 종이가 수집함 아이콘으로 날아 들어간다
+  const mine = $('.paper.me', papers);
+  const ic = $('#collectIc').getBoundingClientRect(), fr = mine.getBoundingClientRect();
   const dx = (ic.left + ic.width / 2) - (fr.left + fr.width / 2), dy = (ic.top + ic.height / 2) - (fr.top + fr.height / 2);
-  flyer.classList.add('away');
-  flyer.style.transform = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.12) rotate(-14deg)`;
+  mine.classList.add('away');
+  mine.style.transform = `translate(${dx.toFixed(0)}px, ${dy.toFixed(0)}px) scale(.12) rotate(-14deg)`;
   await sleep(reduceMotion ? 50 : 760);
+  mine.classList.add('gone'); papers.classList.add('one');          // 남은 종이는 가운데로
   $('#collectIc').classList.add('bump'); $('#collectN').hidden = false;
   haptic(20);
-  toast('수집함에 저장했습니다 · 카페 게르부아 안내문');
   const s = STANCES[stance];
+  toast(`수집함에 저장했습니다 · ${stance === 'viewer' ? '카페 게르부아 안내문' : '살롱 공고(재현)'}`);
   saveChoice('c1', { stance, label: s.label, pct: s.pct });
   $('#mineLabel').textContent = s.label;
-  $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 마지막 화면(C5)에서 C0·C2·C4와 나란히`;
+  $('#mineSub').textContent = `오늘 같은 입장 ${s.pct}% · 출구 화면에서 C0·C2·C4와 나란히`;
   $('#mineCard').classList.add('show');
   btn.hidden = true; $('#restart').hidden = false;
 });
@@ -197,7 +209,7 @@ $('#restart').addEventListener('click', () => location.replace(location.pathname
 $('#backBtn').addEventListener('click', () => {
   if (step === 3) { if (viewer) viewer.release(); return; }
   if (step === 2) { setStep(1); mvEl.classList.add('off'); guide.classList.remove('off', 'found'); setPill('칼럼을 스캔하세요'); if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); } return; }
-  if (step === 5) { setStep(4); return; }
+  if (step === 5) { if (deciding) return; setStep(4); return; }
   if (step === 4 || step === 6) location.replace(location.pathname);
 });
 
@@ -205,6 +217,6 @@ setStep(1);
 // 검수용
 window.__c1 = {
   get loaded() { return loaded; }, get step() { return step; }, viewer,
-  scan, focus: (i) => viewer && viewer.focusItem(i), inspect: openPrint, project: (i) => viewer && viewer.project(i),
+  scan, focus: (i) => viewer && viewer.focusItem(i), inspect: openPrint, project: (i) => viewer && viewer.project(i), get stance() { return stance; },
 };
 if (new URLSearchParams(location.search).has('debug')) window.__mv = viewer;

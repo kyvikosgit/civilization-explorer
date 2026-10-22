@@ -19,13 +19,18 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 /* 화면 1(지도)은 고정 레이아웃, 발권 뒤에는 한 장의 스크롤 캔버스(.flow)가 지도 위에 올라온다 */
 .scr { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; display: none; flex-direction: column; background: var(--bg); overflow: hidden; }
 .scr.on { display: flex; }
-#s1 { padding-top: calc(44px + var(--safe-t)); }
-.hd { padding: 0 var(--pad) 10px; }
+#s1 { padding-top: var(--safe-t); overflow-y: auto; }
+/* 상단 바 (앱 TopBar: 52px, 뒤로 셰브론) */
+.topbar { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; padding: 0 12px; height: 52px; flex: none; }
+.topbar .tb-title { text-align: center; font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: -0.01em; white-space: nowrap; }
+.hd { padding: 4px var(--pad) 12px; }
 .eyebrow { font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: 3px; color: var(--point); text-transform: uppercase; }
-.hd h2, .story-h h2, .today h2 { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1.22; letter-spacing: -0.02em; margin: 4px 0 0; }
-.hd p, .sub { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: var(--dim); }
-.icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 20px; }
-.icon-btn::before { content: ''; width: 10px; height: 10px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); margin-left: 4px; }
+.hd h2, .story-h h2, .today h2 { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1.22; letter-spacing: -0.02em; margin: 6px 0 0; }
+.hd p, .sub { margin: 8px 0 0; font-size: 15px; line-height: 1.55; color: var(--dim); }
+.icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 20px; color: var(--ink); text-decoration: none; }
+.icon-btn svg { width: 24px; height: 24px; }
+.icon-btn:active { opacity: .6; }
+.icon-btn:empty::before { content: ''; width: 10px; height: 10px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); margin-left: 4px; }
 .btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; padding: 18px 0 0; }
 .btns .btn { margin: 0; width: 100%; }
 .btn.line { background: transparent; color: var(--ink); border: 1px solid var(--hair-strong); font-weight: 600; }
@@ -43,7 +48,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 @keyframes shake { 0% { transform: translate(0,0); } 25% { transform: translate(1.5px,-2px); } 50% { transform: translate(-1.5px,1.5px); } 75% { transform: translate(1px,1px); } 100% { transform: translate(0,0); } }
 .prog { position: sticky; top: 0; height: 3px; z-index: 30; background: transparent; }
 .prog i { display: block; height: 100%; width: 100%; background: var(--point); transform: scaleX(0); transform-origin: 0 50%; }
-.hero { position: sticky; top: 0; height: calc(60px + var(--safe-t)); z-index: 20; margin-top: -3px; }
+.hero { position: sticky; top: 0; height: calc(52px + var(--safe-t)); z-index: 20; margin-top: -3px; }
 .hero-bar { height: 100%; background: var(--bg); display: grid; grid-template-columns: 40px 1fr 44px; align-items: center; padding: var(--safe-t) 12px 0; border-bottom: 1px solid transparent; transition: border-color .25s; }
 .hero.pinned .hero-bar { border-bottom-color: var(--hair); }
 .hero-t { padding-left: 122px; opacity: 0; min-width: 0; }
@@ -55,17 +60,18 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .coll i[hidden] { display: none; }
 .hero, .card-wrap { user-select: none; -webkit-user-select: none; }
 .hero.saved .guichet { opacity: 0 !important; }
-.hero::after { content: '수집함에 보관했습니다'; position: absolute; left: 20px; right: 20px; top: calc(60px + var(--safe-t) + 12px); height: 184px; border: 1.5px dashed var(--hair-strong); border-radius: 8px; display: grid; place-items: center; font-size: 13px; color: var(--dim); opacity: 0; transition: opacity .4s .6s; pointer-events: none; }
+.hero::after { content: '수집함에 보관했습니다'; position: absolute; left: 20px; right: 20px; top: calc(52px + var(--safe-t) + 12px); height: 184px; border: 1.5px dashed var(--hair-strong); border-radius: 8px; display: grid; place-items: center; font-size: 13px; color: var(--dim); opacity: 0; transition: opacity .4s .6s; pointer-events: none; }
 .hero.saved::after { opacity: 1; }
 .coll.bump { animation: bump .5s cubic-bezier(.3,1.6,.5,1); }
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
 /* 창구 슬롯: 큰 표 바로 아래. 스크롤하면 사라진다 */
-.guichet { position: absolute; left: 14px; right: 14px; top: calc(60px + var(--safe-t) + 200px); height: 26px; pointer-events: none; }
+.guichet { position: absolute; left: 14px; right: 14px; top: calc(52px + var(--safe-t) + 200px); height: 26px; pointer-events: none; }
 .guichet .slot { position: absolute; left: 0; right: 0; top: 6px; height: 18px; border-radius: 9px; background: linear-gradient(#2B2520, #141210); box-shadow: inset 0 2px 5px rgba(0,0,0,.7), 0 1px 0 #fff; }
 .guichet .slot-lip { position: absolute; left: -4px; right: -4px; top: 0; height: 12px; border-radius: 6px; background: linear-gradient(#F4F2EC, #D9D6CE); box-shadow: 0 1px 2px rgba(0,0,0,.25); }
 /* 표: 창구 아래에서 올라온다 → 떠 있다 → 스크롤하면 바 안으로 */
 .card-wrap { position: absolute; left: 0; top: 0; width: 350px; height: 184.2px; transform-origin: 50% 50%; will-change: transform; z-index: 2; touch-action: none; cursor: grab; }
 .card-wrap:active { cursor: grabbing; }
+.card-wrap.small { touch-action: pan-y; pointer-events: none; cursor: default; }   /* 작아져 바에 붙으면 손가락은 페이지로 */
 .card3d { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; transition: none; }
 .hero.issuing .card3d { pointer-events: none; }
 .hero.issuing .card-wrap { clip-path: inset(-60px -40px -2px -40px); }
@@ -93,7 +99,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .tak { position: absolute; left: 6px; top: 50%; margin-top: -18px; font-family: var(--display); font-weight: 800; font-size: 26px; color: #3B3F8C; opacity: 0; pointer-events: none; }
 .tak.on { animation: takw .75s ease-out both; }
 @keyframes takw { 0% { opacity: 0; transform: scale(2.2); filter: blur(4px); } 30% { opacity: 1; transform: scale(1); filter: blur(0); } 100% { opacity: 0; transform: translateY(-10px); } }
-.hint { position: absolute; left: 0; right: 0; top: calc(60px + var(--safe-t) + 232px); text-align: center; font-size: 12px; color: var(--dim); transition: opacity .5s; pointer-events: none; }
+.hint { position: absolute; left: 0; right: 0; top: calc(52px + var(--safe-t) + 232px); text-align: center; font-size: 13px; color: var(--dim); transition: opacity .5s; pointer-events: none; }
 .hint.off { opacity: 0 !important; }
 /* 저장: 표가 수집함 아이콘으로 날아간다 */
 .card-wrap.fly { transition: transform .75s cubic-bezier(.5,0,.3,1), opacity .35s .45s; transform: translate(calc(100% - 20px), -60px) scale(.06) !important; opacity: 0; }
@@ -149,7 +155,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 @media (max-height: 700px) { .beat .img { height: 54vh; } }
 
 /* 지도 (booth/css/c2.css .quiz/.map-box 와 동일한 바탕·크롬) */
-.map-box { position: relative; flex: 1; min-height: 0; background: #6f8c86; touch-action: none; overflow: hidden; }
+.map-box { position: relative; flex: 1 1 auto; min-height: 290px; background: #6f8c86; touch-action: pan-y; overflow: hidden; }   /* 가로 이동은 JS, 세로는 페이지 */
 #map { width: 100%; height: 100%; display: block; user-select: none; -webkit-user-select: none; }
 .lbl { font-family: var(--display); fill: #3B2A19; paint-order: stroke; stroke: rgba(243,231,203,.85); stroke-linejoin: round; }
 .lbl-ko { font-family: var(--body); font-weight: 600; fill: #4a3722; paint-order: stroke; stroke: rgba(243,231,203,.85); stroke-linejoin: round; }
@@ -179,7 +185,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .chip.on .ck { display: grid; }
 
 /* 정보 패널 + 표 끊기 (고정 높이, 빈 공간 없음) */
-.sel { padding: 12px var(--pad) 0; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; }
+.sel { padding: 12px var(--pad) 0; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 10px; flex: none; }
 .sel b { display: block; font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; line-height: 1.1; color: var(--ink); }
 .sel b small { font-family: var(--body); font-weight: 600; font-size: 13px; letter-spacing: 0; color: var(--point); margin-left: 6px; }
 .sel span { display: block; font-size: 15px; color: var(--ink); margin-top: 4px; }

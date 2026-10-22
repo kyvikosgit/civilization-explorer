@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#000000">
 <title>C1 · 자격을 묻기</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../ticket/fonts.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="c1.css">
 <script type="importmap">
@@ -60,35 +61,56 @@
     <p class="s-desc" id="s3Desc"><span>바깥을 누르면 돌려놓기 · 계속 찾기</span></p>
   </div>
 
-  <!-- 4 안내문 펼치기 → 5 질문 → 6 오늘의 관람객 · 그때는 -->
+  <!-- 4 안내문 펼치기 → 5 두 종이 가운데 하나를 칼럼에 남긴다 → 6 오늘의 관람객(두 종이의 크기) · 그때는 -->
   <div class="s unfold" id="unfold">
     <div class="unfold-dim"></div>
     <div class="unfold-body">
-      <div class="cap light" id="unfoldCap" data-on="4 6">독립 전시 안내문 · 카페 게르부아</div>
-      <div class="flyer-wrap" id="flyerWrap" data-on="4 6"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
+      <div class="cap light" id="unfoldCap" data-on="4">독립 전시 안내문 · 카페 게르부아</div>
+      <div class="flyer-wrap" id="flyerWrap" data-on="4"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
 
       <!-- 4 -->
       <div class="hist-dark" id="histIntro" data-on="4"><b>안내문이 말하는 것</b>살롱의 심사위원도 아카데미의 교수도 아닌 화가들이 모여, 살롱의 심사를 거치지 않는 전시를 엽니다.<small>기획서 slide 16·20 원고 · 1874년 4월 15일 첫 독립 전시(프랑스 문화부)</small></div>
       <div class="unfold-btns" data-on="4"><button class="btn white" id="toAsk">한 가지 묻겠습니다</button></div>
 
-      <!-- 5 질문 -->
+      <!-- 5 질문 — 전단지와 살롱 공고, 두 종이 가운데 하나만 칼럼에 남는다 -->
       <div class="ask" id="ask" data-on="5">
         <div class="cap light">C0에서 당신은 심사위원이었습니다</div>
-        <p class="ask-back">방금 당신이 앉았던 그 자리,<br>필요합니까?</p>
-        <h2 class="ask-q">그림이 걸릴 자격은<br>누가 정해야 합니까?</h2>
-        <div class="stances">
-          <button class="stance" data-k="jury"><b>심사위원이 정한다</b><span>기준을 아는 사람이 먼저 거른다</span></button>
-          <button class="stance" data-k="viewer"><b>보는 사람이 정한다</b><span>걸어 놓고 각자 보게 한다</span></button>
-        </div>
-        <p class="ask-note">정답은 없습니다. 고르면 오늘의 관람객이 어떻게 갈렸는지 봅니다.</p>
+        <h2 class="ask-q">어느 종이를<br>칼럼에 남기겠습니까?</h2>
       </div>
 
-      <!-- 6 오늘 · 그때는 -->
-      <div class="result" id="result" data-on="6">
+      <!-- 6 오늘 — 같은 두 종이가 오늘의 비율만큼 크고 작게 -->
+      <div class="result-top" id="resultTop" data-on="6">
         <div class="cap light" id="todayCap">오늘의 관람객 · 2,031명 · 수치는 예시</div>
         <h2 class="result-h" id="resultH">오늘은 이렇게 갈렸습니다</h2>
-        <div class="bars" id="bars"></div>
-        <div class="hist-dark show" id="histDark"><b>그때는 이랬다</b>1874년 4월 15일, 카퓌신 대로 35번지 나다르의 옛 사진관. 화가들이 살롱 심사를 거치지 않고 스스로 연 전시였다. 입장료 1프랑, 한 달 동안 약 3,500명.<small>프랑스 문화부 · 1874 Première exposition · Wikipedia · First Impressionist Exhibition (Rewald 1973) · Wikipedia · Impressionism</small></div>
+      </div>
+
+      <!-- 5·6 공용: 두 종이 -->
+      <div class="papers" id="papers" data-on="5 6" role="radiogroup" aria-label="칼럼에 남길 종이">
+        <button class="paper salon" data-k="jury" role="radio" aria-checked="false" aria-label="살롱 공고 · 심사위원이 정한다">
+          <div class="notice" aria-hidden="true">
+            <div class="n-rep">République Française</div>
+            <div class="n-big">SALON<br>DE 1874</div>
+            <div class="n-rule"></div>
+            <div class="n-line">Exposition des ouvrages<br>des artistes vivants</div>
+            <div class="n-line em">Palais des Champs-Élysées</div>
+            <div class="n-rule"></div>
+            <div class="n-open">Ouverture<br>le 1<sup>er</sup> Mai</div>
+            <div class="n-foot">Ouvrages admis par le Jury</div>
+            <span class="n-tag">재현</span>
+          </div>
+          <span class="paper-lb"><b>심사위원이 정한다</b><small>기준을 아는 사람이 먼저 거른다</small></span>
+          <span class="paper-pct" aria-hidden="true"></span>
+        </button>
+        <button class="paper flyer-p" data-k="viewer" role="radio" aria-checked="false" aria-label="카페 게르부아 안내문 · 보는 사람이 정한다">
+          <div class="flyer-img" aria-hidden="true"></div>
+          <span class="paper-lb"><b>보는 사람이 정한다</b><small>걸어 놓고 각자 보게 한다</small></span>
+          <span class="paper-pct" aria-hidden="true"></span>
+        </button>
+      </div>
+      <p class="ask-note" data-on="5">하나를 누르면 그 종이가 남고 다른 종이는 떨어집니다. 정답은 없습니다.</p>
+
+      <div class="result" id="result" data-on="6">
+        <div class="hist-dark show" id="histDark"><b>그때는 이랬다</b>1874년 4월 15일, 카퓌신 대로 35번지 나다르의 옛 사진관. 화가들이 살롱 심사를 거치지 않고 스스로 연 전시였다. 입장료 1프랑, 한 달 동안 약 3,500명. 공식 살롱은 그해 5월 1일 샹젤리제 궁에서 열렸다.<small>프랑스 문화부 · 1874 Première exposition · Wikipedia · First Impressionist Exhibition (Rewald 1973) · 오르세 · Paris 1874 (Salon 1874.5.1 개막) · 살롱 공고 카드는 재현</small></div>
         <div class="mine-card" id="mineCard"><span class="cap">내 입장</span><b id="mineLabel"></b><small id="mineSub"></small></div>
       </div>
       <div class="unfold-btns" data-on="6"><button class="btn white" id="collect">수집함에 저장</button><button class="btn dark-line" id="restart" hidden>처음으로</button></div>

@@ -48,7 +48,7 @@ export function showScreen(id) {
 
 export function haptic(ms = 18) { try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) { /* noop */ } }
 
-// 내 입장 저장 — 기기 안(localStorage)에만. 마지막 화면(c5)이 읽는다. 서버 없음
+// 내 입장 저장 — 기기 안(localStorage)에만. 출구 화면(exit.html)이 읽는다. 서버 없음
 const CHOICE_KEY = 'm100_choice';
 export function loadChoices() { try { return JSON.parse(localStorage.getItem(CHOICE_KEY) || '{}') || {}; } catch (e) { return {}; } }
 export function saveChoice(station, data) {

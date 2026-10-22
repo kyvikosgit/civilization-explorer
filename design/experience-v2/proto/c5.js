@@ -1,126 +1,119 @@
-// C5 모네 전시관 — 마무리 화면. 질문 없음. 〈인상, 해돋이〉 앞에서 네 곳(C0·C1·C2·C4)의 내 입장과 오늘의 관람객 비율을 모아 본다.
-//   조합 5×2×5×2 = 100가지 → "같은 조합 N%". 남는 것은 C2 그해의 기차표 하나. 저장·공유는 기기에서 1080×1920 이미지를 그린다.
-//   다른 프로토타입이 localStorage(m100_choice)에 남긴 입장이 있으면 그것을, 없으면 예시 값을 쓴다. 서버는 숫자만(여기서는 예시 수치).
-import { toast, loadImage } from '../../../booth/js/common.js';
-import { loadChoices, clearChoices } from './js/proto-common.js';
+// C5 모네 전시관 — 시간 넘기기 (보기형, 질문 없음)
+//   어두운 방의 연작 벽(건초더미 · 루앙 대성당 · 포플러 · 수련) → 하나를 누르면 그 자리가 화면을 채운다
+//   → 아래 시간 선을 밀거나 눌러 같은 자리를 다른 때에 그린 그림으로 넘어간다(크로스페이드 + 느린 빛 쓸기)
+//   → 벽으로 돌아오면 출구 벽의 문장이 한 번 떠오른다. 답하지 않는다. → "출구에서 오늘의 관람객 보기"(exit.html)
+//   그림은 전부 퍼블릭 도메인(js/c5-sources.json 에 출처). 때 이름은 제목에 있는 말만 쓴다. 서버 없음.
+import { $, $$, icons, reduceMotion, haptic } from './js/proto-common.js';
 
-const $ = (s) => document.querySelector(s);
-const VISITORS = '3,402';
-
-// C0 후보작 5점(보드 C0 · c0.js WORKS) — 오늘의 비율은 예시
-const C0 = {
-  1: { title: '펠루시움의 캄비세스 왕', src: '../works/c0-cambyses.jpg', pct: 9 },
-  2: { title: '마지막 탄약통', src: '../works/c0-cartridges.jpg', pct: 27 },
-  3: { title: '환상, 14세기 전설', src: '../works/c0-vision.jpg', pct: 18 },
-  4: { title: '봄날', src: '../works/c0-spring.jpg', pct: 39 },
-  5: { title: '르 봉 보크', src: '../works/c0-bonbock.jpg', pct: 7 },
-};
-const C1 = { jury: { label: '심사위원이 정한다', pct: 38 }, viewer: { label: '보는 사람이 정한다', pct: 62 } };
-// C2 목적지 5곳(ticket/map-picker.html DEST · PCT)
-const C2 = {
-  argenteuil: { label: '아르장퇴유', year: 1874, pct: 13, ticket: 'argenteuil' },
-  vernon: { label: '베르농', year: 1883, pct: 11, ticket: 'vernon' },
-  rouen: { label: '루앙', year: 1892, pct: 9, ticket: 'rouen' },
-  lesifs: { label: '레지프', year: 1883, pct: 13, ticket: 'ifs' },
-  lehavre: { label: '르아브르', year: 1872, pct: 54, ticket: 'havre' },
-};
-const C4 = { paint: { label: '그림', pct: 44 }, photo: { label: '사진', pct: 56 } };
-
-// 예시 값 + 기기에 남은 입장
-const stored = loadChoices();
-const mine = {
-  c0: C0[stored.c0?.n] ? { n: stored.c0.n, real: true } : { n: 4, real: false },
-  c1: C1[stored.c1?.stance] ? { k: stored.c1.stance, real: true } : { k: 'viewer', real: false },
-  c2: C2[stored.c2?.id] ? { k: stored.c2.id, real: true } : { k: 'lehavre', real: false },
-  c4: C4[stored.c4?.stance] ? { k: stored.c4.stance, real: true } : { k: 'photo', real: false },
-};
-const rows = [
-  { st: 'C0 아카데미 살롱', q: '가운데 자리에 걸 한 점', thumb: C0[mine.c0.n].src, val: `${mine.c0.n}번 〈${C0[mine.c0.n].title}〉`, pct: C0[mine.c0.n].pct, real: mine.c0.real },
-  { st: 'C1 시민사회', q: '그림이 걸릴 자격은 누가', big: mine.c1.k === 'jury' ? '심' : '보', val: C1[mine.c1.k].label, pct: C1[mine.c1.k].pct, real: mine.c1.real },
-  { st: 'C2 산업혁명', q: '어디까지 갈까', thumb: `../ticket/ticket-front-${C2[mine.c2.k].ticket}.png`, val: `${C2[mine.c2.k].label} · ${C2[mine.c2.k].year}년 표`, pct: C2[mine.c2.k].pct, real: mine.c2.real },
-  { st: 'C4 나다르 사진관', q: '그림인가 사진인가', big: C4[mine.c4.k].label, val: C4[mine.c4.k].label, pct: C4[mine.c4.k].pct, real: mine.c4.real },
+icons();
+const W = '../works/';
+// 연작 넷 — 프레임 순서는 하루의 흐름(아침 → 정오 → 저녁) 뒤에 날씨, 수련은 연도순
+const SERIES = [
+  { id: 'haystacks', name: '건초더미', place: '지베르니 · 1890–91', cover: 'c5-haystacks-sunset-snow-aic.jpg', frames: [
+    { f: 'c5-haystacks-snow-morning-getty.jpg', when: '아침' },
+    { f: 'c5-haystacks-sun-mist-mia.jpg', when: '안개' },
+    { f: 'c5-haystacks-end-of-summer-aic.jpg', when: '여름 끝' },
+    { f: 'c5-haystacks-end-of-day-autumn-aic.jpg', when: '하루의 끝' },
+    { f: 'c5-haystacks-sunset-snow-aic.jpg', when: '해 질 녘' },
+    { f: 'c2-giverny-haystacks-met.jpg', when: '눈' },
+  ] },
+  { id: 'rouen', name: '루앙 대성당', place: '루앙 · 1892–94', cover: 'c5-rouen-harmonie-bleue-et-or-orsay.jpg', frames: [
+    { f: 'c5-rouen-harmonie-blanche-orsay.jpg', when: '아침' },
+    { f: 'c5-rouen-harmonie-bleue-orsay.jpg', when: '아침 햇빛' },
+    { f: 'c5-rouen-noon-pushkin.jpg', when: '정오' },
+    { f: 'c2-rouen-cathedrale-nga.jpg', when: '햇빛' },
+    { f: 'c5-rouen-evening-pushkin.jpg', when: '저녁' },
+    { f: 'c2-rouen-cathedrale-orsay.jpg', when: '흐린 날' },
+  ] },
+  { id: 'poplars', name: '포플러', place: '엡트 강 · 1891', cover: 'c2-giverny-four-trees-met.jpg', frames: [
+    { f: 'c2-giverny-four-trees-met.jpg', when: '네 그루' },
+    { f: 'c5-poplars-wind-effect-orsay.jpg', when: '바람' },
+    { f: 'c5-poplars-epte-ngs.jpg', when: '엡트 강' },
+    { f: 'c5-poplars-three-trees-pma.jpg', when: '세 그루' },
+  ] },
+  { id: 'waterlilies', name: '수련', place: '지베르니 · 1897–1919', cover: 'c5-waterlilies-1906-aic.jpg', frames: [
+    { f: 'c5-waterlilies-evening-marmottan.jpg', when: '저녁' },
+    { f: 'c2-giverny-bridge-met.jpg', when: '1899' },
+    { f: 'c5-waterlilies-1905-mfa.jpg', when: '1905' },
+    { f: 'c5-waterlilies-1906-aic.jpg', when: '1906' },
+    { f: 'c5-waterlilies-bleus-orsay.jpg', when: '1916' },
+    { f: 'c5-waterlilies-pond-1917-aic.jpg', when: '1917' },
+  ] },
 ];
-const anyReal = Object.values(mine).some((m) => m.real);
-$('#todayCap').textContent = `오늘의 관람객 · ${VISITORS}명 · 수치는 예시`;
-$('#rows').innerHTML = rows.map((r, i) => `
-  <div class="row" style="animation-delay:${i * 90}ms">
-    <div class="th">${r.thumb ? `<img src="${r.thumb}" alt="">` : `<b>${r.big}</b>`}</div>
-    <div>
-      <div class="k"><span>${r.st} · ${r.q}</span><i>${anyReal && !r.real ? '예시' : ''}</i></div>
-      <div class="v"><span>${r.val}</span><b>${r.pct}%</b></div>
-      <div class="tr"><div class="fl" style="width:${r.pct}%; animation-delay:${i * 90 + 200}ms"></div></div>
-    </div>
-  </div>`).join('');
+let META = {};
+try { const list = await fetch('js/c5-sources.json').then((r) => r.json()); list.forEach((m) => { META[m.file] = m; }); } catch (e) { console.warn('[c5] sources', e); }
+const meta = (f) => META[f] || { title_ko: '', title_en: f, year: '', museum_ko: '' };
 
-// 같은 조합 — 100가지 중 하나. 예시: 네 비율의 곱을 기준으로 결정적 값
-const comboKey = `${mine.c0.n}|${mine.c1.k}|${mine.c2.k}|${mine.c4.k}`;
-const product = rows.reduce((a, r) => a * r.pct / 100, 1);
-const same = Math.max(0.5, Math.round(product * 100 * 10) / 10);
-$('#same').innerHTML = `<b>${same}%</b><span>네 입장이 모두 나와 같은 관람객</span><small>100가지 조합 중 하나 · ${comboKey} · 수치는 예시</small>`;
+// ── 연작 벽
+const strip = $('#strip');
+const seen = new Set();
+strip.innerHTML = SERIES.map((s, i) => `
+  <button class="work" type="button" data-i="${i}" aria-label="${s.name} 연작 · ${s.frames.length}점">
+    <div class="fr"><span class="n">${i + 1}</span><img src="${W + s.cover}" alt="" draggable="false"><span class="sp"></span></div>
+    <span><b>${s.name}</b><small>${s.place} · ${s.frames.length}점</small></span>
+  </button>`).join('');
+$$('.work', strip).forEach((b) => b.addEventListener('click', () => open(+b.dataset.i)));
 
-// 남은 것 — C2 기차표
-$('#ticket').src = `../ticket/ticket-front-${C2[mine.c2.k].ticket}.png`;
-$('#ticketSub').textContent = `파리 생라자르 → ${C2[mine.c2.k].label} · ${C2[mine.c2.k].year} · 2등`;
-
-// 저장 · 공유 — 1080×1920 (위·아래 250px 비움, 좌우 80px). 주황은 세 곳: 제목, 내 막대, 합계 숫자
-let shareBlob = null;
-async function render() {
-  const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d');
-  try { await Promise.all(['800 40px Paperlogy', '600 28px Paperlogy', '500 28px Freesentation', '700 30px Freesentation'].map((f) => document.fonts.load(f, '모네'))); } catch (e) { /* noop */ }
-  const DISP = 'Paperlogy, Freesentation, sans-serif', BODY = 'Freesentation, sans-serif';
-  g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, W, H);
-  const L = 80, R = W - 80; let y = 250;
-  g.fillStyle = '#6B6B68'; g.font = `700 28px ${BODY}`; g.textBaseline = 'alphabetic';
-  g.fillText('MONET 100 · The Next Impression · 2026.12.14', L, y); y += 92;
-  g.fillStyle = '#111111'; g.font = `800 96px ${DISP}`; g.fillText('나의 네 입장', L, y); y += 104;
-  g.fillStyle = '#D9672F'; g.fillText('오늘의 관람객', L, y); y += 70;
-  const thumbs = await Promise.all(rows.map((r) => (r.thumb ? loadImage(r.thumb).catch(() => null) : null)));
-  for (const [i, r] of rows.entries()) {
-    g.strokeStyle = '#E5E4E0'; g.lineWidth = 2; g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); y += 34;
-    const tx = L + 120;
-    const thumb = thumbs[i];
-    if (thumb) { g.save(); g.beginPath(); g.roundRect(L, y - 6, 96, 96, 6); g.clip(); const s = Math.max(96 / thumb.naturalWidth, 96 / thumb.naturalHeight); g.drawImage(thumb, L + 48 - thumb.naturalWidth * s / 2, y - 6 + 48 - thumb.naturalHeight * s / 2, thumb.naturalWidth * s, thumb.naturalHeight * s); g.restore(); }
-    else { g.fillStyle = '#F5F5F3'; g.beginPath(); g.roundRect(L, y - 6, 96, 96, 6); g.fill(); g.fillStyle = '#111111'; g.font = `800 40px ${DISP}`; g.textAlign = 'center'; g.fillText(r.big, L + 48, y + 56); g.textAlign = 'left'; }
-    g.fillStyle = '#6B6B68'; g.font = `700 26px ${BODY}`; g.fillText(`${r.st} · ${r.q}`, tx, y + 18);
-    g.fillStyle = '#111111'; g.font = `800 46px ${DISP}`; g.fillText(r.val, tx, y + 74);
-    g.textAlign = 'right'; g.fillStyle = '#D9672F'; g.fillText(`${r.pct}%`, R, y + 74); g.textAlign = 'left';
-    g.fillStyle = '#ECEBE7'; g.fillRect(tx, y + 98, R - tx, 12);
-    g.fillStyle = '#D9672F'; g.fillRect(tx, y + 98, (R - tx) * r.pct / 100, 12);
-    y += 140;
-  }
-  g.strokeStyle = '#111111'; g.lineWidth = 2; g.beginPath(); g.moveTo(L, y); g.lineTo(R, y); g.stroke(); y += 76;
-  g.fillStyle = '#D9672F'; g.font = `800 84px ${DISP}`; g.fillText(`${same}%`, L, y);
-  g.fillStyle = '#111111'; g.font = `500 30px ${BODY}`; g.fillText('네 입장이 모두 나와 같은 관람객', L + g.measureText(`${same}%`).width + 230, y - 6);
-  y += 70;
-  const tk = await loadImage($('#ticket').src).catch(() => null);
-  if (tk) { const tw = 440, th = tw * tk.naturalHeight / tk.naturalWidth; g.save(); g.translate(L + tw / 2, y + th / 2); g.rotate(-0.02); g.shadowColor = 'rgba(0,0,0,.25)'; g.shadowBlur = 30; g.shadowOffsetY = 12; g.drawImage(tk, -tw / 2, -th / 2, tw, th); g.restore();
-    g.fillStyle = '#6B6B68'; g.font = `500 24px ${BODY}`; g.fillText($('#ticketSub').textContent, L + tw + 30, y + th / 2 + 8); y += th + 40; }
-  g.fillStyle = '#9A9A96'; g.font = `500 24px ${BODY}`; g.fillText('문명탐험가 앱 · 신세계 더 헤리티지 · 수치는 예시', L, H - 250 - 20);
-  shareBlob = await new Promise((r) => c.toBlob(r, 'image/png'));
-  return c;
+// ── 보기
+const view = $('#view'), stage = $('#stage'), layers = [$('#layerA'), $('#layerB')], sweep = $('#sweep'), rail = $('#rail'), caption = $('#caption'), hint = $('#swipeHint');
+let cur = null, idx = 0, top = 0, swiped = false, lastSwitch = 0;
+function open(i) {
+  cur = SERIES[i]; idx = 0; swiped = false;
+  $('#viewTitle').textContent = `${cur.name} · ${cur.place}`;
+  rail.innerHTML = cur.frames.map((fr, k) => `<button class="tick" type="button" role="tab" data-k="${k}"><span>${fr.when}</span><i>${(meta(fr.f).year || '').replace(/–.*$/, '')}</i></button>`).join('');
+  $$('.tick', rail).forEach((t) => t.addEventListener('click', () => go(+t.dataset.k)));
+  cur.frames.forEach((fr) => { const im = new Image(); im.src = W + fr.f; });            // 한 연작을 한꺼번에 받아 둔다
+  layers.forEach((l) => { l.classList.remove('on'); l.removeAttribute('src'); });
+  hint.classList.remove('off');
+  view.hidden = false; document.body.style.overflow = 'hidden';
+  show(0, true);
+  seen.add(cur.id); $$('.work', strip)[i].classList.add('seen');
 }
-$('#share').addEventListener('click', async () => {
-  const btn = $('#share'); btn.disabled = true;
-  try {
-    const c = await render();
-    $('#shareImg').src = c.toDataURL('image/png');
-    $('#shareOv').hidden = false;
-  } catch (e) { console.error(e); toast('이미지를 만들지 못했습니다.'); }
-  btn.disabled = false;
-});
-$('#shareClose').addEventListener('click', () => { $('#shareOv').hidden = true; });
-$('#shareGo').addEventListener('click', async () => {
-  if (!shareBlob) return;
-  const file = new File([shareBlob], 'monet100_나의네입장.png', { type: 'image/png' });
-  const touch = matchMedia('(pointer: coarse)').matches;
-  if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(shareBlob); a.download = file.name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  toast('이미지를 저장했습니다.');
-});
-$('#restart').addEventListener('click', () => { clearChoices(); location.href = 'index.html'; });
+function close() {
+  view.hidden = true; document.body.style.overflow = '';
+  // 벽으로 돌아오면 출구 벽의 문장이 한 번 떠오른다 — 방의 질문. 답하지 않는다
+  const line = $('#wallLine'); if (line.hidden) { line.hidden = false; }
+}
+$('#viewClose').addEventListener('click', close);
+function show(k, first) {
+  const fr = cur.frames[k], m = meta(fr.f);
+  const next = layers[1 - top], prev = layers[top];
+  next.src = W + fr.f;
+  const swap = () => { next.classList.add('on'); prev.classList.remove('on'); top = 1 - top; };
+  if (next.complete && next.naturalWidth) swap(); else next.addEventListener('load', swap, { once: true });
+  if (!first && !reduceMotion) { sweep.classList.remove('run'); void sweep.offsetWidth; sweep.classList.add('run'); }
+  $('#capWhen').textContent = fr.when;
+  $('#capTitle').textContent = `〈${m.title_ko || m.title_en}〉`;
+  $('#capMeta').textContent = [m.year, m.museum_ko, m.license === 'CC0' ? 'CC0' : 'PD'].filter(Boolean).join(' · ');
+  caption.classList.remove('fade'); void caption.offsetWidth; caption.classList.add('fade');
+  $('#viewCount').textContent = `${k + 1} / ${cur.frames.length}`;
+  $$('.tick', rail).forEach((t, i) => { t.classList.toggle('on', i === k); t.setAttribute('aria-selected', i === k); });
+  const on = $('.tick.on', rail); if (on) on.scrollIntoView({ inline: 'center', block: 'nearest', behavior: first || reduceMotion ? 'auto' : 'smooth' });
+}
+function go(k) {
+  if (!cur) return;
+  k = (k + cur.frames.length) % cur.frames.length;
+  if (k === idx) return;
+  idx = k; lastSwitch = performance.now(); haptic(8);
+  show(k);
+}
+// 그림 위에서 옆으로 밀면 다음 · 이전 때
+{
+  let d = null;
+  stage.addEventListener('pointerdown', (e) => { d = { x: e.clientX, y: e.clientY, id: e.pointerId, horiz: false }; });
+  stage.addEventListener('pointermove', (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!d.horiz && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2) { d.horiz = true; try { stage.setPointerCapture(e.pointerId); } catch (_) { /* noop */ } }
+  });
+  const up = (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x; d = null;
+    if (Math.abs(dx) > 40) { go(idx + (dx < 0 ? 1 : -1)); if (!swiped) { swiped = true; hint.classList.add('off'); } }
+  };
+  stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', () => { d = null; });
+  stage.addEventListener('touchmove', (e) => { if (d && d.horiz) e.preventDefault(); }, { passive: false });
+}
 
-window.__c5 = { mine, rows, same, render };
+// 검수용
+window.__c5 = { SERIES, open, close, go, get idx() { return idx; }, get cur() { return cur; }, get seen() { return [...seen]; } };

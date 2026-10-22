@@ -100,9 +100,9 @@ function firstTouch() {
   if (touched) return;
   touched = true;
   hint.classList.add('off');
-  tube.classList.add('squeeze');
-  tube.addEventListener('animationend', () => tube.classList.add('squeezed'), { once: true });
-  $('#tubeText').textContent = '밖의 빛으로';
+  tube.classList.add('squeeze');                              // 캔버스 모서리의 튜브가 한 번 짜이고 가라앉는다
+  const settle = () => tube.classList.add('squeezed');
+  if (REDUCED) setTimeout(settle, 600); else tube.addEventListener('animationend', settle, { once: true });
 }
 
 function onDown(e) {
@@ -135,7 +135,7 @@ function onMove(e) {
   render();
   if (dabs % 6 === 0 && coverage() >= 0.7) complete(p);
 }
-function onUp() { painting = false; last = null; }
+function onUp() { if (painting && !done && outdoor && coverage() >= 0.7) complete(last); painting = false; last = null; }   // 손을 뗄 때도 확인
 stage.addEventListener('pointerdown', onDown);
 stage.addEventListener('pointermove', onMove);
 stage.addEventListener('pointerup', onUp);
@@ -179,7 +179,8 @@ function finish() {
   document.body.classList.add('done');
   document.querySelector('meta[name=theme-color]').content = '#FFFFFF';
   $('#roleSub').textContent = '같은 장면, 밖의 빛';
-  $('#after').hidden = false;
+  $('#after').hidden = false; hint.hidden = true;
+  setTimeout(() => { $('#after').scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block: 'start' }); }, REDUCED ? 0 : 350);
 }
 
 // ── 누르고 있으면 실내 캔버스
@@ -223,3 +224,5 @@ $('#save').addEventListener('click', async () => {
 });
 
 init().catch((e) => { console.error(e); toast('캔버스 이미지를 불러오지 못했습니다.'); });
+// 검수용
+window.__c3 = { get done() { return done; }, get touched() { return touched; }, coverage: () => (outdoor ? coverage() : 0) };

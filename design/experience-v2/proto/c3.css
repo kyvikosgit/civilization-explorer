@@ -1,24 +1,22 @@
 /* C3 화가의 아틀리에 — 밖의 빛으로 칠하기
-   어두운 아틀리에(검정 바탕)에서 시작해, 다 칠하면 방이 밝아진다(흰 바탕). 포인트 주황 #D9672F 하나. */
+   어두운 아틀리에(검정 바탕)에서 시작해, 다 칠하면 방이 밝아진다(흰 바탕). 포인트 주황 #D9672F 하나.
+   화면에는 역할 한 줄 · 캔버스 · 안내 한 줄뿐. 완성 뒤에 일기장 · 1841 · 단추. */
 :root { --wood-1: #5A3E27; --wood-2: #2E1F13; --wood-3: #8A6238; }
 html { background: #161412; }
-body.c3 { background: #161412; color: #FFFFFF; min-height: 100dvh; display: flex; flex-direction: column;
-  transition: background .9s ease, color .9s ease; }
-body.c3.done { background: #FFFFFF; color: var(--ink); }
-body.c3 .topbar { background: #161412; color: inherit; transition: background .9s ease; }
-body.c3.done .topbar { background: #FFFFFF; }
-body.c3 .topbar .tb-title { color: inherit; }
-.icon-btn { color: inherit; }
+body.c3 { --page-bg: #161412; background: #161412; color: #FFFFFF; transition: background .9s ease, color .9s ease; }
+body.c3.done { --page-bg: #FFFFFF; background: #FFFFFF; color: var(--ink); }
+body.c3 .topbar { transition: background .9s ease; }
 
-.room { flex: 1; display: flex; flex-direction: column; padding: 0 16px calc(28px + var(--safe-b)); }
-.role { padding: 6px 4px 14px; }
-.role .eyebrow { color: var(--point); letter-spacing: 0; font-size: 12px; margin-bottom: 6px; }
-.role h1 { font-size: 24px; line-height: 1.3; letter-spacing: -0.02em; font-weight: 800; }
-.role .sub { margin: 8px 0 0; font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.66); transition: color .9s; }
-body.done .role .sub { color: var(--dim); }
+.room { justify-content: flex-start; }
+.room .role-hd { padding-top: 6px; }
+.room .role-hd .sub { color: rgba(255,255,255,.66); transition: color .9s; }
+body.done .room .role-hd .sub { color: var(--dim); }
 
 /* 이젤 — 얇은 나무 액자 안에 6:5 캔버스 */
-.easel { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.easel { margin-top: 6px; }
+/* 완성 전: 캔버스와 안내 한 줄이 남은 공간의 가운데에 — 위아래 여백이 같다 */
+body:not(.done) .easel { margin-top: auto; }
+body:not(.done) .hint { margin-bottom: auto; }
 .frame { width: 100%; padding: 7px; border-radius: 2px;
   background: linear-gradient(135deg, var(--wood-3), var(--wood-1) 40%, var(--wood-2));
   box-shadow: 0 14px 40px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.08), inset 0 0 0 2px rgba(0,0,0,.35);
@@ -30,58 +28,54 @@ body.done .frame { box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 0 0 1px rgba
 .reveal { transition: opacity .22s ease; }
 .reveal.hide { opacity: 0; }
 .canvas-wrap .indoor { pointer-events: none; }
-.hint { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; transition: opacity .4s; }
-.hint span { padding: 9px 14px; border-radius: 18px; background: rgba(0,0,0,.55); color: #FFF; font-size: 13.5px; font-weight: 600;
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: hintPulse 2.2s ease-in-out infinite; }
-.hint.off { opacity: 0; }
-@keyframes hintPulse { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 .label { position: absolute; left: 8px; bottom: 8px; height: 22px; padding: 0 8px; display: flex; align-items: center; border-radius: 4px;
   background: rgba(0,0,0,.6); color: #FFF; font-size: 11.5px; font-weight: 600; pointer-events: none; transition: background .3s, color .3s; }
 .label.out { background: rgba(255,255,255,.85); color: var(--ink); }
 
-/* 튜브 물감 — 첫 터치에 한 번 짜인다 */
-.tube-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 0 4px; min-height: 40px; }
-.tube { width: 120px; height: 40px; flex: none; }
+/* 안내 한 줄 — 캔버스 아래, 첫 터치에 사라진다 */
+.hint { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 0; min-height: 24px; font-size: 15px; color: rgba(255,255,255,.62); transition: opacity .4s; }
+.hint svg { width: 22px; height: 22px; animation: rub 1.8s ease-in-out infinite; }
+.hint.off { animation: none; opacity: 0; pointer-events: none; }
+.hint[hidden] { display: none; }
+@keyframes rub { 0%, 100% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+
+/* 튜브 물감 — 캔버스 오른쪽 아래 모서리에 숨어 있다가 첫 터치에 한 번 짜이고 가라앉는다 */
+.tube { position: absolute; right: 8px; bottom: 6px; width: 84px; height: 28px; pointer-events: none; opacity: 0; transform: translateY(8px); transition: opacity .3s, transform .3s; filter: drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
 .tube svg { width: 100%; height: 100%; overflow: visible; }
 .tube-body { transform-origin: 106px 20px; }
 .tube-paint { transform-origin: 18px 20px; transform: scale(0); opacity: 0; }
-.tube.squeeze .tube-body { animation: squeeze .7s cubic-bezier(.3,.9,.3,1) both; }
-.tube.squeeze .tube-paint { animation: blob .7s cubic-bezier(.3,.9,.3,1) both; }
-.tube.squeezed .tube-body { transform: scaleX(.9) scaleY(.88); }
-.tube.squeezed .tube-paint { transform: scale(1); opacity: 1; }
+.tube.squeeze { opacity: 1; transform: translateY(0); }
+.tube.squeeze .tube-body { animation: squeeze .7s cubic-bezier(.3,.9,.3,1) .15s both; }
+.tube.squeeze .tube-paint { animation: blob .7s cubic-bezier(.3,.9,.3,1) .15s both; }
+.tube.squeezed { opacity: 0; transform: translateY(6px); transition: opacity .6s 1.2s, transform .6s 1.2s; }
 @keyframes squeeze { 0% { transform: scaleX(1) scaleY(1); } 35% { transform: scaleX(.86) scaleY(1.1); } 100% { transform: scaleX(.9) scaleY(.88); } }
 @keyframes blob { 0% { transform: scale(0); opacity: 0; } 30% { transform: scale(.4); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-.tube-cap-text { margin: 0; font-size: 12.5px; color: rgba(255,255,255,.55); transition: color .9s; }
-body.done .tube-cap-text { color: var(--dim); }
 
 /* 다 칠한 뒤 */
-.after { margin-top: 22px; animation: rise .6s ease both; }
+.after { margin-top: 22px; }
 .after[hidden] { display: none; }
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.diary { margin: 0; padding: 0 4px; }
-.diary p { margin: 0; font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.45; letter-spacing: -0.01em; }
-.diary cite { display: block; margin-top: 8px; font-style: normal; font-size: 12.5px; color: var(--dim); }
+.diary { margin: 0; }
+.diary p { margin: 0; font-family: var(--display); font-weight: 600; font-size: 20px; line-height: 1.45; letter-spacing: -0.01em; }
+.diary cite { display: block; margin-top: 8px; font-style: normal; font-size: 13px; color: var(--dim); }
 .fact { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: start; margin-top: 18px; padding: 14px 16px; border-radius: 10px; background: var(--panel); }
 .fact b { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; color: var(--point); letter-spacing: -0.02em; padding-top: 2px; }
-.fact p { margin: 0; font-size: 14px; line-height: 1.5; }
-.fact p.muted { font-size: 12.5px; margin-top: 2px; }
+.fact p { margin: 0; font-size: 15px; line-height: 1.5; }
+.fact p.muted { font-size: 13px; margin-top: 2px; color: var(--dim); }
 .actions { display: grid; gap: 8px; margin-top: 18px; }
 .hold { touch-action: none; user-select: none; -webkit-user-select: none; }
 .hold.on { background: var(--ink); color: #FFF; border-color: var(--ink); }
-.placeholder-note { margin: 18px 4px 0; font-size: 11.5px; line-height: 1.5; color: rgba(255,255,255,.4); transition: color .9s; }
-body.done .placeholder-note { color: var(--dim); }
+.placeholder-note { margin: 16px 0 0; line-height: 1.5; }
 
 /* 작은 화면(375×667): 역할 문장과 캔버스가 한 화면에 들어가게 */
 @media (max-height: 700px) {
-  .role h1 { font-size: 21px; }
-  .role { padding-bottom: 10px; }
-  .easel { gap: 10px; }
+  .room .role-hd h1 { font-size: 21px; }
+  .room .role-hd { padding-bottom: 10px; }
+  .hint { margin-top: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hint span { animation: none; }
+  .hint svg { animation: none; }
   .tube.squeeze .tube-body, .tube.squeeze .tube-paint { animation: none; }
   .tube.squeeze .tube-body { transform: scaleX(.9) scaleY(.88); }
   .tube.squeeze .tube-paint { transform: scale(1); opacity: 1; }
-  .after { animation: none; }
-  body.c3, .role .sub, .frame { transition: none; }
+  body.c3, .room .role-hd .sub, .frame, .tube { transition: none; }
 }

@@ -16,8 +16,10 @@ const POS_NAME = { C: '가운데 눈높이', L: '눈높이 옆자리', R: '눈�
 
 icons();
 
-// ── 1 역할: 후보작 띠
-$('#candStrip').innerHTML = WORKS.map((w) => `<div><img src="${w.src}" alt=""><b>${w.n}</b></div>`).join('');
+// ── 1 역할: 후보작 띠 (긴 화면에서는 심사 기준 7을 펼쳐 둔다 — 빈 공간 없이)
+if (window.innerHeight >= 780) $('.crit').open = true;
+$('#candStrip').innerHTML = WORKS.map((w) => `<button type="button" aria-label="${w.n}번 후보작 · 살롱 벽으로"><img src="${w.src}" alt="" draggable="false"><b>${w.n}</b></button>`).join('');
+$$('#candStrip button').forEach((b) => b.addEventListener('click', () => enterWall()));   // 띠의 그림을 눌러도 벽으로 들어간다
 
 // ── 2 살롱 벽
 const stage = $('#stage'), hang = $('#hang'), tagsEl = $('#tags'), targetEl = $('#target'), lower = $('#lower'), hint = $('#hint');
@@ -244,7 +246,7 @@ $('#save').addEventListener('click', () => {
   $('#cardTitle').textContent = `〈${me.w.title}〉`;
   $('#cardMeta').textContent = [me.w.artist, me.w.year, me.w.coll].filter(Boolean).join(' · ');
   $('#cardShown').textContent = me.w.shown;
-  saveChoice('c0', { n: me.w.n, title: me.w.title, pct: TODAY[me.w.n] });   // 기기 안에만 · 마지막 화면(c5)이 읽는다
+  saveChoice('c0', { n: me.w.n, title: me.w.title, pct: TODAY[me.w.n] });   // 기기 안에만 · 출구 화면(exit.html)이 읽는다
   showScreen('s4');
   toast('수집함에 저장했습니다');
 });

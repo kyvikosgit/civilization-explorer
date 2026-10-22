@@ -3,7 +3,7 @@
 
 /* 1 역할 */
 .role { flex: 1; min-height: 0; overflow: auto; padding: 8px var(--pad) 0; }
-.role h1 { font-size: 30px; line-height: 1.2; margin-top: 8px; }
+.role h1 { font-size: 28px; line-height: 1.22; margin-top: 8px; }
 .role .rule { margin-top: 14px; }
 .role .lead { margin: 14px 0 0; }
 .crit { margin-top: 16px; border: 1px solid var(--hair); border-radius: 10px; background: var(--panel); }
@@ -11,14 +11,15 @@
 .crit summary::-webkit-details-marker { display: none; }
 .crit summary i { display: grid; width: 18px; height: 18px; color: var(--dim); transition: transform .25s; }
 .crit[open] summary i { transform: rotate(180deg); }
-.crit ol { margin: 0; padding: 0 14px 12px 32px; display: grid; gap: 5px; font-size: 13.5px; line-height: 1.5; }
+.crit ol { margin: 0; padding: 0 14px 12px 32px; display: grid; gap: 5px; font-size: 14.5px; line-height: 1.5; }
 .crit li small { color: var(--dim); margin-left: 4px; }
 .cands-cap { display: flex; justify-content: space-between; align-items: baseline; margin-top: 22px; font-family: var(--display); font-weight: 600; font-size: 13px; }
 .cands-cap small { font-family: var(--body); font-weight: 400; font-size: 12px; color: var(--dim); }
 .cands { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0 16px; }
-.cands div { position: relative; aspect-ratio: 4 / 5; background: #5E2424 center/cover no-repeat; border-radius: 4px; overflow: hidden; }
-.cands div img { width: 100%; height: 100%; object-fit: cover; }
-.cands div b { position: absolute; left: 0; bottom: 0; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 12px; color: #E7C46C; background: rgba(0,0,0,.55); border-radius: 0 4px 0 0; }
+.cands button { position: relative; aspect-ratio: 4 / 5; background: #5E2424 center/cover no-repeat; border-radius: 4px; overflow: hidden; transition: transform .15s; }
+.cands button:active { transform: scale(.95); }
+.cands button img { width: 100%; height: 100%; object-fit: cover; }
+.cands button b { position: absolute; left: 0; bottom: 0; min-width: 20px; height: 20px; padding: 0 5px; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 12px; color: #E7C46C; background: rgba(0,0,0,.55); border-radius: 0 4px 0 0; }
 
 /* 캡션(한글 — 자간 없음) */
 .cap { font-family: var(--display); font-weight: 600; font-size: 12.5px; color: var(--point); }
