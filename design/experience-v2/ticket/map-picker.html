@@ -139,22 +139,20 @@
     <div class="banner">
       <strong>생라자르역 매표창 앞.<br>어디까지 가시겠습니까?</strong>
       <div class="stage-row">
-        <ol class="stages" aria-label="단계"><li class="on"><b></b>도착지</li></ol>
-        <button id="openClues" class="clue-btn" type="button">현장 단서 <span>4</span></button>
+        <ol class="stages" aria-label="출발역"><li class="on"><b></b>생라자르역 출발</li></ol>
+        <button id="openClues" class="clue-btn" type="button">현장 자료 <span>4</span></button>
       </div>
-      <p id="stageHint" class="stage-hint"><b>생라자르역</b>에서 출발합니다. 지도의 역이나 영역을 누르면 그곳까지 선이 이어집니다. <b>어디까지 가시겠습니까?</b></p>
     </div>
   </header>
   <!-- 행선지 사진 카드 — 고른 역 옆에 붙는다(지도를 밀면 같이 움직인다). 사진은 위키미디어 공용 자유 이용 사진, 크레딧은 카드 아래 -->
   <button class="place-card" id="placeCard" type="button" hidden aria-label="표 끊기">
     <span class="pc-img"><img id="pcImg" alt="" draggable="false"></span>
-    <span class="pc-t"><small>이곳을 그리러 가볼까요</small><b id="pcName"></b><em id="pcCredit"></em></span>
-    <span class="pc-go">표 끊기</span>
+    <span class="pc-t"><b id="pcName"></b><em id="pcCredit"></em></span>
   </button>
   <div class="quiz-bottom">
     <!-- 아래 판: 처음엔 안내 한 줄, 고르면 행선지 + "표 끊기". 확인 시트는 "표 끊기"를 눌렀을 때만 -->
     <div class="pick-panel" id="pickPanel" aria-live="polite">
-      <p class="pk-prompt" id="pkPrompt">지도의 역 · 영역이나 아래 이름을 눌러 행선지를 고르세요</p>
+      <p class="pk-prompt" id="pkPrompt">지도나 아래 이름에서 행선지를 고르세요</p>
       <div class="pk-sel" id="pkSel" hidden>
         <span class="pk-t"><b id="pkName"></b><small id="pkInfo"></small></span>
         <button class="pk-go" id="pkGo" type="button">표 끊기</button>
@@ -165,11 +163,9 @@
 </section>
 
 <!-- 현장 단서 — 부스 소품(벽면 그림 · 신문 · 시간표 · 엽서)을 앱에서 다시 보기. booth/js/c2.js CLUES 그대로 -->
-<div id="clueSheet" class="sheet clue-sheet" role="dialog" aria-label="현장 단서">
+<div id="clueSheet" class="sheet clue-sheet" role="dialog" aria-label="현장 자료">
   <div class="grip"></div>
-  <div class="eyebrow">현장 단서</div>
-  <h3 class="confirm-title">부스에서 찾은 단서</h3>
-  <p class="small muted" style="margin:6px 0 0">벽면의 그림, 신문, 책상 위 소품을 다시 살펴보세요. 옆으로 넘겨 볼 수 있습니다.</p>
+  <h3 class="confirm-title">현장 자료</h3>
   <div id="clueRow" class="clue-row"></div>
   <button class="btn" data-sheet-close style="margin-top:14px">닫기</button>
 </div>
@@ -206,7 +202,7 @@
         </div>
         <div class="tak" id="tak">탁</div>
       </div>
-      <div class="hint" id="hint">끌어서 돌려보기 · 두 번 탭하면 뒷면 · 바깥을 누르면 제자리로</div>
+      <div class="hint" id="hint">끌어서 돌려 보기 · 두 번 탭하면 뒷면</div>
     </header>
     <div class="canvas" id="canvas">
       <div class="hero-space"></div>
@@ -260,7 +256,7 @@
           <span class="pc-count" id="pcCount">0 / 60</span>
         </div>
         <div class="pc-tools"><button class="btn line" id="pcFlip" type="button">뒷면 보기</button><button class="btn" id="pcSave" type="button">엽서 저장 · 공유</button></div>
-        <p class="pc-note">글은 끌어서 위 · 가운데 · 아래로 옮길 수 있습니다. 엽서는 기기 안에서만 만들어지고 어디에도 보내지 않습니다.</p>
+        <p class="pc-note">글은 끌어서 옮길 수 있습니다</p>
       </section>
       <!-- 오늘의 관람객 — 같은 지도 한 장에 점(하나 = 열 사람)이 흩어졌다가 고른 곳으로 모인다. 영역은 많이 고를수록 짙고, 내 곳은 주황 테두리 (proto/js/crowd.js) -->
       <section class="today crowd" id="today">
@@ -269,7 +265,6 @@
         <div class="crowd-stage map" id="todayMap"><svg id="todayMapSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg><canvas id="crowdCv" aria-hidden="true"></canvas><div class="crowd-nums" id="todayNums"></div></div>
         <div class="rv-me" id="todayFig"></div>
         <ul class="rv-others" id="todayOthers"></ul>
-        <div class="sea" id="sea" hidden></div>
         <div class="crowd-stamp" id="crowdStamp"></div>
         <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">수집함에 저장</button></div>
       </section>
@@ -317,9 +312,9 @@ const FIT = { lon0: -0.62, lon1: 2.7, lat0: 48.72, lat1: 49.92 };    // 파리 �
 
 // ── 현장 단서 (부스 소품과 같은 것: 벽면 그림 · 신문 · 책상 위 시간표 · 엽서) — booth/js/c2.js CLUES 그대로
 const CLUES = [
-  { kind: 'img', img: '../../../booth/assets/clue/monet_gare_saint_lazare_1877.jpg', k: '벽면의 그림', t: '증기를 뿜는 기관차와 철골 유리 지붕 — 파리의 한 기차역입니다.', meta: '클로드 모네 〈생라자르역〉 1877 · 퍼블릭 도메인' },
-  { kind: 'news', k: '신문 광고 · 재현', t: '바다로 가는 ‘유람 열차’ 광고. 행선지는 모두 영불해협(라망슈) 해안 도시입니다.' },
-  { kind: 'table', k: '책상 위 시간표 · 재현', t: '서부철도의 파리–르아브르 선. 서부철도는 파리에 출발역이 두 곳 있었습니다 — 센강 오른쪽과 왼쪽.' },
+  { kind: 'img', img: '../../../booth/assets/clue/monet_gare_saint_lazare_1877.jpg', k: '벽면의 그림', t: '노르망디로 가는 서부철도의 파리 출발역, 생라자르.', meta: '클로드 모네 〈생라자르역〉 1877 · 퍼블릭 도메인' },
+  { kind: 'news', k: '신문 광고 · 재현', t: '바다로 가는 유람 열차 광고. 행선지는 영불해협(라망슈) 해안 도시들.' },
+  { kind: 'table', k: '책상 위 시간표 · 재현', t: '서부철도 파리–르아브르 선의 정차역.' },
   { kind: 'img', img: '../../../booth/assets/clue/monet_manneporte_etretat_1883.jpg', k: '엽서', t: '바다 절벽의 마을 에트르타. 모네는 이 해안의 항구 도시 르아브르에서 자랐습니다.', meta: '클로드 모네 〈에트르타의 마네포르트〉 1883 · 퍼블릭 도메인' },
 ];
 function clueCard(c) {
@@ -480,6 +475,9 @@ function drawLabels() {
     dot(ORIGIN, false, true);
   }
   labels.innerHTML = h;
+  // 영역 이름이 역 이름표와 겹치면 영역 이름을 뺀다(역 이름이 먼저)
+  const boxes = $$('text.lbl, text.lbl-ko, circle', labels).map((n) => n.getBBox());
+  $$('text.lbl-zone', labels).forEach((z) => { const a = z.getBBox(); if (boxes.some((b) => a.x - 10 < b.x + b.width && b.x < a.x + a.width + 10 && a.y - 3 < b.y + b.height && b.y < a.y + a.height + 3)) z.remove(); });
 }
 
 // ── 칩 줄(부스 buildChips · markChips 의 도착지 단계 그대로)
@@ -522,8 +520,7 @@ function drawRoute(dest) {
   stopRouteAnims();
   // 노선은 누르는 즉시 보이고(짧게 그어짐), 핀은 그 끝에 바로 내려앉는다 — 인위적 지연 없음
   [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; if (!RM) p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: 420, easing: 'cubic-bezier(.2,.7,.2,1)' }); });
-  pinAt = pts[pts.length - 1]; updatePin();
-  if (!RM) pinG.querySelector('.pin-in').animate([{ transform: 'translateY(-12px)', opacity: 0 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 240, easing: 'cubic-bezier(.3,1.4,.5,1)' });
+  pinAt = null; updatePin();   // 핀은 쓰지 않는다 — 고른 역은 커진 주황 점 · 영역 테두리 · 노선 끝으로 보인다
 }
 function stopRouteAnims() { [routeGlow, routeCore, routeLine, pinG.querySelector('.pin-in')].forEach((p) => p.getAnimations().forEach((a) => a.cancel())); }
 function clearRoute() { stopRouteAnims(); [routeGlow, routeCore, routeLine].forEach((p) => { p.setAttribute('d', ''); p.style.strokeDasharray = ''; }); pinAt = null; updatePin(); }
@@ -551,6 +548,7 @@ function placeCardPos() {
   });
   obs.push([x - 14, y - 40, x + 14, y + 4, 12]);                       // 고른 역의 핀
   let own = null; $$('text.lbl, text.lbl-ko', labels).forEach((n) => { if (n.textContent === picked.fr || n.textContent === picked.ko) { const b = n.getBBox(); own = own ? [Math.min(own[0], b.x), Math.min(own[1], b.y), Math.max(own[2], b.x + b.width), Math.max(own[3], b.y + b.height)] : [b.x, b.y, b.x + b.width, b.y + b.height]; } });
+  if (own) obs.push([own[0] - 4, own[1] - 4, own[2] + 4, own[3] + 4, 14]);   // 고른 역의 이름은 가리지 않는다
   const cands = [[x + 16, y - h - 18], [x - 16 - w, y - h - 18], [x + 16, y + 16], [x - 16 - w, y + 16], [x - w / 2, (own ? own[3] : y + 20) + 8], [x + 18, y - h / 2], [x - 18 - w, y - h / 2]];
   const scored = cands.map(([cx, cy], i) => {
     cx = clamp(cx, 8, box.width - w - 8); cy = clamp(cy, top, Math.max(top, bottom - h));
@@ -577,6 +575,7 @@ function pick(id) {
 // 처음 상태로: 고른 곳 없음 · 노선 없음 · 사진 카드 없음 · 칩 해제 · 아래 판은 안내 한 줄
 function resetPick() {
   picked = null;
+  const ch = $('#chips'); if (ch) ch.scrollTo({ left: 0, behavior: 'auto' });
   if (confirmSheet.isOpen) confirmSheet.close('confirm');
   clearRoute(); placeCard(null); markChips(); drawLabels(); setPanel(null);
 }
@@ -589,7 +588,7 @@ function openConfirm() {
   const p = picked, z = Z.zones[p.id];
   $('#cfWhat').textContent = `Paris (St-Lazare) → ${p.fr}`;
   $('#cfTitle').textContent = `${p.ko}행 표를 끊을까요?`;
-  $('#cfSub').textContent = `${p.info} · 2등 · 표의 해 ${p.year} · ${z.kind === 'cantons' ? (p.id === 'lehavre' ? '르아브르 칸통 1~6' : '칸통 ' + z.names.join(' · ')) : 'arrondissement ' + z.label} · 1867~1875년 안내서 기준`;
+  $('#cfSub').textContent = `${p.info} · 2등`; void z;
   confirmSheet.open();
 }
 function stationAt(sx, sy) {
@@ -670,7 +669,9 @@ const NARR = {
   lehavre: { h: '르아브르에 가서, 호텔 창문에서 항구의 해돋이를 그렸습니다', place: '파리에서 229 km. 모네는 다섯 살이던 1845년 가족과 함께 이 항구 도시로 와서 자랐다.',
     paint: { img: '../works/c2-havre-impression-marmottan.jpg', cap: '인상, 해돋이', meta: '1872 · 마르모탕 모네(inv. 4014) · PD', t: '1872년 11월경 오텔 드 라미로테 창문에서 항구를 몇 시간 만에 그렸다. 1874년 첫 전시 카탈로그에 〈인상〉이라 적었고, 르루아의 기사 제목이 ‘인상주의자’가 됐다.' } },
 };
-const PCT = {"argenteuil": 13, "vernon": 11, "rouen": 9, "lesifs": 13, "lehavre": 54}, SEA = ['lesifs', 'lehavre'], VISITORS = 1508;   // 예시 수치
+const PCT = {"argenteuil": 13, "vernon": 11, "rouen": 9, "lesifs": 13, "lehavre": 54}, VISITORS = 1508;   // 예시 수치
+// 표의 해 — 모네가 그곳에서 무엇을 한 해인지 (위 NARR 의 문장에서만)
+const WHY = { argenteuil: '〈양귀비 들판〉이 첫 전시에 걸린 해', vernon: '모네가 지베르니에 집을 빌린 해', rouen: '모네가 대성당 맞은편 방에 자리 잡은 해', lesifs: '모네가 에트르타에 묵으며 절벽을 그린 해', lehavre: '〈인상, 해돋이〉를 그린 해' };
 const MF = ['JANV','FÉV','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'], MFL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const WD = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'], WK = ['일','월','화','수','목','금','토'];
 const q = new URLSearchParams(location.search), today = new Date();
@@ -810,10 +811,9 @@ function buildTodayMap(p) {
   mk('path', { d: md.M.regions.paris, fill: '#F8F0DE', stroke: '#6b5235', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' }, world);
   mk('path', { d: md.Z.zones[p.id].d, fill: 'none', stroke: '#E0662C', 'stroke-width': 2, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
   const seaP = toS(md.proj(-0.12, 49.7));
-  mk('text', { x: seaP[0], y: seaP[1], 'text-anchor': 'middle', class: 'lbl-sea', 'font-size': 10 }, svg).textContent = 'La Manche';
+  mk('text', { x: seaP[0], y: seaP[1], 'text-anchor': 'middle', class: 'lbl-sea', 'font-size': 10, fill: '#7E948E' }, svg).textContent = 'La Manche';
   const o = toS(md.proj(...md.ORIGIN.ll));
   mk('circle', { cx: o[0], cy: o[1], r: 3.2, fill: 'none', stroke: '#6b5235', 'stroke-width': 1.4 }, svg);
-  mk('text', { x: o[0] + 7, y: o[1] + 4, class: 'lbl-faint', 'font-size': 8, 'letter-spacing': 1.5, 'text-anchor': 'start' }, svg).textContent = 'PARIS';
   const regions = {};
   md.DEST.forEach((d) => {
     const [x, y] = toS(md.proj(...d.ll)), me = d.id === p.id;
@@ -837,7 +837,8 @@ function startCrowd() {
   const ids = window.DEST.map((d) => d.id), counts = split(n, ids.map((id) => PCT[id]));
   const groups = ids.map((id, i) => { const r = regions[id]; return { pts: r.poly ? packPoly(counts[i], r.poly, crowd.rnd) : packDisc(counts[i], r.disc[0], r.disc[1], discRadius(counts[i]), crowd.rnd) }; });
   crowd.place(scatter(n, { x: 6, y: 6, w: W - 12, h: H - 12 }, crowd.rnd));
-  setTimeout(() => { crowd.move(targetsFor(crowd, groups, ids.indexOf(me)), { duration: 1300, stagger: 400 }); setTimeout(() => $$('#todayNums .crowd-num').forEach((el) => el.classList.add('show')), RM ? 0 : 900); }, RM ? 0 : 300);
+  // 점이 다 모이면 지도 위 숫자 → 아래 요약(비율을 먼저 말하지 않는다)
+  setTimeout(() => { crowd.move(targetsFor(crowd, groups, ids.indexOf(me)), { duration: 1300, stagger: 400, onDone: () => { $$('#todayNums .crowd-num').forEach((el) => el.classList.add('show')); $('#today').classList.add('settled'); } }); }, RM ? 0 : 300);
 }
 
 // ── 발권: 지도가 어두워지고 창구 슬롯에서 표가 밀려 나온 뒤 날인이 찍힌다
@@ -845,10 +846,10 @@ function issue() {
   const p = window.getPicked(); if (!p) return; cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
   const d = { ...TK[p.id], year: p.year };
   const f = $('[data-slot=front]'), b = $('[data-slot=back]'); f.innerHTML = ''; b.innerHTML = ''; f.appendChild(fill(make('front'), d)); b.appendChild(fill(make('back'), d));
-  $('#heroTitle').textContent = `${p.ko} · ${p.year}년 표`; $('#heroSub').textContent = `PARIS → ${d.to} · 2me classe`;
+  $('#heroTitle').textContent = `${p.ko} · ${p.year}년 표`; $('#heroSub').textContent = `PARIS → ${d.to}`;
   const [km, dur] = p.info.split(' · ');
   $('#tkTiles').innerHTML = `<div><small>파리에서</small><b>${km}</b></div><div><small>소요</small><b>${dur.replace('급행 ', '')}</b></div><div><small>2등 운임</small><b>${d.prix ? '21 fr. 05' : '— —'}</b></div>`;
-  $('#tkWhy').innerHTML = `<b>왜 ${d.year}년?</b> 모네가 ${p.ko}에 온 해입니다. 오늘 날짜(${mon}월 ${day}일)에 그 해를 붙여 찍었습니다.${d.prix ? ' 운임은 1874년 안내서의 2등 값.' : ' 그 해 ±3년 안내서에 운임이 없어 빈칸.'}`;
+  $('#tkWhy').innerHTML = `<b>${d.year}년</b> ${WHY[p.id]}. 오늘 날짜에 그 해를 붙여 찍었습니다.${d.prix ? ' 운임은 1874년 안내서의 2등 값입니다.' : ' 이 구간의 운임은 찾지 못해 비워 두었습니다.'}`;
   // 이야기 — 그 자리의 사진 + 거기서 그린 그림 한 점
   const n = NARR[p.id], pl = window.PLACES[p.id];
   $('#stK').textContent = `${p.fr} · ${p.year}`; $('#stH').textContent = n.h;
@@ -858,18 +859,14 @@ function issue() {
   setupPostcard(p, n, no);
   // 오늘의 관람객 — 작은 지도 + 점. 내 곳만 크게, 나머지는 작은 숫자로
   //   내 비율(큰 숫자)과 이름표는 한 기준선. 나머지 네 곳은 2열 표(이름 왼쪽 · 비율 오른쪽, 고정폭 숫자)
-  $('#todayFig').innerHTML = `<b class="rv-big">${PCT[p.id]}<i>%</i></b><span class="rv-lab">${p.ko} · 나</span><small class="rv-sub">${p.fr} · ${p.info.split(' · ')[0]}</small>`;
+  $('#todayFig').innerHTML = `<b class="rv-big">${PCT[p.id]}<i>%</i></b><span class="rv-lab">${p.ko} · 나<small>같은 곳을 고른 관람객</small></span>`;
   $('#todayOthers').innerHTML = window.DEST.filter((d) => d.id !== p.id).map((d) => `<li><span>${d.ko}</span><b>${PCT[d.id]}<i>%</i></b></li>`).join('');
-  //   바다 한 줄은 해안 행선지(레지프 · 르아브르)를 고른 사람에게만
-  const coastal = SEA.includes(p.id);
-  $('#sea').hidden = !coastal;
-  $('#sea').innerHTML = coastal ? `<span>오늘 바다까지 간 사람</span><b>${SEA.reduce((a, id) => a + PCT[id], 0)}<i>%</i></b><small>레지프 · 르아브르</small>` : '';
   $('#crowdStamp').textContent = stampLine(VISITORS);
   $$('#todayNums .crowd-num').forEach((el) => el.classList.remove('show'));
   if (crowd) crowd.stop();
   flow.hidden = false;                                            // 폭을 재려면 보여야 한다
   crowdPlan = { ...buildTodayMap(p), me: p.id };
-  io.observe($('#today')); $('#today').classList.remove('in');
+  io.observe($('#today')); $('#today').classList.remove('in', 'settled');
   $('#save').textContent = '수집함에 저장'; $('#save').disabled = false; $('#collN').hidden = true; wrap.classList.remove('fly'); hero.classList.remove('saved');
   // 표시 + 발권 동작 — 지도가 어두워지고, 표가 화면 가운데에서 "쿵" 하고 만들어진 뒤(1.6 → 1.0, 짧은 되튐 · 2~3px 흔들림 · 그림자가 바닥에 붙음 · 한 박자 뒤 날짜 날인),
   //   0.6초 머문 다음 같은 요소가 그대로 상단 바 왼쪽 자리로 날아가 붙고, 아래에서 이야기가 올라온다
