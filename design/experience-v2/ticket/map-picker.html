@@ -213,14 +213,21 @@
           <figure class="pf paint"><div class="img"><img id="pairPaint" alt="" draggable="false"></div><figcaption><b id="pairTitle"></b><p id="pairPaintT"></p><small id="pairMeta"></small></figcaption></figure>
         </div>
       </section>
-      <!-- 엽서 — 앞면: 대표 그림 전면 + 당대풍 우표 + 둥근 소인(행선지 · 모네의 해), 그림 위에 글자 없음. 뒷면: 세로 구분선 · 주소 줄, 한 줄 메시지(≤60자) + 받는 사람. 뒤집기는 표의 3D 카드 문법. 저장은 기기 안에서 JPEG -->
+      <!-- 엽서 — 앞면: 대표 그림 전면 + 당대풍 우표 + 둥근 소인(행선지 · 모네의 해) + 그림 위에 직접 적는 한 줄(≤60자, 1904년 전 프랑스 엽서처럼 글은 그림 면에).
+           한 줄은 끌어서 위·가운데·아래 셋 중 한 자리에 붙고, 크기 둘. 글자색은 그 자리 그림 밝기로 크림/잉크. 뒷면: 세로 구분선 · 받는 사람 · 그림 캡션 · 표 번호(메시지 없음).
+           뒤집기는 표의 3D 카드 문법. 저장은 앞면(글 포함)을 기기 안에서 JPEG -->
       <section class="postcard" id="postcard">
-        <div class="story-h"><div class="eyebrow">Carte postale</div><h2>이곳에서 엽서를 보냅니다</h2></div>
+        <div class="story-h"><div class="eyebrow">Carte postale</div><h2>그림 위에 한 줄을 적어 엽서를 만드세요</h2></div>
         <div class="pc-wrap" id="pcWrap">
           <div class="pc3d" id="pc3d">
-            <div class="pface front">
+            <div class="pface front" id="pcFront">
               <img id="pcPaint" alt="" draggable="false">
               <div class="grain"></div><div class="sheen"></div>
+              <div class="pc-guides" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="pc-ink" id="pcInk" data-slot="bottom" data-size="s">
+                <span class="pc-grip" aria-hidden="true"></span>
+                <textarea id="pcMsg" rows="1" maxlength="60" placeholder="여기를 눌러 한 줄을 적으세요" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="엽서에 적을 한 줄"></textarea>
+              </div>
               <div class="stamp-corner">
                 <div class="pstamp"><span>République<br>Française</span><b>15<sup>c</sup></b><small>Postes</small></div>
                 <svg class="postmark" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="pmArc" d="M50,50 m-33,0 a33,33 0 1,1 66,0 a33,33 0 1,1 -66,0"/></defs><circle cx="50" cy="50" r="44"/><circle cx="50" cy="50" r="23"/><text class="pm-arc"><textPath href="#pmArc" id="pmText" startOffset="2">LE HAVRE · 1872 ·</textPath></text><text class="pm-mid" x="50" y="48" text-anchor="middle" id="pmDate">21 OCT</text><text class="pm-mid s" x="50" y="58" text-anchor="middle" id="pmYear">1872</text></svg>
@@ -229,8 +236,6 @@
             <div class="pface back">
               <div class="pb-head"><b>Carte Postale</b><span>Chemins de fer de l’Ouest</span></div>
               <div class="pb-l">
-                <label class="pb-msg"><input id="pcMsg" type="text" maxlength="60" placeholder="한 줄을 적어 보세요" enterkeyhint="done" autocomplete="off" autocapitalize="off"></label>
-                <div class="pb-count" id="pcCount">0 / 60</div>
                 <div class="pb-cap" id="pcCap"></div>
               </div>
               <div class="pb-div"></div>
@@ -242,17 +247,21 @@
             </div>
           </div>
         </div>
-        <div class="pc-tools"><button class="btn line" id="pcFlip" type="button">뒤집어 쓰기</button><button class="btn" id="pcSave" type="button">엽서 저장 · 공유</button></div>
-        <p class="pc-note">엽서는 기기 안에서만 만들어지고 어디에도 보내지 않습니다. 뒷면을 누르면 글을 적을 수 있습니다.</p>
+        <div class="pc-opts">
+          <div class="seg" role="radiogroup" aria-label="글자 크기"><button type="button" role="radio" data-size="s" aria-checked="true">작게</button><button type="button" role="radio" data-size="l" aria-checked="false">크게</button></div>
+          <span class="pc-count" id="pcCount">0 / 60</span>
+        </div>
+        <div class="pc-tools"><button class="btn line" id="pcFlip" type="button">뒷면 보기</button><button class="btn" id="pcSave" type="button">엽서 저장 · 공유</button></div>
+        <p class="pc-note">글은 끌어서 위 · 가운데 · 아래로 옮길 수 있습니다. 엽서는 기기 안에서만 만들어지고 어디에도 보내지 않습니다.</p>
       </section>
       <!-- 오늘의 관람객 — 같은 지도 한 장에 점(하나 = 열 사람)이 흩어졌다가 고른 곳으로 모인다. 영역은 많이 고를수록 짙고, 내 곳은 주황 테두리 (proto/js/crowd.js) -->
       <section class="today crowd" id="today">
         <div class="crowd-cap">Aujourd'hui au guichet</div>
         <div class="crowd-line">오늘 같은 곳을 고른 관람객</div>
         <div class="crowd-stage map" id="todayMap"><svg id="todayMapSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg><canvas id="crowdCv" aria-hidden="true"></canvas><div class="crowd-nums" id="todayNums"></div></div>
-        <div class="crowd-fig" id="todayFig"></div>
-        <div class="crowd-others" id="todayOthers"></div>
-        <div class="sea" id="sea"></div>
+        <div class="rv-me" id="todayFig"></div>
+        <ul class="rv-others" id="todayOthers"></ul>
+        <div class="sea" id="sea" hidden></div>
         <div class="crowd-stamp" id="crowdStamp"></div>
         <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">수집함에 저장</button></div>
       </section>
@@ -774,9 +783,13 @@ function issue() {
   $('#pair').classList.remove('in'); io.observe($('#pair'));
   setupPostcard(p, n, no);
   // 오늘의 관람객 — 작은 지도 + 점. 내 곳만 크게, 나머지는 작은 숫자로
-  $('#todayFig').innerHTML = `<div class="crowd-big">${PCT[p.id]}<i>%</i></div><div class="crowd-lab">${p.ko} · 나<small>${p.fr} · ${p.info.split(' · ')[0]}</small></div>`;
-  $('#todayOthers').innerHTML = window.DEST.filter((d) => d.id !== p.id).map((d) => `<span>${d.ko} <b>${PCT[d.id]}</b></span>`).join('');
-  $('#sea').innerHTML = `오늘 바다까지 간 사람 <b>${SEA.reduce((a, id) => a + PCT[id], 0)}%</b> <small>레지프 · 르아브르</small>`;
+  //   내 비율(큰 숫자)과 이름표는 한 기준선. 나머지 네 곳은 2열 표(이름 왼쪽 · 비율 오른쪽, 고정폭 숫자)
+  $('#todayFig').innerHTML = `<b class="rv-big">${PCT[p.id]}<i>%</i></b><span class="rv-lab">${p.ko} · 나</span><small class="rv-sub">${p.fr} · ${p.info.split(' · ')[0]}</small>`;
+  $('#todayOthers').innerHTML = window.DEST.filter((d) => d.id !== p.id).map((d) => `<li><span>${d.ko}</span><b>${PCT[d.id]}<i>%</i></b></li>`).join('');
+  //   바다 한 줄은 해안 행선지(레지프 · 르아브르)를 고른 사람에게만
+  const coastal = SEA.includes(p.id);
+  $('#sea').hidden = !coastal;
+  $('#sea').innerHTML = coastal ? `<span>오늘 바다까지 간 사람</span><b>${SEA.reduce((a, id) => a + PCT[id], 0)}<i>%</i></b><small>레지프 · 르아브르</small>` : '';
   $('#crowdStamp').textContent = stampLine(VISITORS);
   $$('#todayNums .crowd-num').forEach((el) => el.classList.remove('show'));
   if (crowd) crowd.stop();
@@ -794,37 +807,122 @@ function issue() {
     setTimeout(() => { hero.classList.remove('issuing'); R.issued = true; R.lastInput = performance.now() - 1000; }, RM ? 400 : 1350);
   }));
 }
-// ── 엽서: 앞면(그림 + 우표 + 소인) ↔ 뒷면(한 줄 + 받는 사람). 뒤집기만 3D, 입력은 뒷면에서. 저장은 앞·뒷면을 한 장(1480×2060)의 JPEG 로 — 기기 안에서만
-const pc3d = $('#pc3d'), pcMsg = $('#pcMsg'), pcTo = $('#pcTo');
-let pcFlipped = false, pcData = null;
+// ── 엽서: 앞면(그림 + 우표 + 소인 + 그림 위에 적는 한 줄) ↔ 뒷면(받는 사람 + 캡션 + 표 번호). 뒤집기만 3D.
+//    한 줄: 끌면 손가락을 따라오고, 놓으면 위·가운데·아래 셋 중 가까운 자리에 붙는다. 크기 둘(작게/크게 = 앞면 폭의 5.2% / 7%).
+//    글자색은 그 자리 그림 밝기(상대 휘도 평균)로 크림 또는 잉크, 부드러운 그림자. 저장은 앞면(글 포함)을 1480×1000 JPEG 로 — 기기 안에서만
+const pc3d = $('#pc3d'), pcMsg = $('#pcMsg'), pcTo = $('#pcTo'), pcInk = $('#pcInk'), pcFront = $('#pcFront');
+const SLOT = { top: 0.2, middle: 0.5, bottom: 0.8 }, FS = { s: 0.052, l: 0.07 }, PC_W = 1480, PC_H = 1000;
+let pcFlipped = false, pcData = null, pcSlot = 'bottom', pcSize = 's', pcLum = null;
 function setupPostcard(p, n, no) {
   pcData = { id: p.id, fr: p.fr, ko: p.ko, year: p.year, paint: n.paint, no };
-  $('#pcPaint').src = n.paint.img; $('#pcPaint').alt = n.paint.cap;
+  pcLum = null; $('#pcPaint').onload = () => { sampleLum(); placeInk(false); }; $('#pcPaint').src = n.paint.img; $('#pcPaint').alt = n.paint.cap;
   $('#pmText').textContent = `${p.fr.toUpperCase()} · ${p.year} ·`; $('#pmDate').textContent = `${day} ${MF[mon - 1]}`; $('#pmYear').textContent = p.year;
-  $('#pcCap').textContent = `〈${n.paint.cap}〉 · ${n.paint.meta.split(' · ').slice(0, 2).join(' · ')} · N° ${no}`;
-  let saved = null; try { saved = JSON.parse(localStorage.getItem('m100_c2_postcard') || 'null'); } catch (e) { /* noop */ }
-  pcMsg.value = saved && saved.id === p.id ? saved.text || '' : ''; pcTo.value = saved && saved.id === p.id ? saved.to || '' : '';
-  $('#pcCount').textContent = `${pcMsg.value.length} / 60`;
-  setFlip(false);
+  $('#pcCap').innerHTML = `<b>〈${n.paint.cap}〉</b><span>${n.paint.meta.split(' · ').slice(0, 2).join(' · ')}</span><span>N° ${no}</span>`;
+  let st = null; try { st = JSON.parse(localStorage.getItem('m100_c2_postcard') || 'null'); } catch (e) { /* noop */ }
+  const mine = st && st.id === p.id;
+  pcMsg.value = mine ? (st.text || '').slice(0, 60) : ''; pcTo.value = mine ? st.to || '' : '';
+  setSlot(mine && SLOT[st.slot] ? st.slot : 'bottom', false); setSize(mine && FS[st.size] ? st.size : 's');
+  onMsg(false); setFlip(false);
 }
-function setFlip(on) { pcFlipped = on; pc3d.classList.toggle('flipped', on); $('#pcFlip').textContent = on ? '앞면 보기' : '뒤집어 쓰기'; if (!on) { pcMsg.blur(); pcTo.blur(); } }
+function setFlip(on) { pcFlipped = on; pc3d.classList.toggle('flipped', on); $('#pcFlip').textContent = on ? '앞면 보기' : '뒷면 보기'; pcMsg.blur(); pcTo.blur(); }
 $('#pcFlip').addEventListener('click', () => setFlip(!pcFlipped));
-$('#pc3d').addEventListener('click', (e) => { if (e.target.closest('input')) return; if (!pcFlipped) setFlip(true); else if (e.target.closest('.front')) setFlip(false); });
-pcMsg.addEventListener('input', () => { $('#pcCount').textContent = `${pcMsg.value.length} / 60`; stashPostcard(); });
+pc3d.addEventListener('click', (e) => { if (pcFlipped && !e.target.closest('input')) setFlip(false); });   // 뒷면을 누르면 앞으로(앞면은 글 쓰는 자리라 뒤집지 않는다)
+// 글 높이를 내용에 맞춘다 → 자리 다시 계산
+function fitMsg() { pcMsg.style.height = 'auto'; pcMsg.style.height = `${pcMsg.scrollHeight}px`; }
+function onMsg(stash = true) {
+  const v = pcMsg.value.replace(/[\r\n]+/g, ' ').slice(0, 60); if (v !== pcMsg.value) pcMsg.value = v;
+  $('#pcCount').textContent = `${v.length} / 60`; pcInk.classList.toggle('empty', !v);
+  fitMsg(); placeInk(false); if (stash) stashPostcard();
+}
+pcMsg.addEventListener('input', () => onMsg());
+pcMsg.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); pcMsg.blur(); } });
+pcMsg.addEventListener('focus', () => pcInk.classList.add('editing'));
+pcMsg.addEventListener('blur', () => pcInk.classList.remove('editing'));
 pcTo.addEventListener('input', stashPostcard);
-pcMsg.addEventListener('keydown', (e) => { if (e.key === 'Enter') pcMsg.blur(); });
-function stashPostcard() { if (!pcData) return; try { localStorage.setItem('m100_c2_postcard', JSON.stringify({ id: pcData.id, ko: pcData.ko, year: pcData.year, text: pcMsg.value.slice(0, 60), to: pcTo.value.slice(0, 16), no: pcData.no, paint: pcData.paint.img, cap: pcData.paint.cap, at: Date.now() })); } catch (e) { /* 기기 안에만 */ } }
-// 캔버스에 앞·뒷면을 그린다(148×100 mm → 1480×1000, 위아래로)
+function setSize(s) {
+  pcSize = s; pcInk.dataset.size = s;
+  $$('.pc-opts .seg button').forEach((b) => b.setAttribute('aria-checked', b.dataset.size === s));
+  fitMsg(); placeInk(false);
+}
+$$('.pc-opts .seg button').forEach((b) => b.addEventListener('click', () => { setSize(b.dataset.size); stashPostcard(); }));
+function setSlot(s, anim = true) { pcSlot = s; pcInk.dataset.slot = s; fitMsg(); placeInk(anim); }
+// 자리: 세 칸 중 하나의 가운데 높이, 앞면 밖으로 넘치지 않게
+function inkTop(slot, h) { const H = pcFront.clientHeight, pad = H * 0.05; return clamp(H * SLOT[slot] - h / 2, pad, H - pad - h); }
+function placeInk(anim = true) {
+  if (!pcFront.clientHeight) return;
+  pcInk.classList.toggle('anim', anim && !RM);
+  pcInk.style.top = `${inkTop(pcSlot, pcInk.offsetHeight).toFixed(1)}px`;
+  if (pcLum) toneInk();
+}
+// 그림 밝기(상대 휘도)를 작게(148×100) 한 번 떠 두고, 글이 놓인 띠의 평균으로 색을 고른다
+function sampleLum() {
+  const img = $('#pcPaint'); if (!img.naturalWidth) return;
+  const w = 148, h = 100, c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d', { willReadFrequently: true });
+  const sc = Math.max(w / img.naturalWidth, h / img.naturalHeight), sw = w / sc, sh = h / sc;
+  g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, w, h);
+  try { const d = g.getImageData(0, 0, w, h).data; const L = new Float32Array(w * h); const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    for (let i = 0; i < w * h; i++) L[i] = 0.2126 * lin(d[i * 4]) + 0.7152 * lin(d[i * 4 + 1]) + 0.0722 * lin(d[i * 4 + 2]);
+    pcLum = { w, h, L }; } catch (e) { pcLum = null; }
+}
+function inkBox() {   // 앞면 안에서 글(textarea) 상자의 비율 좌표
+  const W = pcFront.clientWidth, H = pcFront.clientHeight;
+  const x = pcInk.offsetLeft + pcMsg.offsetLeft, y = pcInk.offsetTop + pcMsg.offsetTop;
+  return { x: x / W, y: y / H, w: pcMsg.offsetWidth / W, h: pcMsg.offsetHeight / H };
+}
+function toneInk() {
+  const b = inkBox(), { w, h, L } = pcLum; let s = 0, n = 0;
+  for (let y = Math.floor(b.y * h); y < Math.ceil((b.y + b.h) * h); y++) for (let x = Math.floor(b.x * w); x < Math.ceil((b.x + b.w) * w); x++) { if (x < 0 || y < 0 || x >= w || y >= h) continue; s += L[y * w + x]; n++; }
+  const dark = n ? s / n > 0.36 : false;      // 밝은 자리(휘도 > .36 ≈ 회색 64%) → 잉크, 어두운 자리 → 크림
+  pcInk.dataset.tone = dark ? 'ink' : 'cream';
+}
+// 끌기: 글 상자 어디든(쓰는 중이면 손잡이만). 6px 넘게 움직이면 끌기, 아니면 탭 → 쓰기
+(() => {
+  let d = null;
+  pcInk.addEventListener('pointerdown', (e) => {
+    if (pcFlipped) return;
+    const editing = pcInk.classList.contains('editing');
+    if (editing && !e.target.closest('.pc-grip')) return;            // 쓰는 중: 글 안은 커서 놓기
+    e.preventDefault(); try { pcInk.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+    d = { y: e.clientY, top: pcInk.offsetTop, moved: false, id: e.pointerId };
+  });
+  pcInk.addEventListener('pointermove', (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    const dy = e.clientY - d.y;
+    if (!d.moved && Math.abs(dy) > 6) { d.moved = true; pcMsg.blur(); pcInk.classList.remove('anim'); pcFront.classList.add('dragging'); }
+    if (d.moved) { const H = pcFront.clientHeight, h = pcInk.offsetHeight; pcInk.style.top = `${clamp(d.top + dy, 0, H - h).toFixed(1)}px`; if (pcLum) toneInk(); }
+  });
+  const end = (e) => {
+    if (!d || e.pointerId !== d.id) return; const was = d; d = null; pcFront.classList.remove('dragging');
+    if (was.moved) { const H = pcFront.clientHeight, c = (pcInk.offsetTop + pcInk.offsetHeight / 2) / H;
+      setSlot(Object.keys(SLOT).reduce((a, k) => (Math.abs(SLOT[k] - c) < Math.abs(SLOT[a] - c) ? k : a), 'middle')); stashPostcard(); }
+    else if (e.type === 'pointerup') pcMsg.focus();
+  };
+  pcInk.addEventListener('pointerup', end); pcInk.addEventListener('pointercancel', end);
+  pcInk.addEventListener('touchmove', (e) => { if (d) e.preventDefault(); }, { passive: false });
+})();
+new ResizeObserver(() => { fitMsg(); placeInk(false); }).observe(pcFront);
+function stashPostcard() { if (!pcData) return; try { localStorage.setItem('m100_c2_postcard', JSON.stringify({ id: pcData.id, ko: pcData.ko, year: pcData.year, text: pcMsg.value.slice(0, 60), slot: pcSlot, size: pcSize, to: pcTo.value.slice(0, 16), no: pcData.no, paint: pcData.paint.img, cap: pcData.paint.cap, at: Date.now() })); } catch (e) { /* 기기 안에만 */ } }
+// 줄 나누기(화면과 같은 규칙에 가깝게: 어절 단위, 한 어절이 넘치면 글자 단위)
+function wrapLines(g, text, maxW) {
+  const out = []; let line = '';
+  for (const word of text.split(/(\s+)/)) {
+    if (!word) continue;
+    if (g.measureText(line + word).width <= maxW) { line += word; continue; }
+    if (line.trim()) { out.push(line.trimEnd()); line = ''; }
+    const w = word.trimStart(); if (!w) continue;
+    if (g.measureText(w).width <= maxW) { line = w; continue; }
+    for (const ch of w) { if (g.measureText(line + ch).width > maxW && line) { out.push(line); line = ch; } else line += ch; }
+  }
+  if (line.trim()) out.push(line.trimEnd());
+  return out;
+}
+// 앞면 한 장(148×100 mm → 1480×1000): 그림 + 우표 + 소인 + 글
 async function renderPostcard() {
-  const W = 1480, Hf = 1000, GAP = 60, c = document.createElement('canvas'); c.width = W; c.height = Hf * 2 + GAP; const g = c.getContext('2d');
-  try { await Promise.all(['500 44px Freesentation', '700 28px Freesentation', '700 40px "Old Standard TT"', '700 30px "Playfair Display"'].map((f) => document.fonts.load(f, '모네 Le Havre'))); } catch (e) { /* noop */ }
-  g.fillStyle = '#151413'; g.fillRect(0, 0, W, c.height);
+  const W = PC_W, Hf = PC_H, c = document.createElement('canvas'); c.width = W; c.height = Hf; const g = c.getContext('2d');
+  try { await Promise.all(['600 72px Freesentation', '700 40px "Old Standard TT"', '700 30px "Playfair Display"'].map((f) => document.fonts.load(f, '모네 Le Havre'))); } catch (e) { /* noop */ }
   const img = await loadImage(pcData.paint.img).catch(() => null);
-  // 앞면
-  g.save(); g.beginPath(); g.roundRect(0, 0, W, Hf, 18); g.clip();
   g.fillStyle = '#DDD4BC'; g.fillRect(0, 0, W, Hf);
   if (img) { const sc = Math.max(W / img.naturalWidth, Hf / img.naturalHeight), sw = W / sc, sh = Hf / sc; g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, W, Hf); }
-  g.restore();
   // 우표(천공 테두리) + 소인
   const sx = W - 300, sy = 60, sw2 = 200, sh2 = 240;
   g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 10; g.shadowOffsetY = 3; g.fillStyle = '#F2EAD6'; g.fillRect(sx, sy, sw2, sh2); g.restore();
@@ -838,29 +936,22 @@ async function renderPostcard() {
   const chars = arcText.split(''), rr = r * 0.76; let ang = -Math.PI / 2 - (chars.length * 0.16) / 2;
   chars.forEach((ch) => { const wch = g.measureText(ch).width; const a = ang + 0.08; g.save(); g.translate(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); g.rotate(a + Math.PI / 2); g.fillText(ch, 0, 0); g.restore(); ang += Math.max(0.1, wch / rr); });
   g.font = '700 18px "Old Standard TT", Georgia, serif'; g.fillText(`${day} ${MF[mon - 1]}`, cx, cy - 2); g.font = '700 16px "Old Standard TT", Georgia, serif'; g.fillText(String(pcData.year), cx, cy + 20);
-  // 뒷면
-  const by = Hf + GAP;
-  g.save(); g.beginPath(); g.roundRect(0, by, W, Hf, 18); g.clip(); g.fillStyle = '#EFE7D3'; g.fillRect(0, by, W, Hf); g.restore();
-  g.fillStyle = '#2A2420'; g.textAlign = 'left'; g.font = '700 40px "Playfair Display", Georgia, serif'; g.fillText('CARTE POSTALE', 70, by + 96);
-  g.fillStyle = 'rgba(42,36,32,.6)'; g.font = '400 22px "Old Standard TT", Georgia, serif'; g.fillText('CHEMINS DE FER DE L’OUEST', 70, by + 130);
-  g.strokeStyle = 'rgba(42,36,32,.6)'; g.lineWidth = 2; g.beginPath(); g.moveTo(W / 2, by + 70); g.lineTo(W / 2, by + Hf - 70); g.stroke();
-  g.strokeStyle = 'rgba(42,36,32,.4)'; g.setLineDash([8, 8]); g.strokeRect(W - 290, by + 70, 200, 240); g.setLineDash([]);
-  g.fillStyle = 'rgba(42,36,32,.45)'; g.font = '400 20px "Old Standard TT", Georgia, serif'; g.textAlign = 'center'; g.fillText('TIMBRE', W - 190, by + 196); g.textAlign = 'left';
-  // 받는 사람 + 주소 줄
-  g.fillStyle = '#2A2420'; g.font = '700 26px Freesentation, sans-serif'; g.fillText('받는 사람', W / 2 + 60, by + 460);
-  g.font = '500 40px Freesentation, sans-serif'; g.fillText((pcTo.value || '나에게').slice(0, 16), W / 2 + 60, by + 540);
-  g.strokeStyle = 'rgba(42,36,32,.5)'; g.lineWidth = 2; [560, 660, 760].forEach((ly) => { g.beginPath(); g.moveTo(W / 2 + 60, by + ly); g.lineTo(W - 70, by + ly); g.stroke(); });
-  // 한 줄
-  const msg = (pcMsg.value || '').slice(0, 60); g.fillStyle = '#2A2420'; g.font = '500 44px Freesentation, sans-serif';
-  const words = msg.split(''); let line = '', ly = by + 300; const maxW = W / 2 - 140;
-  for (const ch of words) { if (g.measureText(line + ch).width > maxW) { g.fillText(line, 70, ly); line = ch; ly += 64; } else line += ch; } if (line) g.fillText(line, 70, ly);
-  if (!msg) { g.fillStyle = 'rgba(42,36,32,.3)'; g.fillText('…', 70, by + 300); }
-  g.fillStyle = 'rgba(42,36,32,.55)'; g.font = '500 20px Freesentation, sans-serif'; g.fillText($('#pcCap').textContent, 70, by + Hf - 70);
-  g.fillText(`MONET 100 · ${pcData.year}년 ${mon}월 ${day}일 · 기기 안에서 만든 엽서`, 70, by + Hf - 40);
+  // 그림 위의 한 줄 — 화면의 자리·크기·색·기울기 그대로
+  const msg = (pcMsg.value || '').trim().slice(0, 60);
+  if (msg) {
+    const b = inkBox(), fs = FS[pcSize] * W, lh = fs * 1.34, cream = pcInk.dataset.tone !== 'ink';
+    g.font = `600 ${fs.toFixed(1)}px Freesentation, sans-serif`; g.textAlign = 'left'; g.textBaseline = 'middle';
+    const lines = wrapLines(g, msg, b.w * W + 1), bx = b.x * W, by = b.y * Hf, bh = lines.length * lh;
+    g.save(); g.translate(bx + (b.w * W) / 2, by + bh / 2); g.rotate((-1.2 * Math.PI) / 180); g.translate(-(bx + (b.w * W) / 2), -(by + bh / 2));
+    const pass = (blur, col, fill) => { g.shadowColor = col; g.shadowBlur = blur; g.shadowOffsetY = blur > 10 ? 0 : fs * 0.03; g.fillStyle = fill; lines.forEach((ln, i) => g.fillText(ln, bx, by + lh * (i + 0.5))); };
+    if (cream) { pass(fs * 0.45, 'rgba(20,14,8,.42)', '#F7F0DF'); pass(fs * 0.08, 'rgba(20,14,8,.55)', '#F7F0DF'); }
+    else { pass(fs * 0.45, 'rgba(247,240,223,.55)', '#2A2420'); pass(fs * 0.06, 'rgba(247,240,223,.6)', '#2A2420'); }
+    g.restore();
+  }
   return c;
 }
 $('#pcSave').addEventListener('click', async () => {
-  if (!pcData) return; const btn = $('#pcSave'); btn.disabled = true; stashPostcard();
+  if (!pcData) return; const btn = $('#pcSave'); btn.disabled = true; pcMsg.blur(); stashPostcard();
   try {
     const c = await renderPostcard();
     const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.9));
