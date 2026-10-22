@@ -35,7 +35,7 @@ const mine = {
   c4: C4[stored.c4?.stance] ? { k: stored.c4.stance, real: true } : { k: 'photo', real: false },
 };
 const rows = [
-  { st: 'C0 아카데미 살롱', q: '가운데 자리에 걸 한 점', thumb: C0[mine.c0.n].src, val: `${mine.c0.n}번 〈${C0[mine.c0.n].title}〉`, pct: C0[mine.c0.n].pct, real: mine.c0.real },
+  { st: 'C0 아카데미 살롱', q: '메달을 준 그림', thumb: C0[mine.c0.n].src, val: `${mine.c0.n}번 〈${C0[mine.c0.n].title}〉`, pct: C0[mine.c0.n].pct, real: mine.c0.real },
   { st: 'C1 시민사회', q: '그림이 걸릴 자격은 누가', big: mine.c1.k === 'jury' ? '심' : '보', val: C1[mine.c1.k].label, pct: C1[mine.c1.k].pct, real: mine.c1.real },
   { st: 'C2 산업혁명', q: '어디까지 갈까', thumb: `../ticket/ticket-front-${C2[mine.c2.k].ticket}.png`, val: `${C2[mine.c2.k].label} · ${C2[mine.c2.k].year}년 표`, pct: C2[mine.c2.k].pct, real: mine.c2.real },
   { st: 'C4 나다르 사진관', q: '그림인가 사진인가', big: C4[mine.c4.k].label, val: C4[mine.c4.k].label, pct: C4[mine.c4.k].pct, real: mine.c4.real },

@@ -1,4 +1,4 @@
-// 프로토타입 화면 캡처 + 터치 QA — 헤드리스 Chromium 1개, localhost:8807 (python3 -m http.server 8807 --bind 127.0.0.1 를 kippu-site 에서 먼저; PORT 로 바꿀 수 있다)
+// 프로토타입 화면 캡처 + 터치 QA — 헤드리스 Chromium 1개, localhost:8809 (python3 -m http.server 8809 --bind 127.0.0.1 를 kippu-site 에서 먼저; PORT 로 바꿀 수 있다)
 // 실행: node capture.mjs [c0|c1|c2|c3|c4|c5|exit|board|all] [390x844|430x932|375x667]  → shots/<page>-<n>.png (@2x)
 //   모든 입력은 실제 터치(hasTouch · isMobile · CDP Input.dispatchTouchEvent). 콘솔 오류 · 가로 넘침 · 반응 없는 탭은 끝에 요약해 종료 코드로 알린다.
 //   board 는 1440·390 보드를 3000px 조각으로 찍는다(조각은 python 으로 이어 붙인다)
@@ -11,7 +11,7 @@ const require = createRequire('/Users/hare/Documents/monet/kippu-app/scripts/sto
 const { chromium } = require('playwright');
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const ORIGIN = `http://127.0.0.1:${process.env.PORT || 8807}`;
+const ORIGIN = `http://127.0.0.1:${process.env.PORT || 8809}`;
 const BASE = ORIGIN + '/design/experience-v2/proto/';
 const which = process.argv[2] || 'all';
 const [VW, VH] = (process.argv[3] || '390x844').split('x').map(Number);
@@ -80,7 +80,7 @@ async function expectChange(page, label, fn, act, timeout = 6000) {
   catch (e) { bad(`no response: ${label} (${JSON.stringify(before)})`); }
 }
 
-// ── C0 심사하기: 역할 → 벽(끌어 걸기) → 확인 → 오늘의 벽 → 카드
+// ── C0 심사하기 · 올해의 메달: 역할 → 한 줄 벽(그림 탭 → 들림) → 메달 끌어 올리기 → 확인(다시 고르기) → 메달 수여 → 확인 → 오늘의 심사위원단 → 카드
 async function c0(page) {
   await page.goto(BASE + 'c0.html', { waitUntil: 'networkidle' }); await fonts(page); await wait(page, 300);
   await shot(page, 'c0-1'); await overflowCheck(page, 'c0-1');
@@ -89,17 +89,34 @@ async function c0(page) {
   await press(page, '#enter', '#s2.on', 'c0 enter');
   await wait(page, 1500);
   await shot(page, 'c0-2a');
-  const from = await page.evaluate(() => window.__c0.center(4)), to = await page.evaluate(() => window.__c0.target());
-  await touch(page, 'touchStart', [{ x: from.x, y: from.y }]);
-  for (let i = 1; i <= 14; i++) { const t = i / 14, e = 1 - Math.pow(1 - t, 2); await touch(page, 'touchMove', [{ x: from.x + (to.x - from.x) * e * 0.72, y: from.y + (to.y - from.y) * e * 0.72 }]); await page.waitForTimeout(28); }
-  await wait(page, 80); await shot(page, 'c0-2'); await overflowCheck(page, 'c0-2');
-  for (let i = 1; i <= 8; i++) { await touch(page, 'touchMove', [{ x: from.x + (to.x - from.x) * (0.72 + 0.28 * i / 8), y: from.y + (to.y - from.y) * (0.72 + 0.28 * i / 8) }]); await page.waitForTimeout(30); }
-  await page.waitForTimeout(120); await touch(page, 'touchEnd', []);
-  await wait(page, 1400); await shot(page, 'c0-2b');
-  const mode = await page.evaluate(() => window.__c0.mode); if (mode !== 'hung') bad('c0: drag did not hang (' + mode + ')');
+  // 4번을 톡 → 들리고 스포트라이트
+  const p4 = await page.evaluate(() => window.__c0.center(4));
+  await tap(page, p4.x, p4.y); await wait(page, 800);
+  if ((await page.evaluate(() => window.__c0.sel)) !== 4) bad('TOUCH FAIL: c0 tap on frame 4 did not lift it');
+  if (await page.evaluate(() => document.querySelector('#award').disabled)) bad('c0: award button still disabled after lift');
+  await shot(page, 'c0-2'); await overflowCheck(page, 'c0-2');
+  // 메달을 끌어 2번 액자에 올린다 → 확인 시트(2번)
+  const m = await page.evaluate(() => window.__c0.medal()), p2 = await page.evaluate(() => window.__c0.center(2));
+  await drag(page, m, { x: p2.x, y: p2.y + 4 }, 18, 420);
+  await wait(page, 1100);
+  if ((await page.evaluate(() => window.__c0.mode)) !== 'placed' || (await page.evaluate(() => window.__c0.chosen)) !== 2) bad('TOUCH FAIL: c0 medal drag onto frame 2 did not place (' + (await page.evaluate(() => window.__c0.mode + '/' + window.__c0.chosen)) + ')');
+  await page.locator('#confirm.open').waitFor({ state: 'visible', timeout: 4000 }).catch(() => bad('c0: confirm sheet not open after drag'));
+  await shot(page, 'c0-2b');
+  // 다시 고르기 → 메달이 선반으로 → 4번 톡 → 메달 수여 → 확인
+  await tapEl(page, '#cfBack'); await wait(page, 700);
+  if ((await page.evaluate(() => window.__c0.mode)) !== 'pick') bad('c0: cfBack did not return to pick');
+  const q4 = await page.evaluate(() => window.__c0.center(4));
+  await tap(page, q4.x, q4.y); await wait(page, 500);
+  if ((await page.evaluate(() => window.__c0.sel)) !== 4) bad('TOUCH FAIL: c0 second tap on frame 4 did not lift it');
+  await safeBottom(page, '#award', 'c0 award');
+  await press(page, '#award', '#confirm.open', 'c0 award');
+  await wait(page, 500);
+  if ((await page.evaluate(() => window.__c0.chosen)) !== 4) bad('c0: award did not place medal on 4');
   await press(page, '#cfOk', '#reveal.on', 'c0 confirm');
   await wait(page, 900); await shot(page, 'c0-3');
-  await wait(page, 2600); await shot(page, 'c0-4'); await overflowCheck(page, 'c0-4');
+  await wait(page, 2200); await shot(page, 'c0-4'); await overflowCheck(page, 'c0-4');
+  const shown = await page.evaluate(() => document.querySelectorAll('.tag.show').length); if (shown !== 5) bad(`c0: ${shown}/5 percent tags shown`);
+  if (!(await page.evaluate(() => document.querySelector('.today.show')))) bad('c0: today medal tag not shown');
   await safeBottom(page, '#save', 'c0 reveal');
   await press(page, '#save', '#s4.on', 'c0 save');
   await wait(page, 700); await shot(page, 'c0-5'); await overflowCheck(page, 'c0-5');

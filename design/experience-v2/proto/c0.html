@@ -19,7 +19,7 @@
     <div class="eyebrow">C0 · Salon de 1873 · Jury</div>
     <h1>당신은 오늘의<br>심사위원입니다</h1>
     <div class="rule"></div>
-    <p class="lead">1873년, 파리 아카데미 공식 살롱전.<br>살롱 벽 가운데, 눈높이의 가장 좋은 자리는 하나뿐입니다. 후보작 5점 중 그 자리에 걸 한 점을 고르십시오.</p>
+    <p class="lead">1873년, 파리 아카데미 공식 살롱전.<br>특별 액자에 걸린 후보작 5점 중, 올해의 메달을 줄 한 점을 골라 주십시오.</p>
     <details class="crit">
       <summary><span>심사 기준 7</span><i data-ic="chevron"></i></summary>
       <ol>
@@ -32,18 +32,19 @@
         <li>캔버스가 안 보이는 완벽한 채색</li>
       </ol>
     </details>
-    <div class="cands-cap"><span>후보작 5점</span><small>번호와 그림만 · 누르면 벽으로</small></div>
+    <div class="cands-cap"><span>후보작 5점 · 벽에 한 줄로</span><small>번호와 그림만 · 누르면 심사로</small></div>
     <div class="cands" id="candStrip"></div>
     <p class="note loc">4F · B · 전시실5 · 1873년 살롱 재현<br>입구와 좌우 벽의 QR로 시작합니다. 액자 앞에 설 필요 없이 번호로 고릅니다.</p>
   </div>
   <div class="btns one"><button class="btn" id="enter">심사위원 자격으로 입장하기</button></div>
 </section>
 
-<!-- 2·3 살롱 벽 — 끌어서 가운데 액자에 건다 → 오늘의 살롱 벽 -->
+<!-- 2·3 특별 액자 벽 — 한 줄의 후보작 5점. 그림을 누르면 들리고, 메달을 올리면 확인 → 오늘의 심사위원단 -->
 <section class="scr" id="s2">
   <div class="stage" id="stage">
     <div class="wall-paper"></div>
     <div class="wall-light"></div>
+    <div class="spot" id="spot"></div>
     <div class="lower" id="lower">
       <div class="dado"></div>
       <div class="wainscot"></div>
@@ -59,31 +60,31 @@
       <rect x="325.5" y="16" width="9" height="80" fill="url(#brass)"/><circle cx="330" cy="12" r="7" fill="url(#brass)"/>
     </svg>
     <div class="cornice"></div>
-    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle">살롱 벽 · 가운데 눈높이 한 자리</div><span></span></div>
-    <div class="hang" id="hang">
-      <div class="frame target" id="target"><div class="plate plate-q">?</div><div class="mat"><div class="void"><span>가운데 · 눈높이</span><b>여기에 걸기</b></div></div></div>
-    </div>
+    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle">특별 액자 · 후보작 5점</div><span></span></div>
+    <div class="row" id="row"></div>
     <div class="tags" id="tags"></div>
-    <div class="hint" id="hint"><span class="pill light">후보작을 끌어 가운데 액자에 거십시오</span></div>
+    <div class="medal" id="medal" role="button" aria-label="올해의 메달 · 끌어서 액자에 올리기"></div>
+    <div class="hint" id="hint"><span class="pill light" id="hintText">그림을 누르거나, 메달을 끌어 액자에 올리십시오</span></div>
+    <div class="award-bar" id="awardBar"><button class="btn white" id="award" disabled>메달 수여</button></div>
   </div>
 
-  <!-- 오늘의 살롱 벽 — 아래에서 올라오는 결과 패널 -->
+  <!-- 오늘의 심사위원단 — 아래에서 올라오는 결과 패널. 액자 줄은 그대로, 비율만 아래에 -->
   <div class="reveal" id="reveal">
-    <div class="cap" id="revCap">오늘의 살롱 벽 · 심사위원 1,284명</div>
-    <h2 id="revTitle">내가 건 4번은 오늘 벽에서 가운데 눈높이</h2>
-    <p class="sub" id="revSub">표가 가장 많은 그림은 가운데 눈높이, 가장 적은 그림은 천장 가까이. 수치는 예시.</p>
-    <div class="hist" id="revHist"><b>그때 살롱에서는</b>살롱은 바닥부터 천장까지 그림을 걸었다. 눈높이 자리는 적었고, 천장 가까이 걸리면 잘 보이지 않았다.<small>Wikipedia · Salon (Paris) · 2차 자료</small></div>
+    <div class="cap" id="revCap">오늘의 심사위원단 · 심사위원 1,284명</div>
+    <h2 id="revTitle">내가 메달을 준 4번이 오늘의 메달</h2>
+    <p class="sub" id="revSub">액자 아래 숫자는 오늘 그 그림에 메달을 준 심사위원의 비율. 수치는 예시.</p>
+    <div class="hist" id="revHist"><b>그때는 이랬다</b>메달은 심사위원단이 정했다. 메달을 받은 화가는 ‘오르 콩쿠르(hors concours)’가 되어 더는 메달 후보에 오르지 않았고, 그 뒤로는 심사 없이 걸 수 있었다.<small>1873년 살롱 도록 일러두기 “H. C. = hors concours” (1차) · Sotheby’s 제르벡스 1874년 메달 노트 · 에노 《Paris-Salon 1890》 · 심사 면제는 2차 자료</small></div>
     <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">저장</button></div>
   </div>
 </section>
 
-<!-- 4 내가 가운데에 건 그림 — 카드(기기에서 생성) -->
+<!-- 4 내가 메달을 준 그림 — 카드(기기에서 생성) -->
 <section class="scr" id="s4">
   <div class="topbar"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">나의 카드</div><span></span></div>
   <div class="card-wrap">
-    <div class="cap">C0 · 내가 가운데에 건 그림</div>
+    <div class="cap">C0 · 내가 메달을 준 그림</div>
     <div class="card" id="card">
-      <div class="card-wall"><div class="frame mini" id="cardFrame"><div class="mat"><img alt="" id="cardImg"></div></div><div class="card-pos" id="cardPos"></div></div>
+      <div class="card-wall"><div class="frame mini card-frame" id="cardFrame"><div class="mat"><img alt="" id="cardImg"></div><div class="card-medal" id="cardMedal"></div></div><div class="card-pos" id="cardPos"></div></div>
       <div class="card-body">
         <b id="cardNo"></b>
         <h3 id="cardTitle"></h3>
@@ -99,10 +100,10 @@
 <!-- 확인 시트 -->
 <div class="sheet" id="confirm">
   <div class="grip"></div>
-  <h3>이 그림을 가운데에 걸까요?</h3>
-  <p class="sub">걸고 나면 오늘의 심사위원들이 건 벽을 봅니다.</p>
-  <div class="confirm-row"><div class="frame mini" id="cfFrame"><div class="mat"><img alt="" id="cfImg"></div></div><div class="cf-no"><span>후보작</span><b id="cfNo"></b></div></div>
-  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 고르기</button><button class="btn" id="cfOk">이 그림을 건다</button></div>
+  <h3>이 그림에 올해의 메달을 줄까요?</h3>
+  <p class="sub">주고 나면 오늘의 심사위원단이 어떻게 갈렸는지 봅니다.</p>
+  <div class="confirm-row"><div class="frame mini" id="cfFrame"><div class="mat"><img alt="" id="cfImg"></div></div><div class="cf-no"><span>후보작</span><b id="cfNo"></b><div class="cf-medal" id="cfMedal"></div></div></div>
+  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 고르기</button><button class="btn" id="cfOk">메달을 준다</button></div>
 </div>
 
 <script type="module" src="c0.js"></script>
