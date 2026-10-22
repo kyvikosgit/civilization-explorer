@@ -1,7 +1,7 @@
 /* C5 모네 전시관 — 살아 있는 연작 (보기형, 질문 없음)
    벽에는 연작이 따로따로 걸려 있다(연작 벽). 한 줄을 누르면 그 연작이 한 점이 되어 화면을 채우고,
-   A · 호 위의 해를 끌면 때가 바뀐다 — 그림은 붓질로 번져 다음 때로 넘어간다(캔버스 마스크 디졸브, 메쉬 변형 없음)
-   B · 한 장의 하루 — 왼쪽 아침에서 오른쪽 끝까지 한 장 안에서 때가 흐른다
+   열리면 해는 폰의 지금 시간에 가 있다("지금 15:40 · 햇빛 속 건초더미"). 호 위의 해를 끌면 때가 바뀐다 — 그림 사이는
+   붓자국 · 빛 쓸림 · 번짐 · 겹칠 가운데 고른 규칙으로 건넌다(캔버스 픽셀 고르기, 크로스페이드·메쉬 변형 없음).
    포인트 주황은 지금 보는 때 하나. 출구 벽의 문장은 방이 한 번 묻고 답하지 않는다. */
 html { background: #0E0D0C; }
 body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
@@ -40,14 +40,13 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .view .topbar.dark { background: transparent; }
 .view-count { font-family: var(--display); font-weight: 600; font-size: 12px; color: rgba(255,255,255,.5); letter-spacing: .04em; padding-right: 4px; }
 
-/* 보는 방식 — 글자만 있는 작은 탭 둘, 지금 것은 흰 밑줄 */
-.modes { flex: none; display: flex; justify-content: center; gap: 22px; padding: 0 var(--pad) 2px; }
-.modes button { position: relative; height: 32px; font-family: var(--display); font-weight: 600; font-size: 13.5px; letter-spacing: -0.01em; color: rgba(255,255,255,.42); transition: color .25s; }
-.modes button::after { content: ''; position: absolute; left: 0; right: 0; bottom: 2px; height: 1.5px; background: #fff; transform: scaleX(0); transition: transform .3s var(--ease-out); }
-.modes button.on { color: #fff; }
-.modes button.on::after { transform: scaleX(1); }
+/* 지금 시간의 그림 — 시계는 희게, 무엇이 보이는지는 흐리게. 열릴 때 한 번 떠오른다 */
+.now-line { flex: none; display: flex; justify-content: center; align-items: baseline; gap: 8px; padding: 2px var(--pad) 0; font-family: var(--display); font-size: 13.5px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; }
+.now-line b { font-weight: 700; color: #fff; }
+.now-line span { font-weight: 500; color: rgba(255,255,255,.55); overflow: hidden; text-overflow: ellipsis; }
+.now-line.in { animation: capIn .7s ease both; }
 
-/* A · 하늘 — 호(지평선 위의 반원) + 눈금 + 해. 해는 지금 보는 그림의 하늘색으로 빛난다 */
+/* 하늘 — 호(지평선 위의 반원) + 눈금 + 해. 해는 지금 보는 그림의 하늘색으로 빛난다 */
 .sky { position: relative; flex: none; height: 132px; margin: 0 var(--pad); touch-action: none; user-select: none; -webkit-user-select: none; }
 .sky svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .sky .horizon { stroke: rgba(255,255,255,.16); stroke-width: 1; }
@@ -62,17 +61,6 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .sun:active { cursor: grabbing; }
 .sky.dragging .sun::before { box-shadow: 0 0 0 1px rgba(255,255,255,.6), 0 0 26px 10px var(--sunglow, rgba(242,217,168,.55)), 0 0 70px 26px var(--sunglow2, rgba(242,217,168,.2)); }
 .sun.dim { opacity: 0; }
-
-/* B · 하루 띠 — 왼쪽 아침 → 오른쪽 끝. 이름표는 그림을 끌면 함께 움직인다 */
-.band { position: relative; flex: none; height: 64px; margin: 8px var(--pad) 0; overflow: hidden; }
-.band-line { position: absolute; left: 0; right: 0; top: 30px; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.3) 12%, rgba(255,255,255,.3) 88%, rgba(255,255,255,0)); }
-.band-line::after { content: ''; position: absolute; left: 50%; top: -5px; width: 1px; height: 11px; background: var(--point); }
-.band-labels { position: absolute; inset: 0; }
-.band-labels span { position: absolute; top: 40px; transform: translateX(-50%); font-family: var(--display); font-weight: 600; font-size: 11.5px; color: rgba(255,255,255,.48); white-space: nowrap; transition: color .25s; }
-.band-labels span::before { content: ''; position: absolute; left: 50%; top: -12px; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.4); transform: translateX(-50%); }
-.band-labels span.on { color: #fff; } .band-labels span.on::before { background: var(--point); }
-.band-hint { position: absolute; left: 0; right: 0; top: 4px; text-align: center; font-size: 12px; color: rgba(255,255,255,.42); transition: opacity .5s; }
-.band-hint.off { opacity: 0; }
 
 /* 무대 — 액자 하나. 그림 비율대로 안에 맞춘다 */
 .stage { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 14px; padding: 6px var(--pad) 4px; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -89,12 +77,19 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .caption.fade .cap-title { animation-delay: 60ms; } .caption.fade .cap-meta { animation-delay: 120ms; }
 @keyframes capIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-/* 남기기 — 조용한 단추 하나. 남기면 그 자리에 작은 사진과 한 줄 */
+/* 건너는 방식 — 그림 아래 작은 글자 넷. 지금 것은 흰 글자 + 짧은 밑줄. 단추는 44px 높이로 손가락에 맞춘다 */
+.styles { flex: none; display: flex; justify-content: center; gap: 4px; padding: 0 var(--pad); }
+.styles button { position: relative; height: 40px; padding: 0 9px; font-family: var(--display); font-weight: 600; font-size: 12.5px; letter-spacing: -0.01em; color: rgba(255,255,255,.4); transition: color .25s; }
+.styles button::after { content: ''; position: absolute; left: 9px; right: 9px; bottom: 7px; height: 1.5px; background: #fff; transform: scaleX(0); transition: transform .3s var(--ease-out); }
+.styles button.on { color: #fff; }
+.styles button.on::after { transform: scaleX(1); }
+
+/* 남기기 — 조용한 단추 하나. 남기면 그 자리에 한 장의 하루 작은 사본과 한 줄 */
 .actions { flex: none; min-height: 80px; padding: 8px var(--pad) calc(18px + var(--safe-b)); display: grid; align-items: center; }
 .keep { justify-self: center; height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid rgba(255,255,255,.28); color: rgba(255,255,255,.88); font-family: var(--body); font-weight: 600; font-size: 14.5px; transition: background .2s, border-color .2s, transform .12s; }
 .keep:active { background: rgba(255,255,255,.1); transform: scale(.98); }
 .kept { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; animation: capIn .45s ease both; }
-.kept img { height: 54px; width: auto; max-width: 96px; object-fit: cover; padding: 2px; background: #1C1915; box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 10px 18px -8px rgba(0,0,0,.9); }
+.kept img { height: 60px; width: auto; max-width: 96px; object-fit: cover; padding: 2px; background: #1C1915; box-shadow: 0 0 0 1px rgba(255,255,255,.12), 0 10px 18px -8px rgba(0,0,0,.9); }
 .kept-txt { min-width: 0; }
 .kept-txt b { display: block; font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: -0.02em; line-height: 1.3; }
 .kept-txt small { display: block; margin-top: 2px; font-size: 12px; color: rgba(255,255,255,.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -103,11 +98,11 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 @media (max-height: 700px) {
   .room .role-hd h1 { font-size: 21px; }
   .row img { height: calc(var(--th, 56px) * .82); } .wall-strip { gap: 20px; }
-  .sky { height: 112px; }
+  .sky { height: 112px; } .now-line { font-size: 12.5px; } .styles button { height: 36px; }
   .stage { gap: 8px; } .caption { min-height: 56px; } .cap-title { font-size: 15.5px; }
   .actions { min-height: 66px; padding-top: 4px; } .keep { height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wall-line, .view, .caption.fade .cap-when, .caption.fade .cap-title, .caption.fade .cap-meta, .kept, .paused { animation: none; }
-  .row .fr, .modes button, .modes button::after, .sun::before, .sky text, .sky .tick, .band-labels span, .keep { transition: none; }
+  .wall-line, .view, .now-line.in, .caption.fade .cap-when, .caption.fade .cap-title, .caption.fade .cap-meta, .kept, .paused { animation: none; }
+  .row .fr, .styles button, .styles button::after, .sun::before, .sky text, .sky .tick, .keep { transition: none; }
 }

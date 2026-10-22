@@ -23,7 +23,7 @@
   <header class="role-hd rise" style="--i:0">
     <div class="eyebrow">당신은</div>
     <h1>연작 벽 앞에 선<br>관람객입니다</h1>
-    <p class="sub">벽에는 같은 자리를 다른 때에 그린 그림이 따로 걸려 있습니다. 앱 안에서는 그 그림들이 하루에 따라 변하는 한 점이 됩니다.</p>
+    <p class="sub">벽에는 같은 자리를 다른 때에 그린 그림이 따로 걸려 있습니다. 앱 안에서는 그 그림들이 지금 시간의 한 점이 됩니다.</p>
   </header>
 
   <section class="wall rise" style="--i:1" aria-label="연작 벽">
@@ -36,7 +36,7 @@
   <div class="exit-link rise" style="--i:2"><a class="btn quiet" id="toExit" href="exit.html">출구에서 오늘의 관람객 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></a></div>
 </main>
 
-<!-- 한 점이 된 연작 — 전체 화면. A: 해를 끌어 하루를 돌리기 / B: 한 장의 하루 -->
+<!-- 한 점이 된 연작 — 전체 화면. 열리면 해는 지금 시간에 가 있다. 해를 끌어 하루를 돌린다 -->
 <div class="view" id="view" hidden>
   <div class="topbar dark">
     <button class="icon-btn" id="viewClose" type="button" aria-label="벽으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -44,22 +44,13 @@
     <span class="tb-right"><span class="view-count" id="viewCount"></span></span>
   </div>
 
-  <div class="modes" id="modes" role="tablist" aria-label="보는 방식">
-    <button type="button" role="tab" data-mode="a" class="on" aria-selected="true">해를 끌기</button>
-    <button type="button" role="tab" data-mode="b" aria-selected="false">한 장의 하루</button>
-  </div>
+  <!-- 지금 시간의 그림 — 폰의 시계를 하루 호 위에 올린 한 줄 -->
+  <div class="now-line" id="nowLine" aria-live="polite"><b id="nowClock"></b><span id="nowWhat"></span></div>
 
-  <!-- A · 하늘: 호 위의 해를 끌면 때가 바뀐다. 손을 떼면 해가 저절로 느리게 간다(하루 45초) -->
+  <!-- 하늘: 호 위의 해를 끌면 때가 바뀐다. 손을 떼면 해가 저절로 느리게 간다(하루 45초) -->
   <div class="sky" id="sky" aria-label="해를 끌어 때를 바꾸기">
     <svg id="arc" aria-hidden="true"></svg>
     <div class="sun" id="sun" role="slider" aria-label="때" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0" tabindex="0"></div>
-  </div>
-
-  <!-- B · 하루 띠: 왼쪽이 아침, 오른쪽이 끝. 그림을 옆으로 끌면 가운데에 오는 때가 바뀐다 -->
-  <div class="band" id="band" hidden aria-hidden="true">
-    <div class="band-line"></div>
-    <div class="band-labels" id="bandLabels"></div>
-    <div class="band-hint" id="bandHint">그림을 옆으로 끌면 가운데 시간이 옮겨집니다</div>
   </div>
 
   <div class="stage" id="stage">
@@ -71,11 +62,20 @@
     </div>
   </div>
 
+  <!-- 그림 사이를 건너는 방식 — 모핑(기본: 형태가 주우욱 이어지며 바뀐다, 대응점 메시 워프 + 디졸브)과 픽셀을 고르는 규칙 넷 -->
+  <div class="styles" id="styles" role="radiogroup" aria-label="그림이 바뀌는 방식">
+    <button type="button" role="radio" data-style="0" class="on" aria-checked="true">모핑</button>
+    <button type="button" role="radio" data-style="1" aria-checked="false">붓자국</button>
+    <button type="button" role="radio" data-style="2" aria-checked="false">빛 쓸림</button>
+    <button type="button" role="radio" data-style="3" aria-checked="false">번짐</button>
+    <button type="button" role="radio" data-style="4" aria-checked="false">겹칠</button>
+  </div>
+
   <div class="actions" id="actions">
     <button class="keep" id="keep" type="button">이 시간을 남기기</button>
     <div class="kept" id="kept" hidden>
       <img id="keptImg" alt="" draggable="false">
-      <div class="kept-txt"><b id="keptLine"></b><small id="keptMeta"></small><a id="keptDl" download="monet-c5.jpg" href="#">사진으로 내려받기</a></div>
+      <div class="kept-txt"><b id="keptLine"></b><small id="keptMeta"></small><a id="keptDl" download="monet-c5.jpg" href="#">한 장의 하루 내려받기</a></div>
     </div>
   </div>
 </div>
