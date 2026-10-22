@@ -1,6 +1,7 @@
 // 오늘의 관람객 — 점으로 모이는 군중. C0·C1·C2·C4·출구가 같이 쓰는 부품 (css/crowd.css 와 한 쌍)
 //   점 하나 = 열 사람. 처음엔 흩어져 있다가, 드러날 때 고른 쪽으로 흘러가 모인다(1.2–1.6초, 차례로). 내 점은 주황이고 조금 크며 맨 마지막에 간다.
 //   그리기는 canvas 2D 하나(점은 DOM 이 아니다). 모션 줄이기면 모인 자리에 바로 놓는다. 막대·원그래프·게이지 없음.
+//   내 점은 색만으로 구별하지 않는다: 더 크고(다른 점의 약 2.3배 지름), 바탕과 반대색 테(어두운 바탕 = 흰 테, 밝은 바탕 = 먹 테)를 두르고, 자리에 닿을 때 테가 한 번 퍼진다(모션 줄이기면 없음).
 export const PER_DOT = 10;
 export const POINT = '#D9672F';
 
@@ -90,9 +91,11 @@ export function createCrowd(canvas, { theme = 'dark', n = 128, reduceMotion = fa
   const rnd = rng(seed);
   const dots = Array.from({ length: n }, () => ({ x: -20, y: -20, r: dotR * (0.78 + rnd() * 0.44), a: 0.74 + rnd() * 0.24, a1: null, anim: null }));
   const mine = n - 1;
-  dots[mine].r = dotR * 1.75; dots[mine].a = 1;
+  dots[mine].r = dotR * 1.6; dots[mine].a = 1;
   const col = theme === 'dark' ? '255,247,234' : '17,17,17';
-  let W = 0, H = 0, dpr = 1, raf = 0, running = false, onDone = null;
+  const ring = theme === 'dark' ? '#FFFFFF' : '#111111', ringRGB = theme === 'dark' ? '255,255,255' : '17,17,17';
+  let W = 0, H = 0, dpr = 1, raf = 0, running = false, onDone = null, pulseT0 = -1, moving = false;
+  const PULSE = 900;
   function resize() {
     const r = canvas.getBoundingClientRect(); W = r.width; H = r.height; dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = Math.max(1, Math.round(W * dpr)); canvas.height = Math.max(1, Math.round(H * dpr));
@@ -102,7 +105,7 @@ export function createCrowd(canvas, { theme = 'dark', n = 128, reduceMotion = fa
   function step(d, now) {
     const a = d.anim, p = (now - a.t0) / a.dur;
     if (p <= 0) return true;
-    if (p >= 1) { d.x = a.x1; d.y = a.y1; if (d.a1 !== null) { d.a = d.a1; d.a1 = null; } d.anim = null; return false; }
+    if (p >= 1) { d.x = a.x1; d.y = a.y1; if (d.a1 !== null) { d.a = d.a1; d.a1 = null; } d.anim = null; if (d === dots[mine] && !reduceMotion) pulseT0 = now; return false; }
     const e = ease(p), sw = Math.sin(p * Math.PI) * a.bend;
     d.x = a.x0 + (a.x1 - a.x0) * e + a.nx * sw; d.y = a.y0 + (a.y1 - a.y0) * e + a.ny * sw;
     if (d.a1 !== null) d.a = a.a0 + (d.a1 - a.a0) * p;
@@ -117,12 +120,25 @@ export function createCrowd(canvas, { theme = 'dark', n = 128, reduceMotion = fa
       const d = dots[i];
       ctx.fillStyle = `rgba(${col},${d.a.toFixed(3)})`; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 6.2832); ctx.fill();
     }
+    // 내 점: 주황 원 + 바탕과 반대색 테(색을 못 가려도 크기·테로 보인다) + 닿을 때 한 번 퍼지는 테
     const m = dots[mine];
-    ctx.fillStyle = 'rgba(217,103,47,.22)'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r + 4, 0, 6.2832); ctx.fill();
+    if (pulseT0 >= 0) {
+      const p = (now - pulseT0) / PULSE;
+      if (p >= 1) pulseT0 = -1;
+      else if (p >= 0) { const e = 1 - Math.pow(1 - p, 3); ctx.strokeStyle = `rgba(${ringRGB},${(0.55 * (1 - p)).toFixed(3)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(m.x, m.y, m.r + 3 + e * 10, 0, 6.2832); ctx.stroke(); }
+    }
+    moving = active;
+    if (pulseT0 >= 0) active = true;
+    ctx.fillStyle = ring; ctx.beginPath(); ctx.arc(m.x, m.y, m.r + 1.8, 0, 6.2832); ctx.fill();
     ctx.fillStyle = POINT; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, 6.2832); ctx.fill();
     return active;
   }
-  function loop(now) { if (draw(now)) raf = requestAnimationFrame(loop); else { running = false; raf = 0; const f = onDone; onDone = null; if (f) f(); } }
+  // 점이 모두 닿으면 onDone(테가 퍼지는 동안 기다리지 않는다), 테가 다 퍼지면 멈춘다
+  function loop(now) {
+    const more = draw(now);
+    if (!moving && onDone) { const f = onDone; onDone = null; f(); }
+    if (more) raf = requestAnimationFrame(loop); else { running = false; raf = 0; }
+  }
   function kick() { if (!running) { running = true; raf = requestAnimationFrame(loop); } }
   // 바로 놓기
   function place(pts, alpha) {
@@ -140,9 +156,9 @@ export function createCrowd(canvas, { theme = 'dark', n = 128, reduceMotion = fa
       d.a1 = a1; d.anim = { x0: d.x, y0: d.y, x1: p.x, y1: p.y, a0: d.a, nx: -dy / L, ny: dx / L, bend: (rnd() - 0.5) * 2 * bend * Math.min(L, 160),
         t0: now + (isMine ? (mineDelay == null ? stagger + duration * 0.25 : mineDelay) : rnd() * stagger), dur: duration * (isMine ? 0.9 : 0.78 + rnd() * 0.3) };
     });
-    onDone = cb; kick();
+    onDone = cb; moving = true; kick();
   }
-  function stop() { cancelAnimationFrame(raf); raf = 0; running = false; onDone = null; dots.forEach((d) => { if (d.anim) { d.x = d.anim.x1; d.y = d.anim.y1; d.anim = null; } if (d.a1 !== null) { d.a = d.a1; d.a1 = null; } }); }
+  function stop() { cancelAnimationFrame(raf); raf = 0; running = false; onDone = null; pulseT0 = -1; moving = false; dots.forEach((d) => { if (d.anim) { d.x = d.anim.x1; d.y = d.anim.y1; d.anim = null; } if (d.a1 !== null) { d.a = d.a1; d.a1 = null; } }); }
   function clear() { stop(); dots.forEach((d) => { d.x = -40; d.y = -40; }); draw(); }
-  return { dots, mine, n, rnd, resize, draw, place, move, stop, clear, get busy() { return running; }, get size() { return { w: W, h: H }; } };
+  return { dots, mine, n, rnd, resize, draw, place, move, stop, clear, get busy() { return moving; }, get size() { return { w: W, h: H }; } };
 }

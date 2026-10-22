@@ -21,14 +21,14 @@
 
 <!-- 1 역할 — 기획서 문장 한 줄로 그 시대의 자리에 선다 -->
 <section class="scr on" id="s1">
-  <div class="topbar"><span></span><div class="tb-title">C0 · 아카데미 살롱</div><span></span></div>
+  <div class="topbar"><span></span><div class="tb-title">아카데미 살롱</div><span></span></div>
   <div class="role">
-    <div class="eyebrow">C0 · Salon de 1873 · Jury</div>
+    <div class="eyebrow">Salon de 1873</div>
     <h1>당신은 오늘의<br>심사위원입니다</h1>
     <div class="rule"></div>
-    <p class="lead">1873년, 파리 아카데미 공식 살롱전.<br>특별 액자에 걸린 후보작 5점 중, 올해의 메달을 줄 한 점을 골라 주십시오.</p>
+    <p class="lead">1873년 파리 살롱전. 후보작 다섯 점 가운데 올해의 메달을 줄 한 점을 골라 주십시오.</p>
     <details class="crit">
-      <summary><span>심사 기준 7</span><i data-ic="chevron"></i></summary>
+      <summary><span>심사 기준</span><i data-ic="chevron"></i></summary>
       <ol>
         <li>위대한 주제 <small>신화, 종교, 역사</small></li>
         <li>정확한 인체</li>
@@ -39,11 +39,10 @@
         <li>캔버스가 안 보이는 완벽한 채색</li>
       </ol>
     </details>
-    <div class="cands-cap"><span>후보작 5점</span><small>번호와 그림만 · 누르면 그 그림부터</small></div>
+    <div class="cands-cap">후보작</div>
     <div class="cands" id="candStrip"></div>
-    <p class="note loc">4F · B · 전시실5 · 1873년 살롱 재현<br>입구와 좌우 벽의 QR로 시작합니다. 액자 앞에 설 필요 없이 번호로 고릅니다.</p>
   </div>
-  <div class="btns one"><button class="btn" id="enter">심사위원 자격으로 입장하기</button></div>
+  <div class="btns one"><button class="btn" id="enter">심사 시작</button></div>
 </section>
 
 <!-- 2 후보작 뷰어 — 한 점씩 3D 금박 액자로. 끌면 돌아가고(관성·되돌아옴), 두 손가락으로 붓질까지 확대, 옆으로 밀면 다음 후보. "이 그림에 메달"(또는 길게 누르기) → 확인 → 3 오늘의 심사위원단 -->
@@ -51,36 +50,33 @@
   <div class="stage" id="stage">
     <canvas class="gl" id="gl" aria-label="후보작 3D 보기 · 끌어서 돌리기, 두 손가락으로 확대, 옆으로 밀어 다음 후보"></canvas>
     <div class="vign" aria-hidden="true"></div>
-    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle">후보작 심사</div><span class="idx" id="idx">1 / 5</span></div>
-    <div class="q" id="q"><small>Salon de 1873 · 심사</small><b>올해의 메달을 줄 한 점</b></div>
-    <div class="zoomtag" id="zoomtag">붓질 <b id="zoomv">1.0×</b><small>두 번 탭하면 원래대로</small></div>
-    <div class="gest" id="gest"><span class="pill">끌어서 돌려 보기 · 두 손가락으로 확대 · 옆으로 밀면 다음</span></div>
+    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle"></div><span></span></div>
+    <div class="q" id="q"><b>올해의 메달을 줄 한 점</b></div>
+    <div class="gest" id="gest"><span class="pill">끌어서 돌려 보기 · 두 손가락으로 확대</span></div>
+    <div class="gest zoomtag" id="zoomtag"><span class="pill">두 번 탭하면 원래 크기</span></div>
     <canvas class="crowd-cv" id="crowdCv" aria-hidden="true"></canvas>
     <div class="tags" id="tags"></div>
     <div class="dock" id="dock">
       <div class="nav"><button class="icon-btn" id="prev" aria-label="이전 후보"><i data-ic="back"></i></button><div class="pips" id="pips"></div><button class="icon-btn" id="next" aria-label="다음 후보"><i data-ic="arrow"></i></button></div>
-      <button class="btn gild" id="award"><span class="m" id="awardMedal"></span>이 그림에 메달</button>
-      <p class="dock-sub">그림을 길게 눌러도 됩니다</p>
+      <button class="btn white award" id="award"><span class="m" id="awardMedal"></span>이 그림에 메달</button>
     </div>
   </div>
 
   <!-- 오늘의 심사위원단 — 아래에서 올라오는 결과 패널. 액자 줄은 그대로, 심사위원은 점(하나 = 열 사람)으로 액자 아래에 모인다(js/crowd.js) -->
   <div class="reveal crowd" id="reveal">
     <div class="crowd-cap">Aujourd'hui</div>
-    <div class="crowd-line" id="revTitle">내가 메달을 준 4번이 오늘의 메달</div>
+    <div class="crowd-line" id="revTitle"></div>
     <div class="crowd-fig" id="revFig"></div>
-    <div class="crowd-others" id="revOthers"></div>
     <div class="crowd-stamp" id="revStamp"></div>
-    <div class="hist" id="revHist"><b>그때는 이랬다</b>메달은 심사위원단이 정했다. 메달을 받은 화가는 ‘오르 콩쿠르(hors concours)’가 되어 더는 메달 후보에 오르지 않았고, 그 뒤로는 심사 없이 걸 수 있었다.<small>1873년 살롱 도록 일러두기 “H. C. = hors concours” (1차) · Sotheby’s 제르벡스 1874년 메달 노트 · 에노 《Paris-Salon 1890》 · 심사 면제는 2차 자료</small></div>
-    <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">저장</button></div>
+    <div class="hist" id="revHist"><b>그때는 이랬다</b>메달은 심사위원단이 정했다. 메달을 받은 화가는 ‘오르 콩쿠르(hors concours)’가 되어 더는 메달 후보에 오르지 않았고, 그 뒤로는 심사 없이 걸 수 있었다.<small>1873년 살롱 도록 일러두기 · Sotheby’s 제르벡스 1874년 메달 노트 · 에노 《Paris-Salon 1890》</small></div>
+    <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">수집함에 저장</button></div>
   </div>
 </section>
 
 <!-- 4 내가 메달을 준 그림 — 카드(기기에서 생성) -->
 <section class="scr" id="s4">
-  <div class="topbar"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">나의 카드</div><span></span></div>
+  <div class="topbar"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">내가 메달을 준 그림</div><span></span></div>
   <div class="card-wrap">
-    <div class="cap">C0 · 내가 메달을 준 그림</div>
     <div class="card" id="card">
       <div class="card-wall"><div class="frame mini card-frame" id="cardFrame"><div class="mat"><img alt="" id="cardImg"></div><div class="card-medal" id="cardMedal"></div></div><div class="card-pos" id="cardPos"></div></div>
       <div class="card-body">
@@ -90,7 +86,6 @@
         <small id="cardShown"></small>
       </div>
     </div>
-    <p class="note">고른 그림의 제목·작가·연도는 고른 뒤에만 나옵니다. 출구 화면에서 C1·C2·C4의 입장과 나란히 놓입니다.</p>
   </div>
   <div class="btns one"><button class="btn line" id="restart">처음으로</button></div>
 </section>
@@ -98,10 +93,8 @@
 <!-- 확인 시트 -->
 <div class="sheet" id="confirm">
   <div class="grip"></div>
-  <h3>이 그림에 올해의 메달을 줄까요?</h3>
-  <p class="sub">주고 나면 오늘의 심사위원단이 어떻게 갈렸는지 봅니다.</p>
-  <div class="confirm-row"><div class="frame mini" id="cfFrame"><div class="mat"><img alt="" id="cfImg"></div></div><div class="cf-no"><span>후보작</span><b id="cfNo"></b><div class="cf-medal" id="cfMedal"></div></div></div>
-  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">수여</button></div>
+  <h3 id="cfTitle">이 그림에 올해의 메달을 줄까요?</h3>
+  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">메달 주기</button></div>
 </div>
 
 <script type="module" src="c0.js"></script>

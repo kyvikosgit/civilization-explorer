@@ -1,8 +1,9 @@
 /* 오늘의 관람객 — 점으로 모이는 군중(js/crowd.js 와 한 쌍). C0·C1·C2·C4·출구 공용
    활자: 작은 라틴 캡 "AUJOURD'HUI" + 한글 한 줄 → 내 쪽 비율만 크게(Paperlogy) → 다른 쪽은 작은 숫자 → 헤어라인 → "오늘 16:20 기준 · 1,284명 · 수치는 예시"
-   점: 흰 바탕엔 먹, 어두운 바탕엔 크림. 내 점만 주황. 막대·원그래프·게이지 없음 */
-.crowd { --c-ink: var(--ink, #111); --c-dim: var(--dim, #707070); --c-hair: rgba(17,17,17,.22); --c-hair-weak: rgba(17,17,17,.10); --c-point: var(--point, #D9672F); position: relative; }
-.crowd.dark { --c-ink: #FFFFFF; --c-dim: rgba(255,255,255,.55); --c-hair: rgba(255,255,255,.3); --c-hair-weak: rgba(255,255,255,.14); }
+   점: 흰 바탕엔 먹, 어두운 바탕엔 크림. 내 점만 주황(+ 크기 · 바탕 반대색 테 — 색을 못 가려도 보인다). 막대·원그래프·게이지 없음
+   글자색: 큰 숫자(내 비율)만 #D9672F. 밝은 바탕의 작은 주황 글씨는 #B4501F(흰 바탕 5.1:1) — --c-point-text */
+.crowd { --c-ink: var(--ink, #111); --c-dim: var(--dim, #707070); --c-hair: rgba(17,17,17,.22); --c-hair-weak: rgba(17,17,17,.10); --c-point: var(--point, #D9672F); --c-point-text: #B4501F; position: relative; }
+.crowd.dark { --c-ink: #FFFFFF; --c-dim: rgba(255,255,255,.6); --c-hair: rgba(255,255,255,.3); --c-hair-weak: rgba(255,255,255,.14); --c-point-text: var(--c-point); }
 .crowd.center { text-align: center; }
 
 /* 점이 모이는 자리 — 높이는 쓰는 곳에서 정한다 */
@@ -10,9 +11,9 @@
 .crowd-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
 /* 머리: 작은 캡 + 한글 한 줄 */
-.crowd-cap { font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--c-point); }
+.crowd-cap { font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--c-point-text); }
 .crowd-line { margin: 5px 0 0; font-family: var(--display); font-weight: 600; font-size: 15px; line-height: 1.35; letter-spacing: -0.01em; color: var(--c-ink); }
-.crowd-line em { font-style: normal; color: var(--c-point); }
+.crowd-line em { font-style: normal; color: var(--c-point-text); }
 
 /* 숫자 한 줄: 내 쪽 크게 + 작은 이름표, 나머지는 작은 숫자 */
 .crowd-fig { margin-top: 10px; border-top: 1px solid var(--c-hair); padding-top: 10px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
@@ -35,10 +36,10 @@
 
 /* 무대 위 작은 숫자표(C0 액자 아래 · C2 역마다) — 절대 위치, 쓰는 곳에서 좌표를 준다 */
 .crowd-nums { position: absolute; inset: 0; pointer-events: none; }
-.crowd-num { position: absolute; left: 0; top: 0; transform: translate(-50%, 0); display: grid; justify-items: center; gap: 1px; font-family: var(--display); font-weight: 600; font-size: 12px; line-height: 1; letter-spacing: -0.01em; color: var(--c-ink); white-space: nowrap; opacity: 0; transition: opacity .45s; font-variant-numeric: tabular-nums; }
+.crowd-num { position: absolute; left: 0; top: 0; font-style: normal; transform: translate(-50%, 0); display: grid; justify-items: center; gap: 1px; font-family: var(--display); font-weight: 600; font-size: 12px; line-height: 1; letter-spacing: -0.01em; color: var(--c-ink); white-space: nowrap; opacity: 0; transition: opacity .45s; font-variant-numeric: tabular-nums; }
 .crowd-num small { font-family: var(--body); font-weight: 600; font-size: 10px; color: var(--c-dim); }
-.crowd-num.me { color: var(--c-point); font-weight: 800; font-size: 14px; }
-.crowd-num.me small { color: var(--c-point); }
+.crowd-num.me { color: var(--c-point-text); font-weight: 800; font-size: 14px; }
+.crowd-num.me small { color: var(--c-point-text); }
 .crowd-num.show { opacity: 1; }
 .crowd-num.start { transform: translate(-50%, -100%); }
 .crowd-num.end { transform: translate(0, 0); justify-items: start; }
