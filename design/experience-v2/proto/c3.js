@@ -1,6 +1,6 @@
 // C3 화가의 아틀리에 — 밖의 빛으로 칠하기
 // 어두운 실내 캔버스(img) 위에 reveal 캔버스를 얹고, 손가락이 지나간 자리에 붓자국 마스크로 야외 캔버스를 드러낸다.
-// 마스크 = 부드러운 타원 + 결(브리슬) 선. 임파스토 하이라이트는 soft-light 로 얹는다. 약 70% 드러나면 남은 곳이 번지며 채워진다.
+// 마스크 = 짧은 결(브리슬) 획. 임파스토 하이라이트는 soft-light 로 얹는다. 약 70%(확률 표본 68%) 드러나면 남은 곳이 번지며 채워진다.
 // 숫자·진행률은 화면에 없다. 모든 처리는 기기 안 캔버스.
 import { toast, loadImage, clamp } from '../../../booth/js/common.js';
 
@@ -34,38 +34,49 @@ async function init() {
   render();
 }
 
-// ── 붓자국 한 점: 진행 방향으로 누운 타원 + 결 선 몇 가닥. 굵기는 속도에 따라 조금 달라진다
-function dab(x, y, dir, w) {
-  const cos = Math.cos(dir), sin = Math.sin(dir);
-  mctx.save();
-  mctx.translate(x, y); mctx.rotate(dir);
-  // 부드러운 타원
-  const g = mctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.62);
-  g.addColorStop(0, 'rgba(255,255,255,.62)'); g.addColorStop(0.65, 'rgba(255,255,255,.38)'); g.addColorStop(1, 'rgba(255,255,255,0)');
-  mctx.fillStyle = g;
-  mctx.beginPath(); mctx.ellipse(0, 0, w * 0.62, w * 0.44, 0, 0, Math.PI * 2); mctx.fill();
-  // 결 선 (브리슬)
+// ── 붓자국: 손가락이 지나간 자리에 짧은 획들이 이어진다
+//   한 획 = 결(브리슬) 선 여러 가닥이 같은 방향으로 눕고, 길이는 60~110px 에서 끊긴다. 획마다 굵기·불투명도·옆으로 휘는 결이 다르고,
+//   끊긴 자리는 조금 어긋나 다음 획이 시작된다. 가장자리에는 임파스토 빛·그늘이 얇게 얹힌다. (곧은 띠가 아니라 칠한 자국으로 읽히게)
+let stroke = null;                                  // 지금 그리는 획 { w, a, len, cap, phase, off, bristles: [{o, a, lw}] }
+function newStroke() {
+  const n = 12 + Math.floor(Math.random() * 6);
+  stroke = { w: 30 + Math.random() * 18, a: 0.55 + Math.random() * 0.4, len: 0, cap: 60 + Math.random() * 50, phase: Math.random() * Math.PI * 2,
+    curve: (Math.random() - 0.5) * 0.9, off: (Math.random() - 0.5) * 10, bristles: [] };
+  for (let i = 0; i < n; i++) stroke.bristles.push({ o: (i / (n - 1) - 0.5) + (Math.random() - 0.5) * 0.12, a: 0.35 + Math.random() * 0.65, lw: 1 + Math.random() * 2.2 });
+}
+function dab(x, y, dir, step) {
+  if (!stroke) newStroke();
+  const S = stroke;
+  S.len += step;
+  // 옆으로 살짝 휘고(결), 획마다 조금 어긋난다
+  const bend = Math.sin(S.len * 0.045 + S.phase) * 5 * S.curve + S.off;
+  const nx = -Math.sin(dir), ny = Math.cos(dir);
+  const cx = x + nx * bend, cy = y + ny * bend;
+  const w = S.w * (0.85 + 0.3 * Math.sin(S.len * 0.08 + S.phase));       // 눌렀다 떼는 굵기 변화
+  const tail = Math.min(1, (S.cap - S.len) / 14), head = Math.min(1, S.len / 10);   // 획의 시작·끝은 가늘게
+  const k = Math.max(0.15, Math.min(head, tail));
+  mctx.save(); mctx.translate(cx, cy); mctx.rotate(dir);
   mctx.lineCap = 'round';
-  for (let i = 0; i < 7; i++) {
-    const off = (Math.random() - 0.5) * w * 0.9;
-    const len = w * (0.5 + Math.random() * 0.6);
-    mctx.strokeStyle = `rgba(255,255,255,${0.35 + Math.random() * 0.5})`;
-    mctx.lineWidth = 1.2 + Math.random() * 2.4;
-    mctx.beginPath(); mctx.moveTo(-len / 2 + (Math.random() - 0.5) * 6, off); mctx.lineTo(len / 2, off + (Math.random() - 0.5) * 3); mctx.stroke();
-  }
+  const L = step * 1.6 + 2;
+  S.bristles.forEach((b) => {
+    mctx.globalAlpha = S.a * b.a * k;
+    mctx.strokeStyle = '#fff'; mctx.lineWidth = b.lw * (0.7 + 0.6 * k);
+    const oy = b.o * w;
+    mctx.beginPath(); mctx.moveTo(-L, oy + (Math.random() - 0.5) * 1.2); mctx.lineTo(L * 0.6, oy + (Math.random() - 0.5) * 1.2); mctx.stroke();
+  });
+  // 결 사이를 메우는 옅은 바탕(획 가운데만)
+  mctx.globalAlpha = 0.34 * S.a * k;
+  mctx.fillStyle = '#fff';
+  mctx.beginPath(); mctx.ellipse(0, 0, L + w * 0.1, w * 0.38, 0, 0, Math.PI * 2); mctx.fill();
   mctx.restore();
   // 임파스토 — 획 가장자리의 빛과 그늘 (soft-light 로 얹힌다)
-  gctx.save();
-  gctx.translate(x, y); gctx.rotate(dir);
-  gctx.lineCap = 'round'; gctx.lineWidth = 1.1;
-  const l = w * 0.3;
-  const oy = (Math.random() - 0.5) * w * 0.6;
-  gctx.strokeStyle = 'rgba(255,248,225,.26)';
-  gctx.beginPath(); gctx.moveTo(-l, oy - 1); gctx.lineTo(l, oy - 1 + (Math.random() - 0.5) * 2); gctx.stroke();
-  gctx.strokeStyle = 'rgba(40,24,10,.2)';
-  gctx.beginPath(); gctx.moveTo(-l, oy + 1); gctx.lineTo(l, oy + 1 + (Math.random() - 0.5) * 2); gctx.stroke();
+  gctx.save(); gctx.translate(cx, cy); gctx.rotate(dir); gctx.lineCap = 'round'; gctx.lineWidth = 1.1;
+  const e = w * 0.46;
+  gctx.globalAlpha = 0.5 * k;
+  gctx.strokeStyle = 'rgba(255,248,225,.5)'; gctx.beginPath(); gctx.moveTo(-L, -e); gctx.lineTo(L * 0.6, -e + (Math.random() - 0.5) * 1.5); gctx.stroke();
+  gctx.strokeStyle = 'rgba(40,24,10,.28)'; gctx.beginPath(); gctx.moveTo(-L, e); gctx.lineTo(L * 0.6, e + (Math.random() - 0.5) * 1.5); gctx.stroke();
   gctx.restore();
-  void cos; void sin;
+  if (S.len >= S.cap) stroke = null;                // 획이 끝나면 다음 획은 새 굵기·결로
 }
 
 function render(extra) {
@@ -87,7 +98,7 @@ function coverage() {
   pctx.drawImage(mask, 0, 0, 48, 40);
   const d = pctx.getImageData(0, 0, 48, 40).data;
   let n = 0;
-  for (let i = 3; i < d.length; i += 4) if (d[i] > 110) n++;
+  for (let i = 3; i < d.length; i += 4) if (d[i] > 48) n++;
   return n / (48 * 40);
 }
 
@@ -111,8 +122,7 @@ function onDown(e) {
   stage.setPointerCapture(e.pointerId);
   firstTouch();
   const p = toLocal(e);
-  last = p; lastT = performance.now();
-  dab(p.x, p.y, Math.random() * Math.PI, 34);
+  last = p; lastT = performance.now(); stroke = null;
   render();
 }
 function onMove(e) {
@@ -123,19 +133,18 @@ function onMove(e) {
   const dist = Math.hypot(dx, dy);
   if (dist < 2) return;
   const speed = dist / Math.max(1, now - lastT);           // px/ms
-  const w = clamp(30 + speed * 14, 26, 50);                 // 빠르면 조금 굵게
-  const dir = Math.atan2(dy, dx);
-  const step = w * 0.32;
+  const dir = Math.atan2(dy, dx) + clamp(speed, 0, 1.5) * (Math.random() - 0.5) * 0.12;
+  const step = 5;
   for (let s = step; s <= dist; s += step) {
     const t = s / dist;
-    dab(last.x + dx * t + (Math.random() - 0.5) * 3, last.y + dy * t + (Math.random() - 0.5) * 3, dir + (Math.random() - 0.5) * 0.25, w * (0.9 + Math.random() * 0.2));
+    dab(last.x + dx * t, last.y + dy * t, dir + (Math.random() - 0.5) * 0.2, step);
     dabs++;
   }
   last = p; lastT = now;
   render();
-  if (dabs % 6 === 0 && coverage() >= 0.7) complete(p);
+  if (dabs % 6 === 0 && coverage() >= 0.68) complete(p);
 }
-function onUp() { if (painting && !done && outdoor && coverage() >= 0.7) complete(last); painting = false; last = null; }   // 손을 뗄 때도 확인
+function onUp() { if (painting && !done && outdoor && coverage() >= 0.68) complete(last); painting = false; last = null; stroke = null; }   // 손을 뗄 때도 확인
 stage.addEventListener('pointerdown', onDown);
 stage.addEventListener('pointermove', onMove);
 stage.addEventListener('pointerup', onUp);

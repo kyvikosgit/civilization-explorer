@@ -67,10 +67,11 @@ function caption() {
   $('#capSrc').textContent = s.src;
   Array.from(dots.children).forEach((el, i) => { el.classList.toggle('on', i === cur); el.classList.toggle('dev', dev[i]); });
   $('#shutter').classList.toggle('next', d);
-  $('#shutterHint').textContent = d ? '다음 손님' : '셔터';
+  $('#shutterHint').textContent = dev.every(Boolean) ? '질문으로' : d ? '다음 손님' : '셔터';
   $('#wallSub').textContent = d ? '같은 사람을 나다르가 찍었다' : '벽의 초상화 앞에서 셔터를 누르세요';
 }
 function goTo(i) {
+  clearTimeout(advanceT);
   cur = (i + SITTERS.length) % SITTERS.length;
   track.style.transform = `translateX(${-cur * 100}%)`;
   caption();
@@ -80,15 +81,16 @@ function irisSize() {
   const r = gallery.getBoundingClientRect();
   $('#iris').style.setProperty('--d', `${Math.ceil(Math.hypot(r.width, r.height) * 0.6)}px`);
 }
+// 셔터: 지금 손님을 현상한다 → 1.4초 뒤 다음 손님으로 저절로 넘어간다(네 번 누르면 네 사람). 현상 중에 누르면 한 번은 기억해 뒀다가 이어서 한다
+let pending = false, advanceT = 0;
+function nextUndeveloped() { for (let k = 1; k <= SITTERS.length; k++) { const j = (cur + k) % SITTERS.length; if (!dev[j]) return j; } return -1; }
 function shoot() {
-  if (busy) return;
-  if (dev[cur]) {
-    // 다음 손님 — 넷을 다 보았으면 질문으로
-    if (dev.every(Boolean)) { openAsk(); return; }
-    goTo(cur + 1);
-    return;
-  }
-  busy = true;
+  if (busy) { pending = true; return; }
+  clearTimeout(advanceT);
+  if (dev.every(Boolean)) { openAsk(); return; }
+  if (dev[cur]) { goTo(nextUndeveloped()); return; }         // 이미 현상한 손님이면 다음 손님으로
+  busy = true; pending = false;
+  gallery.classList.add('busy');
   irisSize();
   const iris = $('#iris'), flash = $('#flash');
   iris.classList.remove('run'); flash.classList.remove('run');
@@ -102,14 +104,19 @@ function shoot() {
     caption();
     if (dev.every(Boolean)) { $('#askCta').hidden = false; $('#shutterHint').textContent = '질문으로'; }
   }, REDUCED ? 60 : 320 * K);
-  setTimeout(() => { iris.classList.remove('run'); flash.classList.remove('run'); busy = false; }, REDUCED ? 400 : 850 * K);
+  setTimeout(() => {
+    iris.classList.remove('run'); flash.classList.remove('run'); busy = false; gallery.classList.remove('busy');
+    const all = dev.every(Boolean);
+    if (pending) { pending = false; if (all) openAsk(); else goTo(nextUndeveloped()); return; }
+    if (!all) advanceT = setTimeout(() => { if (!busy && dev[cur]) goTo(nextUndeveloped()); }, REDUCED ? 300 : 1400 * K);
+  }, REDUCED ? 400 : 850 * K);
 }
 $('#shutter').addEventListener('click', shoot);
 // 좌우 끌기
 {
   let x0 = null;
   gallery.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
-  gallery.addEventListener('pointerup', (e) => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40) goTo(cur + (dx < 0 ? 1 : -1)); });
+  gallery.addEventListener('pointerup', (e) => { if (x0 === null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40 && !busy) goTo(cur + (dx < 0 ? 1 : -1)); });
   gallery.addEventListener('pointercancel', () => { x0 = null; });
 }
 window.addEventListener('resize', irisSize);
@@ -284,4 +291,4 @@ $('#saveMe').addEventListener('click', async () => {
 meState('idle');
 void loadImage;
 // 검수용
-window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get stance() { return stance; }, choose, openAsk, shoot };
+window.__c4 = { get cur() { return cur; }, get dev() { return dev.slice(); }, get busy() { return busy; }, get stance() { return stance; }, choose, openAsk, shoot };

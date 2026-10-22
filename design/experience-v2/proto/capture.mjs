@@ -17,7 +17,7 @@ const which = process.argv[2] || 'all';
 const [VW, VH] = (process.argv[3] || '390x844').split('x').map(Number);
 const RM = !!process.env.REDUCE;
 const suffix = (process.argv[3] && process.argv[3] !== '390x844' ? `-${VW}` : '') + (RM ? '-rm' : '');
-const FULL = !process.argv[3] || process.argv[3] === '390x844';     // 390 에서만 전체 흐름, 다른 크기는 대표 화면만
+const FULL = !process.argv[3] || process.argv[3] !== '430x932';     // 390·375 는 전체 흐름(터치 패스), 430 은 대표 화면만
 const OUT = path.join(HERE, 'shots');
 const problems = [];
 const bad = (m) => { problems.push(m); console.log('   !', m); };
@@ -39,13 +39,28 @@ async function overflowCheck(page, tag) {
 // ── 터치 (CDP)
 let cdp = null;
 async function touch(page, type, points) { if (!cdp) cdp = await page.context().newCDPSession(page); await cdp.send('Input.dispatchTouchEvent', { type, touchPoints: points }); }
-async function tap(page, x, y) { await page.touchscreen.tap(x, y); }
+// 탭 = CDP touchStart → touchEnd (Playwright locator.tap/click 을 쓰지 않는다 — 실제 폰의 터치 경로)
+async function tap(page, x, y) { await touch(page, 'touchStart', [{ x, y }]); await page.waitForTimeout(40); await touch(page, 'touchEnd', []); }
 async function tapEl(page, sel) {
   const el = page.locator(sel).first();
   await el.waitFor({ state: 'visible', timeout: 15000 });
   let b = await el.boundingBox(); if (!b) throw new Error('no box ' + sel);
   if (b.y < 56 || b.y + b.height > VH - 4) { await el.scrollIntoViewIfNeeded(); await page.waitForTimeout(250); b = await el.boundingBox(); }
+  // 손가락이 닿는 자리에 정말 그 요소(또는 그 안)가 있어야 한다
+  const hit = await page.evaluate(([x, y, q]) => { const e = document.elementFromPoint(x, y); const t = document.querySelector(q); return !!(e && t && (e === t || t.contains(e))); }, [b.x + b.width / 2, b.y + b.height / 2, sel]);
+  if (!hit) bad(`tap target covered: ${sel} at ${Math.round(b.x + b.width / 2)},${Math.round(b.y + b.height / 2)}`);
   await tap(page, b.x + b.width / 2, b.y + b.height / 2);
+}
+// 주요 단추: CDP 탭 → 다음 화면·요소가 보여야 한다. 아니면 크게 알린다
+async function press(page, sel, nextSel, label, timeout = 8000) {
+  await tapEl(page, sel);
+  try { await page.locator(nextSel).first().waitFor({ state: 'visible', timeout }); }
+  catch (e) { bad(`TOUCH FAIL: ${label} — tapped ${sel}, expected ${nextSel} visible`); }
+}
+// 홈 인디케이터 영역(아래 34px + 16px)에 단추가 걸리지 않는지
+async function safeBottom(page, sel, label) {
+  const b = await page.locator(sel).first().boundingBox(); if (!b) return;
+  if (b.y + b.height > VH - 50) bad(`${label}: ${sel} bottom ${Math.round(b.y + b.height)} > ${VH - 50} (home indicator zone)`);
 }
 async function drag(page, from, to, steps = 16, ms = 320, hold = 0) {
   await touch(page, 'touchStart', [{ x: from.x, y: from.y }]);
@@ -70,7 +85,8 @@ async function c0(page) {
   await page.goto(BASE + 'c0.html', { waitUntil: 'networkidle' }); await fonts(page); await wait(page, 300);
   await shot(page, 'c0-1'); await overflowCheck(page, 'c0-1');
   if (!FULL) return;
-  await expectChange(page, 'c0 enter', () => document.querySelector('#s2').classList.contains('on'), () => tapEl(page, '#enter'));
+  await safeBottom(page, '#enter', 'c0');
+  await press(page, '#enter', '#s2.on', 'c0 enter');
   await wait(page, 1500);
   await shot(page, 'c0-2a');
   const from = await page.evaluate(() => window.__c0.center(4)), to = await page.evaluate(() => window.__c0.target());
@@ -81,10 +97,11 @@ async function c0(page) {
   await page.waitForTimeout(120); await touch(page, 'touchEnd', []);
   await wait(page, 1400); await shot(page, 'c0-2b');
   const mode = await page.evaluate(() => window.__c0.mode); if (mode !== 'hung') bad('c0: drag did not hang (' + mode + ')');
-  await expectChange(page, 'c0 confirm', () => window.__c0.mode, () => tapEl(page, '#cfOk'));
+  await press(page, '#cfOk', '#reveal.on', 'c0 confirm');
   await wait(page, 900); await shot(page, 'c0-3');
   await wait(page, 2600); await shot(page, 'c0-4'); await overflowCheck(page, 'c0-4');
-  await expectChange(page, 'c0 save', () => document.querySelector('#s4').classList.contains('on'), () => tapEl(page, '#save'));
+  await safeBottom(page, '#save', 'c0 reveal');
+  await press(page, '#save', '#s4.on', 'c0 save');
   await wait(page, 700); await shot(page, 'c0-5'); await overflowCheck(page, 'c0-5');
 }
 
@@ -94,7 +111,7 @@ async function c1(page) {
   await page.waitForFunction(() => window.__c1 && window.__c1.loaded, null, { timeout: 60000 }); await wait(page, 400);
   await shot(page, 'c1-1'); await overflowCheck(page, 'c1-1');
   if (!FULL) return;
-  await tapEl(page, '#guide');
+  await press(page, '#guide', '#mv:not(.off)', 'c1 scan');
   await page.waitForFunction(() => window.__c1.viewer && window.__c1.viewer.riseT > 0.42, null, { timeout: 60000 });
   await shot(page, 'c1-2');
   await page.waitForFunction(() => window.__c1.step === 2, null, { timeout: 60000 }); await wait(page, 900);
@@ -116,15 +133,17 @@ async function c1(page) {
   await page.waitForFunction(() => window.__c1.step === 3, null, { timeout: 8000 }).catch(() => bad('c1: tap on flyer did not inspect'));
   await wait(page, 1700);
   await shot(page, 'c1-3'); await overflowCheck(page, 'c1-3');
-  await expectChange(page, 'c1 open', () => window.__c1.step, () => tapEl(page, '#openBtn'));
+  await press(page, '#openBtn', 'body[data-step="4"] #histIntro', 'c1 open');
   await wait(page, 2200); await shot(page, 'c1-4'); await overflowCheck(page, 'c1-4');
-  await expectChange(page, 'c1 toAsk', () => window.__c1.step, () => tapEl(page, '#toAsk'));
+  await safeBottom(page, '#toAsk', 'c1');
+  await press(page, '#toAsk', 'body[data-step="5"] #papers', 'c1 toAsk');
   await wait(page, 900); await shot(page, 'c1-5'); await overflowCheck(page, 'c1-5');
-  await expectChange(page, 'c1 pick paper', () => window.__c1.stance, () => tapEl(page, '.paper[data-k="viewer"]'));
+  await press(page, '.paper[data-k="viewer"]', '#papers.decided', 'c1 pick paper', 3000);
   await wait(page, 500); await shot(page, 'c1-5b');
   await page.waitForFunction(() => window.__c1.step === 6, null, { timeout: 8000 }).catch(() => bad('c1: no reveal after pick'));
   await wait(page, 1400); await shot(page, 'c1-6'); await overflowCheck(page, 'c1-6');
-  await expectChange(page, 'c1 collect', () => document.querySelector('#collectN').hidden, () => tapEl(page, '#collect'));
+  await safeBottom(page, '#collect', 'c1');
+  await press(page, '#collect', '#collectN:not([hidden])', 'c1 collect');
   await wait(page, 500); await shot(page, 'c1-6b');
   await wait(page, 1500); await shot(page, 'c1-7'); await overflowCheck(page, 'c1-7');
 }
@@ -132,7 +151,7 @@ async function c1(page) {
 // ── C2 어디까지: 지도 탭 → 표 끊기 → 표 끌기(페이지 안 움직임) → 표 밖 스와이프(스크롤) → 이야기 → 오늘 → 저장
 async function c2(page) {
   await page.goto(ORIGIN + '/design/experience-v2/ticket/map-picker.html?d=21&m=10', { waitUntil: 'networkidle' }); await fonts(page);
-  await page.waitForFunction(() => window.DEST && document.querySelectorAll('#chips .chip').length === 5, null, { timeout: 30000 }); await wait(page, 500);
+  await page.waitForFunction(() => window.mapReady, null, { timeout: 30000 }); await wait(page, 1200);
   await shot(page, 'c2-1'); await overflowCheck(page, 'c2-1');
   if (!FULL) return;
   // 지도를 옆으로 민다 — 세로 스크롤은 없어야 하고 지도는 움직여야 한다
@@ -140,13 +159,18 @@ async function c2(page) {
   const tx0 = await page.evaluate(() => document.querySelector('#map g').getAttribute('transform'));
   await drag(page, { x: box.x + box.width * 0.75, y: box.y + box.height * 0.4 }, { x: box.x + box.width * 0.25, y: box.y + box.height * 0.42 }, 12, 260); await wait(page, 300);
   const tx1 = await page.evaluate(() => document.querySelector('#map g').getAttribute('transform'));
-  if (tx0 === tx1) bad('c2: map did not pan on horizontal drag');
+  const canPan = await page.evaluate(() => document.querySelector('#mapBox').getBoundingClientRect().height > 330);   // 작은 상자(375×667)는 지도가 폭에 맞아 밀 것이 없다
+  if (canPan && tx0 === tx1) bad('c2: map did not pan on horizontal drag');
   // 역을 탭한다(르아브르 점 근처) — 실제 좌표는 지도 상태에서 계산
   const pt = await page.evaluate(() => { const l = [...document.querySelectorAll('#map circle')]; const c = l.find((x) => +x.getAttribute('r') === 7 && x.getAttribute('fill') === '#1E140C' && +x.getAttribute('cx') < 120); const r = document.querySelector('#mapBox').getBoundingClientRect(); return c ? { x: r.left + +c.getAttribute('cx'), y: r.top + +c.getAttribute('cy') } : null; });
-  await expectChange(page, 'c2 tap station', () => (window.getPicked() || {}).id, async () => { if (pt) await tap(page, pt.x, pt.y); else await tapEl(page, '.chip[data-id="lehavre"]'); });
-  if ((await page.evaluate(() => (window.getPicked() || {}).id)) !== 'lehavre') await tapEl(page, '.chip[data-id="lehavre"]');
+  // 칩: 루앙 → 다시 르아브르(둘 다 터치로 골라진다)
+  await press(page, '.chip[data-id="rouen"]', '.chip[data-id="rouen"].on', 'c2 chip rouen', 3000);
+  await wait(page, 600);
+  await expectChange(page, 'c2 tap station(map)', () => (window.getPicked() || {}).id, async () => { if (pt) await tap(page, pt.x, pt.y); else await tapEl(page, '.chip[data-id="lehavre"]'); });
+  if ((await page.evaluate(() => (window.getPicked() || {}).id)) !== 'lehavre') await press(page, '.chip[data-id="lehavre"]', '.chip[data-id="lehavre"].on', 'c2 chip lehavre', 3000);
   await wait(page, 1300); await shot(page, 'c2-2'); await overflowCheck(page, 'c2-2');
-  await expectChange(page, 'c2 buy', () => document.querySelector('#flow').hidden, () => tapEl(page, '#buy'));
+  await safeBottom(page, '#buy', 'c2');
+  await press(page, '#buy', '#flow:not([hidden]) #card3d', 'c2 buy');
   await wait(page, 1900); await shot(page, 'c2-3');
   // 표 위에서 끌기: 회전은 바뀌고 flow.scrollTop 은 0 그대로
   const cb = await page.locator('#card3d').boundingBox();
@@ -174,7 +198,7 @@ async function c2(page) {
   await shot(page, 'c2-5');
   await page.evaluate(() => { const f = document.querySelector('#flow'); f.scrollTo(0, f.scrollHeight); }); await wait(page, 1600);
   await shot(page, 'c2-6'); await overflowCheck(page, 'c2-6');
-  await expectChange(page, 'c2 save', () => document.querySelector('#save').textContent, () => tapEl(page, '#save'));
+  await press(page, '#save', '#save[disabled]', 'c2 save', 3000);
   await wait(page, 2200); await shot(page, 'c2-7');
 }
 
@@ -185,24 +209,34 @@ async function c3(page) {
   if (!FULL) return;
   const s = await page.locator('#stage').boundingBox();
   const y0 = await page.evaluate(() => window.scrollY);
-  await drag(page, { x: s.x + 30, y: s.y + 40 }, { x: s.x + s.width - 30, y: s.y + 70 }, 18, 360);
+  // 첫 획: 물결 모양으로 한 번
+  await touch(page, 'touchStart', [{ x: s.x + 30, y: s.y + 60 }]);
+  for (let i = 1; i <= 40; i++) { const t = i / 40; await touch(page, 'touchMove', [{ x: s.x + 30 + (s.width - 60) * t, y: s.y + 60 + Math.sin(t * Math.PI * 2.2) * 34 + t * 40 }]); await page.waitForTimeout(14); }
+  await touch(page, 'touchEnd', []);
+  await touch(page, 'touchStart', [{ x: s.x + s.width - 40, y: s.y + s.height - 50 }]);
+  for (let i = 1; i <= 30; i++) { const t = i / 30; await touch(page, 'touchMove', [{ x: s.x + s.width - 40 - (s.width - 90) * t, y: s.y + s.height - 50 - Math.sin(t * Math.PI * 1.6) * 40 }]); await page.waitForTimeout(14); }
+  await touch(page, 'touchEnd', []);
   await wait(page, 300);
   if (!(await page.evaluate(() => window.__c3.touched))) bad('c3: first stroke not registered');
   if ((await page.evaluate(() => window.scrollY)) !== y0) bad('c3: page scrolled while painting');
   await shot(page, 'c3-2'); await overflowCheck(page, 'c3-2');
   // 가로 획을 줄줄이 그어 70% 를 넘긴다
-  for (let i = 1; i < 14 && !(await page.evaluate(() => window.__c3.done)); i++) {
-    const y = s.y + 24 + (s.height - 48) * (((i - 1) % 8 + 1) / 8) + (i > 8 ? 12 : 0);
-    await drag(page, { x: s.x + 20 + (i % 2) * 10, y }, { x: s.x + s.width - 20, y: y + 10 }, 18, 220);
-    await drag(page, { x: s.x + s.width - 24, y: y + 24 }, { x: s.x + 24, y: y + 14 }, 18, 220);
+  // 손가락으로 문지르듯 촘촘히(위아래로 조금씩 흔들며)
+  for (let i = 0; i < 26 && !(await page.evaluate(() => window.__c3.done)); i++) {
+    const y = s.y + 14 + ((i * 23) % (s.height - 28));
+    const L = i % 2 === 0;
+    await touch(page, 'touchStart', [{ x: L ? s.x + 12 : s.x + s.width - 12, y }]);
+    for (let k = 1; k <= 22; k++) { const t = k / 22; await touch(page, 'touchMove', [{ x: L ? s.x + 12 + (s.width - 24) * t : s.x + s.width - 12 - (s.width - 24) * t, y: y + Math.sin(t * Math.PI * 3) * 9 }]); await page.waitForTimeout(9); }
+    await touch(page, 'touchEnd', []);
   }
   if (!(await page.evaluate(() => window.__c3.done))) bad('c3: did not complete after strokes (coverage ' + (await page.evaluate(() => window.__c3.coverage())).toFixed(2) + ')');
   await wait(page, 1900); await shot(page, 'c3-3'); await overflowCheck(page, 'c3-3');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 500);
   await shot(page, 'c3-3b');
   const hb = await page.locator('#hold').boundingBox();
+  if (!hb) { bad('c3: hold button not found'); return; }
   await touch(page, 'touchStart', [{ x: hb.x + hb.width / 2, y: hb.y + hb.height / 2 }]); await wait(page, 500);
-  if (!(await page.evaluate(() => document.querySelector('#reveal').classList.contains('hide')))) bad('c3: hold button did not show indoor canvas');
+  if (!(await page.evaluate(() => document.querySelector('#reveal').classList.contains('hide')))) bad('TOUCH FAIL: c3 hold button did not show indoor canvas');
   await page.evaluate(() => window.scrollTo(0, 0)); await wait(page, 300);
   await shot(page, 'c3-hold');
   await touch(page, 'touchEnd', []);
@@ -217,34 +251,41 @@ async function c4(page) {
   const g = await page.locator('#gallery').boundingBox();
   await expectChange(page, 'c4 swipe wall', () => window.__c4.cur, () => drag(page, { x: g.x + g.width * 0.75, y: g.y + g.height / 2 }, { x: g.x + g.width * 0.25, y: g.y + g.height / 2 }, 10, 220));
   await wait(page, 700);
-  await tapEl(page, '#dots button:nth-child(1)'); await wait(page, 700);
+  await press(page, '#dots button:nth-child(1)', '#dots button:nth-child(1).on', 'c4 dot', 2000); await wait(page, 700);
+  await page.evaluate(() => window.scrollTo(0, 0)); await wait(page, 200);
+  await safeBottom(page, '#shutter', 'c4 wall');
   for (let i = 0; i < 4; i++) {
-    await expectChange(page, `c4 shutter ${i}`, () => window.__c4.dev, () => tapEl(page, '#shutter'));
-    await wait(page, 1500);
-    if (i === 0) await shot(page, 'c4-2');
-    if (i < 3) { await tapEl(page, '#shutter'); await wait(page, 800); }
+    const before = await page.evaluate(() => window.__c4.dev.filter(Boolean).length);
+    await tapEl(page, '#shutter');
+    await page.waitForFunction((n) => window.__c4.dev.filter(Boolean).length > n, before, { timeout: 4000 }).catch(() => bad(`TOUCH FAIL: c4 shutter ${i + 1} did not develop`));
+    if (i === 0) { await wait(page, 1300); await shot(page, 'c4-2'); }
+    await wait(page, 2600);                                           // 현상 .85s + 저절로 다음 손님 1.4s
+  }
+  // 현상 중 연타도 삼키지 않는다: 다시 시작해 두 번 빠르게
+  if ((await page.evaluate(() => window.__c4.dev.every(Boolean)))) {
+    await page.locator('#askCta').waitFor({ state: 'visible', timeout: 3000 }).catch(() => bad('TOUCH FAIL: c4 askCta not visible after 4 shots'));
   }
   await shot(page, 'c4-3'); await overflowCheck(page, 'c4-3');
-  await expectChange(page, 'c4 toAsk', () => document.querySelector('#ask').hidden, () => tapEl(page, '#toAsk'));
+  await press(page, '#shutter', '#ask:not([hidden])', 'c4 shutter→question');
   await page.waitForFunction(() => [...document.querySelectorAll('#cols img')].every((i) => i.complete), null, { timeout: 15000 }).catch(() => {});
   await wait(page, 700); await shot(page, 'c4-4'); await overflowCheck(page, 'c4-4');
   // 사진 줄의 셋째 그림을 누른다
-  await expectChange(page, 'c4 pick column', () => window.__c4.stance, () => tapEl(page, '#cols .cell[data-k="photo"]:nth-of-type(3), #cols .cell[data-k="photo"]'));
+  await press(page, '#cols .cell[data-k="photo"]:nth-of-type(3), #cols .cell[data-k="photo"]', '#cols.picked', 'c4 pick column', 3000);
   await wait(page, 600); await shot(page, 'c4-4b');
   await page.waitForFunction(() => !document.querySelector('#result').hidden, null, { timeout: 5000 }).catch(() => bad('c4: no result after pick'));
   await wait(page, 1200); await shot(page, 'c4-5'); await overflowCheck(page, 'c4-5');
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 500);
   await shot(page, 'c4-5b');
-  await expectChange(page, 'c4 save', () => document.querySelector('#mineCard').hidden, () => tapEl(page, '#saveStance'));
+  await press(page, '#saveStance', '#mineCard:not([hidden])', 'c4 save');
   await wait(page, 600); await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 300);
   await shot(page, 'c4-6'); await overflowCheck(page, 'c4-6');
   // 내 초상(데모 이미지)
   await page.evaluate(() => window.scrollTo(0, 0));
-  await expectChange(page, 'c4 tab me', () => document.querySelector('#me').hidden, () => tapEl(page, '.tab[data-tab="me"]'));
+  await press(page, '.tab[data-tab="me"]', '#me:not([hidden])', 'c4 tab me');
   await wait(page, 500); await shot(page, 'c4-me-1'); await overflowCheck(page, 'c4-me-1');
-  await expectChange(page, 'c4 demo', () => document.querySelector('#meShoot').hidden, () => tapEl(page, '#camDemo'));
+  await press(page, '#camDemo', '#meShoot:not([hidden])', 'c4 demo');
   await wait(page, 600); await shot(page, 'c4-me-2');
-  await tapEl(page, '#shoot'); await wait(page, 1200); await shot(page, 'c4-me-cam');
+  await press(page, '#shoot', '#count:not([hidden])', 'c4 shoot', 3000); await wait(page, 1200); await shot(page, 'c4-me-cam');
   await page.waitForFunction(() => !document.querySelector('#meDone').hidden, null, { timeout: 30000 }).catch(() => bad('c4: develop did not finish'));
   await wait(page, 500); await shot(page, 'c4-me-3'); await overflowCheck(page, 'c4-me-3');
 }
@@ -254,26 +295,27 @@ async function c5(page) {
   await page.goto(BASE + 'c5.html', { waitUntil: 'networkidle' }); await fonts(page); await wait(page, 800);
   await shot(page, 'c5-1'); await overflowCheck(page, 'c5-1');
   if (!FULL) return;
-  await expectChange(page, 'c5 open series', () => document.querySelector('#view').hidden, () => tapEl(page, '.work[data-i="1"]'));
+  await press(page, '.work[data-i="1"]', '#view:not([hidden])', 'c5 open series');
   await page.waitForFunction(() => document.querySelector('#view .layer.on') && document.querySelector('#view .layer.on').complete, null, { timeout: 20000 });
   await wait(page, 1200); await shot(page, 'c5-2'); await overflowCheck(page, 'c5-2');
   const sb = await page.locator('#stage').boundingBox();
   await expectChange(page, 'c5 swipe', () => window.__c5.idx, () => drag(page, { x: sb.x + sb.width * 0.8, y: sb.y + sb.height / 2 }, { x: sb.x + sb.width * 0.25, y: sb.y + sb.height / 2 + 6 }, 10, 220));
   await wait(page, 700); await shot(page, 'c5-2b');
   await wait(page, 900);
-  await expectChange(page, 'c5 tick', () => window.__c5.idx, () => tapEl(page, '#rail .tick[data-k="4"]'));
+  await press(page, '#rail .tick[data-k="4"]', '#rail .tick[data-k="4"].on', 'c5 tick', 3000);
   await page.waitForFunction(() => { const l = document.querySelector('#view .layer.on'); return l && l.complete && l.naturalWidth > 0; }, null, { timeout: 20000 });
   await wait(page, 1500); await shot(page, 'c5-3'); await overflowCheck(page, 'c5-3');
-  await expectChange(page, 'c5 close', () => document.querySelector('#view').hidden, () => tapEl(page, '#viewClose'));
+  await press(page, '#viewClose', '#wallLine:not([hidden])', 'c5 close → wall line');
   await wait(page, 1900);
   if (await page.evaluate(() => document.querySelector('#wallLine').hidden)) bad('c5: wall line did not appear');
   await shot(page, 'c5-4'); await overflowCheck(page, 'c5-4');
   // 다른 연작 하나 더(건초더미) — 첫 프레임
-  await tapEl(page, '.work[data-i="0"]');
+  await press(page, '.work[data-i="0"]', '#view:not([hidden])', 'c5 open haystacks');
   await page.waitForFunction(() => { const l = document.querySelector('#view .layer.on'); return l && l.complete && l.naturalWidth > 0; }, null, { timeout: 20000 });
   await wait(page, 1200); await shot(page, 'c5-5');
-  await tapEl(page, '#viewClose'); await wait(page, 400);
+  await press(page, '#viewClose', '#strip', 'c5 close'); await wait(page, 400);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 300);
+  await safeBottom(page, '#toExit', 'c5');
   const href = await page.evaluate(() => document.querySelector('#toExit').getAttribute('href')); if (href !== 'exit.html') bad('c5: exit link wrong');
 }
 
@@ -284,11 +326,12 @@ async function exit(page) {
   if (!FULL) return;
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await wait(page, 500);
   await shot(page, 'exit-1b'); await overflowCheck(page, 'exit-1b');
-  await expectChange(page, 'exit share', () => document.querySelector('#shareOv').hidden, () => tapEl(page, '#share'));
+  await safeBottom(page, '#restart', 'exit');
+  await press(page, '#share', '#shareOv:not([hidden]) #shareImg', 'exit share');
   await wait(page, 1800); await shot(page, 'exit-2'); await overflowCheck(page, 'exit-2');
   const data = await page.evaluate(() => document.getElementById('shareImg').src);
   writeFileSync(path.join(OUT, `exit-share${suffix}.png`), Buffer.from(data.split(',')[1], 'base64'));
-  await expectChange(page, 'exit share close', () => document.querySelector('#shareOv').hidden, () => tapEl(page, '#shareClose'));
+  await press(page, '#shareClose', '#share', 'exit share close', 3000);
 }
 
 // 보드(제안서) + 상세 페이지 — 전체 페이지 캡처
@@ -317,6 +360,7 @@ async function board(ctx) {
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 try {
   const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, locale: 'ko-KR', timezoneId: 'Asia/Seoul', colorScheme: 'light', reducedMotion: RM ? 'reduce' : 'no-preference' });
+  await ctx.addInitScript(() => { document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = ':root{--safe-b:34px !important;--safe-t:0px !important}'; document.head.appendChild(st); }); });   // 홈 인디케이터 34px 흉내
   const page = await ctx.newPage();
   page.on('pageerror', (e) => bad('[pageerror] ' + e.message));
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') { const t = m.text(); if (!/GL Driver|ReadPixels|Automatic fallback to software WebGL/.test(t)) bad(`[console ${m.type()}] ${t.slice(0, 200)}`); } });

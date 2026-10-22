@@ -136,7 +136,7 @@
   .reveal .sub { display: none; }
   .reveal h2 { font-size: 18px; }
   .reveal .hist { margin-top: 10px; font-size: 13px; padding-top: 10px; }
-  .reveal .btns { padding-top: 10px; padding-bottom: calc(10px + var(--safe-b)); }
+  .reveal .btns { padding-top: 10px; padding-bottom: calc(16px + var(--safe-b)); }
   .reveal .btn { height: 46px; }
   .role h1 { font-size: 26px; }
   .cands div { aspect-ratio: 1; }

@@ -76,7 +76,7 @@ body.page .wrap { flex: 1; display: flex; flex-direction: column; padding: 0 var
 .btn.dark-line { background: rgba(0,0,0,.35); color: #FFFFFF; border: 1px solid rgba(255,255,255,.55); font-size: 15px; font-weight: 600; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .btn.quiet { background: transparent; color: var(--dim); font-weight: 600; font-size: 15px; height: 44px; }
 .btn svg { width: 20px; height: 20px; }
-.btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; padding: 12px var(--pad) calc(14px + var(--safe-b)); flex: none; }
+.btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; padding: 12px var(--pad) calc(16px + var(--safe-b)); flex: none; }
 .btns.one { grid-template-columns: 1fr; }
 .btns .btn { width: 100%; }
 

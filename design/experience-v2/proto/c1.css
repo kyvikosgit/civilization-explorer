@@ -79,7 +79,7 @@ body[data-step="1"] .s1, body[data-step="2"] .s2, body[data-step="3"] .s3, body[
 .unfold { inset: 0; z-index: 15; display: flex; flex-direction: column; }
 .unfold-dim { position: absolute; inset: 0; background: rgba(0,0,0,.72); transition: background .5s; }
 body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: rgba(0,0,0,.6); }
-.unfold-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 14px; overflow: hidden; padding: calc(56px + var(--safe-t)) var(--pad) calc(16px + var(--safe-b)); }
+.unfold-body { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 14px; overflow: hidden; padding: calc(56px + var(--safe-t)) var(--pad) calc(18px + var(--safe-b)); }
 .flyer-wrap { perspective: 900px; flex: none; }
 .flyer { --fw: 250px; width: var(--fw); height: calc(var(--fw) * 1.5); position: relative; transform-style: preserve-3d; transition: transform .7s var(--ease-out), opacity .4s; filter: drop-shadow(0 20px 28px rgba(0,0,0,.55)); }
 .strip { position: absolute; left: 0; width: 100%; height: calc(100% / 3); transform-style: preserve-3d; transition: transform .75s cubic-bezier(.4,0,.2,1); }

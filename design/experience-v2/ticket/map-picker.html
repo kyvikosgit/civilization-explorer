@@ -136,10 +136,10 @@
     <div class="quiz-bottom"><div id="chips" class="chips" role="radiogroup" aria-label="목적지"></div></div>
   </div>
   <div class="sel">
-    <div><b id="selFr">Le Havre<small id="selKo">르아브르</small></b><span id="selInfo">229 km · 급행 4시간 30분</span><small class="note" id="selZone">르아브르 칸통 1~6 · 1867~1875년 안내서 기준 · 2등</small></div>
+    <div><b id="selFr">Le Havre<small id="selKo">르아브르</small></b><span id="selInfo">229 km · 급행 4시간 30분</span><small class="note" id="selZone">르아브르 칸통 1~6 · 1867~1875년 안내서 기준 · 2등 · 다른 곳을 누르면 바뀝니다</small></div>
     <div class="km" id="selYear">표의 해<br>1872</div>
   </div>
-  <button class="btn" id="buy">표 끊기</button>
+  <button class="btn" id="buy" disabled>표 끊기</button>
 </section>
 
 <!-- 2 발권 이후: 한 장의 스크롤 캔버스 (표 → 거리·소요·운임 → 이야기 → 오늘의 관람객) -->
@@ -252,6 +252,8 @@ async function initMap() {
   labels = el('g', { 'pointer-events': 'none' }, svg);     // 이름표는 핀 위에 — 고른 역 이름이 가려지지 않게
   buildChips(); bindInput(); fit();
   window.addEventListener('resize', fit);
+  pick('lehavre');                                   // 패널의 예시(르아브르)와 같게 처음부터 골라 둔다 — 단추가 죽어 보이지 않게
+  window.mapReady = true;
 }
 // 지도는 상자 높이에 맞춰 키우고, 남는 폭은 옆으로 밀어 본다(가로 이동만 · 세로 제스처는 페이지 스크롤)
 const pan = { x: 0, min: 0, max: 0, boxW: 0 };
@@ -343,7 +345,7 @@ function pick(id) {
   markChips(); drawLabels(); drawRoute(picked);
   const z = Z.zones[id];
   $('#selFr').childNodes[0].textContent = picked.fr; $('#buy').disabled = false; $('#selKo').textContent = picked.ko; $('#selInfo').textContent = picked.info; $('#selYear').innerHTML = `표의 해<br>${picked.year}`;
-  $('#selZone').textContent = `${z.kind === 'cantons' ? (id === 'lehavre' ? '르아브르 칸통 1~6' : '칸통 ' + z.names.join(' · ')) : 'arrondissement ' + z.label} · 1867~1875년 안내서 기준 · 2등`;
+  $('#selZone').textContent = `${z.kind === 'cantons' ? (id === 'lehavre' ? '르아브르 칸통 1~6' : '칸통 ' + z.names.join(' · ')) : 'arrondissement ' + z.label} · 1867~1875년 안내서 기준 · 2등 · 다른 곳을 누르면 바뀝니다`;
 }
 function stationAt(sx, sy) {
   let best = null, bd = 26;
@@ -501,7 +503,7 @@ const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersec
 
 // ── 발권: 지도가 어두워지고 창구 슬롯에서 표가 밀려 나온 뒤 날인이 찍힌다
 function issue() {
-  const p = window.getPicked(); if (!p) return; cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
+  const p = window.getPicked(); if (!p) { const t = $('#toast'); t.textContent = '지도에서 역을 먼저 고르세요'; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); return; } cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
   const d = { ...TK[p.id], year: p.year };
   const f = $('[data-slot=front]'), b = $('[data-slot=back]'); f.innerHTML = ''; b.innerHTML = ''; f.appendChild(fill(make('front'), d)); b.appendChild(fill(make('back'), d));
   $('#heroTitle').textContent = `${p.ko} · ${p.year}년 표`; $('#heroSub').textContent = `PARIS → ${d.to} · 2me classe`;
@@ -534,7 +536,7 @@ $('#buy').addEventListener('click', issue);
 function leave() { flow.hidden = true; flow.classList.remove('on'); $('#dim').classList.remove('on'); cancelAnimationFrame(raf); }
 $('#flowBack').addEventListener('click', leave); $('#again').addEventListener('click', leave);
 $('#save').addEventListener('click', () => {
-  if (saved) return; saved = true; $('#save').disabled = true; $('#save').textContent = '저장됨';
+  if (saved) return; $('#toast').textContent = '수집함에 저장했습니다'; saved = true; $('#save').disabled = true; $('#save').textContent = '저장됨';
   try { const p = window.getPicked(); const all = JSON.parse(localStorage.getItem('m100_choice') || '{}') || {}; all.c2 = { id: p.id, label: p.ko, year: p.year, pct: PCT[p.id], at: Date.now() }; localStorage.setItem('m100_choice', JSON.stringify(all)); } catch (e) { /* 기기 안에만 · 마지막 화면(c5)이 읽는다 */ }
   flow.scrollTo({ top: 0, behavior: RM ? 'auto' : 'smooth' });
   setTimeout(() => { wrap.classList.add('fly'); hero.classList.add('saved'); }, RM ? 0 : 500);

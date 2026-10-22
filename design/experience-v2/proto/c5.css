@@ -28,7 +28,7 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .wall-line { position: relative; margin: auto 0 0; padding: 8px var(--pad) 30px; font-family: var(--display); font-weight: 600; font-size: 20px; line-height: 1.4; letter-spacing: -0.01em; color: rgba(255,255,255,.78); text-align: center; animation: lineIn 1.6s ease both; }
 .wall-line[hidden] { display: none; }
 @keyframes lineIn { from { opacity: 0; letter-spacing: .04em; } to { opacity: 1; letter-spacing: -0.01em; } }
-.exit-link { padding-top: 22px; display: flex; justify-content: center; }
+.exit-link { padding: 22px 0 2px; display: flex; justify-content: center; }
 .exit-link .btn { width: auto; color: rgba(255,255,255,.6); gap: 4px; }
 .exit-link .btn svg { width: 18px; height: 18px; }
 
