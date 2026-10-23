@@ -38,37 +38,17 @@ body.xe h1, body.xe h2, body.xe h3, body.xe .btn { letter-spacing: 0; }
 .xe-me-sub { margin-top: 8px; font-size: 15px; color: rgba(255,255,255,.62); }
 .xe-me-sub .ex { margin-left: 6px; font-size: 12px; color: rgba(255,255,255,.4); }
 
-/* 그때 ↔ 오늘 — 같은 칸(선택지)에 맞춘 두 줄 */
-.xe-cmp { flex: none; margin-top: 30px; }
-.xe-then { border-top: 1px solid rgba(255,255,255,.22); }
-.xe-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px 0 0; font-family: var(--display); font-weight: 600; font-size: 13px; color: rgba(255,255,255,.45); }
-.xe-cols span { display: flex; align-items: center; gap: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.xe-cols .me { color: #fff; }
-.xe-cols .me::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--point); }
-.xe-row { padding: 14px 0 0; }
-.xe-rl { display: flex; align-items: baseline; gap: 8px; font-family: var(--display); font-weight: 600; font-size: 12.5px; color: rgba(255,255,255,.5); }
-.xe-rl b { font-weight: 800; font-size: 14px; color: #fff; }
-.xe-rl small { margin-left: auto; font-family: var(--body); font-weight: 500; font-size: 12px; color: rgba(255,255,255,.4); }
-.xe-cells { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
-.xe-cell { position: relative; }
-.xe-cell .v { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1.1; color: rgba(255,255,255,.5); }
-.xe-cell .v i { font-style: normal; font-size: .6em; margin-left: 1px; }
-.xe-cell .d { margin-top: 4px; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,.45); }
-.xe-cell.me .v { color: #fff; }
-.xe-cell.me .d { color: rgba(255,255,255,.7); }
+/* 1874 ↔ 오늘 — 결론 한 문장 → 같은 눈금의 가로 막대(왼쪽 · 오른쪽 순서는 두 줄 모두 같음) → 근거 작은 글자. 막대 · 숫자는 처음부터 최종값(exit-e-fx.css) */
+.xe-cmp { flex: none; margin-top: 30px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.22); }
+.xe-hl { margin: 0; font-family: var(--display); font-weight: 800; font-size: 19px; line-height: 1.45; color: #fff; word-break: keep-all; }
+.xe-basis { list-style: none; margin: 14px 0 0; padding: 0; font-size: 11px; line-height: 1.55; color: rgba(255,255,255,.4); word-break: keep-all; }
+.xe-basis li + li { margin-top: 1px; }
+.xe-basis li:last-child:not(:first-child) { color: rgba(255,255,255,.3); }
+.xe-note { margin-top: 22px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.1); }
+.xe-rl { font-family: var(--display); font-weight: 600; font-size: 12.5px; color: rgba(255,255,255,.5); }
 .xe-then-line { margin: 6px 0 0; font-size: 15px; line-height: 1.55; color: rgba(255,255,255,.86); }
 .xe-then-line + .xe-then-line { color: rgba(255,255,255,.6); }
 .xe-src { margin-top: 8px; font-size: 11px; line-height: 1.4; color: rgba(255,255,255,.34); }
-
-/* 오늘 줄 — 비율 */
-.xe-row.now { margin-top: 22px; border-top: 1px solid rgba(255,255,255,.1); }
-.xe-now { position: relative; margin-top: 6px; height: 96px; }
-.xe-now canvas { position: absolute; inset: 0 0 34px; width: 100%; height: calc(100% - 34px); display: block; }
-.xe-now .xe-cells { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; pointer-events: none; }
-.xe-pct { font-family: var(--display); font-weight: 600; font-size: 17px; line-height: 1; color: rgba(255,255,255,.5); font-variant-numeric: tabular-nums; }
-.xe-pct i { font-style: normal; font-size: .7em; }
-.xe-pct.me { font-weight: 800; font-size: 30px; color: var(--point); }
-.xe-pct.me span { margin-left: 6px; font-size: 13px; font-weight: 600; color: #fff; }
 
 /* ── 작은 선택 · 가져가는 것 — 흰 쟁반(작게) */
 .xe-end { position: relative; padding-top: 28px; display: flex; flex-direction: column; }
@@ -94,6 +74,5 @@ body.xe h1, body.xe h2, body.xe h3, body.xe .btn { letter-spacing: 0; }
   .xe-q { font-size: 22px; }
   .xe-obj { margin-top: 20px; } .xe-obj.posters .x-poster { --s: 92px; } .xe-obj.faces .fc { max-width: 52px; }
   .xe-me { margin-top: 22px; } .xe-me-v { font-size: 36px; }
-  .xe-cmp { margin-top: 22px; }
-  .xe-cell .v { font-size: 22px; }
+  .xe-cmp { margin-top: 22px; } .xe-hl { font-size: 17.5px; }
 }
