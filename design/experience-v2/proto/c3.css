@@ -135,3 +135,7 @@ body.c3 .icon-btn:active { transform: scale(.9); }
   body.intro .st-easel, body.intro .st-head { transform: none; filter: none; }
   .canvas-wrap.ready { animation: none; }
 }
+
+/* 끝 — 처음으로(체험 목록)만. 저장은 뺐다 */
+.actions { grid-template-columns: 1fr; }
+.actions .btn.home { text-decoration: none; }

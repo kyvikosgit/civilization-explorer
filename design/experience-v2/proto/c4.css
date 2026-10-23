@@ -144,3 +144,6 @@ body.c4::before, body.c4::after { transition: opacity .8s ease .2s; }
   .view, .half, .half-in, .seg-thumb, .q-ask, .q-mine, .reveal { transition: none; }
   .mine-card, .count b { animation: none; }
 }
+
+/* 끝 — 단추 줄 아래 처음으로(체험 목록) */
+.rv-home { grid-column: 1 / -1; justify-self: center; padding: 6px 14px 0; font-size: 14px; font-weight: 600; color: rgba(255,255,255,.62); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.25); line-height: 1.5; }

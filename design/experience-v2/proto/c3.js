@@ -286,7 +286,7 @@ function finish() {
 }
 
 // ── 저장: 액자 + 야외 캔버스를 세로 카드 한 장으로
-$('#save').addEventListener('click', async () => {
+$('#save')?.addEventListener('click', async () => {   // 저장 단추는 뺐다(10/23) — 끝에는 처음으로만
   const CW = 1080, CH = 1350, c = makeCanvas(CW, CH), g = c.getContext('2d');
   g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, CW, CH);
   const fw = CW - 120, fh = fw / 1.2, fx = 60, fy = 150;

@@ -179,3 +179,7 @@ body.c5 h1, body.c5 h2, body.c5 .tb-title, body.c5 .btn, body.c5 .cap-title, bod
   .wall-line, .view, .now-line.in, .caption.fade .cap-when, .caption.fade .cap-title, .caption.fade .cap-meta, .kept, .paused { animation: none; }
   .row .fr, .styles button, .sun::before, .sky text, .sky .tick, .keep { transition: none; }
 }
+
+/* 출구 링크 아래 처음으로(체험 목록) */
+.exit-link { flex-direction: column; align-items: center; gap: 0; }
+.exit-link .btn.home { height: 40px; font-size: 14px; color: rgba(255,255,255,.45); }
