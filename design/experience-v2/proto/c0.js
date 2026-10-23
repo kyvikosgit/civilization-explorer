@@ -323,13 +323,23 @@ function camFor(k) {
 }
 const safeB = () => parseFloat(getComputedStyle($('#safeProbe')).paddingBottom) || 0;
 function camTo(k, ms) { camA = { ...cam }; camKey = k; camB = camFor(k); camT0 = performance.now(); camMs = reduceMotion ? 1 : ms; kick(); }
+// 카메라는 벽 앞에 고정 — 그림 앞으로 나오기 · 확대 · 이동은 카메라가 아니라 그림이 움직인다(뒤의 벽은 그대로)
 function applyCam() {
-  camera.position.set(cam.x + panX, cam.y + panY, cam.z); camera.zoom = zoom;
+  camera.position.set(cam.x, cam.y, cam.z); camera.zoom = 1;
   camera.updateProjectionMatrix();
-  const e = camera.projectionMatrix.elements; e[8] = cam.sx * zoom; e[9] = cam.sy * zoom;
+  const e = camera.projectionMatrix.elements; e[8] = cam.sx; e[9] = cam.sy;
   camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+  camera.updateMatrixWorld();
 }
-const pxPerM = (z) => H / (2 * (cam.z - z) * TAN);   // 깊이 z 에서 1m 가 몇 px(확대 1)
+const pxPerM = (z) => H / (2 * (cam.z - z) * TAN);   // 깊이 z 에서 1m 가 몇 px
+// 그림 앞으로 — 벽과 카메라는 그대로, 그림만 벽에서 떨어져 화면 가운데로(상단 바와 메달 단추 사이를 채우는 크기, 아래 번호판까지)
+function focusPose(f) {
+  const ext = 0.26 * f.s, rect = { l: W * 0.06, r: W * 0.94, t: safeT + 88, b: H - dock.offsetHeight - 16 };
+  const z = f.zb + 0.5 * (cam.z - f.zb), ppm = pxPerM(z);
+  const k = Math.min((rect.r - rect.l) / (f.ow * f.s * ppm), (rect.b - rect.t) / ((f.oh * f.s + ext) * ppm));
+  const p = screenToWorld((rect.l + rect.r) / 2, (rect.t + rect.b) / 2, z);
+  return { x: p.x, y: p.y + ext * k / 2, z, s: f.s * k };
+}
 
 function layout() {
   const r = stage.getBoundingClientRect();
@@ -353,9 +363,17 @@ function apply(now = performance.now()) {
   const t = eio(rv), es = eio(sh);
   const tk = (now - THUD.t0) / 520, thud = tk > 0 && tk < 1 ? Math.sin(tk * Math.PI * 2.5) * Math.exp(-tk * 4.2) : 0;
   const dk = eio(dimV);
+  applyCam();
+  if (fi >= 0 && (mode === 'focus' || mode === 'placed')) frames[fi].fp = focusPose(frames[fi]);
   frames.forEach((f, i) => {
-    const s = f.s * lerp(1, f.kShare, es), a = f.act;
-    f.g.position.set(f.hx, f.hy, f.zb * lerp(1, f.kShare, es) + f.lift);
+    const sHome = f.s * lerp(1, f.kShare, es), zHome = f.zb * lerp(1, f.kShare, es), a = f.act, P = f.fp, me = i === fi;
+    let s = sHome, px = f.hx, py = f.hy, pz = zHome;
+    if (P && a > 0) {
+      const ea = eio(a);
+      s = lerp(sHome, P.s * (me ? zoom : 1), ea);
+      px = lerp(f.hx, P.x + (me ? panX : 0), ea); py = lerp(f.hy, P.y + (me ? panY : 0), ea); pz = lerp(zHome, P.z, ea);
+    }
+    f.g.position.set(px, py, pz);
     f.g.rotation.set(pitch * a, yaw * a, 0); f.g.scale.setScalar(s);
     if (thud && f === MED.f) { f.g.position.z -= 0.05 * thud * s; f.g.rotation.x += 0.025 * thud; }
     dim(f, 1 - 0.72 * dk * (1 - a));
@@ -373,12 +391,13 @@ function apply(now = performance.now()) {
     const f = MED.f, ppu = f.g.scale.x * pxPerM(f.g.position.z), up = Math.max(1, 26 / (2 * MR * ppu));
     medal.visible = MED.dir !== 0; medal.scale.setScalar(MED.sc * (1 + 0.14 * Math.max(0, thud)) * lerp(1, up, t));
   }
-  applyCam(); camera.position.y += 0.006 * thud;
+  camera.position.y += 0.006 * thud;
   // 반사광 — 앞으로 나온 그림 앞, 아니면 벽 앞
   if (MED.dir !== 2) {
-    const f = fi >= 0 ? frames[fi] : null, a = f ? f.act : 0;
-    const bx = lerp(CL.cx, f ? f.hx : CL.cx, a), by = lerp(CL.cy + 1.5, f ? f.hy + 0.7 * f.s : CL.cy, a), bz = lerp(4.5, f ? f.g.position.z + 2.2 * f.s : 4.5, a);
-    spec.position.set(bx + specX * lerp(1.1, 0.55 * (f ? f.s : 1), a), by, bz);
+    const f = fi >= 0 ? frames[fi] : null, a = f ? f.act : 0, fs = f ? f.g.scale.x : 1;
+    const bx = lerp(CL.cx, f ? f.g.position.x : CL.cx, a), by = lerp(CL.cy + 1.5, f ? f.g.position.y + 0.7 * fs : CL.cy, a);
+    const bz = Math.min(cam.z - 0.3, lerp(4.5, f ? f.g.position.z + 2.2 * fs : 4.5, a));
+    spec.position.set(bx + specX * lerp(1.1, 0.55 * fs, a), by, bz);
   }
   stage.classList.toggle('zoomed', zoom > 1.04);
   if ((mode === 'reveal' || sh > 0) && rv > 0.98) placeTags();
@@ -484,7 +503,7 @@ function step(dt, now) {
   if (glint.visible) {
     const k = (now - THUD.t0) / 640;
     if (k >= 1) { glint.visible = false; glint.material.opacity = 0; spec.intensity = 0.9; }
-    else { const s = Math.sin(clamp(k, 0, 1) * Math.PI); glint.material.opacity = s; glint.material.rotation = k * 0.9; glint.scale.setScalar((0.08 + 0.34 * s) * (MED.f ? MED.f.s : 1)); spec.intensity = 0.9 + 2.4 * s; busy = true; }
+    else { const s = Math.sin(clamp(k, 0, 1) * Math.PI); glint.material.opacity = s; glint.material.rotation = k * 0.9; glint.scale.setScalar((0.08 + 0.34 * s) * (MED.f ? MED.f.g.scale.x : 1)); spec.intensity = 0.9 + 2.4 * s; busy = true; }
   }
   // 결과로 물러나기 · 비율만큼 커지고 작아지기 + 빛 쓸기 + 숫자 세기
   if (rv !== rvT) { const p = clamp((now - rvT0) / (reduceMotion ? 1 : RV_MS), 0, 1); rv = lerp(rvFrom, rvT, p); if (p >= 1) rv = rvT; busy = true; }
@@ -514,8 +533,8 @@ function stepMedal(now) {
     _w.copy(F.a).multiplyScalar((1 - e) * (1 - e)).addScaledVector(F.c, 2 * e * (1 - e)).addScaledVector(F.b, e * e);
     medal.position.copy(_w);
     medal.rotation.set(lerp(0.5, 0, e), (1 - eo(p)) * Math.PI * 5, lerp(-0.4, -0.12, e));
-    medal.scale.setScalar(lerp(F.s0, f.s, eo(p)));
-    spec.position.set(_w.x + 0.6 * f.s * 0.5, _w.y + 0.5 * f.s * 0.5, _w.z + 1.6 * f.s * 0.5);
+    medal.scale.setScalar(lerp(F.s0, f.g.scale.x, eo(p)));
+    spec.position.set(_w.x + 0.3 * f.g.scale.x, _w.y + 0.25 * f.g.scale.x, Math.min(cam.z - 0.3, _w.z + 0.8 * f.g.scale.x));
     medalAlpha(Math.min(1, p * 5));
     if (p >= 1) {
       f.g.attach(medal); medal.position.set(0, yEnd, zEnd); medal.rotation.set(0, 0, -0.12); medal.scale.setScalar(1);
@@ -547,12 +566,12 @@ function hitFrame(p, list) {
   list.forEach((f) => { const h = ray.intersectObject(f.g, true)[0]; if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
   return best ? best.f : null;
 }
-function wppF() { const f = frames[fi]; return 2 * (cam.z - f.g.position.z) * TAN / H; }   // 그림 면에서 1px 가 몇 m(확대 1)
+function wppF() { const f = frames[fi]; return 2 * (cam.z - (f.fp ? f.fp.z : f.g.position.z)) * TAN / H; }   // 그림 면에서 1px 가 몇 m
+// 확대한 그림을 옮길 수 있는 범위 — 그림 가장자리가 화면 가운데를 넘지 않게
 function clampPan() {
-  const f = frames[fi], d = cam.z - f.g.position.z, s = f.s, q = 1 - 1 / zoom;
-  const cx = f.hx - (cam.x - cam.sx * d * TAN * W / H), cy = f.hy - (cam.y + cam.sy * d * TAN);
-  const hw = f.ow * s / 2, hh = f.oh * s / 2;
-  panX = clamp(panX, cx * q - hw * q, cx * q + hw * q); panY = clamp(panY, cy * q - hh * q, cy * q + hh * q);
+  const f = frames[fi], P = f.fp; if (!P) return;
+  const q = zoom - 1, hw = f.ow * P.s / 2 * q, hh = f.oh * P.s / 2 * q;
+  panX = clamp(panX, -hw, hw); panY = clamp(panY, -hh, hh);
   panXT = panX; panYT = panY;
 }
 let gestSeen = false;
@@ -574,8 +593,10 @@ cv.addEventListener('pointerdown', (e) => {
       if (g && g.type === 'one' && !g.moved && pointers.size === 1 && mode === 'focus' && hitFrame({ x: g.x0, y: g.y0 }, [frames[fi]])) { g.consumed = true; placeMedal(); }
     }, 520);
   } else if (pointers.size === 2) {
-    const [a, b] = [...pointers.values()], mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, wpp = wppF();
-    g = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: zoom, wx: panX + (mid.x - W / 2) * wpp / zoom, wy: panY - (mid.y - H / 2) * wpp / zoom, wpp };
+    // 두 손가락 사이의 그림 위 점을 붙잡고 그림을 키운다(rx, ry: 확대 1 기준 그림 중심에서의 거리)
+    const [a, b] = [...pointers.values()], mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, P = frames[fi].fp;
+    const m = screenToWorld(mid.x, mid.y, P.z);
+    g = { type: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: zoom, rx: (m.x - P.x - panX) / zoom, ry: (m.y - P.y - panY) / zoom };
     hideGest();
   }
   kick();
@@ -586,15 +607,16 @@ cv.addEventListener('pointermove', (e) => {
   if (g.type === 'tap') { if (Math.hypot(p.x - g.x0, p.y - g.y0) > 10) g.moved = true; return; }
   if (g.type === 'pinch' && pointers.size >= 2) {
     const [a, b] = [...pointers.values()], mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const P = frames[fi].fp, m = screenToWorld(mid.x, mid.y, P.z);
     zoom = clamp(g.z0 * Math.hypot(a.x - b.x, a.y - b.y) / g.d0, 1, 3); zoomT = zoom;
-    panX = g.wx - (mid.x - W / 2) * g.wpp / zoom; panY = g.wy + (mid.y - H / 2) * g.wpp / zoom;
+    panX = m.x - P.x - g.rx * zoom; panY = m.y - P.y - g.ry * zoom;
     clampPan(); kick(); return;
   }
   if (g.type !== 'one' || e.pointerId !== g.id) return;
   const dx = p.x - g.x0, dy = p.y - g.y0, now = performance.now();
   if (!g.moved && Math.hypot(dx, dy) > 7) { g.moved = true; clearTimeout(pressT); hideGest(); }
   g.samples.push({ t: now, x: p.x, y: p.y }); while (g.samples.length > 2 && now - g.samples[0].t > 100) g.samples.shift();
-  if (g.mode === 'pan') { const wpp = wppF(); panX -= (p.x - g.lx) * wpp / zoom; panY += (p.y - g.ly) * wpp / zoom; clampPan(); }
+  if (g.mode === 'pan') { const wpp = wppF(); panX += (p.x - g.lx) * wpp; panY -= (p.y - g.ly) * wpp; clampPan(); }
   else if (g.moved) {
     yaw = LIM * Math.tanh((g.yaw0 + dx * KPX) / LIM);
     pitch = LIM * Math.tanh((g.pitch0 + dy * KPX) / LIM);
@@ -647,13 +669,13 @@ function focus(i) {
   fi = i; setMode('focus'); haptic(10);
   $('#wallTitle').textContent = `후보작 ${WORKS[i].n}번`;
   gest.classList.toggle('off', gestSeen);
-  resetView(); dimT = 1; camTo('focus', 950);
+  resetView(); zoom = 1; panX = panY = 0; dimT = 1; frames[i].fp = focusPose(frames[i]); kick();
   if (!reduceMotion) glintT0 = performance.now() + 500;
 }
-function toWall(ms = 900) {
+function toWall() {
   if (mode !== 'focus') return;
-  setMode('wall'); resetView(); zoom = zoomT; panX = panXT; panY = panYT;
-  dimT = 0; camTo('wall', ms);
+  setMode('wall'); resetView();
+  dimT = 0; kick();
   $('#wallTitle').textContent = '';
 }
 $('#back2').addEventListener('click', () => { if (mode === 'focus') toWall(); else if (mode === 'reveal') again(); });
@@ -685,7 +707,7 @@ function flyMedal(fromEl) {
     const a = screenToWorld(r.left + r.width / 2 - sr.left, r.top + r.height / 2 - sr.top, f.g.position.z + d * 0.55);
     const b = f.g.localToWorld(new T.Vector3(0, -(f.ph / 2 + M * 0.55), 0.088));
     const c = a.clone().lerp(b, 0.5); c.y = Math.max(a.y, b.y) + d * 0.16; c.z = f.g.position.z + d * 0.35;
-    MED.f = f; MED.dir = 2; MED.done = false; MED.fly = { a, b, c, t0: performance.now(), s0: f.s * 0.55, done };
+    MED.f = f; MED.dir = 2; MED.done = false; MED.fly = { a, b, c, t0: performance.now(), s0: f.g.scale.x * 0.55, done };
     kick();
   });
 }
