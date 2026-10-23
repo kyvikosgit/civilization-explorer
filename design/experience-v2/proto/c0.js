@@ -16,11 +16,11 @@ import { $, $$, icons, sheet, toast, sleep, reduceMotion, haptic, saveChoice } f
 import { buildSalon, HALL } from './c0-intro.js';
 
 const WORKS = [
-  { n: 1, src: '../works/c0-cambyses.jpg',   hd: 'img/c0-cambyses.jpg',   w: 960,  h: 695,  title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '' },
-  { n: 2, src: '../works/c0-cartridges.jpg', hd: 'img/c0-cartridges.jpg', w: 1280, h: 832,  title: '마지막 탄약통',          artist: '알퐁스 드 뇌빌',     year: '1873', coll: '바제유 마지막 탄약통의 집', shown: '1873년 살롱 출품' },
-  { n: 3, src: '../works/c0-vision.jpg',     hd: 'img/c0-vision.jpg',     w: 1400, h: 1169, title: '환상, 14세기 전설',      artist: '뤽 올리비에 메르송', year: '1872', coll: '릴 미술관',        shown: '' },
-  { n: 4, src: '../works/c0-spring.jpg',     hd: 'img/c0-spring.jpg',     w: 827,  h: 1400, title: '봄날',                  artist: '피에르 오귀스트 코트', year: '1873', coll: '메트로폴리탄',     shown: '1873년 살롱 출품' },
-  { n: 5, src: '../works/c0-bonbock.jpg',    hd: 'img/c0-bonbock.jpg',    w: 1234, h: 1400, title: '르 봉 보크',            artist: '에두아르 마네',       year: '1873', coll: '필라델피아 미술관', shown: '1873년 살롱 출품' },
+  { n: 1, src: '../works/c0-cambyses.jpg',   hd: 'img/c0-cambyses.jpg',   w: 960,  h: 695,  title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '', desc: '기원전 525년, 페르시아 왕 캄비세스가 이집트의 펠루시움을 치는 장면. 이집트인이 신성하게 여긴 고양이를 앞세웠다는 전설을 그렸습니다.' },
+  { n: 2, src: '../works/c0-cartridges.jpg', hd: 'img/c0-cartridges.jpg', w: 1280, h: 832,  title: '마지막 탄약통',          artist: '알퐁스 드 뇌빌',     year: '1873', coll: '바제유 마지막 탄약통의 집', shown: '1873년 살롱 출품', desc: '1870년 프로이센과의 전쟁, 바제유의 한 여관에서 프랑스 병사들이 마지막 탄약까지 버티는 장면입니다.' },
+  { n: 3, src: '../works/c0-vision.jpg',     hd: 'img/c0-vision.jpg',     w: 1400, h: 1169, title: '환상, 14세기 전설',      artist: '뤽 올리비에 메르송', year: '1872', coll: '릴 미술관',        shown: '', desc: '십자가 앞에 쓰러진 수도사 곁으로 천사들이 음악을 연주하고, 십자가의 그리스도가 한 손을 내밉니다. 중세 전설을 옮긴 그림입니다.' },
+  { n: 4, src: '../works/c0-spring.jpg',     hd: 'img/c0-spring.jpg',     w: 827,  h: 1400, title: '봄날',                  artist: '피에르 오귀스트 코트', year: '1873', coll: '메트로폴리탄',     shown: '1873년 살롱 출품', desc: '숲속 그네 위의 젊은 두 연인. 매끈한 살결과 꼼꼼한 마무리로 그린 그림입니다.' },
+  { n: 5, src: '../works/c0-bonbock.jpg',    hd: 'img/c0-bonbock.jpg',    w: 1234, h: 1400, title: '르 봉 보크',            artist: '에두아르 마네',       year: '1873', coll: '필라델피아 미술관', shown: '1873년 살롱 출품', desc: '카페에서 맥주잔을 들고 파이프를 문 남자. 마네의 친구인 판화가 에밀 벨로가 모델입니다.' },
 ];
 // 벽에 거는 자리 — 위에서 아래로 번호 순: 1 / 2 · 3 / 4 · 5. 줄마다 그림(캔버스) 높이(m)
 const ROWS = [[0], [1, 2], [3, 4]], ROW_H = [1.45, 1.15, 1.9], GAP_X = 0.36, GAP_Y = 0.58, HANG_BOTTOM = 1.62;   // 맨 아래 줄 이름표가 징두리(1.0m) 위 벽지에 오도록
@@ -319,7 +319,7 @@ function applyCam() {
 const pxPerM = (z) => H / (2 * (cam.z - z) * TAN);   // 깊이 z 에서 1m 가 몇 px
 // 그림 앞으로 — 벽과 카메라는 그대로, 그림만 벽에서 떨어져 화면 가운데로(상단 바와 메달 단추 사이를 채우는 크기, 아래 번호판까지)
 function focusPose(f) {
-  const ext = 0.26 * f.s, rect = { l: W * 0.06, r: W * 0.94, t: safeT + 88, b: H - dock.offsetHeight - 16 };
+  const ext = 0.26 * f.s, rect = { l: W * 0.06, r: W * 0.94, t: safeT + 88, b: H - dock.offsetHeight - ($('#fcap').offsetHeight || 0) - 22 };
   const z = f.zb + 0.5 * (cam.z - f.zb), ppm = pxPerM(z);
   const k = Math.min((rect.r - rect.l) / (f.ow * f.s * ppm), (rect.b - rect.t) / ((f.oh * f.s + ext) * ppm));
   const p = screenToWorld((rect.l + rect.r) / 2, (rect.t + rect.b) / 2, z);
@@ -661,6 +661,8 @@ function focus(i) {
   if (mode !== 'wall') return;
   fi = i; setMode('focus'); haptic(10);
   $('#wallTitle').textContent = WORKS[i].title;
+  // 앞으로 나온 그림 아래 해설 — 무엇을 그렸는지만(당시 평가 · 수상은 말하지 않는다)
+  $('#fcT').textContent = `〈${WORKS[i].title}〉`; $('#fcM').textContent = `${WORKS[i].artist} · ${WORKS[i].year}`; $('#fcD').textContent = WORKS[i].desc;
   gest.classList.toggle('off', gestSeen);
   resetView(); zoom = 1; panX = panY = 0; dimT = 1; frames[i].fp = focusPose(frames[i]); kick();
   if (!reduceMotion) glintT0 = performance.now() + 500;
