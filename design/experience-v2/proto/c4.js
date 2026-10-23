@@ -73,9 +73,10 @@ function salon(order, W, seed) {
     }
   }
   // 액자 양식: 금박(조각 몰딩 · 구슬 띠) · 흑단 나무에 금 턱 · 평평한 띠의 금박(카세타) · 타원 창. 두께도 조금씩 다르게
-  // 창 모양(s-) × 몰딩(p-) 12 가지 — 걸린 차례로 5칸씩 건너 고르니 이웃끼리 겹치지 않는다
-  const KINDS = ['p-orn', 's-ov', 'p-wood', 's-arch p-cas', 's-tondo', 'p-liner', 's-cut p-cas', 's-ov p-wood', 'p-cas', 's-arch', 's-tondo p-liner', 's-cut p-wood'];
-  items.forEach((it, i) => { it.shape = KINDS[(i * 5) % KINDS.length]; it.t = Math.round(it.m * (0.86 + rnd() * 0.14)); });
+  // 창 모양(s-) × 재료(p-) 12 가지 — 나무 · 검정이 대부분, 금박은 셋(금박 · 카세타 · 로제트). 걸린 차례로 5칸씩 건너 고르니 이웃끼리 모양도 재료도 겹치지 않는다
+  // 원 창(s-tondo)은 큰 액자에 두지 않는다(얼굴이 잘린다) → 타원으로
+  const KINDS = ['p-walnut', 's-ov', 's-arch p-ebony', 's-cut p-mahog', 'p-carved', 's-tondo p-wood', 's-arch p-cas', 's-ov p-mahog', 'p-liner', 's-cut p-walnut', 'p-orn', 's-ov p-ebony'];
+  items.forEach((it, i) => { let k = KINDS[(i * 5) % KINDS.length]; if (it.w > U * 0.42) k = k.replace('s-tondo', 's-ov'); it.shape = k; it.t = Math.round(it.m * (0.86 + rnd() * 0.14)); });
   return { items, H: y + 6 };
 }
 const isPh = new Set();      // 사진이 된 사람
@@ -142,8 +143,9 @@ function setPerson(id, ph, d = 0) {
   const name = BYID[id].name;
   hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => {
     f.style.setProperty('--d', `${d}ms`); f.classList.toggle('ph', ph); f.setAttribute('aria-label', `${name} · ${ph ? '사진' : '그림'}`);
-    // 그림으로 돌아갈 때는 니스 빛이 창을 한 번 쓸고 간다(액자는 그대로)
-    f.classList.remove('back'); if (!ph && !REDUCED) { void f.offsetWidth; f.classList.add('back'); }
+    // 사진으로: 창 안에서 섬광 · 현상(.dv), 그림으로: 니스 빛(.back). 효과는 끝나면 반드시 떼어 낸다 — 남겨 두면 그 액자만 따로 합성되어 흐를 때 떨린다
+    f.classList.remove('dv', 'back'); clearTimeout(f._fx);
+    if (!REDUCED) { void f.offsetWidth; f.classList.add(ph ? 'dv' : 'back'); f._fx = setTimeout(() => f.classList.remove('dv', 'back'), d + 1100); }
   });
   if (sel === id) caption(id);
   return true;
@@ -173,10 +175,13 @@ function caption(id) {
 function select(id) {
   sel = id;
   hang.querySelectorAll('.fr.sel').forEach((f) => f.classList.remove('sel'));
-  hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => f.classList.add('sel'));
+  if (id) hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => f.classList.add('sel'));
   hang.classList.toggle('has-sel', !!id);   // 고른 액자 말고는 살짝 어둡게
-  caption(id);
+  if (id) caption(id); else $('#wCap').hidden = true;
 }
+// 선택 풀기: 벽의 빈 곳을 누르거나 이름표의 × — 끈 뒤의 누름은 세지 않는다(끌기에서 click 을 막는다)
+$('#wallView').addEventListener('click', (e) => { if (sel && !e.target.closest('.fr, .w-foot, .w-head')) select(null); });
+$('#capX').addEventListener('click', (e) => { e.stopPropagation(); select(null); buzz(); });
 hang.addEventListener('click', (e) => {
   const f = e.target.closest('.fr'); if (!f) return;
   setPerson(f.dataset.id, !isPh.has(f.dataset.id)); buzz(); hint(false); select(f.dataset.id);
