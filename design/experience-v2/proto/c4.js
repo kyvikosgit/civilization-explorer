@@ -173,6 +173,7 @@ function select(id) {
   sel = id;
   hang.querySelectorAll('.fr.sel').forEach((f) => f.classList.remove('sel'));
   hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => f.classList.add('sel'));
+  hang.classList.toggle('has-sel', !!id);   // 고른 액자 말고는 살짝 어둡게
   caption(id);
 }
 hang.addEventListener('click', (e) => {

@@ -262,3 +262,9 @@ body.c4, body.c4 * { letter-spacing: normal !important; }
   .view, .qs, .half, .half-in, .seg-thumb, .q-ask, .q-mine, .reveal, .fr .im, .duo-knob, .duo-lab { transition: none; }
   .fr.ph .dev, .fr.ph .dev::after, .fr.back .vn, .w-cap.swap, .count b, .duo { animation: none; }
 }
+
+/* 마지막으로 누른 액자 — 바깥에 금빛 테 한 줄 + 은은한 빛, 나머지 액자는 살짝 어둡게 */
+.track .fr { transition: filter .45s ease; }
+.track.has-sel .fr:not(.sel) { filter: brightness(.58) saturate(.85); }
+.fr.sel { z-index: 6; outline: 2px solid rgba(240,196,118,.95); outline-offset: 6px; filter: none; }
+@media (prefers-reduced-motion: reduce) { .track .fr { transition: none; } }
