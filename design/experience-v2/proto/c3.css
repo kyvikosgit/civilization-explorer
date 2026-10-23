@@ -149,7 +149,7 @@ body.intro.s-ready .hint.off { opacity: 0; }
 .legs i:nth-child(2) { right: 18%; transform-origin: 50% 0; transform: rotate(-9deg); }
 .legs i:nth-child(3) { left: 50%; margin-left: -4px; height: 86%; opacity: .7; }
 .legs b { position: absolute; left: 6%; right: 6%; top: calc(30% - 2px); height: 10px; border-radius: 2px; background: linear-gradient(180deg, #7A5838, #3A2918); box-shadow: 0 4px 10px rgba(0,0,0,.4); }
-body.done .legs { opacity: .0; }
+
 /* 완성: 캔버스가 이젤에서 살짝 떠오른다 */
 .frame { transition: box-shadow 1.6s, transform 1.4s cubic-bezier(.2,.8,.2,1); }
 body.flooding .frame, body.lit .frame { transform: translateY(-6px) scale(1.012); }
@@ -191,3 +191,28 @@ body.s-lamp .studio .dark { opacity: .45; }
 body.s-beam .studio .dark { opacity: .12; transition-duration: 1.2s; }
 body.lit .studio .dark { opacity: 0; }
 body.c3.held .topbar { background: transparent; transition: background .6s; }
+
+/* 다 칠한 뒤: 이젤은 제자리, 방이 걷히고 바깥 — 흐릿한 들판(모네 〈양귀비 들판〉을 작게 떠서) · 해 · 앞쪽 풀. 누르는 동안은 다시 아틀리에 */
+.studio .outside { inset: 0; z-index: 1; opacity: 0; transform: scale(1.06); transition: opacity 1.6s ease, transform 2.4s cubic-bezier(.2,.7,.2,1); }
+body.lit .studio .outside { opacity: 1; transform: none; }
+.outside > * { position: absolute; }
+.outside .o-sky { inset: 0; background: linear-gradient(180deg, #CFE0EA, #EDE6CF 55%, #B9B67A); }
+.outside .o-bg { inset: -4%; width: 108%; height: 108%; filter: blur(6px) saturate(1.05) brightness(1.06); }
+.outside .o-sun { left: -30%; top: -22%; width: 110%; height: 70%; mix-blend-mode: screen; background: radial-gradient(closest-side, rgba(255,250,228,.95), rgba(255,236,190,.45) 40%, rgba(255,230,180,0)); animation: sunBreath 6s ease-in-out infinite alternate; }
+@keyframes sunBreath { from { opacity: .85; } to { opacity: 1; } }
+.outside .o-grass { left: 0; right: 0; bottom: 0; width: 100%; height: 36%; }
+.outside::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 26%; background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0)); }   /* 제목이 읽히게 하늘 위쪽만 살짝 밝게 */
+body.lit .canvas-wrap .day-edge { opacity: .7; }
+body.lit .studio .flood { transition: opacity 2s ease .2s; }
+/* 누르는 동안: 바깥이 걷히고 등불의 아틀리에 */
+body.lit.held .studio .outside { opacity: 0; transform: none; transition: opacity .6s ease; }
+body.lit.held .studio .wall, body.lit.held .studio .floor, body.lit.held .studio .win, body.lit.held .studio .lampglow { opacity: 1 !important; transition: opacity .6s; }
+body.lit.held .studio .dark { opacity: .3; transition: opacity .6s; }
+body.lit.held .win .sh.l, body.lit.held .win .sh.r { transform: none; transition: transform .6s; }
+body.held .studio .dusk { opacity: .45; }
+.after .btn { box-shadow: 0 8px 22px rgba(0,0,0,.18); }
+body.lit:not(.held) .placeholder-note { color: rgba(40,34,20,.75); }
+body.lit:not(.held) .label .tmp { color: rgba(40,34,20,.6); }
+@media (prefers-reduced-motion: reduce) { .outside .o-sun { animation: none; } body.lit .studio .outside { transform: none; } }
+body.c3.lit .topbar { background: transparent; }
+body.lit:not(.held) .label, body.lit:not(.held) .placeholder-note { text-shadow: 0 0 8px rgba(255,252,240,.95), 0 0 2px rgba(255,252,240,.9); }

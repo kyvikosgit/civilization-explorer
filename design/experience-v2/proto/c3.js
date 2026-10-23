@@ -23,7 +23,8 @@ function dryLoop() {
   const tick = () => {
     wctx.globalCompositeOperation = 'destination-out'; wctx.fillStyle = 'rgba(0,0,0,.03)'; wctx.fillRect(0, 0, W, H); wctx.globalCompositeOperation = 'source-over';
     wetAmt *= painting ? 1 : 0.965; if (!painting) render();
-    if (wetAmt > 0.02 && !done) dryRaf = requestAnimationFrame(tick); else if (!painting) { wctx.clearRect(0, 0, W, H); wetAmt = 0; render(); }
+    if (done && wetAmt <= 0.5) { render(); return; }                         // 다 칠한 뒤: 반쯤 마른 윤기를 남긴다
+    if (wetAmt > 0.02) dryRaf = requestAnimationFrame(tick); else if (!painting) { wctx.clearRect(0, 0, W, H); wetAmt = 0; render(); }
   };
   dryRaf = requestAnimationFrame(tick);
 }
@@ -124,10 +125,10 @@ function render(extra) {
   rctx.clearRect(0, 0, W, H);
   rctx.drawImage(outdoor, 0, 0);
   rctx.globalCompositeOperation = 'soft-light';
-  rctx.globalAlpha = done ? 0.45 : 1;        // 완성 뒤엔 붓자국 결만 희미하게 남긴다
+  rctx.globalAlpha = 1;                      // 완성 뒤에도 붓자국 결은 그대로
   rctx.drawImage(gloss, 0, 0);
   rctx.globalAlpha = 1;
-  if (!done && wetAmt > 0.01) {
+  if (wetAmt > 0.01) {
     // 젖은 물감: 결을 따라 윤기(soft-light) + 손가락 근처에서 빛을 받아 반짝임(screen)
     rctx.globalCompositeOperation = 'soft-light'; rctx.drawImage(wet, 0, 0);
     rctx.globalCompositeOperation = 'screen'; rctx.globalAlpha = 0.1; rctx.drawImage(wet, 0, 0); rctx.globalAlpha = 1;
@@ -200,40 +201,60 @@ stage.addEventListener('pointermove', onMove);
 stage.addEventListener('pointerup', onUp);
 stage.addEventListener('pointercancel', onUp);
 
-// ── 약 70% 에서 남은 곳이 번지며 채워진다
-function complete(at) {
+// ── 약 70% 에서 남은 곳을 붓이 마저 칠한다(1.6초): 아직 안 드러난 띠만 골라 같은 결의 획으로 지그재그. 평평하게 드러내지 않는다 — 다 칠한 캔버스 전체에 붓자국이 남는다
+function remainingPlan() {
+  pctx.clearRect(0, 0, 48, 40); pctx.drawImage(mask, 0, 0, 48, 40);
+  const d = pctx.getImageData(0, 0, 48, 40).data, cw = W / 48, ch = H / 40;
+  const open = (cx, cy) => d[(cy * 48 + cx) * 4 + 3] < 150;
+  const segs = [], band = 150, rows = Math.ceil(H / band);
+  for (let r = 0; r < rows; r++) {
+    const y = (r + 0.5) * (H / rows), c0 = Math.max(0, Math.floor((y - band / 2) / ch)), c1 = Math.min(39, Math.floor((y + band / 2) / ch));
+    const colOpen = Array.from({ length: 48 }, (_, x) => { let n = 0; for (let yy = c0; yy <= c1; yy++) if (open(x, yy)) n++; return n > 0; });
+    let x = 0;
+    while (x < 48) {
+      if (!colOpen[x]) { x++; continue; }
+      let e = x; while (e < 47 && (colOpen[e + 1] || colOpen[Math.min(47, e + 2)] || colOpen[Math.min(47, e + 3)])) e++;
+      const a = Math.max(-20, x * cw - 40), b = Math.min(W + 20, (e + 1) * cw + 40);
+      segs.push(r % 2 ? { x0: b, x1: a, y } : { x0: a, x1: b, y });
+      x = e + 1;
+    }
+  }
+  return segs;
+}
+function complete() {
   if (done) return;
-  done = true; painting = false;
-  const cx = at ? at.x : W / 2, cy = at ? at.y : H / 2;
-  const dur = REDUCED ? 0 : (new URLSearchParams(location.search).has('slow') ? 6000 : 1900);   // ?slow: 검수용 느린 번짐
-  const t0 = performance.now();
-  const frame = () => {
-    const t = dur ? clamp((performance.now() - t0) / dur, 0, 1) : 1;
-    const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    render((ctx) => {
-      // 남은 부분: 터치한 곳에서 바깥으로 퍼지는 원 + 전체 페이드
-      ctx.save();
-      ctx.globalAlpha = e;
-      ctx.drawImage(outdoor, 0, 0);
-      ctx.restore();
-      if (dur && t < 1) {
-        const r = Math.max(W, H) * (0.1 + e * 1.1);
-        const bloom = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-        const a = Math.sin(Math.PI * t) * 0.3;
-        bloom.addColorStop(0, `rgba(255,250,235,${a})`); bloom.addColorStop(0.6, `rgba(255,245,220,${a * 0.5})`); bloom.addColorStop(1, 'rgba(255,245,220,0)');
-        ctx.globalCompositeOperation = 'screen';
-        ctx.fillStyle = bloom; ctx.fillRect(0, 0, W, H);
-        ctx.globalCompositeOperation = 'source-over';
+  done = true; painting = false; stroke = null;
+  if (REDUCED) { finish(); return; }
+  const slow = new URLSearchParams(location.search).has('slow');
+  let segs = remainingPlan();
+  const total = segs.reduce((n, sg) => n + Math.abs(sg.x1 - sg.x0), 0) || 1;
+  const dur = (slow ? 4000 : 1600) * Math.min(1, 0.5 + total / (W * 4)), speed = total / dur;   // px/ms
+  let si = 0, pos = 0, lastF = performance.now(), pass = 0;
+  const frame = (now) => {
+    let adv = speed * Math.min(40, now - lastF); lastF = now;
+    while (adv > 0 && si < segs.length) {
+      const sg = segs[si], len = Math.abs(sg.x1 - sg.x0), dir = sg.x1 > sg.x0 ? 0 : Math.PI;
+      const step = Math.min(adv, len - pos), n = Math.max(1, Math.round(step / 5));
+      for (let i = 1; i <= n; i++) {
+        const p = pos + (step * i) / n, x = sg.x0 + Math.sign(sg.x1 - sg.x0) * p, y = sg.y + Math.sin(p * 0.012 + si) * 18;
+        dab(x, y, dir + Math.cos(p * 0.012 + si) * 0.18 + (Math.random() - 0.5) * 0.12, step / n);
+        glintAt = { x, y };
       }
-    });
-    if (t < 1) requestAnimationFrame(frame); else finish();
+      pos += step; adv -= step;
+      if (pos >= len - 0.01) { si++; pos = 0; stroke = null; }
+    }
+    wetAmt = 1; render();
+    if (si < segs.length) { requestAnimationFrame(frame); return; }
+    // 한 번 더: 남은 작은 틈만 짧게 덧칠(최대 한 번)
+    if (pass === 0) { pass = 1; segs = remainingPlan(); si = 0; pos = 0; if (segs.length) { requestAnimationFrame(frame); return; } }
+    finish();
   };
   requestAnimationFrame(frame);
 }
 function finish() {
-  // 완성: 마스크를 가득 채워 이후 렌더가 항상 야외 캔버스
+  // 완성: 아주 작은 틈만 메운다(붓자국·임파스토·젖은 윤기는 그대로 남는다). 이후 윤기는 반쯤 마른 채로 멈춘다
   mctx.fillStyle = '#FFF'; mctx.fillRect(0, 0, W, H);
-  render();
+  glintAt = null; render(); dryLoop();
   const label = $('#labelMain'); label.style.opacity = 0;
   setTimeout(() => { setLabel('outdoor'); label.style.opacity = ''; }, 260);
   // 다 칠한 캔버스를 어두운 방에서 잠시 본 뒤, 방이 천천히 밝아진다(1.6초). 그다음 아래 글이 차례로
@@ -273,7 +294,7 @@ $('#save').addEventListener('click', async () => {
   const wood = g.createLinearGradient(fx, fy, fx + fw, fy + fh);
   wood.addColorStop(0, '#8A6238'); wood.addColorStop(0.4, '#5A3E27'); wood.addColorStop(1, '#2E1F13');
   g.fillStyle = wood; g.fillRect(fx - 18, fy - 18, fw + 36, fh + 36);
-  g.drawImage(outdoor, fx, fy, fw, fh);
+  g.drawImage(reveal, fx, fy, fw, fh);       // 화면 그대로 — 붓자국·임파스토·윤기까지
   g.fillStyle = '#707070'; g.font = '600 24px Paperlogy, Freesentation, sans-serif'; g.fillText('MONET 100 · 화가의 아틀리에', 60, 100);
   g.fillStyle = '#111111'; g.font = '800 44px Paperlogy, Freesentation, sans-serif';
   g.fillText('밖의 빛으로 다시 칠했다', 60, fy + fh + 110);
@@ -306,6 +327,40 @@ if (REDUCED) { introEnd(); } else {
 }
 // 장면을 누르면 끝으로(캔버스를 누른 것이면 그대로 칠하기 시작)
 addEventListener('pointerdown', (e) => { if (introOn && !e.target.closest('a')) introEnd(); }, true);
+
+// ── 다 칠하면 이젤은 그대로, 뒤가 바깥이 된다: 모네 〈양귀비 들판〉(1873, 오르세 · 퍼블릭 도메인)을 아주 작게 떠서 흐릿한 들판 + 앞쪽 풀(바람에 흔들림) + 해
+{
+  const bg = $('#oBg'), gr = $('#oGrass'), gctx2 = gr.getContext('2d');
+  loadImage('../works/c2-arg-coquelicots-orsay.jpg').then((img) => {
+    const r = bg.getBoundingClientRect(), w = 72, h = Math.round(w * r.height / Math.max(1, r.width));
+    bg.width = w; bg.height = h; const c = bg.getContext('2d'); c.imageSmoothingQuality = 'high';
+    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight), sw = w / s, sh = h / s;
+    c.drawImage(img, (img.naturalWidth - sw) / 2, 0, sw, sh, 0, 0, w, h);
+  }).catch(() => {});
+  let GW = 0, GH = 0, blades = [];
+  const sizeG = () => {
+    const r = gr.getBoundingClientRect(); GW = r.width; GH = r.height; const k = Math.min(2, devicePixelRatio || 1);
+    gr.width = Math.round(GW * k); gr.height = Math.round(GH * k); gctx2.setTransform(k, 0, 0, k, 0, 0);
+    blades = Array.from({ length: 150 }, () => { const y = GH * (0.25 + Math.random() * 0.8); return { x: Math.random() * GW, y, h: 14 + (y / GH) * 46 * (0.6 + Math.random() * 0.6), w: 1.2 + Math.random() * 2.2, ph: Math.random() * 6.28, c: ['#6E8A3A', '#879B45', '#A7AE58', '#5C7A34', '#C2B666'][(Math.random() * 5) | 0], f: Math.random() < 0.07 }; }).sort((a, b) => a.y - b.y);
+  };
+  sizeG(); addEventListener('resize', sizeG);
+  const drawGrass = (now) => {
+    gctx2.clearRect(0, 0, GW, GH);
+    // 흙과 이젤 발치의 그늘
+    const e = gctx2.createRadialGradient(GW / 2, GH * 0.3, 10, GW / 2, GH * 0.3, GW * 0.45);
+    e.addColorStop(0, 'rgba(96,70,40,.45)'); e.addColorStop(1, 'rgba(96,70,40,0)'); gctx2.fillStyle = e; gctx2.fillRect(0, 0, GW, GH);
+    blades.forEach((b) => {
+      const sway = Math.sin(now / 900 + b.ph + b.x * 0.01) * (3 + b.h * 0.12) + Math.sin(now / 2300 + b.x * 0.004) * 4;
+      gctx2.strokeStyle = b.c; gctx2.lineWidth = b.w; gctx2.lineCap = 'round';
+      gctx2.beginPath(); gctx2.moveTo(b.x, b.y); gctx2.quadraticCurveTo(b.x + sway * 0.3, b.y - b.h * 0.55, b.x + sway, b.y - b.h); gctx2.stroke();
+      if (b.f) { gctx2.fillStyle = '#C8452C'; gctx2.beginPath(); gctx2.arc(b.x + sway, b.y - b.h, 2.6, 0, 6.2832); gctx2.fill(); }   // 양귀비 몇 송이
+    });
+  };
+  let graf = 0;
+  const loopG = (now) => { drawGrass(now); if (B.classList.contains('lit') && !B.classList.contains('held') && !REDUCED) graf = requestAnimationFrame(loopG); else graf = 0; };
+  new MutationObserver(() => { if (B.classList.contains('lit') && !graf) graf = requestAnimationFrame(loopG); }).observe(B, { attributes: true, attributeFilter: ['class'] });
+  drawGrass(0);
+}
 
 // ── 기름등 깜빡임 + 공기 중 먼지(햇빛 줄기 안에서는 반짝인다)
 {
