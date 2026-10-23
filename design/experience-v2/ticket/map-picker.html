@@ -296,15 +296,19 @@
         <div class="pc-tools"><button class="btn line" id="pcFlip" type="button">뒷면 보기</button><button class="btn" id="pcSave" type="button">엽서 저장 · 공유</button></div>
         <p class="pc-note">글은 끌어서 옮길 수 있습니다</p>
       </section>
-      <!-- 오늘의 관람객 — 같은 지도 한 장에 점(하나 = 열 사람)이 흩어졌다가 고른 곳으로 모인다. 영역은 많이 고를수록 짙고, 내 곳은 주황 테두리 (proto/js/crowd.js) -->
+      <!-- 오늘의 관람객 — 들어가기 장면의 출발 안내판(검은 판 · 놋쇠 테 · 크림 글자판)을 그대로 한 장 더: 다섯 행선지를 많이 고른 순서로 한 줄씩.
+           줄마다 그곳의 그림 한 점 · 프랑스어/한글 이름 · 비율만큼 놋쇠 선 · 글자판 숫자(0부터 넘어가며 올라간다). 내 줄은 등불처럼 밝고 '나', 맨 많은 곳은 '가장 많이' -->
       <section class="today crowd" id="today">
         <div class="crowd-cap">Aujourd'hui au guichet</div>
-        <div class="crowd-line">오늘 같은 곳을 고른 관람객</div>
-        <div class="crowd-stage map" id="todayMap"><svg id="todayMapSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg><canvas id="crowdCv" aria-hidden="true"></canvas><div class="crowd-nums" id="todayNums"></div></div>
-        <div class="rv-me" id="todayFig"></div>
-        <ul class="rv-others" id="todayOthers"></ul>
+        <div class="crowd-line">오늘 관람객이 고른 행선지</div>
+        <div class="dep" id="dep">
+          <div class="dep-head"><span>Départs</span><span id="depDate">Paris S<sup>t</sup>-Lazare</span></div>
+          <ol class="dep-rows" id="depRows"></ol>
+        </div>
         <div class="crowd-stamp" id="crowdStamp"></div>
-        <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">수집함에 저장</button></div>
+        <!-- 끝 줄(체험 공통): 처음으로(체험 목록) | 수집함에 저장 → 저장하면 같은 자리에서 '수집함에 담았어요'(비활성). 다시 고르기는 아래 조용한 글자 링크 -->
+        <div class="btns"><button class="btn line" id="home" type="button">처음으로</button><button class="btn" id="save" type="button">수집함에 저장</button></div>
+        <button class="again-link" id="again" type="button">다시 고르기</button>
       </section>
     </div>
   </div>
@@ -746,8 +750,8 @@ window.mapData = { get M() { return M; }, get Z() { return Z; }, proj, mix, ZTIN
 initMap();
 </script>
 <script type="module">
-// ── 발권 이후 한 장의 캔버스: 3D 표(끌어서 회전·관성·광택·그림자·두 번 탭 뒤집기) → 스크롤하며 상단에 고정 → 이야기 컷(패럴랙스·등장) → 오늘의 관람객(작은 지도 위 점)
-import { createCrowd, dotsFor, split, packPoly, packDisc, discRadius, scatter, targetsFor, stampLine } from '../proto/js/crowd.js';
+// ── 발권 이후 한 장의 캔버스: 3D 표(끌어서 회전·관성·광택·그림자·두 번 탭 뒤집기) → 스크롤하며 상단에 고정 → 이야기 컷(패럴랙스·등장) → 오늘의 관람객(출발 안내판)
+import { stampLine } from '../proto/js/crowd.js';
 import { createSteam, brushDissolve, coverDraw } from './fx.js';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const TK = {"argenteuil": {"to": "ARGENTEUIL", "via": "", "prix": null}, "vernon": {"to": "VERNON", "via": "", "prix": null}, "rouen": {"to": "ROUEN", "via": "rive droite", "prix": null}, "lesifs": {"to": "LES IFS", "via": "par Beuzeville", "prix": null}, "lehavre": {"to": "LE HAVRE", "via": "par Rouen", "prix": "21<sup>f</sup>05"}};
@@ -881,59 +885,73 @@ flow.addEventListener('scroll', onScroll, { passive: true });
 wrap.addEventListener('click', () => { if (TS.state === 'docked') setTicket('open'); });
 $('#tkScrim').addEventListener('click', () => { if (TS.state === 'open') setTicket('docked'); });
 window.addEventListener('resize', layout);
-const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); if (x.target.id === 'today') startCrowd(); } }), { root: flow, threshold: 0.12 });
+const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: flow, threshold: 0.12 });
 
-// ── 오늘의 관람객: 발권 지도와 같은 자료로 작은 지도 한 장(파리 → 노르망디 해안). 영역은 고른 사람이 많을수록 짙고, 내 곳은 주황 테두리. 역마다 작은 숫자
-const NS = 'http://www.w3.org/2000/svg';
-const mk = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); parent.appendChild(n); return n; };
-let crowd = null, crowdPlan = null;
-function parsePath(d) { return d.split(/(?=M)/).filter(Boolean).map((sub) => (sub.match(/-?\d+(\.\d+)?/g) || []).map(Number)).map((nums) => { const pts = []; for (let i = 0; i + 1 < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]); return pts; }); }
-function buildTodayMap(p) {
-  const md = window.mapData, box = $('#todayMap'), svg = $('#todayMapSvg'), nums = $('#todayNums');
-  const W = box.clientWidth, H = Math.round(W * 0.58); box.style.height = `${H}px`;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = ''; nums.innerHTML = '';
-  const FIT = { lon0: -0.34, lon1: 2.8, lat0: 48.74, lat1: 49.86 }, pad = 8;
-  const [x0, y0] = md.proj(FIT.lon0, FIT.lat1), [x1, y1] = md.proj(FIT.lon1, FIT.lat0);
-  const s = Math.min((W - pad * 2) / (x1 - x0), (H - pad * 2) / (y1 - y0));
-  const tx = pad + ((W - pad * 2) - (x1 - x0) * s) / 2 - x0 * s, ty = pad + ((H - pad * 2) - (y1 - y0) * s) / 2 - y0 * s;
-  const toS = ([x, y]) => [x * s + tx, y * s + ty];
-  const max = Math.max(...Object.values(PCT));
-  mk('rect', { width: '100%', height: '100%', fill: '#E3E8E3' }, svg);
-  const world = mk('g', { transform: `translate(${tx} ${ty}) scale(${s})` }, svg);
-  mk('path', { d: md.M.land, fill: '#F3ECDB', stroke: '#8a6d47', 'stroke-width': 0.9, 'stroke-opacity': 0.7, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
-  md.ZORDER.forEach((id) => mk('path', { d: md.Z.zones[id].d, fill: md.mix('#EFE6D0', md.ZTINT[id], 0.25 + 0.75 * PCT[id] / max), stroke: '#8a6d47', 'stroke-width': 0.6, 'stroke-opacity': 0.75, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world));
-  mk('path', { d: md.M.regions.paris, fill: '#F8F0DE', stroke: '#6b5235', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' }, world);
-  mk('path', { d: md.Z.zones[p.id].d, fill: 'none', stroke: '#E0662C', 'stroke-width': 2, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
-  const seaP = toS(md.proj(-0.12, 49.7));
-  mk('text', { x: seaP[0], y: seaP[1], 'text-anchor': 'middle', class: 'lbl-sea', 'font-size': 10, fill: '#7E948E' }, svg).textContent = 'La Manche';
-  const o = toS(md.proj(...md.ORIGIN.ll));
-  mk('circle', { cx: o[0], cy: o[1], r: 3.2, fill: 'none', stroke: '#6b5235', 'stroke-width': 1.4 }, svg);
-  const regions = {};
-  md.DEST.forEach((d) => {
-    const [x, y] = toS(md.proj(...d.ll)), me = d.id === p.id;
-    mk('circle', { cx: x, cy: y, r: me ? 3.6 : 3, fill: me ? '#E0662C' : '#1E140C', stroke: '#FFF1DC', 'stroke-width': 1.6 }, svg);
-    const lab = d.lab, el = document.createElement('i'), lift = Math.max(0, discRadius(Math.round(dotsFor(VISITORS) * PCT[d.id] / 100)) - 12);   // 점 무리가 크면 이름표를 그만큼 위로
-    el.className = `crowd-num${me ? ' me' : ''} ${lab[2] === 'start' ? 'end' : lab[1] < 0 ? 'start' : ''}`;
-    el.style.left = `${(x + (lab[2] === 'start' ? lab[0] - 2 : lab[0])).toFixed(1)}px`; el.style.top = `${(y + (lab[2] === 'start' ? -9 : lab[1] < 0 ? lab[1] + 6 - lift : lab[1] - 10 + lift)).toFixed(1)}px`;
-    el.innerHTML = `${PCT[d.id]}%<small>${d.ko}${me ? ' · 나' : ''}</small>`; nums.appendChild(el);
-    // 점이 모일 자리: 영역 다각형(작으면 역을 가운데로 둥글게)
-    const subs = parsePath(md.Z.zones[d.id].d);
-    regions[d.id] = subs.length === 1 ? { poly: subs[0].map(toS) } : { disc: [x, y] };
-  });
-  return { W, H, regions };
+// ── 오늘의 관람객: 출발 안내판 한 장(들어가기 장면의 그 판). 많이 고른 순서로 다섯 줄 — 그림 한 점 · Le Havre / 르아브르 · 비율만큼 놋쇠 선 · 글자판 숫자.
+//    내 줄은 밝게 + '나', 맨 많은 곳은 '가장 많이'(같은 비율이면 둘 다). 화면에 들어오면 줄이 차례로 켜지고 숫자가 0부터 넘어가며 오른다(선도 함께)
+const flapHTML = () => '<span class="fl"><span class="h t"><b>&nbsp;</b></span><span class="h b"><b>&nbsp;</b></span><span class="h ft"><b>&nbsp;</b></span><span class="h fb"><b>&nbsp;</b></span></span>';
+function flapTo(cell, to, dur) {
+  const from = cell.dataset.v || ' '; if (from === to) return; cell.dataset.v = to;
+  const [t, b, ft, fb] = cell.children, put = (n, c) => { n.firstChild.innerHTML = c === ' ' ? '&nbsp;' : c; };
+  ft.getAnimations().forEach((a) => a.cancel()); fb.getAnimations().forEach((a) => a.cancel());
+  put(t, to); put(fb, to); put(ft, from); put(b, from);
+  if (!dur) { put(b, to); put(ft, to); return; }
+  ft.animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-90deg)' }], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+  const a = fb.animate([{ transform: 'rotateX(90deg)' }, { transform: 'rotateX(0deg)' }], { duration: dur, delay: dur, easing: 'ease-out', fill: 'backwards' });
+  a.onfinish = () => { if (cell.dataset.v === to) { put(b, to); put(ft, to); } };
 }
-function startCrowd() {
-  if (!crowdPlan) return;
-  const { W, H, regions, me } = crowdPlan; crowdPlan = null;
-  const n = dotsFor(VISITORS);
-  if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'light', n, reduceMotion: RM, seed: 9 });
-  crowd.resize();
-  const ids = window.DEST.map((d) => d.id), counts = split(n, ids.map((id) => PCT[id]));
-  const groups = ids.map((id, i) => { const r = regions[id]; return { pts: r.poly ? packPoly(counts[i], r.poly, crowd.rnd) : packDisc(counts[i], r.disc[0], r.disc[1], discRadius(counts[i]), crowd.rnd) }; });
-  crowd.place(scatter(n, { x: 6, y: 6, w: W - 12, h: H - 12 }, crowd.rnd));
-  // 점이 다 모이면 지도 위 숫자 → 아래 요약(비율을 먼저 말하지 않는다)
-  setTimeout(() => { crowd.move(targetsFor(crowd, groups, ids.indexOf(me)), { duration: 1300, stagger: 400, onDone: () => { $$('#todayNums .crowd-num').forEach((el) => el.classList.add('show')); $('#today').classList.add('settled'); } }); }, RM ? 0 : 300);
+const DIG = Math.max(2, String(Math.max(...Object.values(PCT))).length);
+const setNum = (row, v, dur) => { const s = String(v).padStart(DIG, ' '); [...row.querySelectorAll('.dep-n .fl')].forEach((c, i) => flapTo(c, s[i], dur)); };
+let depRun = 0;
+function buildBoard(p) {
+  depRun++;
+  $('#depDate').innerHTML = `Paris S<sup>t</sup>-Lazare · ${day} ${MF[mon - 1]}`;
+  const top = Math.max(...Object.values(PCT));
+  const rows = window.DEST.map((d, i) => ({ d, i, v: PCT[d.id] })).sort((a, b) => b.v - a.v || a.i - b.i);
+  $('#depRows').innerHTML = rows.map(({ d, v }) => {
+    const me = d.id === p.id, most = v === top;
+    const tags = `${me ? '<em class="tag me">나</em>' : ''}${most ? '<em class="tag most">가장 많이</em>' : ''}`;
+    const say = `${d.ko} ${v}%${me ? ', 내가 고른 곳' : ''}${most ? ', 가장 많이 고른 곳' : ''}`;
+    return `<li class="dep-row${me ? ' me' : ''}" data-v="${v}" aria-label="${say}">
+      <span class="dep-img"><img src="${NARR[d.id].paint.img}" alt="" loading="lazy" decoding="async" draggable="false"></span>
+      <span class="dep-name" aria-hidden="true"><b>${d.fr}</b><small>${d.ko}${tags}</small></span>
+      <span class="dep-n" aria-hidden="true">${flapHTML().repeat(DIG)}<i>%</i></span>
+      <span class="dep-bar" aria-hidden="true"><i style="width:${v}%"></i></span>
+    </li>`;
+  }).join('');
+  $('#dep').classList.remove('on');
+  $$('#depRows .dep-row').forEach((r) => setNum(r, 0, 0));
+  depArmed = true;
 }
+function startBoard() {
+  const run = depRun, dep = $('#dep'), rows = $$('#depRows .dep-row');
+  dep.classList.add('on');
+  if (RM) { rows.forEach((r) => { setNum(r, +r.dataset.v, 0); r.querySelector('.dep-bar i').style.transform = 'none'; }); return; }
+  // 줄은 위에서부터 110ms 간격으로 켜지고, 숫자는 그 뒤 1.5초 동안(끝이 느려지게) 오른다
+  const T0 = performance.now() + 260, DUR = 1500, GAP = 110;
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+  const tick = (now) => {
+    if (run !== depRun) return;
+    let done = true;
+    rows.forEach((r, i) => {
+      const t = clamp((now - T0 - i * GAP) / DUR, 0, 1), e = ease(t), v = +r.dataset.v;
+      if (t < 1) done = false;
+      const n = Math.round(v * e);
+      if (r._n !== n) { r._n = n; setNum(r, n, t < 1 ? 36 : 70); }
+      r.querySelector('.dep-bar i').style.transform = `scaleX(${e.toFixed(4)})`;
+    });
+    if (!done) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+// 판이 화면 아래쪽 1/4 위로 올라오면 켠다(스크롤한 뒤에만 — 발권 직후 그림이 아직 안 불러져 판이 잠깐 화면 안에 있어도 켜지지 않게)
+let depArmed = false;
+function checkBoard() {
+  if (!depArmed || flow.hidden || flow.scrollTop < 60) return;
+  const r = $('#dep').getBoundingClientRect(), fr = flow.getBoundingClientRect();
+  if (r.top < fr.top + fr.height * 0.75 && r.bottom > fr.top) { depArmed = false; startBoard(); }
+}
+flow.addEventListener('scroll', checkBoard, { passive: true });
 
 // 표가 바닥에 닿는 순간 밑에서 김이 확 밀려 나와 번진다(지도 위 · 표 뒤)
 let puff = null;
@@ -997,16 +1015,9 @@ function issue() {
   $('#pair').classList.remove('in'); io.observe($('#pair'));
   prepDissolve(pl.img, n.paint.img);
   setupPostcard(p, n, no); prepArrive();
-  // 오늘의 관람객 — 작은 지도 + 점. 내 곳만 크게, 나머지는 작은 숫자로
-  //   내 비율(큰 숫자)과 이름표는 한 기준선. 나머지 네 곳은 2열 표(이름 왼쪽 · 비율 오른쪽, 고정폭 숫자)
-  $('#todayFig').innerHTML = `<b class="rv-big">${PCT[p.id]}<i>%</i></b><span class="rv-lab">${p.ko} · 나<small>같은 곳을 고른 관람객</small></span>`;
-  $('#todayOthers').innerHTML = window.DEST.filter((d) => d.id !== p.id).map((d) => `<li><span>${d.ko}</span><b>${PCT[d.id]}<i>%</i></b></li>`).join('');
+  // 오늘의 관람객 — 출발 안내판(많이 고른 순서 · 내 줄 '나' · 맨 많은 곳 '가장 많이')
   $('#crowdStamp').textContent = stampLine(VISITORS);
-  $$('#todayNums .crowd-num').forEach((el) => el.classList.remove('show'));
-  if (crowd) crowd.stop();
-  flow.hidden = false;                                            // 폭을 재려면 보여야 한다
-  crowdPlan = { ...buildTodayMap(p), me: p.id };
-  io.observe($('#today')); $('#today').classList.remove('in', 'settled');
+  buildBoard(p);
   $('#save').textContent = '수집함에 저장'; $('#save').disabled = false; $('#collN').hidden = true; wrap.classList.remove('fly'); hero.classList.remove('saved');
   // 표시 + 발권 동작 — 지도가 어두워지고, 표가 화면 가운데에서 "쿵" 하고 만들어진 뒤(1.6 → 1.0, 짧은 되튐 · 2~3px 흔들림 · 그림자가 바닥에 붙음 · 한 박자 뒤 날짜 날인),
   //   0.6초 머문 다음 같은 요소가 그대로 상단 바 왼쪽 자리로 날아가 붙고, 아래에서 이야기가 올라온다
@@ -1201,10 +1212,11 @@ window.renderPostcard = renderPostcard;
 function leave() { TS.timers.forEach(clearTimeout); TS.timers = []; TS.state = 'idle'; flow.hidden = true; flow.classList.remove('on', 'issuing'); hero.classList.remove('issuing', 'docked', 'open'); $('#dim').classList.remove('on'); cancelAnimationFrame(raf); }
 $('#flowBack').addEventListener('click', leave);
 $('#again').addEventListener('click', () => { leave(); window.resetPick(); });     // 다시 고르기 = 지도 처음 상태로
+$('#home').addEventListener('click', () => { location.href = '../proto/index.html'; });   // 처음으로 = 체험 목록
 // 표 끊기: 확인 시트에서 → 시트를 닫고 발권
 $('#buy').addEventListener('click', () => { window.closeConfirm(); setTimeout(issue, RM ? 0 : 260); });
 $('#save').addEventListener('click', () => {
-  if (saved) return; $('#toast').textContent = '수집함에 저장했습니다'; saved = true; $('#save').disabled = true; $('#save').textContent = '저장됨';
+  if (saved) return; $('#toast').textContent = '수집함에 저장했습니다'; saved = true; $('#save').disabled = true; $('#save').textContent = '수집함에 담았어요';
   try { const p = window.getPicked(); const all = JSON.parse(localStorage.getItem('m100_choice') || '{}') || {}; all.c2 = { id: p.id, label: p.ko, year: p.year, pct: PCT[p.id], at: Date.now() }; localStorage.setItem('m100_choice', JSON.stringify(all)); } catch (e) { /* 기기 안에만 · 마지막 화면(c5)이 읽는다 */ }
   // 바에 붙은 작은 표가 그대로 수집함 아이콘으로 날아간다(같은 요소)
   setTimeout(() => {
@@ -1214,7 +1226,7 @@ $('#save').addEventListener('click', () => {
   }, RM ? 0 : 150);
   setTimeout(() => { $('#collN').hidden = false; $('#coll').classList.add('bump'); setTimeout(() => $('#coll').classList.remove('bump'), 500); const t = $('#toast'); t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); }, RM ? 100 : 1250);
 });
-window.flow = { issue, leave, R, layout, get crowd() { return crowd; } };
+window.flow = { issue, leave, R, layout, startBoard };
 </script>
 <script type="module">
 // 0 들어가기 ↔ 1 지도: 지도 화면은 밑에서 그대로 그려 두고(레이아웃 유지) 들어가기 장면만 덮었다 걷는다
