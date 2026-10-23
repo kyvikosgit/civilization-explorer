@@ -45,8 +45,28 @@ function medalSVG(id, year = true, vb = '0 0 100 100') {
 icons();
 
 // ── 1 역할: 후보작 띠 — 누르면 그 그림부터 뷰어로
-$('#candStrip').innerHTML = WORKS.map((w, i) => `<button type="button" aria-label="${w.n}번 후보작 보기" data-i="${i}"><span class="slot"><span class="cf"><span class="mat"><img src="${w.src}" alt="" draggable="false"></span></span></span><b>${w.n}</b></button>`).join('');
+$('#candStrip').innerHTML = WORKS.map((w, i) => `<button type="button" aria-label="${w.n}번 후보작 보기" data-i="${i}"><span class="cf"><span class="mat"><img src="${w.src}" alt="" draggable="false"></span></span><b>${w.n}</b></button>`).join('');
 $$('#candStrip button').forEach((b) => b.addEventListener('click', () => enterViewer(+b.dataset.i)));
+// 살롱식 걸기 — 위 줄은 큰 두 점(2 · 4), 아래 줄은 작은 세 점(1 · 3 · 5). 한 줄 안에서는 눈높이(가운데)를 맞추고, 벽 크기에 맞춰 키운다
+function hangSalon() {
+  const wallEl = $('#candStrip'), Wp = wallEl.clientWidth, Hp = wallEl.clientHeight; if (!Wp || !Hp) return;
+  const ROWS = [[1, 3], [0, 2, 4]], SIDE = 16, GAP = 14, ROWGAP = 20, FR = 10, LAB = 6 + 16, VPAD = 18;
+  const ar = (k) => WORKS[k].w / WORKS[k].h;
+  let hs = ROWS.map((r) => (Wp - SIDE * 2 - GAP * (r.length - 1) - FR * r.length) / r.reduce((a, k) => a + ar(k), 0));
+  hs[1] = Math.min(hs[1], hs[0] * 0.62);                                     // 아래 줄은 확실히 작게
+  const tot = (h) => h.reduce((a, x) => a + x + FR + LAB, 0) + ROWGAP;
+  const k = Math.min(1, (Hp - VPAD * 2) / tot(hs)); hs = hs.map((h) => h * k);
+  let y = (Hp - tot(hs)) / 2;
+  const btns = $$('#candStrip button');
+  ROWS.forEach((r, ri) => {
+    const h = hs[ri], ws = r.map((i) => h * ar(i) + FR), rowW = ws.reduce((a, b) => a + b, 0) + GAP * (r.length - 1);
+    let x = (Wp - rowW) / 2;
+    r.forEach((i, j) => { const b = btns[i]; b.style.width = `${ws[j].toFixed(1)}px`; b.style.transform = ''; b.style.left = `${x.toFixed(1)}px`; b.style.top = `${y.toFixed(1)}px`; x += ws[j] + GAP; });
+    y += h + FR + LAB + ROWGAP;
+  });
+  wallEl.classList.add('hung');
+}
+new ResizeObserver(hangSalon).observe($('#candStrip'));
 
 $('#cardMedal').innerHTML = medalSVG('k');
 $('#awardMedal').innerHTML = medalSVG('a', false);

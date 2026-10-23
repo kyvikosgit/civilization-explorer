@@ -3,7 +3,8 @@
    살롱 벽은 experience/img/r_C0_a.jpg (전시실5 렌더)의 재료: 적갈색 다마스크 벽지 · 회반죽 코니스 · 나무 징두리 · 금박 액자 · 금색 번호판 · 붉은 로프 */
 
 /* 1 역할 */
-.role { flex: 1; min-height: 0; overflow: auto; padding: 8px var(--pad) 0; }
+.role { flex: 1; min-height: 0; overflow: auto; padding: 8px var(--pad) 0; display: flex; flex-direction: column; }
+.role > * { flex: none; }
 .role h1 { font-size: 28px; line-height: 1.22; margin-top: 8px; }
 .role .rule { margin-top: 14px; }
 .role .lead { margin: 14px 0 0; }
@@ -21,17 +22,20 @@
 /* 작은 주황 글씨는 흰 바탕에서 읽히는 짙은 주황(5.1:1) */
 .c0 .eyebrow { color: #B4501F; }
 
-/* 역할 화면의 후보작 띠 — 현장과 같은 한 줄, 번호판 위, 금박 액자. 눈높이(가운데 선)에 맞춰 정렬 */
-.cands { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; align-items: stretch; margin: 22px 0 20px; padding: 18px 10px 10px; border-radius: 8px;
+/* 역할 화면의 후보작 벽 — 화면의 주인공. 같은 적갈색 살롱 벽에 다섯 점을 살롱식으로(두 줄, 크기 제각각) 건다. 단추 위 24px 까지 채운다.
+   자리·크기는 c0.js hangSalon() 이 벽 크기에 맞춰 계산 */
+.cands { position: relative; flex: 1 0 240px; margin: 18px 0 12px; border-radius: 8px; overflow: hidden;
   background:
+    radial-gradient(90% 60% at 50% 42%, rgba(255,200,150,.12), rgba(255,190,140,0) 70%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.13' stroke-width='1.2'%3E%3Cpath d='M32 4c6 8 12 12 24 14-12 2-18 6-24 14-6-8-12-12-24-14 12-2 18-6 24-14z'/%3E%3Ccircle cx='32' cy='18' r='3'/%3E%3C/g%3E%3C/svg%3E") 0 0/64px 64px,
     linear-gradient(180deg, #7A3233, #5A2122); }
-.cands button { position: relative; display: grid; grid-template-rows: 1fr auto; gap: 8px; width: 100%; transition: transform .18s var(--ease-out); }
-.cands button:active { transform: scale(.96); }
-.cands .slot { display: grid; align-items: center; }
-/* 번호는 한 줄에 — 액자 높이가 달라도 같은 높이 */
-.cands button b { display: block; text-align: center; font-family: var(--display); font-weight: 600; font-size: 13px; line-height: 1; color: rgba(255,247,234,.82); }
-.cands .cf { display: block; padding: 4px; border-radius: 1px; }
+.cands button { position: absolute; left: 0; top: 0; display: grid; gap: 6px; justify-items: center; transition: transform .18s var(--ease-out); visibility: hidden; }
+.cands.hung button { visibility: visible; }
+.cands button:active { transform: scale(.97); }
+/* 번호판 — 액자 아래 작은 금색 판 */
+.cands button b { display: block; min-width: 20px; padding: 3px 6px 2px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 11.5px; line-height: 1; color: #2E1F05; border-radius: 1px;
+  background: linear-gradient(180deg, #F4DB92, #C9A14A 55%, #8E6A26); box-shadow: 0 1px 2px rgba(0,0,0,.45); }
+.cands .cf { display: block; width: 100%; padding: 4px; border-radius: 1px; }
 .cands .cf .mat { display: block; background: #1A100C; padding: 1px; }
 .cands img { width: 100%; height: auto; pointer-events: none; -webkit-user-drag: none; }
 
