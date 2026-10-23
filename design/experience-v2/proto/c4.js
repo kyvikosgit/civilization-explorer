@@ -3,9 +3,11 @@
 //   1. 사진관 벽(3D): 24명의 초상화가 살롱식으로 — 액자마다 몰딩 단면 · 크기 · 깊이 · 기울기가 다르고, 찬장 위 · 이젤에도 놓였다.
 //      카메라가 벽을 따라 천천히 흐르고 끌면 둘러본다. 액자를 누르면 그 사람이 섬광과 함께 사진으로 현상된다(다시 누르면 니스 빛으로 그림).
 //      아래 "초상화 | 사진"을 누르면 벽 전체가 누른 쪽에서부터 물결처럼 바뀐다. "당신이라면?" → 2.
-//   2. 질문: 벽이 가장 가까운 칸 사이에서 두 문처럼 열리고(왼쪽 그림 · 오른쪽 사진) 그 위에 "사람을 남긴다면, 그림입니까 사진입니까?".
-//      반쪽을 누르면 사진 = 섬광과 연기, 그림 = 니스 빛 → 그 문이 화면을 채운다 → 두 문이 닫히며 이음매가 오늘의 비율 자리로, 큰 숫자가 올라간다. 뒤로(‹) → 1.
-//   (+) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js) 재사용
+//   2. 질문: 3D 벽이 어둠으로 물러나고, 뒤로 흐릿한 두 줄기(왼쪽 그림은 위로, 오른쪽 사진은 아래로) 위에 "사람을 남긴다면, 그림입니까 사진입니까?".
+//      반쪽을 누르면 사진 = 섬광과 연기, 그림 = 니스 빛 → 그쪽 줄기가 화면을 채운다 → 두 줄기가 오늘의 비율대로 나뉘고 큰 숫자가 올라간다. 뒤로(‹) → 1.
+//      끝 단추 공통: [처음으로 | 수집함에 저장] + 다시 고르기(글자 링크). 저장은 수집함(기기 안)으로, 이미지 내려받기 아님
+//   (+) 내 초상(선택): 전면 카메라(또는 데모 이미지) → 노출 4초 → 같은 한 장에서 두 벌: 19세기 사진(booth/js/nadar.js) · 유화 초상(c4-paint.js)
+//      → 한 틀 안에서 가운데 막대를 끌어 비교(왼쪽 초상화 | 오른쪽 사진)
 // 인물 · 출처: js/c4-people.json · 얼굴 틀: img/c4p/build.py · 거리 사진: img/c4n/build.py. 서버 없음, 업로드 없음.
 import { loadImage, startCamera, stopCamera, cameraErrorText, toast } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
@@ -13,6 +15,7 @@ import { stampLine } from './js/crowd.js';
 import * as N from '../../../booth/js/nadar.js';
 import { createSteam } from './js/fx-steam.js';
 import { createNadar } from './c4-3d.js';
+import * as P from './c4-paint.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
@@ -30,8 +33,9 @@ $$('.tab').forEach((t) => t.addEventListener('click', () => {
   $$('.screen').forEach((s) => { s.hidden = s.dataset.screen !== t.dataset.tab; });
   const me = t.dataset.tab === 'me';
   if (!me) stopCamera($('#cam'));
-  gl.hidden = me; document.body.classList.toggle('on-me', me);
-  if (N3) N3.setActive(!me && document.visibilityState === 'visible');
+  gl.hidden = me || view === 'q'; document.body.classList.toggle('on-me', me);
+  if (N3) N3.setActive(!me && view !== 'q' && document.visibilityState === 'visible');
+  syncFlow();
   window.scrollTo(0, 0);
 }));
 // 뒤로: 질문 화면이면 벽으로, 벽(또는 내 초상)이면 목록으로
@@ -55,23 +59,56 @@ function setMode(m) { segUI(m); if (N3 && N3.setAll(m === 'photo')) buzz(); hint
 $$('#seg button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.m)));
 const hint = (on) => $('#wHint').classList.toggle('off', !on);
 
-// ── 화면 전환 — 3D 벽이 두 문으로 열린다(왼쪽 그림 · 오른쪽 사진). 돌아올 때는 문이 닫히고 다시 흐른다
-let doorBusy = false;
-async function showQ() {
-  if (doorBusy || view === 'q' || !N3) return;
-  doorBusy = true; buzz(); pick(null);
-  view = 'q'; stage.dataset.view = 'q';
-  qView.classList.remove('q-in'); void qView.offsetWidth; qView.classList.add('q-in');
-  await N3.toQuestion();
-  doorBusy = false;
-  setTimeout(() => qView.classList.remove('q-in'), 1600);
+// ── 질문 뒤 두 줄기: 반쪽 폭에 두 칸 엇갈림(한 줄 간격 rs, 24장 = 12줄 → 주기 12·rs). 그림 줄기는 위로, 사진 줄기는 아래로 초당 10px, 흐리게
+function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle(a, rnd) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function stream(k, Wh, seed) {
+  const rnd = rng(seed), order = shuffle(PEOPLE.map((p) => p.id), rnd), w = Math.round(Wh * 0.4), h = Math.round(w * (k === 'paint' ? 1.25 : 1.5)), rs = h + 30, H = 12 * rs;
+  const one = (dy) => order.map((id, i) => {
+    const c = i % 2, x = Math.round(c ? Wh * 0.53 : Wh * 0.07) + Math.round((rnd() - 0.5) * 8), y = Math.floor(i / 2) * rs + (c ? rs / 2 : 0) + dy;
+    return `<i class="qt ${k}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><img src="${thumb(id, k)}" alt="" draggable="false" decoding="async"></i>`;
+  }).join('');
+  return { html: one(0) + one(H), H };
 }
-async function showWall() {
-  if (doorBusy || !N3) return;
-  doorBusy = true; pick(null, true);
-  view = 'wall'; stage.dataset.view = 'wall';
-  await N3.toWall();
-  doorBusy = false;
+let qAnims = [], qsW = 0;
+const up = (h) => [{ transform: 'translateY(0)' }, { transform: `translateY(${-h}px)` }], down = (h) => [{ transform: `translateY(${-h}px)` }, { transform: 'translateY(0)' }];
+function buildStreams() {
+  const W = Math.round(stage.getBoundingClientRect().width); if (!W || W === qsW || !PEOPLE.length) return;
+  qsW = W; qAnims.forEach((a) => a.cancel()); qAnims = [];
+  const Wh = Math.round(W / 2), sp = stream('paint', Wh, 21), so = stream('photo', Wh, 23);
+  [['#qsPaint', sp], ['#qsPhoto', so]].forEach(([q, st]) => { const t = $(q); t.style.width = `${Wh}px`; t.style.marginLeft = `${-Wh / 2}px`; t.style.height = `${st.H * 2}px`; t.innerHTML = st.html; });
+  if (REDUCED) return;
+  const b1 = $('#qsPaint').animate(up(sp.H), { duration: (sp.H / 10) * 1000, iterations: Infinity }), b2 = $('#qsPhoto').animate(down(so.H), { duration: (so.H / 10) * 1000, iterations: Infinity });
+  b1.currentTime = 0.3 * b1.effect.getTiming().duration; b2.currentTime = 0.6 * b2.effect.getTiming().duration;
+  qAnims = [b1, b2]; syncFlow();
+}
+function syncFlow() {
+  const on = !stage.hidden && view === 'q' && document.visibilityState === 'visible';
+  qAnims.forEach((a) => { if (on && a.playState !== 'running') a.play(); else if (!on && a.playState === 'running') a.pause(); });
+}
+document.addEventListener('visibilitychange', syncFlow);
+let rsT = 0; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(buildStreams, 200); });
+
+// ── 화면 전환 — 3D 벽은 어둠으로 물러나고(멈춤) 두 줄기가 떠오른다. 돌아오면 벽이 다시 밝아지며 흐른다
+let doorBusy = false, glT = 0;
+function showQ() {
+  if (doorBusy || view === 'q') return;
+  doorBusy = true; buzz(); pick(null);
+  buildStreams();
+  view = 'q'; stage.dataset.view = 'q'; document.body.classList.add('on-q');
+  qView.classList.remove('q-in'); void qView.offsetWidth; qView.classList.add('q-in');
+  syncFlow();
+  clearTimeout(glT); glT = setTimeout(() => { if (view !== 'q') return; gl.hidden = true; if (N3) N3.setActive(false); }, REDUCED ? 0 : 650);
+  setTimeout(() => { doorBusy = false; }, REDUCED ? 0 : 500);
+  setTimeout(() => qView.classList.remove('q-in'), 2000);
+}
+function showWall() {
+  if (view !== 'q') return;
+  pick(null);
+  clearTimeout(glT); gl.hidden = false;
+  view = 'wall'; stage.dataset.view = 'wall'; document.body.classList.remove('on-q');
+  if (N3) N3.setActive(document.visibilityState === 'visible');
+  syncFlow();
 }
 $('#toQ').addEventListener('click', showQ);
 
@@ -80,10 +117,8 @@ const STANCES = { paint: { label: '그림', full: '그림으로', pct: 44 }, pho
 const VISITORS = '1,712';
 let stance = null, revealT = 0, countRaf = 0;
 const flood = $('#flood');
-function pick(k, noDoors = false) {
-  const had = stance;
+function pick(k) {
   stance = k; clearTimeout(revealT); cancelAnimationFrame(countRaf);
-  if (N3 && view === 'q' && !noDoors) { if (k) N3.choose(k); else if (had) N3.unchoose(); }
   if (k) qView.dataset.pick = k; else delete qView.dataset.pick;
   qView.classList.remove('split', 'swept'); qView.style.setProperty('--pa', '50%'); qView.style.setProperty('--pp', '50%');
   $('#reveal').classList.remove('on');
@@ -102,20 +137,17 @@ $$('.half').forEach((b) => b.addEventListener('click', () => { if (!stance) pick
 
 // ── 오늘의 관람객: 화면을 채운 반쪽이 물러나며 두 반쪽이 오늘의 비율대로 다시 나뉜다(폭 = 비율). 그 위에 큰 숫자가 0에서 올라가고, 끝나면 빛이 한 번 지나간다. 점은 쓰지 않는다
 const KEYS = ['paint', 'photo'];
-let lastCard = null;
 const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 function reveal() {
   if (!stance) return;
   const rv = $('#reveal'); rv.classList.add('on'); $('#rvScroll').scrollTop = 0;
   $('#crowdStamp').textContent = stampLine(VISITORS);
   $('#spCap').textContent = `오늘의 관람객 ${VISITORS}명`;
-  $('#mineCard').hidden = true; lastCard = null;
-  const sv = $('#saveStance'); sv.disabled = false; sv.classList.remove('done'); $('#saveLab').textContent = '카드 저장';
+  markSaved($('#saveStance'), false);
   qView.style.setProperty('--sheetH', `${rv.offsetHeight + 8}px`);
   const sns = KEYS.map((k) => { const el = $(`.sn[data-k="${k}"]`); el.classList.toggle('me', k === stance); return el.querySelector('.cnt'); });
   const pa = STANCES.paint.pct;
   qView.classList.add('split');
-  if (N3) N3.split(pa);
   requestAnimationFrame(() => { qView.style.setProperty('--pa', `${pa}%`); qView.style.setProperty('--pp', `${100 - pa}%`); });
   if (REDUCED) { sns.forEach((c, i) => { c.textContent = STANCES[KEYS[i]].pct; }); return; }
   const t0 = performance.now() + 250, D = 1250;
@@ -128,61 +160,13 @@ function reveal() {
 }
 $('#again').addEventListener('click', () => pick(null));
 
-// ── 카드: 고른 쪽 24명(그림은 금테, 사진은 금선 아치 창) + "나는 ○○으로 남긴다"
-const loadImg = (src) => new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
-function arch(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x, y + h); g.lineTo(x, y + r); g.ellipse(x + w / 2, y + r, w / 2, r, 0, Math.PI, 0); g.lineTo(x + w, y + h); g.closePath(); }
-async function card(k) {
-  const W = 1080, H = 1350, c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d');
-  const bg = g.createRadialGradient(W / 2, H * 0.48, 80, W / 2, H * 0.48, H * 0.8); bg.addColorStop(0, k === 'paint' ? '#3A2A20' : '#2E241B'); bg.addColorStop(1, '#0F0E0D');
-  g.fillStyle = bg; g.fillRect(0, 0, W, H);
-  g.textAlign = 'center';
-  g.fillStyle = '#FFFFFF'; g.font = '800 72px Paperlogy, Freesentation, sans-serif'; g.fillText(`나는 ${STANCES[k].full} 남긴다`, W / 2, 176);
-  const cols = 6, rows = 4, gap = 18, cw = 142, ch = Math.round(cw * 1.25), x0 = (W - cols * cw - (cols - 1) * gap) / 2, y0 = 262;
-  const ims = await Promise.all(PEOPLE.map((p) => loadImg(thumb(p.id, k))));
-  PEOPLE.slice(0, cols * rows).forEach((p, i) => {
-    const x = x0 + (i % cols) * (cw + gap), y = y0 + Math.floor(i / cols) * (ch + gap + 26);
-    g.save();
-    if (k === 'paint') {
-      const gr = g.createLinearGradient(x, y, x + cw, y + ch); gr.addColorStop(0, '#C9A24E'); gr.addColorStop(0.4, '#E2C26A'); gr.addColorStop(0.7, '#8A6526'); gr.addColorStop(1, '#D7B45A');
-      g.fillStyle = gr; g.fillRect(x - 7, y - 7, cw + 14, ch + 14); g.fillStyle = '#120E0B'; g.fillRect(x, y, cw, ch);
-      if (ims[i]) g.drawImage(ims[i], x, y, cw, ch);
-    } else {
-      arch(g, x, y, cw, ch, cw * 0.5 * 0.62); g.save(); g.clip(); if (ims[i]) g.drawImage(ims[i], x, y, cw, ch); g.restore();
-      arch(g, x, y, cw, ch, cw * 0.5 * 0.62); g.strokeStyle = '#D9B86A'; g.lineWidth = 3; g.stroke();
-    }
-    g.restore();
-    g.fillStyle = 'rgba(255,255,255,.72)'; let fs = 19; g.font = `500 ${fs}px Freesentation, sans-serif`;
-    while (fs > 12 && g.measureText(p.name).width > cw + gap - 6) { fs -= 1; g.font = `500 ${fs}px Freesentation, sans-serif`; }
-    g.fillText(p.name, x + cw / 2, y + ch + 30);
-  });
-  g.fillStyle = 'rgba(255,255,255,.5)'; g.font = 'italic 400 26px Georgia, "Times New Roman", serif';
-  g.fillText('Nadar · 35, boulevard des Capucines', W / 2, H - 92);
-  return c;
-}
-async function shareCanvas(cv, name) {
-  const blob = await new Promise((r) => cv.toBlob(r, 'image/jpeg', 0.9));
-  if (!blob) return false;
-  const file = new File([blob], name, { type: 'image/jpeg' });
-  const touch = matchMedia('(pointer: coarse)').matches;
-  if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file] }); return true; } catch (e) { if (e && e.name === 'AbortError') return true; }
-  }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  return true;
-}
-$('#saveStance').addEventListener('click', async () => {
-  if (!stance) return;
-  const s = STANCES[stance], sv = $('#saveStance');
-  sv.disabled = true;
-  saveChoice('c4', { stance, label: s.label, pct: s.pct });
-  try {
-    lastCard = await card(stance);
-    $('#mineImg').src = lastCard.toDataURL('image/jpeg', 0.7); $('#mineLabel').textContent = '카드 한 장'; $('#mineCard').hidden = false;
-    await shareCanvas(lastCard, `nadar_나는${s.full}.jpg`);
-  } catch (e) { console.warn('[c4] card', e); toast('입장을 저장했습니다'); }
-  sv.disabled = false; sv.classList.add('done'); $('#saveLab').textContent = '다시 받기';
+// ── 끝 단추 공통: 처음으로(체험 목록) · 수집함에 저장(이미지 내려받기 아님) → 같은 자리에서 '수집함에 담았어요'(자리 · 높이 그대로)
+function markSaved(b, on) { b.disabled = on; b.textContent = on ? '수집함에 담았어요' : '수집함에 저장'; }
+$('#saveStance').addEventListener('click', () => {
+  const b = $('#saveStance'); if (!stance || b.disabled) return;
+  const s = STANCES[stance];
+  saveChoice('c4', { stance, label: s.label, pct: s.pct });   // 기기 안에만 · 출구 화면이 읽는다
+  markSaved(b, true); buzz(); toast('수집함에 저장했습니다');
 });
 
 // ── 들어가기(3D 거리 → 섬광 → 사진관). 누르면 건너뜀. 화면 위층: 안개(2D) · 흰 섬광 · 마그네슘 연기
@@ -223,6 +207,7 @@ window.__c4intro = { skip };
 (async () => {
   const data = await fetch('js/c4-people.json').then((r) => r.json());
   PEOPLE = data.people; PEOPLE.forEach((p) => { BYID[p.id] = p; });
+  buildStreams();
   const order = [...HANG.filter((id) => BYID[id]), ...PEOPLE.map((p) => p.id).filter((id) => !HANG.includes(id))].map((id) => BYID[id]);
   await Promise.race([document.fonts ? document.fonts.load('80px Sacramento').catch(() => {}) : null, new Promise((r) => setTimeout(r, 1500))]);
   try {
@@ -239,20 +224,23 @@ window.__c4intro = { skip };
   });
 })();
 
-// ── 내 초상
-const video = $('#cam'), plate = $('#plate'), result = $('#photoOut'), still = $('#still');
+// ── 내 초상 — 카메라(또는 데모 이미지) → 노출 4초 → 같은 한 장(3:4)에서 사진 · 초상화 두 벌 → 한 틀 안 가운데 막대로 비교
+const video = $('#cam'), plate = $('#plate'), still = $('#still'), duo = $('#duo');
 let source = null;   // 'cam' | 'demo'
 const DEMO = '../../../booth/assets/concept/c4_demo_portrait.jpg';
 function meState(s) {
   $('#meActions').hidden = s !== 'idle';
   $('#meShoot').hidden = s !== 'ready';
   $('#meDone').hidden = s !== 'done';
-  plate.classList.toggle('done', s === 'done');
+  const done = s === 'done';
+  plate.hidden = done; duo.hidden = !done; $('#plateFoot').hidden = done;
+  document.body.classList.toggle('me-done', done);
+  $('#meSub').textContent = done ? '가운데 막대를 끌어 보세요' : '노출 4초 · 사진과 초상화, 기기 안에서만';
 }
 async function camOn() {
   try {
     await startCamera(video, 'user');
-    $('#camOff').hidden = true; still.hidden = true; result.hidden = true; video.hidden = false;
+    $('#camOff').hidden = true; still.hidden = true; video.hidden = false;
     source = 'cam'; meState('ready');
   } catch (e) {
     $('#camMsg').textContent = `${cameraErrorText(e)} 아래 ‘데모 이미지로’를 눌러 이어갈 수 있습니다.`;
@@ -260,13 +248,14 @@ async function camOn() {
 }
 async function demoOn() {
   stopCamera(video);
-  still.src = DEMO; still.hidden = false; video.hidden = true; result.hidden = true; $('#camOff').hidden = true;
+  still.src = DEMO; still.hidden = false; video.hidden = true; $('#camOff').hidden = true;
   source = 'demo'; meState('ready');
 }
 $('#camStart').addEventListener('click', camOn);
 $('#camDemo').addEventListener('click', demoOn);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const frame2 = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 function grab() {
   // 지금 비치는 장면 한 장 (카메라는 거울상이므로 좌우를 되돌린다)
   const c = document.createElement('canvas');
@@ -278,7 +267,7 @@ function grab() {
   }
   return c;
 }
-function runWorker(comp, ms = 9000) {
+function runWorker(comp, kind, ms = 12000) {
   const w = comp.width, h = comp.height;
   const data = comp.getContext('2d').getImageData(0, 0, w, h);
   const wk = new Worker('../../../booth/js/filters-worker.js');
@@ -286,73 +275,112 @@ function runWorker(comp, ms = 9000) {
     const t = setTimeout(() => { wk.terminate(); rej(new Error('worker_timeout')); }, ms);
     wk.onmessage = (e) => { clearTimeout(t); wk.terminate(); const m = e.data; if (m.error) return rej(new Error(m.error));
       const c = document.createElement('canvas'); c.width = m.w; c.height = m.h; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(m.buf), m.w, m.h), 0, 0); res(c); };
-    wk.onerror = (e) => { clearTimeout(t); wk.terminate(); rej(new Error('worker_error')); };
-    wk.postMessage({ id: 1, w, h, buf: data.data.buffer, kinds: ['photo'] }, [data.data.buffer]);
+    wk.onerror = () => { clearTimeout(t); wk.terminate(); rej(new Error('worker_error')); };
+    wk.postMessage({ id: 1, w, h, buf: data.data.buffer, kinds: [kind] }, [data.data.buffer]);
   });
 }
-// 부스 파이프라인 결과(900×1200 카드)에서 판 영역(60,60,780,1040)만 꺼내 카르트 드 비지트 틀에 얹는다
-function carte(card, engine) {
-  const W = 900, H = 1290, c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d');
-  g.fillStyle = '#E3D6B6'; g.fillRect(0, 0, W, H);
-  const paper = g.createLinearGradient(0, 0, W, H); paper.addColorStop(0, 'rgba(255,255,255,.18)'); paper.addColorStop(1, 'rgba(90,60,20,.12)');
-  g.fillStyle = paper; g.fillRect(0, 0, W, H);
-  const px = 70, py = 70, pw = W - 140, ph = pw * 4 / 3;
-  g.drawImage(card, 60, 60, 780, 1040, px, py, pw, ph);
-  g.strokeStyle = 'rgba(120,90,40,.9)'; g.lineWidth = 2; g.strokeRect(px - 12, py - 12, pw + 24, ph + 24);
-  g.strokeStyle = 'rgba(120,90,40,.5)'; g.lineWidth = 1; g.strokeRect(px - 20, py - 20, pw + 40, ph + 40);
-  g.fillStyle = '#3B2A12'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.font = '700 46px Georgia, "Times New Roman", serif'; g.fillText('NADAR', W / 2, py + ph + 66);
-  g.font = '400 24px Georgia, "Times New Roman", serif'; g.fillStyle = 'rgba(59,42,18,.8)';
-  g.fillText('35, Boulevard des Capucines · Paris', W / 2, py + ph + 108);
-  g.font = '400 18px Freesentation, sans-serif'; g.fillStyle = 'rgba(59,42,18,.55)';
-  g.fillText(`MONET 100 · C4 · 기기 안에서 변환(${engine})`, W / 2, H - 36);
-  return c;
-}
-let last = null;
+let frames = null;   // { paint, photo } — 900×1220 두 장, 창은 같은 자리
 async function exposeAndDevelop() {
   if (!source) return;
-  const count = $('#count'), num = $('#countNum');
+  const count = $('#count'), num = $('#countNum'), busy = $('#busy'), bt = $('#busyTxt');
   count.hidden = false; $('#meShoot').hidden = true;
   for (let n = 4; n >= 1; n--) { num.textContent = n; await sleep(REDUCED ? 250 : 1000); }
   count.hidden = true;
   const snap = grab();
-  $('#busy').hidden = false;
-  await sleep(30);
-  let card = null, engine = 'webgl';
-  try {
-    const comp = N.cropTo34(snap);
-    try { card = N.renderPhoto19(comp, null); }
-    catch (e) { console.warn('[c4] webgl', e); engine = 'canvas'; try { card = N.mountFallback(await runWorker(comp)); } catch (err) { console.warn('[c4] worker', err); engine = 'quick'; card = N.quickPhoto(comp); } }
-  } catch (e) { console.error(e); $('#busy').hidden = true; meState('ready'); return toast('현상에 실패했습니다. 다시 찍어 주세요.'); }
-  last = carte(card, engine);
-  result.width = last.width; result.height = last.height; result.getContext('2d').drawImage(last, 0, 0);
-  result.hidden = false; video.hidden = true; still.hidden = true;
-  $('#busy').hidden = true;
   stopCamera(video);
+  if (source === 'cam') { still.src = snap.toDataURL('image/jpeg', 0.9); still.hidden = false; video.hidden = true; }
+  bt.textContent = '사진 현상 중'; busy.hidden = false;
+  await frame2();
+  let comp, card;
+  try {
+    comp = N.cropTo34(snap);
+    try { card = N.renderPhoto19(comp, null); }
+    catch (e) { console.warn('[c4] webgl', e); try { card = N.mountFallback(await runWorker(comp, 'photo')); } catch (err) { console.warn('[c4] worker', err); card = N.quickPhoto(comp); } }
+  } catch (e) { console.error(e); busy.hidden = true; meState('ready'); return toast('현상에 실패했습니다. 다시 찍어 주세요.'); }
+  // 같은 한 장을 화가가 그린다 — 붓질 수만 번(1–3초)
+  bt.textContent = '초상화 그리는 중'; await frame2();
+  let painted;
+  try { painted = P.paintPortrait(comp); }
+  catch (e) { console.warn('[c4] paint', e); try { painted = await runWorker(comp, 'paint'); } catch (err) { console.warn('[c4] paint worker', err); painted = comp; } }
+  frames = { paint: P.framePaint(painted), photo: P.framePhoto(card) };
+  [['#duoPaint', frames.paint], ['#duoPhoto', frames.photo]].forEach(([q, f]) => { const c = $(q); c.width = f.width; c.height = f.height; c.getContext('2d').drawImage(f, 0, 0); });
+  busy.hidden = true;
+  markSaved($('#saveMe'), false);
   meState('done');
+  slider.reset();
 }
 $('#shoot').addEventListener('click', exposeAndDevelop);
-$('#again2').addEventListener('click', () => { result.hidden = true; last = null; if (source === 'cam') camOn(); else demoOn(); });
-$('#saveMe').addEventListener('click', async () => {
-  if (!last) return;
-  const blob = await new Promise((r) => last.toBlob(r, 'image/jpeg', 0.92));
-  if (!blob) return toast('저장에 실패했습니다.');
-  const file = new File([blob], 'nadar_내초상.jpg', { type: 'image/jpeg' });
-  const touch = matchMedia('(pointer: coarse)').matches;
-  if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  toast('초상을 저장했습니다.');
+$('#again2').addEventListener('click', () => { frames = null; slider.stop(); if (source === 'cam') { meState('idle'); camOn(); } else demoOn(); });
+
+// ── 가운데 막대 — 틀 어디를 눌러 끌어도 따라온다. 끄는 동안은 손가락 그대로, 눌러 옮길 때는 부드럽게 따라붙는다
+//    보이는 것만 움직인다: 덮개(초상화)는 바깥 상자 · 안쪽 그림을 서로 반대로 옮겨(transform) 잘라 보인다 — 다시 그리기 없음
+const slider = (() => {
+  const clip = $('#duoClip'), inner = $('#duoPaint'), handle = $('#duoHandle'), labP = $('#labPaint'), labF = $('#labPhoto');
+  let W = 0, pos = 0.5, target = 0.5, drag = null, raf = 0, intro = null;
+  const apply = () => {
+    const x = Math.round(pos * W * 2) / 2;
+    clip.style.transform = `translate3d(${x - W}px,0,0)`; inner.style.transform = `translate3d(${W - x}px,0,0)`;
+    handle.style.transform = `translate3d(${x}px,0,0)`;
+    labP.style.opacity = Math.min(1, Math.max(0, (pos - 0.14) / 0.1)); labF.style.opacity = Math.min(1, Math.max(0, (0.86 - pos) / 0.1));
+    const v = Math.round(pos * 100); handle.setAttribute('aria-valuenow', v); handle.setAttribute('aria-valuetext', `초상화 ${v}% · 사진 ${100 - v}%`);
+  };
+  const tick = (now) => {
+    raf = 0;
+    if (intro) { const t = Math.min(1, (now - intro.t0) / intro.d); target = intro.f(t); if (t >= 1) intro = null; pos = target; }
+    else if (drag || REDUCED) pos = target;
+    else pos += (target - pos) * 0.22;
+    if (Math.abs(target - pos) < 0.0006) pos = target;
+    apply();
+    if (intro || pos !== target) raf = requestAnimationFrame(tick);
+  };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  const measure = () => { W = duo.offsetWidth; apply(); };   // offsetWidth — 나타나는 동안의 scale 에 흔들리지 않게
+  const at = (e) => { const r = duo.getBoundingClientRect(); return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); };
+  duo.addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return;
+    intro = null; drag = { id: e.pointerId }; duo.classList.add('dragging');
+    try { duo.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+    target = at(e); kick();
+    if (e.pointerType !== 'mouse') e.preventDefault();
+  });
+  duo.addEventListener('pointermove', (e) => { if (!drag || e.pointerId !== drag.id) return; target = at(e); pos = target; kick(); });
+  const end = (e) => { if (!drag || e.pointerId !== drag.id) return; drag = null; duo.classList.remove('dragging'); };
+  duo.addEventListener('pointerup', end); duo.addEventListener('pointercancel', end); duo.addEventListener('lostpointercapture', end);
+  handle.addEventListener('keydown', (e) => {
+    const k = { ArrowLeft: -0.05, ArrowRight: 0.05, PageDown: -0.2, PageUp: 0.2, Home: -1, End: 1 }[e.key];
+    if (k === undefined) return; e.preventDefault(); intro = null;
+    target = Math.min(1, Math.max(0, target + k)); kick();
+  });
+  addEventListener('resize', () => { if (!duo.hidden) measure(); });
+  const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  return {
+    // 처음엔 가운데. 움직임을 줄이지 않았다면 한 번 살짝 좌우로 — 끌 수 있다는 걸 보여 준다(손대면 바로 멈춤)
+    reset() {
+      measure(); pos = target = 0.5; apply();
+      if (REDUCED) return;
+      const t0 = performance.now() + 650;
+      intro = { t0, d: 1500, f: (t) => (t <= 0 ? 0.5 : 0.5 + Math.sin(ease(t) * Math.PI * 2) * 0.11 * (1 - t * 0.3)) };
+      kick();
+    },
+    stop() { intro = null; },
+    get pos() { return pos; }, set: (v) => { intro = null; target = v; kick(); },
+  };
+})();
+
+$('#saveMe').addEventListener('click', () => {
+  const b = $('#saveMe'); if (!frames || b.disabled) return;
+  // 수집함(기기 안)에 반반 한 장 — 왼쪽 초상화 | 오른쪽 사진. 작은 크기로만(기기 저장 공간)
+  let img = '';
+  try { img = P.duoCard(frames.paint, frames.photo, 300).toDataURL('image/jpeg', 0.72); } catch (e) { /* noop */ }
+  saveChoice('c4me', { kind: 'portrait-duo', img });
+  markSaved(b, true); buzz(); toast('수집함에 저장했습니다');
 });
 meState('idle');
 void loadImage;
 // 검수용
 window.__c4 = { get stance() { return stance; }, get intro() { return introState; }, get people() { return PEOPLE.length; }, get view() { return view; }, get mode() { return mode; },
   get photos() { return N3 ? PEOPLE.filter((p) => N3.isPhoto(p.id)).length : 0; }, get flowing() { return !!N3 && N3.flowing; }, get frames() { return N3 ? N3.frames : 0; },
-  get card() { return !!lastCard; }, cardURL: () => lastCard && lastCard.toDataURL('image/jpeg', 0.85), pick, setMode, showQ, showWall, tapFrame, get n3() { return N3; } };
+  pick, setMode, showQ, showWall, tapFrame, get n3() { return N3; }, get slider() { return slider; }, get duo() { return !!frames; } };
 // 다른 페이지로 — 화면이 어둠으로 잠긴 뒤 넘어간다(끊긴 페이지 전환 없이)
 document.addEventListener('click', (e) => {
   const a = e.target.closest('a[href]'); if (!a || a.hasAttribute('download') || e.defaultPrevented || a.target) return;

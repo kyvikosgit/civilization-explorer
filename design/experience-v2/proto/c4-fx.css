@@ -1,4 +1,4 @@
-/* C4 효과 — 들어가기(밤의 나다르 사진관 정면 → 서명 간판 → 마그네슘 섬광 → 안으로) · 벽이 두 문처럼 갈라지는 질문 · 고른 쪽의 섬광 / 니스 빛 · 비율대로 나뉜 두 반쪽과 큰 숫자.
+/* C4 효과 — 들어가기(밤의 나다르 사진관 정면 → 서명 간판 → 마그네슘 섬광 → 안으로) · 벽이 물러나고 흐릿한 두 줄기 위 질문 · 고른 쪽의 섬광 / 니스 빛 · 비율대로 나뉜 두 줄기와 큰 숫자.
    움직임은 transform · opacity 위주(60fps). prefers-reduced-motion: 크로스페이드만 */
 
 /* ── 들어가기 — 장면은 3D 캔버스(#gl). 이 막에는 안개(2D) · 섬광 · 건너뛰기 글만 */
@@ -38,12 +38,13 @@ body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
 .seg button:active { transform: scale(.94); }
 .ask-btn:active { transform: scale(.97); }
 
-/* 질문이 문 뒤에서 드러난다 */
-.q-view.q-in .veil { animation: fadeIn 1s ease .5s backwards; }
-.q-view.q-in .q-ask { animation: qIn .95s var(--ease-out) 1.1s backwards; }
-.q-view.q-in .half[data-k="paint"] .half-in { animation: qIn .85s var(--ease-out) 1.35s backwards; }
-.q-view.q-in .half[data-k="photo"] .half-in { animation: qIn .85s var(--ease-out) 1.47s backwards; }
-.q-view.q-in .divider { animation: fadeIn 1s ease 1.5s backwards; }
+/* 질문 — 벽이 어둠으로 물러나는 사이 두 줄기가 다가오며 떠오르고, 질문 · 두 답이 차례로 */
+.q-view.q-in .qs { animation: qsIn 1.3s cubic-bezier(.2,.7,.2,1) .25s backwards; }
+@keyframes qsIn { from { opacity: 0; transform: scale(1.12); } }
+.q-view.q-in .q-ask { animation: qIn .95s var(--ease-out) .5s backwards; }
+.q-view.q-in .half[data-k="paint"] .half-in { animation: qIn .85s var(--ease-out) .72s backwards; }
+.q-view.q-in .half[data-k="photo"] .half-in { animation: qIn .85s var(--ease-out) .84s backwards; }
+.q-view.q-in .divider { animation: fadeIn 1s ease .9s backwards; }
 @keyframes qIn { from { opacity: 0; transform: translateY(18px) scale(.97); } }
 
 /* ── 고른 쪽이 화면을 채운다: 사진 = 마그네슘 섬광, 그림 = 따뜻한 니스 빛 */
@@ -56,6 +57,10 @@ body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
 
 /* ── 오늘의 관람객: 두 반쪽이 비율대로(그림 44 : 사진 56) 나뉘고, 그 위에 큰 숫자. 점은 쓰지 않는다 */
 .q-view { --pa: 50%; --pp: 50%; }
+.q-view.split[data-pick] .qs[data-k="paint"] { left: 0; width: var(--pa); opacity: .36; }
+.q-view.split[data-pick] .qs[data-k="photo"] { left: var(--pa); width: var(--pp); opacity: .36; }
+.q-view.split[data-pick="paint"] .qs[data-k="paint"], .q-view.split[data-pick="photo"] .qs[data-k="photo"] { opacity: .62; }
+.q-view.split .qs { transition: left 1.1s cubic-bezier(.2,.8,.2,1), width 1.1s cubic-bezier(.2,.8,.2,1), opacity .8s ease; }
 .sp-nums { position: absolute; z-index: 2; left: 0; right: 0; top: clamp(132px, 20dvh, 172px); bottom: var(--sheetH, 250px); pointer-events: none; opacity: 0; transition: opacity .6s ease; }
 .q-view.split .sp-nums { opacity: 1; }
 .sp-cap { position: absolute; left: 0; right: 0; top: 4px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 13px; color: var(--soft); }
@@ -81,8 +86,8 @@ body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
 .reveal .crowd-stamp { margin-top: 0; border-top: 0; padding-top: 0; text-align: center; }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro.flash .in-flash, .intro.flash-q .in-flash, .flood.photo, .flood.paint, .flood.paint::after, .q-view.q-in .veil, .q-view.q-in .q-ask, .q-view.q-in .half-in, .q-view.q-in .divider, .q-view.swept .sn b, .q-view.swept .sp-sweep { animation: none !important; }
-  .sn, .sp-seam { transition: opacity .4s ease !important; }
+  .intro.flash .in-flash, .intro.flash-q .in-flash, .flood.photo, .flood.paint, .flood.paint::after, .q-view.q-in .qs, .q-view.q-in .q-ask, .q-view.q-in .half-in, .q-view.q-in .divider, .q-view.swept .sn b, .q-view.swept .sp-sweep { animation: none !important; }
+  .sn, .sp-seam, .q-view.split .qs { transition: opacity .4s ease !important; }
   .stage:not(.entered) .w-head, .stage:not(.entered) .w-foot { transform: none; }
   .in-mist, .smoke { display: none; }
 }

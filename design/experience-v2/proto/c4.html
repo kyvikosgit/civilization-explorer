@@ -63,8 +63,11 @@
     </div>
   </section>
 
-  <!-- ── 2. 질문: 3D 벽이 두 문처럼 열린 채(왼쪽 = 그림, 오른쪽 = 사진) 그 위에 질문과 두 답. 반쪽을 누르면 그 문이 화면을 채우고, 결과에서는 두 문이 닫히며 이음매가 오늘의 비율 자리로 -->
+  <!-- ── 2. 질문: 뒤로 흐릿한 두 줄기(왼쪽 그림은 위로, 오른쪽 사진은 아래로) 위에 어두운 막, 그 위에 질문과 두 답.
+       반쪽을 누르면 사진 = 섬광, 그림 = 니스 빛 → 그쪽이 화면을 채우고 → 두 줄기가 오늘의 비율대로 나뉘며 큰 숫자 -->
   <section class="view q-view" id="qView" aria-label="질문">
+    <div class="qs" data-k="paint" aria-hidden="true"><div class="qs-track" id="qsPaint"></div></div>
+    <div class="qs" data-k="photo" aria-hidden="true"><div class="qs-track" id="qsPhoto"></div></div>
     <div class="veil" aria-hidden="true"></div>
     <!-- 고른 뒤: 두 반쪽이 오늘의 비율대로 나뉘고, 그 위에 큰 숫자 -->
     <div class="sp-nums" id="spNums" aria-hidden="true">
@@ -84,35 +87,48 @@
       <div class="q-mine" aria-live="polite"><h1 id="mineHead"></h1><p id="mineSubHead"></p></div>
     </header>
 
-    <!-- 오늘의 관람객(위의 두 반쪽 · 큰 숫자) 기준 한 줄 · 저장. 단추 줄은 늘 아래에 -->
+    <!-- 오늘의 관람객(위의 두 반쪽 · 큰 숫자) 기준 한 줄. 끝 단추 공통: [처음으로 | 수집함에 저장], 아래에 다시 고르기(글자 링크) -->
     <section class="reveal crowd dark center" id="reveal" aria-live="polite">
       <div class="rv-scroll" id="rvScroll">
         <div class="crowd-stamp" id="crowdStamp"></div>
-        <div class="mine-card" id="mineCard" hidden><img id="mineImg" alt="저장한 카드"><div><b id="mineLabel"></b><small>수집함에 담았습니다</small></div></div>
       </div>
-      <div class="rv-actions"><button class="btn white" id="saveStance" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg><span id="saveLab">카드 저장</span></button><button class="btn dark-line" id="again" type="button">다시 고르기</button><a class="rv-home" href="index.html">처음으로</a></div>
+      <div class="end-row rv-actions">
+        <a class="btn dark-line" href="index.html">처음으로</a><button class="btn white" id="saveStance" type="button">수집함에 저장</button>
+        <div class="end-links"><button class="end-link" id="again" type="button">다시 고르기</button></div>
+      </div>
     </section>
   </section>
 </main>
 
-<!-- ── 내 초상: 전면 카메라 → 노출 4초 → 기기 안에서 19세기 사진 → 카르트 드 비지트 틀 -->
+<!-- ── 내 초상: 전면 카메라(또는 데모 이미지) → 노출 4초 → 같은 한 장에서 기기 안에서 두 벌 — 19세기 사진(카르트 드 비지트) · 아카데미 유화 초상(금박 액자)
+     → 한 틀 안에 겹쳐 놓고 가운데 막대를 끌어 비교(왼쪽 초상화 · 오른쪽 사진). AI · 서버 없음 -->
 <main class="wrap screen" id="me" data-screen="me" hidden>
   <header class="me-head">
     <h1>내 초상</h1>
-    <p>노출 4초 · 기기 안에서만 현상합니다</p>
+    <p id="meSub">노출 4초 · 사진과 초상화, 기기 안에서만</p>
   </header>
 
   <section class="studio">
     <div class="plate" id="plate">
       <video id="cam" class="cam" playsinline muted autoplay></video>
       <img id="still" class="still" alt="" hidden>
-      <canvas id="photoOut" class="result" hidden></canvas>
       <div class="oval" id="oval"></div>
       <div class="count" id="count" hidden><b id="countNum">4</b><span>노출 중 · 움직이지 마세요</span></div>
-      <div class="busy" id="busy" hidden><div class="spinner"></div><span>현상 중</span></div>
+      <div class="busy" id="busy" hidden><div class="spinner"></div><span id="busyTxt">현상 중</span></div>
       <div class="cam-off" id="camOff"><p id="camMsg">카메라를 켜면 여기에 비칩니다</p></div>
     </div>
-    <div class="plate-foot">Nadar · 35, boulevard des Capucines</div>
+    <!-- 결과: 한 틀 — 아래는 사진, 위는 초상화(왼쪽부터 막대까지만 보인다). 어디를 끌어도 막대가 따라온다 -->
+    <div class="duo" id="duo" hidden>
+      <canvas class="duo-cv" id="duoPhoto" role="img" aria-label="내 초상 · 19세기 사진"></canvas>
+      <div class="duo-clip" id="duoClip"><canvas class="duo-cv" id="duoPaint" role="img" aria-label="내 초상 · 유화 초상화"></canvas></div>
+      <span class="duo-lab l" id="labPaint" aria-hidden="true">초상화</span>
+      <span class="duo-lab r" id="labPhoto" aria-hidden="true">사진</span>
+      <div class="duo-handle" id="duoHandle" role="slider" tabindex="0" aria-label="초상화와 사진 사이 막대" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="초상화 50% · 사진 50%">
+        <i class="duo-line" aria-hidden="true"></i>
+        <span class="duo-knob" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 7.5L5 12l4.5 4.5M14.5 7.5L19 12l-4.5 4.5"/></svg></span>
+      </div>
+    </div>
+    <div class="plate-foot" id="plateFoot">Nadar · 35, boulevard des Capucines</div>
   </section>
 
   <div class="me-actions" id="meActions">
@@ -122,11 +138,11 @@
   <div class="me-actions" id="meShoot" hidden>
     <button class="btn white" id="shoot" type="button">노출 4초 · 촬영</button>
   </div>
-  <div class="me-actions" id="meDone" hidden>
-    <button class="btn white" id="saveMe" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>초상 저장</button>
-    <button class="btn dark-line" id="again2" type="button">다시 찍기</button>
+  <!-- 끝 단추 공통: [처음으로 | 수집함에 저장], 아래에 다시 찍기(글자 링크) -->
+  <div class="end-row me-end" id="meDone" hidden>
+    <a class="btn dark-line" href="index.html">처음으로</a><button class="btn white" id="saveMe" type="button">수집함에 저장</button>
+    <div class="end-links"><button class="end-link" id="again2" type="button">다시 찍기</button></div>
   </div>
-
 </main>
 
 <script type="module" src="c4.js"></script>
