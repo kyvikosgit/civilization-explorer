@@ -263,8 +263,8 @@ body.c4, body.c4 * { letter-spacing: normal !important; }
   .fr.ph .dev, .fr.ph .dev::after, .fr.back .vn, .w-cap.swap, .count b, .duo { animation: none; }
 }
 
-/* 마지막으로 누른 액자 — 바깥에 금빛 테 한 줄 + 은은한 빛, 나머지 액자는 살짝 어둡게 */
-.track .fr { transition: filter .45s ease; }
-.track.has-sel .fr:not(.sel) { filter: brightness(.58) saturate(.85); }
-.fr.sel { z-index: 6; outline: 2px solid rgba(240,196,118,.95); outline-offset: 6px; filter: none; }
-@media (prefers-reduced-motion: reduce) { .track .fr { transition: none; } }
+/* 마지막으로 누른 액자 — 바깥에 금빛 테 한 줄, 나머지 액자는 어두운 막 한 장(필터를 쓰면 흐를 때 덜덜 떨린다 — 막의 투명도만 바꾼다) */
+.fr .sight::after { content: ''; position: absolute; inset: calc(-1 * var(--t) - 1px); z-index: 4; pointer-events: none; background: rgba(12,7,4,.5); opacity: 0; transition: opacity .45s ease; }
+.track.has-sel .fr:not(.sel) .sight::after { opacity: 1; }
+.fr.sel { z-index: 6; outline: 2px solid rgba(240,196,118,.95); outline-offset: 6px; }
+@media (prefers-reduced-motion: reduce) { .fr .sight::after { transition: none; } }
