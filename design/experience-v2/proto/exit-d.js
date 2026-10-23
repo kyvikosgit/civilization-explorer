@@ -1,9 +1,10 @@
 // 출구 시안 D — 오늘의 관람객 속의 나. 화면 전체가 군중(점 1,284개 = 1,284명), 내 점은 주황
-//   질문 넷(C0 · C1 · C2 · C4)을 차례로 누르면 점이 그 질문의 답대로 기둥으로 다시 선다(기둥 높이 = 오늘의 비율).
+//   질문 넷(C0 · C1 · C2 · C4)을 차례로 누르면 그 질문의 답대로 선 기둥(기둥 높이 = 오늘의 비율)이 바로 보인다 — 점이 날아가 모이지 않고, 누를 때마다 다 선 모습으로 바뀐다.
 //   내 기둥 아래 밝은 덩어리 = 지금까지 모든 질문에서 나와 같았던 사람(1,284 → 501 → 311 → 168 → 94).
-//   끝에 점이 다시 흩어지고, 네 곳 모두 나와 같았던 94명만 켜진다 → 가져가는 것 쟁반이 올라온다.
+//   끝은 흩어진 군중 가운데 네 곳 모두 나와 같았던 94명만 켜진 모습 + 가져가는 것 쟁반(미끄러져 올라오지 않고 그 자리에).
 //   한 사람의 답은 예시로 만든다(선택지별 비율은 정확히 맞추고, 넷 모두 같은 사람은 정확히 '나와 같은 길' 인원)
-import { clearChoices, reduceMotion } from './js/proto-common.js';
+import { clearChoices } from './js/proto-common.js';
+const reduceMotion = true;                                // 출구는 늘 멈춘 화면 — 점은 늘 다 모인 자리에 바로 놓는다
 import { createCrowd, rng, split, scatter } from './js/crowd.js';
 import { STATIONS, ARTS, VISITORS, sameN, anyReal, fmt, stampLine, artThumb, setupShare, fontsReady, POINT } from './exit-common.js';
 
@@ -77,14 +78,14 @@ function columns(qi) {
 function showLabels(L) {
   labs.innerHTML = `<div class="xd-base" style="left:16px;right:16px;top:${L.base + 3}px"></div>` + L.cols.map((c) =>
     `<div class="xd-lab${c.me ? ' me' : ''}" style="left:${c.cx}px;top:${L.base + 10}px"><b>${c.o.pct}<i>%</i></b><span>${c.o.lab}${c.me ? ' · 나' : ''}</span></div>`).join('');
-  requestAnimationFrame(() => labs.querySelectorAll('.xd-lab, .xd-base').forEach((e) => e.classList.add('show')));
+  labs.querySelectorAll('.xd-lab, .xd-base').forEach((e) => e.classList.add('show'));
 }
 function hideLabels() { labs.querySelectorAll('.xd-lab, .xd-base').forEach((e) => e.classList.remove('show')); }
 
 // ── 머리 · 아래 줄
 const pips = $('#pips'); pips.innerHTML = STATIONS.map(() => '<i></i>').join('');
 function header(room, q, sub, cls = '') {
-  hd.className = `xd-hd ${cls}`; void hd.offsetWidth; hd.classList.add('swap');
+  hd.className = `xd-hd ${cls}`;
   $('#room').textContent = room; $('#q').innerHTML = q; $('#sub').innerHTML = sub;
 }
 function countLine(qi) {
@@ -93,12 +94,8 @@ function countLine(qi) {
   $('#count').innerHTML = `<span class="cl">지금까지 나와 같은 쪽</span> ${parts.join('<span class="arrow">·</span>')}`;
 }
 
-let timers = [];
-const later = (fn, ms) => { timers.push(setTimeout(fn, reduceMotion ? 0 : ms)); };
-function clearTimers() { timers.forEach(clearTimeout); timers = []; }
-
-function render(st, animate = true) {
-  clearTimers();
+// 한 걸음 = 한 모습. 누를 때마다 다 선 모습으로 바로 바뀐다(점 · 숫자 · 쟁반 모두 그 자리에, 시간차 없음)
+function render(st) {
   [...pips.children].forEach((e, i) => { e.classList.toggle('done', i < st - 1 || st > Q); e.classList.toggle('cur', i === st - 1); });
   if (st === 0) {
     header('오늘의 관람객', `오늘 모네의 방을 나온<br>${fmt(N)}명`, '점 하나가 한 사람, 주황 점이 나');
@@ -110,25 +107,18 @@ function render(st, animate = true) {
     const qi = st - 1, s = STATIONS[qi];
     header(`${s.room}${anyReal && !s.real ? ' · 예시' : ''}`, s.ask, `나는 <b style="color:#fff">${s.choice}</b>`);
     const L = columns(qi);
-    hideLabels();
-    if (animate) crowd.move(L.targets, { duration: 1300, stagger: 520, mineDelay: 620, bend: 0.12, alpha: (p) => L.alpha[p] });
-    else crowd.place(L.targets, (p) => L.alpha[p]);
-    later(() => showLabels(L), animate ? 1100 : 0);
-    later(() => countLine(qi), animate ? 1300 : 0);
+    crowd.place(L.targets, (p) => L.alpha[p]);
+    showLabels(L); countLine(qi);
     $('#next').textContent = qi < Q - 1 ? '다음 질문' : '모아 보기';
     return;
   }
-  // 끝: 흩어졌다가 94명만 켜진다 → 쟁반
+  // 끝: 흩어진 군중 가운데 94명만 켜진 모습 + 쟁반
   header('오늘의 관람객', `오늘 모네의 방을 나온<br>${fmt(N)}명`, `켜진 점은 네 곳 모두 나와 같은 쪽 · ${fmt(sameN)}명`, 'end');
   hideLabels(); bar.classList.add('away');
   tray.hidden = false;
   const trayH = tray.getBoundingClientRect().height || 260, top = hd.getBoundingClientRect().bottom;
   const pts = field({ x: 14, y: top, w: W - 28, h: Math.max(120, H - trayH - top - 10) });
-  if (animate) {
-    crowd.move(pts, { duration: 1200, stagger: 420, mineDelay: 500, bend: 0.18, alpha: 0.4 });
-    later(() => crowd.move(pts, { duration: 900, stagger: 700, mineDelay: 0, bend: 0, alpha: (p) => (SAME.has(p) ? 1 : 0.07) }), 1800);
-    later(() => tray.classList.add('open'), 3000);
-  } else { crowd.place(pts, (p) => (SAME.has(p) ? 1 : 0.07)); tray.classList.add('open'); }
+  crowd.place(pts, (p) => (SAME.has(p) ? 1 : 0.07)); tray.classList.add('open');
 }
 function next() { if (step > Q) return; step += 1; render(step); }
 $('#next').addEventListener('click', next);
@@ -137,8 +127,8 @@ addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === ' '
 
 function resize() { crowd.resize(); const r = cv.getBoundingClientRect(); W = r.width; H = r.height; }
 resize();
-render(0, false);
-addEventListener('resize', () => { const was = step; resize(); crowd.stop(); render(was, false); });
+render(0);
+addEventListener('resize', () => { const was = step; resize(); crowd.stop(); render(was); });
 
 // 쟁반
 $('#arts').innerHTML = ARTS.map((a, i) => `<div class="it" style="--i:${i}">${artThumb(a)}<span><b>${a.lb}</b>${a.t}</span></div>`).join('');

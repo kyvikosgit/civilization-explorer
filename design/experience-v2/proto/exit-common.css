@@ -1,5 +1,8 @@
 /* 출구 시안 A·B·C·D 공용 — 시안 바꾸기(A · B · C · D) · 가져가는 것 썸네일 · 공유 미리보기. 클래스는 모두 vsw- / x- / xs- 로 시작(시안 A 의 exit.css 와 겹치지 않게) */
 
+/* 출구는 늘 멈춘 화면 — 올라오며 나타나기(.rise · proto-base.css)를 끈다. 내용은 처음부터 그 자리에 */
+.rise { animation: none; }
+
 /* 시안 바꾸기 — 작은 알약. A·C 는 맨 위 한 줄(흐름 안), B·D 는 화면 위에 뜬다(.float) */
 .vsw-row { display: flex; justify-content: center; padding: calc(8px + var(--safe-t, 0px)) 0 0; flex: none; position: relative; z-index: 31; }
 .vsw { display: inline-flex; align-items: center; gap: 2px; height: 28px; padding: 0 3px 0 11px; border-radius: 14px;

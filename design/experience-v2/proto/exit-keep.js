@@ -1,11 +1,12 @@
 // 출구 · 가져가는 것 — 어두운 나무 탁자 위의 물건 다섯(시안 E. 다른 시안도 mountKeep(root) 한 줄로 쓸 수 있다)
 //   1872 기차표(에드먼슨 판지) · 엽서(앞면 + 남긴 한 줄) · 메달 카드 · 전시 포스터(한 번 접힌 자국, 아래 반쪽이 살짝 들림) · 나다르 사진관 카드(카비네 판, 고른 쪽 얼굴 콜라주)
 //   실제 크기 비율(mm × PXMM)로 놓고, 살짝 돌려 겹친다. 왼쪽 위에서 낮은 빛 · 가장자리 어둡게.
-//   누르면 집어 든다(가운데로 · 그림자 커짐 · 나머지는 어두워짐) → 끌어서 돌리기(표의 3D 문법: 관성 · 쉬면 제자리) · 기차표와 엽서는 두 번 눌러 뒷면 → "저장"은 그 면 그대로 이미지
-//   → 바깥을 누르면 제자리로(튀지 않는 ease-out). 이름은 들었을 때만 한 줄. prefers-reduced-motion: 즉시.
+//   누르면 집어 든다(가운데에 바로 · 그림자 커짐 · 나머지는 어두워짐) → 손가락으로 끄는 만큼만 돌린다(관성 · 저절로 돌아오기 없음) · 기차표와 엽서는 두 번 눌러 뒷면 → "저장"은 그 면 그대로 이미지
+//   → 바깥을 누르면 제자리로 바로. 이름은 들었을 때만 한 줄. 출구는 늘 멈춘 화면 — 물건은 처음부터 탁자 위에 있고, 미끄러지거나 내려앉는 움직임이 없다.
 //   면(앞 · 뒤)은 기기 안에서 캔버스로 한 번 그린다 — 화면 · 저장 · 한 장 공유(1080×1920)가 같은 그림을 쓴다.
 import { STATIONS, C2, loadImg, cover, fontsReady, stampLine, VISITORS } from './exit-common.js';
-import { reduceMotion as RM, toast } from './js/proto-common.js';
+import { toast } from './js/proto-common.js';
+const RM = true;                                          // 출구는 늘 멈춘 화면 — 모션 줄이기와 같은 길(집어 들기 · 뒤집기는 바로, 관성 없음)
 
 const S = Object.fromEntries(STATIONS.map((s) => [s.id, s]));
 const ls = (k) => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } };
@@ -350,28 +351,7 @@ export async function mountKeep(root) {
     t.width = c.width; t.height = c.height; t.getContext('2d').drawImage(c, 0, 0);
   }
   size();
-  // 탁자에 하나씩 내려앉는다 — 보이기 시작하면(스크롤로 닿으면) 아래 것부터 차례로, 살짝 떠 있다가 부드럽게 닿고 그림자가 짙어진다
-  O.forEach((o) => o.el.classList.add('pre')); table.classList.add('wait');
-  let dropped = false;
-  const drop = () => {
-    if (dropped) return; dropped = true; busy = true; table.classList.remove('wait');
-    O.forEach((o, i) => {
-      const s = o.st * u, x = o.cx * u, y = o.cy * u, d = (RM ? 120 : 300) * i + 250, dir = i % 2 ? 1 : -1;
-      o.el.classList.remove('pre');
-      if (RM) { o.el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: d, fill: 'backwards' }); return; }
-      o.el.animate([
-        { transform: T(o, x - dir * 14 * u, y - 64 * u, o.rot + dir * 9, s * 1.2), opacity: 0, easing: 'cubic-bezier(.5,0,.85,.55)' },
-        { transform: T(o, x - dir * 4 * u, y - 18 * u, o.rot + dir * 3, s * 1.07), opacity: 1, offset: 0.45, easing: 'cubic-bezier(.4,0,.9,.6)' },
-        { transform: T(o, x, y + 1.5 * u, o.rot - dir * 0.5, s * 0.992), offset: 0.74, easing: 'cubic-bezier(.2,.7,.3,1)' },
-        { transform: T(o, x, y, o.rot, s) },
-      ], { duration: 880, delay: d, fill: 'backwards' });
-      o.sh.animate([{ opacity: 0 }, { opacity: 0.25, offset: 0.45 }, { opacity: 0.8 }], { duration: 880, delay: d, fill: 'backwards', easing: 'ease-in' });
-      const ct = o.el.querySelector('.kct'); ct.animate([{ opacity: 0 }, { opacity: 0, offset: 0.66 }, { opacity: 1 }], { duration: 880, delay: d, fill: 'backwards' });
-    });
-    setTimeout(() => { busy = false; }, (RM ? 120 : 300) * O.length + 900);
-  };
-  const dropIO = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { dropIO.disconnect(); drop(); } }, { threshold: 0.35 });
-  dropIO.observe(table);
+  // 물건은 처음부터 탁자 위 제자리에 놓여 있다(내려앉거나 차례로 나타나지 않는다)
   let rT = 0; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (!cur) { woodW = 0; size(); } }, 150); });
 
   // ── 집어 들기 · 돌리기 · 뒤집기 · 내려놓기
@@ -416,7 +396,7 @@ export async function mountKeep(root) {
       R.rx += R.vx; R.ry += R.vy; R.vx *= 0.92; R.vy *= 0.92;
       if (Math.abs(R.rx) > LIM) { R.rx = LIM * Math.sign(R.rx); R.vx *= -0.3; }
       if (Math.abs(R.ry) > LIM) { R.ry = LIM * Math.sign(R.ry); R.vy *= -0.3; }
-      if (now - R.last > 1600 && Math.abs(R.vx) < 0.02 && Math.abs(R.vy) < 0.02) { R.rx *= 0.95; R.ry *= 0.95; }   // 가만히 두면 천천히 바로 선다
+      if (!RM && now - R.last > 1600 && Math.abs(R.vx) < 0.02 && Math.abs(R.vy) < 0.02) { R.rx *= 0.95; R.ry *= 0.95; }   // 가만히 두면 천천히 바로 선다(출구에서는 하지 않는다 — 손을 떼면 그 자리에 멈춘다)
     }
     R.flipT = RM ? R.flip : R.flipT + (R.flip - R.flipT) * 0.15;
     o.k3d.style.transform = `perspective(1400px) rotateX(${R.rx.toFixed(2)}deg) rotateY(${(R.ry + R.flipT).toFixed(2)}deg)`;

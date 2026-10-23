@@ -1,6 +1,6 @@
 // 출구 시안 C — 전시 도록 한 장. 1874년 리브레처럼 Nº 1–4: 내가 고른 것 · 작가/자리 · 점선 이음 표(오늘의 비율) · Fig.(빗금 띠) · 끼워 붙인 도판(가져가는 것)
 //   간기에 작은 한 줄(네 곳 모두 나와 같은 쪽 · 오늘 N명), 도장(1874–2026)은 눌러서 찍는다. 공유 이미지는 같은 한 장을 1080×1920 종이로
-import { clearChoices, reduceMotion } from './js/proto-common.js';
+import { clearChoices } from './js/proto-common.js';
 import { STATIONS, VISITORS, sameN, anyReal, fmt, stampLine, artThumb, setupShare, drawArt, fontsReady, POINT } from './exit-common.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -39,13 +39,12 @@ $('#sameLine').textContent = `네 곳 모두 나와 같은 쪽 · 오늘 ${fmt(s
 $('#coloP').textContent = `${stampLine(VISITORS)}`;
 $('#coloFr').textContent = `Achevé d'imprimer à Séoul, le ${now.getDate()} ${MOIS[now.getMonth()]} ${now.getFullYear()}.`;
 
-// 도장 — 누르면 쿵
-const seal = $('#seal'), sheet = $('#sheet');
+// 도장 — 누르면 찍힌다(종이가 흔들리거나 도장이 날아들지 않는다. 잉크가 잠깐 옅게 번질 뿐)
+const seal = $('#seal');
 let stamped = false;
 seal.addEventListener('click', () => {
   if (stamped) return; stamped = true;
   seal.classList.add('stamped'); seal.setAttribute('aria-label', '도장 1874–2026');
-  if (!reduceMotion) setTimeout(() => { sheet.classList.remove('thud'); void sheet.offsetWidth; sheet.classList.add('thud'); try { navigator.vibrate && navigator.vibrate(24); } catch (e) { /* noop */ } }, 380);
 });
 
 // ── 저장 · 공유 — 같은 한 장을 1080×1920 종이로

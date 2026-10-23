@@ -71,7 +71,8 @@ body .wrap h1, .fc-head .crowd-line, .btn { letter-spacing: 0; }
 @keyframes fadeTo { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-height: 700px) { .screen .role-hd h1 { font-size: 21px; } }
+/* 출구는 늘 멈춘 화면 — 글자 · 걸린 것 · 끝 줄은 처음부터 그 자리에(차례로 켜지지 않는다) */
+.fc-pct, .fc-art, .fc-end { transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .share-ov { animation: none; }
-  .fc-pct, .fc-art, .fc-end { transition: none; }
 }

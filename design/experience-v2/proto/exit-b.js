@@ -1,6 +1,6 @@
 // 출구 시안 B — 관람 기록 카드. 표지 → 네 곳(한 장씩: 큰 그림 · 내 선택 · "오늘 39%가 같았다" · 점 128개) → 모아 보기(네 선택 · 가져가는 것. 네 곳 모두 같은 사람 수는 작은 한 줄)
-//   위로 넘기면 한 장씩 스냅, 카드를 누르면 다음 장. 점 하나 = 열 사람, 같은 쪽을 고른 점이 왼쪽부터 켜지고 내 점은 주황(맨 끝)
-import { clearChoices, reduceMotion } from './js/proto-common.js';
+//   위로 넘기면 한 장씩 스냅, 카드를 누르면 다음 장(바로 넘어간다). 점 하나 = 열 사람, 같은 쪽을 고른 점은 왼쪽부터 켜진 모습 그대로, 내 점은 주황(맨 끝). 움직이는 효과 없음
+import { clearChoices } from './js/proto-common.js';
 import { rng } from './js/crowd.js';
 import { STATIONS, ARTS, VISITORS, sameN, anyReal, fmt, stampLine, posterHTML, artThumb, setupShare, loadImg, cover, drawPoster, fontsReady, POINT } from './exit-common.js';
 
@@ -56,12 +56,8 @@ function drawDots(c, p) {
     g.fillStyle = POINT; g.beginPath(); g.arc(x, y, rad * 1.5, 0, 6.2832); g.fill();
   }
 }
-function playDots(c) {
-  if (reduceMotion) { drawDots(c, 1); return; }
-  const t0 = performance.now() + 520, dur = 1100;
-  const tick = (now) => { const p = Math.min(1, Math.max(0, (now - t0) / dur)); drawDots(c, 1 - Math.pow(1 - p, 2)); if (p < 1) requestAnimationFrame(tick); };
-  requestAnimationFrame(tick);
-}
+// 출구는 늘 멈춘 화면 — 점은 처음부터 다 켜진 모습(차례로 켜지지 않는다)
+function playDots(c) { drawDots(c, 1); }
 
 // ── 모아 보기
 $('#sameLine').textContent = `네 곳 모두 나와 같은 쪽 · 오늘 ${fmt(sameN)}명`;
@@ -84,15 +80,16 @@ function setCur(i) {
   const tone = all[i].dataset.tone;
   prog.classList.toggle('on-light', tone === 'light');
   vsw.classList.toggle('light', tone === 'light');
-  const c = cards.find((x) => x.el === all[i]); if (c) playDots(c);
 }
 const io = new IntersectionObserver((es) => { es.forEach((e) => { if (e.isIntersecting && e.intersectionRatio > 0.55) setCur(all.indexOf(e.target)); }); }, { root: deck, threshold: [0.55, 0.8] });
 all.forEach((el) => io.observe(el));
-function go(i) { i = Math.max(0, Math.min(all.length - 1, i)); deck.scrollTo({ top: all[i].offsetTop, behavior: reduceMotion ? 'auto' : 'smooth' }); }
+// 누르면 다음 장으로 바로 넘어간다(미끄러지는 스크롤 없음)
+function go(i) { i = Math.max(0, Math.min(all.length - 1, i)); deck.scrollTo({ top: all[i].offsetTop, behavior: 'auto' }); }
 deck.addEventListener('click', (e) => { if (e.target.closest('button, a')) return; if (cur < all.length - 1) go(cur + 1); });
 addEventListener('keydown', (e) => { if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(cur + 1); } if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); go(cur - 1); } });
-addEventListener('resize', () => { cards.forEach((c) => drawDots(c, c.el.classList.contains('on') ? 1 : 0)); });
+addEventListener('resize', () => { cards.forEach(playDots); });
 setCur(0);
+cards.forEach(playDots);                                   // 네 장 모두 미리 그려 둔다 — 넘겨도 비어 있다가 나타나지 않게
 
 // ── 저장 · 공유 — 1080×1920: 제목 → 네 곳 2×2(그림 · 내 선택 · n%가 같았다) → 나와 같은 길. 위·아래 220 비움
 async function render() {

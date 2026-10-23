@@ -1,10 +1,11 @@
 // 출구 시안 E — 큰 선택과 작은 선택(라이프 이즈 스트레인지의 에피소드 끝 통계처럼)
 //   큰 선택(가치 판단) 둘 — C1 "어느 전시를 보러 가시겠습니까?"(살롱 / 화가들의 전시) · C4 "사람을 남긴다면, 그림입니까 사진입니까?"(그림으로 / 사진으로) — 를 한 화면씩.
-//     질문 → 그 방의 물건(포스터 둘 · 고른 쪽 얼굴 다섯) → 내 선택 → 같은 칸(선택지)에 맞춘 두 줄: 1874년(출처 있는 사실) · 오늘의 관람객(두 쪽이 비율대로 벌어짐, 내 쪽만 주황). 옳고 그름은 말하지 않는다.
+//     질문 → 그 방의 물건(포스터 둘 · 고른 쪽 얼굴 다섯) → 내 선택 → 같은 칸(선택지)에 맞춘 두 줄: 1874년(출처 있는 사실) · 오늘의 관람객(두 쪽의 폭 = 비율, 내 쪽만 주황). 옳고 그름은 말하지 않는다.
+//   출구는 늘 멈춘 화면 — 불 켜기 · 미끄러지는 큰 글자 · 차례로 드러나기 · 숫자 세기 · 벌어지는 막대 · 시차 없이, 모든 내용이 처음부터 그 자리에 있다.
 //   작은 선택(C0 메달 · C2 행선지)은 흰 쟁반 "그 밖에 고른 것"으로 작게. → 가져가는 것 다섯 → 저장·공유(1080×1920, 같은 위계, 위·아래 250px 비움).
 //   "나와 같은 길 %" · 조합 통계는 쓰지 않는다. 선택 · 예시 비율 · localStorage 읽기는 exit-common.js. 오늘의 비율은 점 대신 두 쪽의 폭(= 비율)과 큰 숫자.
 //   1874년 살롱 관람객 수는 출처가 없어 "수십만"으로만 적는다(화가들의 전시 약 3,500명은 Rewald 1973 · 프랑스 문화부).
-import { clearChoices, reduceMotion } from './js/proto-common.js';
+import { clearChoices } from './js/proto-common.js';
 import { STATIONS, C1, C4, C4_FACES, VISITORS, POINT, anyReal, fmt, stampLine, posterHTML, setupShare, fontsReady, loadImg, cover, drawArt } from './exit-common.js';
 import { mountKeep } from './exit-keep.js';
 
@@ -40,59 +41,12 @@ MAJOR.forEach((m) => {
   const then = m.then.cells
     ? `<div class="xe-cells">${m.cols.map((c) => `<div class="xe-cell${c.k === s.me ? ' me' : ''}"><div class="v">${m.then.cells[c.k].v}</div><div class="d">${m.then.cells[c.k].d}</div></div>`).join('')}</div>`
     : m.then.lines.map((l) => `<p class="xe-then-line">${l}</p>`).join('');
-  // 오늘: 두 쪽(선택지 순서 = 위 칸 순서)이 가운데 붙어 있다가 비율대로 벌어진다. 숫자는 0에서
-  const now = `<div class="xe-bar">${s.opts.map((o) => `<div class="xb${o.k === s.me ? ' me' : ''}" style="--p:${o.pct}"><b class="xe-pct"><span class="cnt" data-to="${o.pct}">0</span><i>%</i></b><small>${m.cols.find((c) => c.k === o.k).lab}</small></div>`).join('')}</div>`;
+  // 오늘: 두 쪽(선택지 순서 = 위 칸 순서), 폭 = 비율
+  const now = `<div class="xe-bar">${s.opts.map((o) => `<div class="xb${o.k === s.me ? ' me' : ''}" style="--p:${o.pct}"><b class="xe-pct"><span class="cnt" data-to="${o.pct}">${o.pct}</span><i>%</i></b><small>${m.cols.find((c) => c.k === o.k).lab}</small></div>`).join('')}</div>`;
   $(m.cmp).innerHTML = `<div class="xe-then rv">${cols}<div class="xe-row"><div class="xe-rl">${m.then.label}</div>${then}<div class="xe-src">${m.then.src}</div></div></div>`
-    + `<div class="xe-row now rv"><div class="xe-rl"><b>오늘의 관람객 <span class="cnt" data-to="${VISITORS}">0</span>명</b></div>${now}</div>`;
+    + `<div class="xe-row now rv"><div class="xe-rl"><b>오늘의 관람객 <span class="cnt" data-to="${VISITORS}">${fmt(VISITORS)}</span>명</b></div>${now}</div>`;
   m.nowRow = $(`${m.el} .xe-row.now`);
 });
-
-// ── 숫자 세기 — 0에서 data-to 까지(천 단위 쉼표), 끝나면 빛이 한 번 지나간다
-const easeOut = (x) => 1 - Math.pow(1 - x, 3);
-function countUp(els, D = 1300, done) {
-  if (reduceMotion) { els.forEach((e) => { e.textContent = fmt(+e.dataset.to); }); if (done) done(); return; }
-  const t0 = performance.now();
-  const step = (now) => { const x = Math.min(1, (now - t0) / D), e = easeOut(x); els.forEach((el) => { el.textContent = fmt(Math.round(+el.dataset.to * e)); }); if (x < 1) requestAnimationFrame(step); else if (done) done(); };
-  requestAnimationFrame(step);
-}
-// ── 1874 ↔ 오늘: 장이 보이면 두 쪽이 비율대로 벌어지고 숫자가 올라간다(점 없음)
-function gather(m) {
-  if (m.gathered) return; m.gathered = true;
-  const sec = $(m.el); sec.classList.add('done');
-  countUp([...sec.querySelectorAll('.xe-row.now .cnt')], 1300, () => { sec.classList.add('swept'); });
-}
-// 1874년의 숫자는 그 줄이 드러날 때 센다
-function countThen(el) { const c = [...el.querySelectorAll('.cnt')]; if (c.length) { c.forEach((e) => { e.textContent = '0'; }); setTimeout(() => countUp(c, 1500), 250); } }
-
-// ── 차례로 드러나기 — 평범한 스크롤. 화면에 들어온 .rv 를 문서 순서대로 한 걸음씩(STEP 간격) 드러낸다. 스크롤을 대신 움직이지 않는다
-const deck = $('#deck');
-const STEP = 320, revealQ = []; let lastAt = -Infinity, qT = 0;
-function reveal(el) {
-  el.classList.add('in'); lastAt = performance.now();
-  if (el.classList.contains('xe-then')) countThen(el);
-  const sec = el.closest('.xe-ch'); if (sec && el.classList.contains('xe-hd')) sec.classList.add('on');   // 바탕은 제목과 함께
-  const m = MAJOR.find((x) => x.nowRow === el); if (m) { m.shownAt = lastAt; tryGather(m); }
-}
-function pump() {
-  if (qT || !revealQ.length) return;
-  qT = setTimeout(() => { qT = 0; const el = revealQ.shift(); if (el) reveal(el); pump(); }, Math.max(0, lastAt + STEP - performance.now()));
-}
-const rvIO = new IntersectionObserver((es) => es.forEach((e) => {
-  if (!e.isIntersecting || e.target.dataset.q) return;
-  e.target.dataset.q = '1'; rvIO.unobserve(e.target);
-  if (reduceMotion) { reveal(e.target); return; }
-  revealQ.push(e.target); revealQ.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)); pump();
-}), { root: deck, threshold: 0.2, rootMargin: '0px 0px -8% 0px' });
-// 점은 "오늘의 관람객" 줄이 60% 이상 보이고, 그 줄이 다 드러난 뒤에야 모이기 시작한다
-const nowIO = new IntersectionObserver((es) => es.forEach((e) => {
-  const m = MAJOR.find((x) => x.nowRow === e.target); if (!m || e.intersectionRatio < 0.6) return;
-  m.seen = true; nowIO.unobserve(e.target); tryGather(m);
-}), { root: deck, threshold: [0.6, 0.8, 1] });
-function tryGather(m) {
-  if (!m.seen || m.shownAt == null || m.gT) return;
-  m.gT = setTimeout(() => gather(m), reduceMotion ? 0 : Math.max(0, m.shownAt + 450 - performance.now()));
-}
-MAJOR.forEach((m) => nowIO.observe(m.nowRow));
 
 // ── 작은 선택 — 흰 쟁반의 작은 카드 둘
 const c0 = S.c0, c2 = S.c2;
@@ -102,20 +56,13 @@ $('#minorCards').innerHTML = `
   <article class="xe-mc rv"><div class="th trip"><img class="pc" src="${c2.img}" alt=""><img class="tk" src="${c2.ticket}" alt=""></div>
     <div class="tx"><small>행선지${ex(c2)}</small><b>${c2.choice} · ${c2.sub.split(' · ')[0]}</b><span>오늘 <em>${c2.opt.pct}%</em>가 ${c2.choicePlain}</span></div></article>`;
 
+// ── 처음부터 다 보인 모습 — 숫자는 마지막 값, 두 쪽은 비율대로 벌어진 폭, 바탕 · 제목은 그 자리에
+document.querySelectorAll('.rv').forEach((el) => el.classList.add('in'));
+MAJOR.forEach((m) => { $(m.el).classList.add('on', 'done'); });
+
 // ── 가져가는 것 다섯 — 탁자 위의 물건(exit-keep.js): 기차표 · 엽서 · 메달 카드 · 전시 포스터 · 사진관 카드. 아래 "모두 한 장으로 저장"은 그 탁자 1080×1920
-// 불이 다 켜진 뒤 첫 장이 들어온다
-const lights = $('#lights');
-setTimeout(() => document.querySelectorAll('.rv').forEach((el) => rvIO.observe(el)), reduceMotion ? 0 : 1050);
-setTimeout(() => lights.classList.add('done'), reduceMotion ? 700 : 2000);
 // C4 바탕 — 그 방 벽의 얼굴들(고른 쪽)
 $('#bd2').innerHTML = C4_FACES.slice(0, 12).map((id) => `<img src="img/c4p/${id}-${k4}.jpg" alt="" decoding="async">`).join('');
-// 시차 — 바탕은 스크롤보다 느리게, 큰 글자는 조금 빠르게(transform 만)
-{
-  const chs = MAJOR.map((m) => ({ el: $(m.el), bd: $(`${m.el} .xe-bd`), big: $(`${m.el} .xe-big`) }));
-  let pr = 0;
-  const par = () => { pr = 0; const dh = deck.clientHeight; chs.forEach((c) => { const r = c.el.getBoundingClientRect().top - deck.getBoundingClientRect().top; if (r > dh || r < -900) return; c.bd.style.transform = `translate3d(0, ${(-r * 0.35).toFixed(1)}px, 0)`; c.big.style.transform = `translate3d(${(Math.min(0, r) * 0.18).toFixed(1)}px, ${(r * 0.12).toFixed(1)}px, 0)`; }); };
-  if (!reduceMotion) { deck.addEventListener('scroll', () => { if (!pr) pr = requestAnimationFrame(par); }, { passive: true }); par(); }
-}
 $('#foot').textContent = `${stampLine(VISITORS)}${anyReal ? ' · 들르지 않은 곳은 예시' : ''}`;
 
 // ── 저장 · 공유 — 1080×1920, 같은 위계: 큰 선택 둘(위, 크게) → 그 밖에 고른 것(아래, 흰 쟁반, 작게)

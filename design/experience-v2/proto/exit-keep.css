@@ -76,6 +76,6 @@
 .kt-acts .row .btn { height: 46px; font-size: 14.5px; }
 .kt-acts .foot { margin: 14px 0 0; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,.4); }
 
-@media (prefers-reduced-motion: reduce) {
-  .kl-scrim, .kl-cap, .kobj.anim, .kobj.anim .ksh, .kobj.anim .kct, .kobj.anim .k3d { transition: none !important; }
-}
+/* 출구는 늘 멈춘 화면 — 집어 들기 · 내려놓기는 미끄러지지 않고 바로(어둡게 덮기 · 이름 줄도 바로) */
+.kl-scrim, .kl-cap, .kobj.anim, .kobj.anim .ksh, .kobj.anim .kct, .kobj.anim .k3d { transition: none !important; }
+.kl-cap { transform: none; }

@@ -1,9 +1,10 @@
 // 출구 — 나의 길(흐름도). 질문 없음. 네 곳(C0·C1·C2·C4)에서 갈린 길 가운데 내가 지난 길을 한 줄기 주황으로, 갈래의 폭은 오늘의 비율, 점 하나 = 열 사람.
-//   오늘의 관람객(점)이 줄기를 따라 위에서 아래로 내려가며, 갈림마다 나와 같은 쪽만 다음 줄로 내려가고 나머지는 그 갈래 끝에 남는다. 맨 아래 남은 사람 수는 작은 한 줄로만.
+//   오늘의 관람객(점)이 갈림마다 나와 같은 쪽만 다음 줄에 남고 나머지는 그 갈래 끝에 남은 모습 — 처음부터 모인 자리 그대로 그려 둔다(점이 날아가거나 차례로 나타나지 않는다). 맨 아래 남은 사람 수는 작은 한 줄로만.
 //   길가(오른쪽)에 가져가는 것: C0 메달 카드 · C1 전시 안내(재현) · C2 그해의 기차표 · C3 내 캔버스 · C4 사진관 카드(고른 쪽 얼굴 콜라주) · C5 내 액자. 바닥 순서(C0 → C1 → C2 → C3 → C4 → C5) 그대로.
 //   저장·공유는 같은 흐름도를 1080×1920 으로 다시 그린다(같은 자리 계획·같은 씨앗). 다른 프로토타입이 localStorage(m100_choice · m100_c5_keep)에 남긴 것이 있으면 그것을, 없으면 예시 값을 쓴다. 서버는 숫자만(여기서는 예시 수치).
 import { toast, loadImage } from '../../../booth/js/common.js';
-import { loadChoices, clearChoices, reduceMotion } from './js/proto-common.js';
+import { loadChoices, clearChoices } from './js/proto-common.js';
+const reduceMotion = true;                                // 출구는 늘 멈춘 화면 — 모션 줄이기와 같은 길(모인 자리에 바로 놓기)
 import { createCrowd, dotsFor, packDisc, packRect, scatter, discRadius, split, stampLine, fmt, rng, POINT } from './js/crowd.js';
 import { STATIONS as XS } from './exit-common.js';          // C4 사진관 카드(고른 쪽 얼굴 콜라주)는 B–E 와 같은 것을 쓴다
 
@@ -167,23 +168,13 @@ function start() {
   const showRow = (i) => { html.querySelectorAll(`.fc-pct[data-row="${i}"]`).forEach((e) => e.classList.add('show')); html.querySelectorAll('.fc-art').forEach((e, k) => { if (k <= i * 1.5) e.classList.add('show'); }); };
   const showEnd = () => { $('#sameBig').classList.add('show'); html.querySelectorAll('.fc-art').forEach((e) => e.classList.add('show')); };
   crowd.place(stages[0].targets);
-  if (reduceMotion) { stages.slice(1).forEach((s) => crowd.place(s.targets, s.alpha ? (q) => s.alpha[q] : null)); NODES.forEach((_, i) => showRow(i)); showEnd(); return; }
-  let t = 420;
-  stages.slice(1).forEach((s) => {
-    setTimeout(() => {
-      crowd.move(s.targets, { duration: 1000, stagger: 240, mineDelay: 380, bend: 0.14, alpha: s.alpha ? (q) => s.alpha[q] : null });
-      if (s.row != null) setTimeout(() => showRow(s.row), 520);
-      if (s.end) setTimeout(showEnd, 820);
-    }, t);
-    t += 980;
-  });
+  // 모인 자리(마지막 모습)에 바로 놓는다 — 점이 흐르거나 줄마다 차례로 켜지지 않는다
+  stages.slice(1).forEach((s) => crowd.place(s.targets, s.alpha ? (q) => s.alpha[q] : null)); NODES.forEach((_, i) => showRow(i)); showEnd();
 }
 build();
-window.addEventListener('resize', () => { if (started) return; build(); });
-// 흐름도가 보일 때 점이 흐르기 시작한다
-const io = new IntersectionObserver((es) => { if (es.some((x) => x.isIntersecting)) { io.disconnect(); start(); } }, { threshold: 0.15 });
-io.observe(fc);
-setTimeout(() => { if (!started && fc.getBoundingClientRect().top < window.innerHeight) start(); }, 1600);
+start();                                                   // 처음부터 다 그려 둔다(보일 때를 기다리지 않는다)
+// 폭이 바뀌면(회전 등) 같은 모습으로 다시 그린다 — 움직임 없이
+window.addEventListener('resize', () => { if (fc.clientWidth === L.W) return; build(); started = false; start(); });
 
 // ── 저장 · 공유 — 1080×1920, 같은 흐름도(어두운 바탕 · 흰 글자 · 주황 한 줄기). 위 250 아래 250 비움, 좌우 80
 let shareBlob = null;
