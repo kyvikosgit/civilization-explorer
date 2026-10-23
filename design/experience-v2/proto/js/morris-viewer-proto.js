@@ -23,7 +23,7 @@
 //   · 숨쉬기 빛은 활성 항목에만 (setHighlight)
 //   · 스포트라이트: 활성 전단지(카페 게르부아)만 밝게, 나머지 칼럼·포스터·배경은 어둡게 (setSpotlight)
 //   · 화면 크기는 창 대신 컨테이너 기준, 렌더 루프 일시정지(pause/resume)
-export function createMorrisViewer(T, RoomEnvironment, container, { items, filler, backdrop, onEvent }) {
+export function createMorrisViewer(T, RoomEnvironment, container, { items, filler, backdrop, onEvent, extra }) {
   const post = (type, extra) => onEvent && onEvent(type, extra);
   const W = () => container.clientWidth || 1, H = () => container.clientHeight || 1;
   const mobile = Math.min(W(), H()) < 600;
@@ -43,7 +43,8 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   renderer.shadowMap.type = T.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
   const scene = new T.Scene();
-  const camera = new T.PerspectiveCamera(28, 1, 0.1, 100);
+  const FOV0 = 28;
+  const camera = new T.PerspectiveCamera(FOV0, 1, 0.1, 700);   // [proto] 먼 데까지 — 칼럼 뒤 대로(js/c1-street.js)
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
   if (RoomEnvironment) {
@@ -207,7 +208,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   const TOTAL_H = 4.165, MAX_R = 0.618;
 
   // ── 장소 — 포석 바닥 + 접지 그림자 + 안개 + 그림 배경
-  let groundMat = null;
+  let groundMat = null, groundRing = null;
   scene.fog = new T.Fog(0xaab0ae, 12, 30);
   (function () {
     const c = document.createElement('canvas'); c.width = c.height = 512;
@@ -241,7 +242,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       gc[q * 4 + 3] = rr < 0.5 ? 1 : Math.max(0, 1 - (rr - 0.5) / 0.5);
     }
     gg.setAttribute('color', new T.BufferAttribute(gc, 4));
-    const ground = new T.Mesh(gg, groundMat = new T.MeshStandardMaterial({
+    const ground = groundRing = new T.Mesh(gg, groundMat = new T.MeshStandardMaterial({
       map, bumpMap: bump, bumpScale: 0.015, roughness: 0.9, metalness: 0, color: 0xd8d4cc, envMapIntensity: 0.35,
       vertexColors: true, transparent: true, depthWrite: false,
     }));
@@ -281,6 +282,9 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   }
 
   const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // [proto] 칼럼 뒤 세계(해 질 녘 대로 — js/c1-street.js). 있으면 칼럼만 받치던 둥근 포석 바닥은 숨긴다(대로의 보도가 바닥)
+  const world = extra ? extra(T, { maxAniso, reduceMotion, mobile }) : null;
+  if (world) { scene.add(world.root); if (groundRing) groundRing.visible = false; }
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const easeIO = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   const easeO = (t) => 1 - Math.pow(1 - t, 3);
@@ -546,6 +550,11 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     target += Math.round((rot - target) / (Math.PI * 2)) * Math.PI * 2;
     focusRot = target; focusIdx = i; idle = false; vel = 0; dirty = true; centeredIdx = i;
   }
+  function focusAngle(ang, speed = 3.2, instant = false) {   // [proto] 칼럼의 한 각도(두 인쇄물 사이 등)를 정면으로
+    let target = -ang + 0.12; target += Math.round((rot - target) / (Math.PI * 2)) * Math.PI * 2;
+    if (instant) { rot = target; focusRot = null; vel = 0; idle = false; dirty = true; column.rotation.y = rot + farCfg.rot * far * far; place.rotation.y = column.rotation.y; return; }
+    focusSpeed = speed; focusRot = target; focusIdx = -1; idle = false; vel = 0; dirty = true;
+  }
   function snapTo(i) {                                  // [proto] 즉시 — 흐린 판 뒤에서 자리를 맞출 때
     const p = posters.filter((q) => q.idx === i)[0]; if (!p) return;
     let target = -p.o.ang + 0.12; target += Math.round((rot - target) / (Math.PI * 2)) * Math.PI * 2;
@@ -583,8 +592,9 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     return { x: (pv.x + 1) / 2 * W(), y: (1 - pv.y) / 2 * H(), facing, onColumn: p.mesh.parent === column };
   }
   // [proto] 인쇄물 네 모서리의 화면 사각형 (컨테이너 기준 px)
-  function projectRect(i) {
+  function projectRect(i, atColumn) {               // atColumn — 칼럼 시점(pose 0)에서의 자리(거리 시점에서 돌아갈 곳을 미리 잰다)
     const p = posters.filter((q) => q.idx === i)[0]; if (!p) return null;
+    if (atColumn && pose > 0) { const sv = pose; pose = 0; placeCamera(); const r = projectRect(i); pose = sv; placeCamera(); return r; }
     column.updateMatrixWorld(true);
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     [[-0.5, 0.5], [0.5, 0.5], [-0.5, -0.5], [0.5, -0.5], [0, 0.5], [0, -0.5]].forEach(([a, b]) => {
@@ -600,7 +610,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   }
   // [proto] 먼 시점 — 칼럼 꼭대기·밑동이 화면(컨테이너) 세로 topPx·bottomPx 에 오도록 거리와 시선 높이를 정한다(스캔 윤곽과 겹치게)
   function frameFar(topPx, bottomPx) {
-    const t2 = Math.tan(camera.fov * Math.PI / 360), Hh = H();
+    const t2 = Math.tan(FOV0 * Math.PI / 360), Hh = H();
     const D = TOTAL_H * Hh / Math.max(40, bottomPx - topPx) / (2 * t2);
     const perM = Hh / (2 * D * t2);
     farCfg.mul = D / fitDist();
@@ -614,17 +624,26 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     appr.t = 0; appr.from = far; appr.to = to; appr.dur = dur;
   }
   function fitDist() {
-    const vfov = camera.fov * Math.PI / 180;
+    const vfov = FOV0 * Math.PI / 180;
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
     return Math.max((TOTAL_H * 0.5 + 0.3) / Math.tan(vfov / 2), (MAX_R + 0.3) / Math.tan(hfov / 2));
   }
+  // [proto] 거리 시점 — 질문·결과에서 카메라가 대로 쪽으로 물러나 돌아선다(칼럼은 왼쪽 가장자리, 대로가 소실점까지). pose 0 칼럼 · 1 거리
+  const streetPose = { pos: new T.Vector3(2.4, 1.65, 13.5), look: new T.Vector3(10, 5.2, -150), fov: 40 };
+  let pose = 0; const poseA = { t: -1, from: 0, to: 0, dur: 1 };
+  const cp = new T.Vector3(), cl = new T.Vector3();
   function placeCamera() {
     const d = fitDist() * zoom * (1 + (farCfg.mul - 1) * far), k = (1 - zoom) / (1 - ZMIN);
     const ty = TOTAL_H * 0.5 * (1 - k) + 2.0 * k + farCfg.lift * far;
     const el = elev + (farCfg.elev - elev) * far;
-    camera.position.set(0, ty + Math.sin(el) * d, Math.cos(el) * d);
-    camera.lookAt(0, ty, 0);
+    cp.set(0, ty + Math.sin(el) * d, Math.cos(el) * d); cl.set(0, ty, 0);
+    let fov = FOV0;
+    if (pose > 0) { const e = pose * pose * (3 - 2 * pose); cp.lerp(streetPose.pos, e); cl.lerp(streetPose.look, e); fov = FOV0 + (streetPose.fov - FOV0) * e; }
+    camera.position.copy(cp); camera.lookAt(cl);
+    if (Math.abs(camera.fov - fov) > 1e-4) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    camera.updateMatrixWorld();
   }
+  function setPose(to, dur = 1.4) { if (!dur || reduceMotion) { pose = to; poseA.t = -1; dirty = true; return; } poseA.t = 0; poseA.from = pose; poseA.to = to; poseA.dur = dur; dirty = true; }
   function resize() {
     renderer.setSize(W(), H(), false);
     camera.aspect = W() / H(); camera.updateProjectionMatrix();
@@ -654,7 +673,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
 
   function setSnap(on) {
     snap.style.transition = 'filter ' + (on ? DUR_OUT : DUR_BACK) + 's ease, opacity 0.2s';
-    snap.style.filter = on ? 'blur(5px) brightness(0.62) saturate(0.85)' : 'blur(0px) brightness(1) saturate(1)';
+    snap.style.filter = on ? 'blur(2px) brightness(0.6) saturate(0.9)' : 'blur(0px) brightness(1) saturate(1)';   // [proto] 뒤의 거리가 거리로 읽히게 살짝만
   }
   function inspect(i, opts = {}) {
     const p = posters.filter((q) => q.idx === i)[0];
@@ -900,6 +919,12 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     const time = now / 1000;
     let animating = false;
     if (mode === 'column') {
+      if (poseA.t >= 0) {                // [proto] 칼럼 ↔ 거리 시점
+        poseA.t = Math.min(1, poseA.t + dt / poseA.dur);
+        const t = poseA.t, e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        pose = poseA.from + (poseA.to - poseA.from) * e; animating = true;
+        if (t >= 1) { poseA.t = -1; pose = poseA.to; post('posed', { pose }); }
+      }
       if (appr.t >= 0) {                 // [proto] 다가가기 — 걷는 듯 천천히 시작해 칼럼 앞에서 부드럽게 멈춘다
         appr.t = Math.min(1, appr.t + dt / appr.dur);
         const t = appr.t, e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2.4) / 2;
@@ -977,6 +1002,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       spotClones.forEach(({ p, m }) => { m.visible = dimQuad.visible && p.mesh.parent === column; });
       posters.forEach((q) => { q.glow.renderOrder = spot && active.has(q.idx) ? 61 : 0; });
       placeCamera();
+      if (world) world.update(time, dt, camera);
       { const hh = 2 * Math.tan(camera.fov * Math.PI / 360) * 1.05; dimQuad.scale.set(hh * camera.aspect, hh, 1); }
       skip = !skip;
       if (animating || dirty || lifting || !skip) { renderer.render(scene, camera); dirty = false; }
@@ -1007,7 +1033,8 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   return {
     get mode() { return mode; },
     inspect, release, reset, resize, focusItem, setInspectMap,
-    approach, frameFar, snapTo, project, projectRect, setPosterHidden, flutterPosters,   // [proto]
+    approach, frameFar, snapTo, focusAngle, setPose, project, projectRect, setPosterHidden, flutterPosters,   // [proto]
+    get world() { return world; }, get pose() { return pose; },
     setGlow(on) { glowOn = on; dirty = true; },                    // [proto] 주황 숨쉬기 테두리 끄기
     gust(sec = 2.4) { if (!reduceMotion) { gustT = gustDur = sec; } },                              // [proto] 한 번 부는 바람 — 접힌 전단지가 크게 들린다
     setMagnet(on) { magnet = on; centeredIdx = -1; },              // [proto]
@@ -1019,6 +1046,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       if (o.hemi != null) hemi.intensity = o.hemi;
       if (o.exposure != null) renderer.toneMappingExposure = expBase = o.exposure;
       if (o.fog != null) scene.fog.color.set(o.fog);
+      if (o.fogNear != null) scene.fog.near = o.fogNear; if (o.fogFar != null) scene.fog.far = o.fogFar;
       if (o.overhead != null) overheadMax = o.overhead;
       if (o.overheadColor != null) overhead.color.set(o.overheadColor);
       if (o.ground != null && groundMat) groundMat.color.set(o.ground);

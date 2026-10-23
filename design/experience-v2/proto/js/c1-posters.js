@@ -148,6 +148,21 @@ export function drawExpoCover() {
   return c;
 }
 
+// 살롱 공고의 접힌 겉면 — 독립 전시 안내의 겉면과 같은 짜임(같은 크기·같은 무게의 제목)
+export function drawSalonCover() {
+  const w = W, h = H / 3;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+  paper(g, w, h, '#EEE8D8', '#DED5BF', 43, true);
+  const L = inkLayer(w, h), k = L.getContext('2d'), INK = '#1b1916', RED = '#9a2c22', cx = w / 2;
+  frame(k, w, h, 22, 33, INK, 3);
+  text(k, 'RÉPUBLIQUE FRANÇAISE', cx, 96, 30, { fam: 'os', w: 700, track: 8, maxW: 560 });
+  text(k, 'SALON DE 1874', cx, 212, 112, { w: 900, cond: 0.84, maxW: 640, color: RED });
+  rule(k, 200, w - 200, 246, 1.6, INK);
+  text(k, 'Palais des Champs-Élysées · 1er Mai 1874', cx, 302, 34, { fam: 'os', w: 400, it: true, maxW: 600 });
+  pressInk(g, L, 9, 0.4);
+  return c;
+}
+
 // 신문 만평 오려 붙인 종이 — 샴(Cham)의 목판 만평은 Commons 에 그림만 있어서(신문 쪽 스캔이 아니다) 신문지 바탕에 그림을 곱하기로 얹고
 //   머리(지면 이름)와 아래 설명 문구를 조판한다. 설명은 원래 그림 아래 실린 문구 그대로(Commons 파일 설명에 옮겨 적힌 것) — 지어낸 말 없음
 function wrapLines(g, s, maxW) {

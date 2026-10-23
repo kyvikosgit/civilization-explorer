@@ -18,7 +18,7 @@ export const C0 = {
 };
 export const C1 = {
   jury: { label: '살롱', short: '살롱', pct: 38, where: '샹젤리제 궁 · 5월 1일 개막', fr: 'Salon de 1874' },
-  viewer: { label: '화가들의 전시', short: '화가들의 전시', pct: 62, where: '카퓌신 대로 35번지 · 4월 15일 개막 · 1프랑', fr: '35, boulevard des Capucines' },
+  viewer: { label: '독립 전시', short: '독립 전시', pct: 62, where: '카퓌신 대로 35번지 · 4월 15일 개막 · 1프랑', fr: '35, boulevard des Capucines' },
 };
 export const C2 = {
   argenteuil: { label: '아르장퇴유', fr: 'Argenteuil', year: 1874, pct: 13, ticket: 'argenteuil', paint: '../works/c2-arg-coquelicots-orsay.jpg', cap: '양귀비 들판', info: '11 km · 25분' },

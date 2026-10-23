@@ -18,7 +18,7 @@ const C0 = {
   4: { title: '봄날', src: '../works/c0-spring.jpg', pct: 39 },
   5: { title: '르 봉 보크', src: '../works/c0-bonbock.jpg', pct: 7 },
 };
-const C1 = { jury: { label: '살롱', short: '살롱', pct: 38 }, viewer: { label: '화가들의 전시', short: '화가들의 전시', pct: 62 } };
+const C1 = { jury: { label: '살롱', short: '살롱', pct: 38 }, viewer: { label: '독립 전시', short: '독립 전시', pct: 62 } };
 const C2 = {
   argenteuil: { label: '아르장퇴유', year: 1874, pct: 13, ticket: 'argenteuil', paint: '../works/c2-arg-coquelicots-orsay.jpg' },
   vernon: { label: '베르농', year: 1883, pct: 11, ticket: 'vernon', paint: '../works/c2-giverny-footbridge-nga.jpg' },

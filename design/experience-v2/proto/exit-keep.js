@@ -30,10 +30,10 @@ const NAMES = {
   ticket: `<b>${m2.year}년 기차표</b> · 생라자르 → ${m2.label}<i> · 두 번 누르면 뒷면</i>`,
   postcard: `<b>엽서</b> · 〈${m2.cap}〉<i> · 두 번 누르면 뒷면</i>`,
   medal: `<b>메달 카드</b> · ${S.c0.choice}`,
-  poster: S.c1.expo ? '<b>전시 포스터</b> · 카퓌신 대로 35번지 · 재현' : '<b>살롱 포스터</b> · 1874 · 재현',
+  poster: S.c1.expo ? '<b>독립 전시 포스터</b> · 카퓌신 대로 35번지 · 재현' : '<b>살롱 포스터</b> · 샹젤리제 궁 · 재현',
   cabinet: S.c4.art.kind === 'carte' ? '<b>내 초상</b> · 나다르 사진관' : `<b>사진관 카드</b> · ${S.c4.art.t}`,
 };
-const LABEL = { ticket: '기차표', postcard: '엽서', medal: '메달 카드', poster: S.c1.expo ? '전시 포스터' : '살롱 포스터', cabinet: '사진관 카드' };
+const LABEL = { ticket: '기차표', postcard: '엽서', medal: '메달 카드', poster: S.c1.expo ? '독립 전시 포스터' : '살롱 포스터', cabinet: '사진관 카드' };
 
 // ── 캔버스 도우미
 const cv = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
