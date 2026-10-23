@@ -98,7 +98,7 @@ body.page .wrap { flex: 1; display: flex; flex-direction: column; padding: 0 var
 .sheet .btns { padding: 16px 0 0; }
 
 /* 토스트 */
-.toast { position: fixed; left: 50%; bottom: calc(110px + var(--safe-b)); z-index: 90; transform: translate(-50%, 10px);
+.toast { position: fixed; left: 50%; top: calc(62px + env(safe-area-inset-top)); bottom: auto; z-index: 90; transform: translate(-50%, -10px);
   max-width: 86%; padding: 11px 16px; border-radius: 8px; background: rgba(17,17,17,.92); color: #FFFFFF; font-size: 14px; line-height: 1.45; text-align: center;
   opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
