@@ -18,7 +18,7 @@
 </head>
 <body class="c0 intro-pending">
 
-<!-- 살롱 전시실 한 장면 — 입장 · 후보작 벽 · 앞으로 나온 그림 · 오늘의 심사위원단이 모두 이 안에서(c0.js, 방은 c0-intro.js). 화면 전환 없음 -->
+<!-- 살롱 전시실 한 장면 — 입장 · 후보작 벽 · 앞으로 나온 그림 · 메달이 앉기까지 이 안에서(c0.js, 방은 c0-intro.js). 결과는 메달의 금빛을 지나 따로 한 장(#s3) -->
 <section class="scr on" id="s2">
   <div class="stage" id="stage" data-mode="intro">
     <canvas class="gl" id="gl" aria-label="1873년 살롱 전시실 · 후보작을 누르면 앞으로 나옵니다"></canvas>
@@ -34,40 +34,56 @@
     <div class="hint" id="hint"><span class="pill">그림을 누르면 앞으로 나옵니다</span></div>
 
     <div class="gest" id="gest"><span class="pill">끌어서 돌려 보기 · 두 손가락으로 확대</span></div>
-    <div class="tags" id="tags"></div>
     <div class="dock" id="dock"><button class="btn white award" id="award"><span class="m" id="awardMedal"></span>이 그림에 메달</button></div>
     <div class="intro-skip" aria-hidden="true">누르면 건너뜁니다</div>
     <div class="fade" aria-hidden="true"></div>
   </div>
+</section>
 
-  <!-- 결과 패널 — 아래에서 올라온다 -->
-  <div class="reveal" id="reveal">
-    <div class="rv-kick">당신이 메달을 준 그림</div>
-    <h2 class="rv-title" id="revTitle"></h2>
-    <div class="rv-meta" id="revMeta"></div>
-    <p class="rv-line" id="revLine"></p>
-    <p class="rv-top" id="revTop"></p>
-    <div class="rv-stamp" id="revStamp"></div>
-    <div class="btns"><button class="btn line" id="again">다시 고르기</button><button class="btn" id="save">수집함에 저장</button></div>
+<!-- 결과 — 독립된 한 장. 내가 메달을 준 그림 하나를 크게, 아래에 오늘의 다섯 점 -->
+<section class="scr res" id="s3" aria-label="심사 결과">
+  <div class="res-bg" aria-hidden="true"></div>
+  <div class="topbar dark res-top"><button class="icon-btn" id="back3" aria-label="다시 고르기"><i data-ic="back"></i></button><div class="tb-title">Salon de 1873</div><span></span></div>
+  <div class="res-scroll" id="resScroll">
+    <div class="res-hero">
+      <div class="res-kick">당신이 메달을 준 그림</div>
+      <div class="res-wall">
+        <div class="gilt" id="resFrame"><div class="gilt-sight"><img alt="" id="resImg"></div><i class="gilt-sheen" aria-hidden="true"></i><div class="medal-pin" id="resMedal"><span class="m-svg"></span><i class="m-glint" aria-hidden="true"></i></div></div>
+      </div>
+      <h2 class="res-title" id="resTitle"></h2>
+      <div class="res-meta" id="resMeta"></div>
+    </div>
+    <p class="res-line" id="resLine"></p>
+    <div class="res-split">
+      <div class="res-split-hd"><h3>오늘의 심사</h3><small id="resStamp"></small></div>
+      <ol class="res-rank" id="resRank"></ol>
+    </div>
   </div>
+  <div class="res-btns"><button class="btn res-again" id="again">다시 고르기</button><button class="btn res-save" id="save">수집함에 저장</button></div>
 </section>
 
 <!-- 내가 메달을 준 그림 — 카드(기기에서 생성) -->
 <section class="scr" id="s4">
-  <div class="topbar"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">내가 메달을 준 그림</div><span></span></div>
+  <div class="topbar dark"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">수집함</div><span></span></div>
   <div class="card-wrap">
     <div class="card" id="card">
-      <div class="card-wall"><div class="frame mini card-frame" id="cardFrame"><div class="mat"><img alt="" id="cardImg"></div><div class="card-medal" id="cardMedal"></div></div><div class="card-pos" id="cardPos"></div></div>
+      <div class="card-wall">
+        <div class="gilt card-frame" id="cardFrame"><div class="gilt-sight"><img alt="" id="cardImg"></div><div class="medal-pin"><span class="m-svg" id="cardMedal"></span></div></div>
+      </div>
       <div class="card-body">
-        <b id="cardNo"></b>
+        <div class="card-kick">Salon de 1873 · 내가 메달을 준 그림</div>
         <h3 id="cardTitle"></h3>
         <p id="cardMeta"></p>
+        <div class="card-pos" id="cardPos"></div>
         <small id="cardShown"></small>
       </div>
     </div>
   </div>
-  <div class="btns one"><button class="btn line" id="restart">처음으로</button></div>
+  <div class="btns one card-btns"><button class="btn res-again" id="restart">처음으로</button></div>
 </section>
+
+<!-- 메달에서 번지는 금빛 → 결과 화면으로(둘레가 먼저 어두워지고, 금빛이 그 위로) -->
+<div class="xfade" id="xfade" aria-hidden="true"><i class="xf-dark"></i><i class="xf-gold"></i></div>
 
 <!-- 확인 시트 -->
 <div class="sheet" id="confirm">
