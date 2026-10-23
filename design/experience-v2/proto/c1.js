@@ -1,12 +1,12 @@
 // C1 시민사회 — 어느 전시를 보러 갈까
-//   무대: 해 질 녘 대로(3D — js/c1-street.js). 칼럼은 왼쪽 보도에 처음부터 서 있고, 그 뒤로 오스만식 건물 줄 · 가스 가로등 · 가로수 · 마차 등불이 소실점까지
-//   1 역할+스캔: 가로등이 먼 데서부터 하나씩 켜지고, 점선 윤곽이 칼럼에 겹친다. 누르면(스캔) → 카메라가 보도를 걸어 칼럼 앞으로(칼럼은 솟지 않는다)
+//   무대: 해 질 녘 카퓌신 대로 — 모네의 그림을 저녁빛으로 깔고 가스등이 하나씩 켜지며 멀리 마차 등불이 오간다(DOM)
+//   1 역할+스캔: 칼럼은 처음부터 거리에 서 있고 점선 윤곽이 겹친다. 누르면(스캔) → 카메라가 걸어 칼럼 앞으로(칼럼은 솟지 않는다)
 //   → 2 둘러보기: 끌어서 칼럼을 돌린다. 포스터·만평 어느 것이든 눌러 떼어 읽고(3 · 한 줄 설명).
 //        이번 주말 두 전시의 안내문 — 살롱 1874 공고 · 독립 전시 안내 — 이 같은 모양(세 번 접혀 압정 하나에 갓 꽂힌 종이)으로 칼럼 양쪽에 같은 거리로 꽂혀 있다.
 //        단서도 같다(바람에 들리고 가스등에 윤). 오래 못 찾으면 가까운 쪽으로 칼럼이 천천히 돌고 바람이 한 번 분다
 //   → 4 찾은 안내문이 압정에서 빠져 가운데로 오며 세 단이 펼쳐진다 · 한 줄 설명(두 전시 같은 짜임) · 놋쇠 명판 '두 전시 견주어 보기' · '칼럼 더 둘러보기'
 //        뒤로·바깥·'칼럼 더 둘러보기' → 펼친 채 같은 압정에 다시 꽂히고(찾은 표시), 칼럼 아래에 같은 명판이 남는다
-//   → 5 명판: 펼친 것은 제자리(살롱 왼쪽 · 독립 전시 오른쪽)로, 다른 하나는 칼럼에서 떼어져 오고(접혀 있었으면 펼쳐지며), 카메라는 대로 쪽으로 물러나 돌아선다
+//   → 5 명판: 펼친 것은 제자리(살롱 왼쪽 · 독립 전시 오른쪽)로, 다른 하나는 칼럼에서 떼어져 오고(접혀 있었으면 펼쳐지며)
 //        고르기는 두 번에 — 포스터를 누르면 들리고(바꿀 수 있다) → '이 전시에 가기' 명판으로 정한다. 뒤로 → 두 인쇄물이 칼럼 제자리로
 //   → 6 오늘의 관람객(점 없이, 두 포스터가 비율만큼 커지고 작아지며 숫자가 센다) → 수집함. 뒤로·다시 고르기 → 5 · '칼럼 더 둘러보기' → 2
 //   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 두 전시 인쇄물·샴 만평 지면은 캔버스 조판(js/c1-posters.js)
@@ -15,7 +15,6 @@ import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, icons, toast, sleep, reduceMotion, haptic, saveChoice } from './js/proto-common.js';
 import { createMorrisViewer } from './js/morris-viewer-proto.js';
-import { buildStreet } from './js/c1-street.js';
 import { ITEMS, NOTES, FILLER, BACKDROP, VISITORS } from './js/morris-items-proto.js';
 import { stampLine } from './js/crowd.js';
 import { drawSalon, drawExpo, drawExpoCover, drawSalonCover, drawClipping, loadImage, loadPosterFonts, imageURL } from './js/c1-posters.js';
@@ -44,6 +43,35 @@ function setStep(n) {
   $$('[data-on]').forEach((el) => { el.hidden = !el.dataset.on.split(' ').includes(String(n)); });
 }
 
+// ── 해 질 녘 거리: 가스등(멀리서 가까이, 하나씩) · 멀리 대로를 오가는 마차 등불 · 옅은 안개
+const LAMPS = [   // 화면 비율 좌표 · 크기(px). 대로의 두 보도선을 따라 멀어진다
+  [0.63, 0.47, 7], [0.70, 0.495, 8], [0.56, 0.50, 9], [0.79, 0.54, 11], [0.46, 0.545, 12], [0.90, 0.6, 15], [0.33, 0.6, 15], [0.18, 0.67, 19], [0.04, 0.75, 24],
+];
+$('#lamps').innerHTML = LAMPS.map(([x, y, sz], i) => `<div class="lamp" style="--x:${x * 100}%;--y:${y * 100}%;--s:${sz}px;--fd:${(2.4 + (i * 0.37) % 1.6).toFixed(2)}s"><i class="halo"></i><i class="post"></i><i class="pool"></i><i class="core"></i></div>`).join('');
+// 마차 — 등불 두 개(마부석 양옆) + 젖은 포석에 번지는 반사. 원근: 같은 빠르기로 오면 화면에선 점점 빨라지고 커진다. 칼럼 뒤 먼 대로에서만
+const VP = [0.615, 0.468];
+const CARS = [   // 차선 끝점(화면 비율), 방향(1 다가옴 · -1 멀어짐), 걸리는 시간 s, 시작 지연 s
+  { to: [0.36, 0.64], dir: 1, dur: 19, delay: -3 },
+  { to: [0.86, 0.62], dir: -1, dur: 24, delay: -14 },
+  { to: [0.30, 0.66], dir: 1, dur: 23, delay: -15 },
+];
+function buildCars() {
+  const host = $('#cars'); if (!host || reduceMotion) return;
+  CARS.forEach((c) => {
+    const el = document.createElement('div'); el.className = 'car';
+    el.innerHTML = '<div class="car-in"><i class="cl a"></i><i class="cl b"></i><i class="rf a"></i><i class="rf b"></i></div>';
+    host.appendChild(el);
+    const W = host.clientWidth || 390, H = host.clientHeight || 844, N = 14, frames = [];
+    for (let k = 0; k <= N; k++) {
+      const t = k / N, tt = c.dir > 0 ? t : 1 - t;
+      const d = 26 + (2.2 - 26) * tt, s = 2.2 / d;              // 거리 26 → 2.2 (임의 단위), 화면 배율 = 1/거리
+      const x = (VP[0] + (c.to[0] - VP[0]) * s) * W, y = (VP[1] + (c.to[1] - VP[1]) * s) * H;
+      const op = Math.min(1, s * 9) * (s > 0.8 ? Math.max(0, (1 - s) / 0.2) : 1);
+      frames.push({ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s.toFixed(3)})`, opacity: +(op * (c.dir > 0 ? 1 : 0.7)).toFixed(3), offset: t });
+    }
+    el.animate(frames, { duration: c.dur * 1000, delay: c.delay * 1000, iterations: Infinity, easing: 'linear' });
+  });
+}
 // 역할 문장 — 글자마다 span
 (() => { const h1 = $('.role-head h1'); let k = 0; h1.innerHTML = h1.innerHTML.split(/(<br>)/).map((part) => (part === '<br>' ? part : [...part].map((ch) => (ch === ' ' ? ' ' : `<span class="ch" style="--k:${k++}">${ch}</span>`)).join(''))).join(''); })();
 // 질문 문장 — 줄마다 span
@@ -55,7 +83,7 @@ document.addEventListener('pointerdown', (e) => {
 }, { passive: true });
 $$('.paper > .notice').forEach((n) => { const sh = document.createElement('i'); sh.className = 'sheen'; n.appendChild(sh); });
 setStep(1);
-if (!reduceMotion) document.body.classList.add('intro');   // 무거운 준비(인쇄물 조판·칼럼·거리 생성)가 끝난 뒤 도입을 시작한다 — 그동안 글자는 숨겨 둔다
+if (!reduceMotion) document.body.classList.add('intro');   // 무거운 준비(인쇄물 조판·칼럼 생성)가 끝난 뒤 거리 도입을 시작한다 — 그동안 글자는 숨겨 둔다
 
 // ── 두 전시 인쇄물(재현) — 캔버스 조판. 칼럼 텍스처·펼치는 안내문·두 포스터가 모두 같은 그림
 await loadPosterFonts();
@@ -69,7 +97,7 @@ const urlsReady = Promise.all(['salon', 'expo'].flatMap((n) => ['full', 'cover']
 const clips = {};
 await Promise.all(ITEMS.filter((it) => it.clip).map((it) => loadImage(it.clip.src).then((im) => { clips[it.id] = drawClipping(im, it.clip); }).catch((e) => console.warn('[clip]', it.id, e))));
 
-// ── 3D 모리스 칼럼 + 대로
+// ── 3D 모리스 칼럼
 let loaded = false; const waiters = [];
 const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => waiters.push(r)));
 let picked = -1, focusWait = null;
@@ -83,15 +111,13 @@ try {
       ratio: clips[it.id] ? clips[it.id].height / clips[it.id].width : it.ratio || 1.2,
     })),
     filler: FILLER, backdrop: BACKDROP, onEvent,
-    extra: (T, o) => buildStreet(T, o),
   });
 } catch (e) { console.error(e); }
-const world = viewer && viewer.world;
 const NOTE_OF = {};                                         // 칼럼 인쇄물 번호 → 'salon' · 'expo'
 Object.entries(NOTES).forEach(([n, v]) => { NOTE_OF[v.folded] = n; NOTE_OF[v.open] = n; });
-// 해 질 녘 — 하늘은 뒤의 DOM 그러데이션, 빛은 따뜻한 가스등 쪽으로. 안개는 대로 끝(소실점)에서 하늘빛에 녹는다
+// 해 질 녘 — 배경은 비워 뒤의 DOM 거리(가스등·마차)가 보이게, 빛은 따뜻한 가스등 쪽으로. 포석은 어둡고 젖은 쪽으로
 if (viewer) {
-  viewer.setAmbience({ transparent: true, key: 0.62, keyColor: 0xffd3a2, fill: 0.22, fillColor: 0x8a96c8, hemi: 0.16, exposure: 0.98, fog: 0x3a2b3c, fogNear: 50, fogFar: 560, overhead: 4.0, overheadColor: 0xffc887, ground: 0x3b3833, groundRough: 0.5, groundEnv: 0.18 });
+  viewer.setAmbience({ transparent: true, key: 0.62, keyColor: 0xffd3a2, fill: 0.22, fillColor: 0x8a96c8, hemi: 0.16, exposure: 0.98, fog: 0x1b1722, overhead: 4.0, overheadColor: 0xffc887, ground: 0x3b3833, groundRough: 0.5, groundEnv: 0.18 });
   viewer.setGlow(false);
   viewer.setIdle(false);
   viewer.setPosterHidden(NOTES.salon.open, true); viewer.setPosterHidden(NOTES.expo.open, true);
@@ -110,23 +136,18 @@ function onEvent(type, d) {
 }
 const waitFocus = (ms) => Promise.race([new Promise((r) => { focusWait = r; }), sleep(ms)]);
 
-// ── 도입 — 가로등이 먼 데서부터 하나씩 켜진다(3D). 그동안 칼럼은 저녁 거리 속에 서 있다
 let introDone = false;
-const nowS = () => performance.now() / 1000;
-function finishIntro() {
-  if (introDone) return; introDone = true;
-  if (world) world.igniteAll(nowS());
-  document.body.classList.remove('intro'); document.body.classList.add('role-in');
-}
 async function streetIntro() {
-  if (reduceMotion) { await Promise.race([whenLoaded(), sleep(9000)]); finishIntro(); return; }
-  $('#stage').addEventListener('pointerdown', finishIntro, { once: true });
-  await Promise.race([whenLoaded(), sleep(9000)]);
-  await sleep(350);
-  const n = world ? world.lampCount : 0;
-  for (let k = 1; k <= n && !introDone; k++) { world.igniteTo(k, nowS()); await sleep(k < 6 ? 150 : 70); }
-  await sleep(200);
-  finishIntro();
+  buildCars();
+  if (reduceMotion) { $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; showStanding(); return; }
+  document.body.classList.add('intro'); streetEl.classList.add('push');
+  const lamps = $$('.lamp');
+  const skip = () => { if (introDone) return; introDone = true; lamps.forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
+  $('#stage').addEventListener('pointerdown', skip, { once: true });
+  await sleep(450);
+  for (const l of lamps) { if (introDone) return; l.classList.add('lit'); await sleep(170); }
+  await sleep(150);
+  skip();
 }
 streetIntro();
 
@@ -158,9 +179,9 @@ function frameToGuide() {
   const k = g.height / (GH + GPAD * 2);
   viewer.frameFar(g.top - m.top + GPAD * k, g.top - m.top + (GPAD + GH) * k);
 }
-// 칼럼과 대로는 처음부터 거기 있다 — 준비되면 저녁 어스름 속에 드러난다
+// 칼럼은 처음부터 거리에 서 있다 — 준비되면(칼럼 생성 + 거리 도입 끝) 저녁 거리 속에 드러난다
 function showStanding() {
-  if (!loaded || !viewer || step !== 1) return;
+  if (!loaded || !introDone || !viewer || step !== 1) return;
   viewer.resize(); frameToGuide(); viewer.setFar(1);
   mvEl.classList.remove('off');
 }
@@ -180,20 +201,21 @@ async function scan() {
   setPill('모리스 칼럼을 인식했어요', true);
   haptic(30);
   if (!loaded) { camLoading.classList.remove('off'); await whenLoaded(); camLoading.classList.add('off'); }
-  finishIntro();
+  if (!introDone) { introDone = true; $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); }
   showStanding();
   await sleep(reduceMotion ? 150 : 650);
   if (my !== seq || step !== 1) { scanning = false; return; }   // 기다리는 사이 뒤로를 눌렀다
   setStep('approach');
   guide.classList.add('off');
   setPill('');
-  streetEl.classList.add('near');
+  streetEl.classList.add('near');                           // 거리도 함께 가까워진다(먼 배경이라 조금만)
   if (viewer) viewer.approach(reduceMotion ? 0 : 2.9, 0);   // 카메라가 보도를 걸어 다가간다 → 'arrived'
   else arrive();
   scanning = false;
 }
 guide.addEventListener('click', scan);
-function arrive() {                                         // 칼럼 앞 — 갓 꽂힌 두 안내문이 바람에 한 번 들린다
+function arrive() {                                         // 칼럼 앞 — 가스등이 한 번 부풀고, 갓 꽂힌 두 안내문이 바람에 한 번 들린다
+  document.body.classList.remove('landed'); void document.body.offsetWidth; document.body.classList.add('landed');
   haptic(12);
   if (viewer && !anyFound()) setTimeout(() => { if (step === 2) viewer.gust(1.6); }, 500);
   enterHunt();
@@ -290,9 +312,9 @@ $('#closeBtn').addEventListener('click', () => {
 
 // ── 4 안내문 — 처음: 칼럼의 그 자리(같은 크기)에서 압정을 빠져나와 가운데로 날아오며 세 단이 펼쳐진다 · 다시: 펼친 채 꽂혀 있던 것이 그대로
 const flyer = $('#flyer'), flyerWrap = $('#flyerWrap'), histIntro = $('#histIntro'), plaque = $('#toAsk'), unfoldCap = $('#unfoldCap');
-function rectOnScreen(i, atColumn) {                        // 칼럼 위 인쇄물 → 화면 좌표 사각형
+function rectOnScreen(i) {                                  // 칼럼 위 인쇄물 → 화면 좌표 사각형
   if (!viewer) return null;
-  const r = viewer.projectRect(i, atColumn), mr = mvEl.getBoundingClientRect();
+  const r = viewer.projectRect(i), mr = mvEl.getBoundingClientRect();
   return r ? { cx: mr.left + r.cx, cy: mr.top + r.cy, w: r.w, h: r.h } : null;
 }
 function flyerAt(i) {                                       // 칼럼 위 안내문(접힌 · 펼친) → 화면의 DOM 안내문 변환
@@ -446,7 +468,6 @@ plaque.addEventListener('click', async () => {
   await sleep(300); if (my !== seq) return;
   peelNote(o);
   haptic(10);
-  if (viewer) setTimeout(() => { if (my === seq) viewer.setPose(1, 1.6); }, 500);   // 카메라가 대로 쪽으로 물러나 돌아선다
   await sleep(1400); if (my !== seq || step !== 5) return;
   $$('.paper', papers).forEach((p) => p.classList.add('float'));
 });
@@ -469,7 +490,6 @@ dock.addEventListener('click', async () => {
     peelNote('salon');
     setTimeout(() => { if (my === seq) { peelNote('expo'); haptic(10); } }, 260);
   });
-  setTimeout(() => { if (my === seq) viewer.setPose(1, 1.6); }, 650);
   await sleep(1700); if (my !== seq || step !== 5) return;
   $$('.paper', papers).forEach((p) => p.classList.add('float'));
 });
@@ -477,7 +497,7 @@ function goAsk(flown = false) {
   seq += flown ? 0 : 1;
   if (viewer) {                                             // 날아오는 길(flown)이면 칼럼 위 두 인쇄물은 떼어지는 순간 숨긴다(peel)
     viewer.setInteractive(false); viewer.setMagnet(false);
-    if (!flown) { Object.values(NOTES).forEach((v) => { viewer.setPosterHidden(v.folded, true); viewer.setPosterHidden(v.open, true); }); viewer.setPose(1, reduceMotion ? 0 : 1.2); }
+    if (!flown) { Object.values(NOTES).forEach((v) => { viewer.setPosterHidden(v.folded, true); viewer.setPosterHidden(v.open, true); }); }
   }
   document.body.classList.remove('settled', 'leaving', 'returning');
   $('#closeBtn').hidden = true;
@@ -490,10 +510,10 @@ function goAsk(flown = false) {
     setTimeout(() => { if (step === 5) $$('.paper', papers).forEach((p) => p.classList.add('float')); }, 900);
   }
 }
-// 5·6 → 2: 두 인쇄물이 칼럼의 제자리로 돌아가 붙는다. 카메라는 칼럼 앞으로 돌아오고, 어두운 판은 그동안 걷힌다
+// 5·6 → 2: 두 인쇄물이 칼럼의 제자리로 돌아가 붙는다. 어두운 판은 그동안 걷힌다
 async function papersBack() {
   const my = ++seq;
-  if (viewer) { viewer.focusAngle(midAng(), 3, true); viewer.setPose(0, reduceMotion ? 0 : 0.95); }
+  if (viewer) viewer.focusAngle(midAng(), 3, true);        // 흐린 판 뒤에서 — 두 안내문이 보이는 쪽으로
   const pairs = [[PAPER.salon, NOTES.salon.open], [PAPER.expo, NOTES.expo.open]];
   found.salon = found.expo = true;
   const ghosts = pairs.map(([p, idx]) => {
@@ -502,7 +522,7 @@ async function papersBack() {
     Object.assign(g.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', opacity: getComputedStyle(p).opacity });
     document.body.appendChild(g);
     p.style.visibility = 'hidden';
-    return { g, r, idx, t: rectOnScreen(idx, true) };       // 칼럼 시점에서의 자리(카메라가 돌아온 뒤)
+    return { g, r, idx, t: rectOnScreen(idx) };
   });
   document.body.classList.add('returning');
   document.body.classList.remove('settled');
@@ -528,7 +548,7 @@ async function papersBack() {
   resetPapers();
   if (viewer) { viewer.setHighlight(true); viewer.setInteractive(true); viewer.setMagnet(true); }
 }
-// 고르지 않은 포스터가 물러나는 자리(화면 px) — 대로 쪽 먼 데로
+// 고르지 않은 포스터가 칼럼으로 돌아가 붙는 자리(화면 px)
 function columnPoint(side) {
   const r = mvEl.getBoundingClientRect();
   return { x: r.left + r.width * (0.5 + side * 0.09), y: r.top + r.height * 0.47 };

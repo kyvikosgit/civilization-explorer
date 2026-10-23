@@ -21,12 +21,17 @@
 <body class="c1" data-step="1">
 
 <div id="stage" class="stage">
-  <!-- 해 질 녘 하늘(뒤) — 거리 자체는 3D(js/c1-street.js): 오스만식 건물 줄, 가스 가로등(하나씩 켜진다), 가로수, 멀리 오가는 마차 등불 -->
+  <!-- 해 질 녘 카퓌신 대로 — 같은 그림(모네가 1873년 이 대로를 그렸다, 사람들은 그림 속 붓자국 그대로)을 저녁빛으로.
+       가스등이 하나씩 켜지고, 멀리 마차 등불이 대로를 오간다. 실루엣 행인은 두지 않는다 -->
   <div class="street" id="street" aria-hidden="true">
+    <div class="st-img"></div>
     <div class="st-sky"></div>
     <div class="st-mist"></div>
+    <div class="st-lamps" id="lamps"></div>
+    <div class="st-cars" id="cars"></div>
+    <div class="st-haze"></div>
   </div>
-  <!-- 3D 모리스 칼럼 + 그 뒤의 대로 (js/morris-viewer-proto.js · js/c1-street.js) -->
+  <!-- 3D 모리스 칼럼 (js/morris-viewer-proto.js) -->
   <div id="mv" class="mv off"></div>
 
   <div class="stage-top">
