@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<meta name="theme-color" content="#FFFFFF">
+<meta name="theme-color" content="#0b0605">
 <title>C0 · 당신은 오늘의 심사위원입니다</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
@@ -18,47 +18,29 @@
 </head>
 <body class="c0 intro-pending">
 
-<!-- 1 역할 — 기획서 문장 한 줄로 그 시대의 자리에 선다 -->
-<section class="scr on" id="s1">
-  <div class="topbar"><span></span><div class="tb-title">아카데미 살롱</div><span></span></div>
-  <div class="role">
-    <div class="eyebrow">Salon de 1873</div>
-    <h1>당신은 오늘의<br>심사위원입니다</h1>
-    <div class="rule"></div>
-    <p class="lead">1873년 파리 살롱전.<br>후보작 다섯 점 가운데 올해의 메달을 줄 한 점을 골라 주십시오.</p>
-    <details class="crit">
-      <summary><span class="crit-sum"><b>살롱의 기준</b> · 위대한 주제, 정확한 인체, 매끄러운 표면</span><span class="crit-more">펼치기</span></summary>
-      <ol>
-        <li>위대한 주제 <small>신화, 종교, 역사</small></li>
-        <li>정확한 인체</li>
-        <li>명확한 구도</li>
-        <li>완성된 묘사</li>
-        <li>고상한 감정</li>
-        <li>매끄러운 표면 <small>붓질이 보이면 안 됨</small></li>
-        <li>캔버스가 안 보이는 완벽한 채색</li>
-      </ol>
-    </details>
-    <div class="cands" id="candStrip"></div>
-  </div>
-  <div class="btns one"><button class="btn" id="enter">심사 시작</button></div>
-</section>
+<!-- 살롱 전시실 한 장면 — 입장 · 후보작 벽 · 앞으로 나온 그림 · 오늘의 심사위원단이 모두 이 안에서(c0.js, 방은 c0-intro.js). 화면 전환 없음 -->
+<section class="scr on" id="s2">
+  <div class="stage" id="stage" data-mode="intro">
+    <canvas class="gl" id="gl" aria-label="1873년 살롱 전시실 · 후보작을 누르면 앞으로 나옵니다"></canvas>
+    <div class="scrim" aria-hidden="true"></div>
+    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="벽으로 돌아가기"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle"></div><span></span></div>
 
-<!-- 2 후보작 뷰어 — 한 점씩 3D 금박 액자로. 끌면 돌아가고(관성·되돌아옴), 두 손가락으로 붓질까지 확대, 옆으로 밀면 다음 후보. "이 그림에 메달"(또는 길게 누르기) → 확인 → 3 오늘의 심사위원단 -->
-<section class="scr" id="s2">
-  <div class="stage" id="stage">
-    <canvas class="gl" id="gl" aria-label="후보작 3D 보기 · 끌어서 돌리기, 두 손가락으로 확대, 옆으로 밀어 다음 후보"></canvas>
-    <div class="vign" aria-hidden="true"></div>
-    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle"></div><span></span></div>
-    <div class="q" id="q"><b>올해의 메달을 줄 한 점</b></div>
+    <!-- 역할 — 벽 위에 얇게 겹친다(벽을 누르지 않는다) -->
+    <div class="role" id="role">
+      <div class="eyebrow">Salon de 1873</div>
+      <h1>당신은 오늘의 심사위원입니다</h1>
+      <p class="lead">후보작 다섯 점 가운데 올해의 메달을 줄 한 점을 고르십시오. <button type="button" class="crit-link" id="critBtn">살롱의 기준</button></p>
+    </div>
+    <div class="hint" id="hint"><span class="pill">그림을 누르면 앞으로 나옵니다</span></div>
+
     <div class="gest" id="gest"><span class="pill">끌어서 돌려 보기 · 두 손가락으로 확대</span></div>
     <div class="tags" id="tags"></div>
-    <div class="dock" id="dock">
-      <div class="nav"><button class="icon-btn" id="prev" aria-label="이전 후보"><i data-ic="back"></i></button><div class="pips" id="pips"></div><button class="icon-btn" id="next" aria-label="다음 후보"><i data-ic="arrow"></i></button></div>
-      <button class="btn white award" id="award"><span class="m" id="awardMedal"></span>이 그림에 메달</button>
-    </div>
+    <div class="dock" id="dock"><button class="btn white award" id="award"><span class="m" id="awardMedal"></span>이 그림에 메달</button></div>
+    <div class="intro-skip" aria-hidden="true">누르면 건너뜁니다</div>
+    <div class="fade" aria-hidden="true"></div>
   </div>
 
-  <!-- 오늘의 심사위원단 — 벽의 다섯 액자가 오늘의 비율만큼 조금씩 커지고 작아진다(그것이 곧 그래프). 아래에서 올라오는 결과 패널 -->
+  <!-- 결과 패널 — 아래에서 올라온다 -->
   <div class="reveal" id="reveal">
     <div class="rv-kick">당신이 메달을 준 그림</div>
     <h2 class="rv-title" id="revTitle"></h2>
@@ -70,7 +52,7 @@
   </div>
 </section>
 
-<!-- 4 내가 메달을 준 그림 — 카드(기기에서 생성) -->
+<!-- 내가 메달을 준 그림 — 카드(기기에서 생성) -->
 <section class="scr" id="s4">
   <div class="topbar"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">내가 메달을 준 그림</div><span></span></div>
   <div class="card-wrap">
@@ -94,9 +76,23 @@
   <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">메달 주기</button></div>
 </div>
 
-<!-- 입장 — 살롱 전시실로 걸어 들어간다(c0-intro.js). 누르면 빨리 감기 -->
-<div class="intro" id="intro" aria-hidden="true"><canvas></canvas><div class="intro-skip">누르면 건너뜁니다</div></div>
+<!-- 살롱의 기준 -->
+<div class="sheet" id="crit">
+  <div class="grip"></div>
+  <h3>살롱의 기준</h3>
+  <ol class="crit-list">
+    <li>위대한 주제 <small>신화, 종교, 역사</small></li>
+    <li>정확한 인체</li>
+    <li>명확한 구도</li>
+    <li>완성된 묘사</li>
+    <li>고상한 감정</li>
+    <li>매끄러운 표면 <small>붓질이 보이면 안 됨</small></li>
+    <li>캔버스가 안 보이는 완벽한 채색</li>
+  </ol>
+  <div class="btns one"><button class="btn" data-sheet-close>닫기</button></div>
+</div>
 
+<div id="safeProbe" aria-hidden="true"></div>
 <script type="module" src="c0.js"></script>
 </body>
 </html>

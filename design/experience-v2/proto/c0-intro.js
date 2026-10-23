@@ -1,284 +1,297 @@
-// C0 입장 — 1873년 살롱 전시실로 걸어 들어간다 (약 3.6초, 누르면 빨리 감기)
-//   무거운 두 짝 문이 열리고 → 카메라가 적갈색 전시실 안으로 밀려 들어간다(바닥부터 천장까지 걸린 그림, 가스등 빛과 미세한 깜빡임, 빛 속의 먼지)
-//   → 안쪽 벽의 후보작 다섯 점을 빛이 한 번 쓸고 → 그 벽이 역할 화면의 후보작 벽(.cands)으로 오므라든다(같은 자리·같은 크기 — 공유 요소 전환)
-//   안쪽 벽은 화면 좌표 1px = 월드 1 단위로 놓아, 마지막 카메라에서 DOM 의 후보작 자리와 정확히 겹친다.
-//   three.js 0.147 (c0.js 와 같은 CDN). 끝나면 렌더러를 버린다.
+// C0 살롱 전시실 — 1873년 살롱(팔레 드 랭뒤스트리)의 한 방을 three.js 로 짓는다. c0.js 의 장면 하나에 들어가며, 입장·벽·확대·결과 카메라가 모두 이 방 안에서 움직인다.
+//   단위: 미터. 안쪽 벽(후보작 벽) z=0, 바닥 y=0, 입구 문 z=L. 카메라는 늘 -z 를 본다(정면), 눈높이 1.6m.
+//   천장: 유리 천창 아래 벨룸(빛을 거르는 천)의 격자 · 금박 코니스 · 오목 몰딩(cove). 벽: 적갈색 다마스크 · 나무 징두리 · 살롱식으로 빽빽이 건 그림. 안쪽 벽 앞 붉은 로프.
+//   채움 그림(살롱 걸기)은 텍스처마다 InstancedMesh 하나 — 그림이 많아도 그리기 호출은 서른 남짓.
+//   채움 그림 출처(모두 퍼블릭 도메인, Wikimedia Commons, 2026-10 내려받아 440px 로 줄임 → img/c0-fill/):
+//     카바넬〈비너스의 탄생〉1863 · 〈타락천사〉1847 / 부그로〈님프와 사티로스〉1873 · 〈죽음 앞의 평등〉1848 / 제롬〈폴리케 베르소〉1872 · 〈가면무도회 뒤의 결투〉1857
+//     로자 보뇌르〈니베르네의 밭갈이〉1849 / 코로〈모르트퐁텐의 추억〉1864 / 메소니에〈1814년 프랑스 전투〉1864 / 르뇨〈살로메〉1870 / 카롤뤼스뒤랑〈장갑을 낀 여인〉1869
+//     보드리〈진주와 파도〉1862 / 쿠튀르〈퇴폐기의 로마인들〉1847 / 도비니〈우아즈 강가〉 / 글레르〈잃어버린 환상〉1843
+//   그 밖의 채움 그림은 프로토타입의 works/ 폴더에 이미 있는 1860–70년대 초상.
 import * as T from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-const W_ = '../works/';
-// 벽을 채우는 그림 — 1860~70년대 살롱풍 초상·역사화(프로토타입 안의 실제 그림). 후보작 다섯 점은 안쪽 벽에만
+export const HALL = { W: 12, L: 24, WALL_H: 8.9, CEIL: 9.75, DOOR_W: 3.2, DOOR_H: 5.4, EYE: 1.6 };
+
+const F_ = 'img/c0-fill/', W_ = '../works/';
 const FILL = [
-  ['c0-alt-cointable.jpg', 520 / 371], ['c0-alt-nymphs.jpg', 420 / 580], ['c0-cleo.jpg', 420 / 241], ['c4-baudelaire-paint.jpg', 520 / 434],
-  ['c4-bernhardt-paint.jpg', 398 / 500], ['c4-hugo-paint.jpg', 397 / 500], ['c4-manet-paint.jpg', 480 / 640], ['c4c-baudelaire-deroy-paint.jpg', 641 / 800],
-  ['c4c-berlioz-paint.jpg', 646 / 800], ['c4c-courbet-paint.jpg', 657 / 800], ['c4c-liszt-paint.jpg', 609 / 800], ['c4c-zola-paint.jpg', 608 / 800],
-  ['c4c-degas-paint.jpg', 456 / 574], ['c4-monet-paint.jpg', 500 / 411],
+  [F_ + 'cabanel-venus.jpg', 440 / 250], [F_ + 'bouguereau-nymphs.jpg', 304 / 440], [F_ + 'gerome-pollice.jpg', 440 / 296], [F_ + 'bonheur-nivernais.jpg', 440 / 225],
+  [F_ + 'corot-mortefontaine.jpg', 440 / 318], [F_ + 'meissonier-1814.jpg', 440 / 286], [F_ + 'regnault-salome.jpg', 300 / 440], [F_ + 'carolus-gant.jpg', 307 / 440],
+  [F_ + 'baudry-perle.jpg', 440 / 204], [F_ + 'gerome-duel.jpg', 440 / 302], [F_ + 'bouguereau-egalite.jpg', 440 / 232], [F_ + 'daubigny-oise.jpg', 440 / 242],
+  [F_ + 'cabanel-ange.jpg', 440 / 301], [F_ + 'couture-romains.jpg', 440 / 263], [F_ + 'gleyre-illusions.jpg', 440 / 248],
+  [W_ + 'c4-hugo-paint.jpg', 397 / 500], [W_ + 'c4-manet-paint.jpg', 480 / 640], [W_ + 'c4c-berlioz-paint.jpg', 646 / 800], [W_ + 'c4c-courbet-paint.jpg', 657 / 800],
+  [W_ + 'c4c-liszt-paint.jpg', 609 / 800], [W_ + 'c4c-zola-paint.jpg', 608 / 800], [W_ + 'c4-bernhardt-paint.jpg', 398 / 500], [W_ + 'c0-cleo.jpg', 420 / 241],
+  [W_ + 'c0-alt-cointable.jpg', 520 / 371], [W_ + 'c4c-degas-paint.jpg', 456 / 574],
 ];
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const lerp = (a, b, t) => a + (b - a) * t;
-const eio = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const eo = (t) => 1 - Math.pow(1 - t, 3);
-const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 
-// 타임라인(ms)
-const TL = { fadeIn: [0, 420], doors: [300, 1500], cam: [380, 2700], sweep: [2050, 2900], settle: 2950 };
-
 /**
- * @param {HTMLElement} root  전체 화면 덮개(#intro)
- * @param {{x:number,y:number,w:number,h:number}} box  .cands 의 화면 사각형
- * @param {Array<{src:string,a:number,n:number,cf:DOMRect,img:DOMRect,plate:DOMRect}>} cands
- * @param {() => void} onSettle  카메라가 멈추고 벽이 오므라들기 시작할 때(역할 문장이 타이핑된다)
+ * @param {T.Scene} scene
+ * @param {{ aniso:number, avoid:Array<{x0:number,x1:number,y0:number,y1:number}>, kick:()=>void, gilt:T.Material }} o
+ *   avoid: 안쪽 벽에서 후보작이 걸리는 자리(채움 그림을 걸지 않는다)
  */
-export function playIntro(root, box, cands, onSettle) {
-  return new Promise((resolve) => {
-    const W = root.clientWidth || innerWidth, H = root.clientHeight || innerHeight;
-    const cv = root.querySelector('canvas');
-    let renderer;
-    try { renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' }); }
-    catch (e) { resolve(); return; }
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.setSize(W, H, false);
-    renderer.outputEncoding = T.sRGBEncoding;
-    renderer.toneMapping = T.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.5;
-    const scene = new T.Scene();
-    scene.background = new T.Color(0x0b0403);
-    scene.fog = new T.Fog(0x140706, 2200, 6400);
-    const pmrem = new T.PMREMGenerator(renderer);
-    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-    const FOV = 50, d0 = (H / 2) / Math.tan(FOV / 2 * Math.PI / 180);
-    const camera = new T.PerspectiveCamera(FOV, W / H, 5, 9000);
-    const ANISO = Math.min(4, renderer.capabilities.getMaxAnisotropy());
-    const R = rnd(11);
+export function buildSalon(scene, o) {
+  const { W: HW2, L, WALL_H, CEIL, DOOR_W, DOOR_H } = HALL, HW = HW2 / 2;
+  const R = rnd(7);
+  const dimList = [];                        // 확대 때 함께 어두워지는 재료 [material, 원래 색, 원래 env]
+  const reg = (m) => { dimList.push([m, m.color.clone(), m.envMapIntensity]); return m; };
+  const canvasTex = (w, h, draw, srgb = true) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); if (srgb) t.encoding = T.sRGBEncoding; t.anisotropy = o.aniso; return t; };
+  const add = (geo, mat, x, y, z, ry = 0, rx = 0, parent = scene) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); parent.add(m); return m; };
 
-    // 화면 px → 월드(안쪽 벽 z=0). z 만큼 앞에 놓인 것은 마지막 카메라에서 같은 자리에 보이도록 좁힌다
-    const wx = (px, z = 0) => (px - W / 2) * (d0 - z) / d0;
-    const wy = (py, z = 0) => (H / 2 - py) * (d0 - z) / d0;
-    const bx = wx(box.x + box.w / 2), by = wy(box.y + box.h / 2);
-
-    // 전시실 치수 (1 단위 ≈ 1.4cm): 폭 1180, 바닥 by-600, 천장 by+1250, 깊이 2700
-    const HW = 590, FLOOR = by - 600, CEIL = by + 1250, L = 2700, HALL_H = CEIL - FLOOR;
-    const CAM0 = { x: bx, y: by + 90, z: L + 980 }, CAM1 = { x: 0, y: 0, z: d0 };
-
-    // ── 텍스처
-    const canvasTex = (w, h, draw, srgb = true) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); if (srgb) t.encoding = T.sRGBEncoding; t.anisotropy = ANISO; return t; };
-    const damask = canvasTex(256, 256, (g, w, h) => {
-      g.fillStyle = '#6E2A2B'; g.fillRect(0, 0, w, h);
-      const m = new Path2D('M32 4c6 8 12 12 24 14-12 2-18 6-24 14-6-8-12-12-24-14 12-2 18-6 24-14z');
-      g.strokeStyle = 'rgba(0,0,0,.2)'; g.lineWidth = 1.4;
-      for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { g.save(); g.translate(x * 64 + (y % 2) * 32, y * 64); g.stroke(m); g.beginPath(); g.arc(32, 46, 3, 0, 6.3); g.stroke(); g.restore(); }
-    });
-    damask.wrapS = damask.wrapT = T.RepeatWrapping;
-    const wallMat = (rw, rh) => { const t = damask.clone(); t.needsUpdate = true; t.repeat.set(rw / 96, rh / 96); return new T.MeshLambertMaterial({ map: t, color: 0x7E605A }); };
-    const parquet = canvasTex(512, 512, (g, w, h) => {
-      g.fillStyle = '#2a170f'; g.fillRect(0, 0, w, h);
-      const L2 = rnd(5);
-      for (let y = 0; y < h; y += 32) for (let x = -(y / 32 % 2) * 64; x < w; x += 128) {
-        const v = 38 + L2() * 26; g.fillStyle = `rgb(${v + 14 | 0},${v * 0.62 | 0},${v * 0.38 | 0})`; g.fillRect(x + 1, y + 1, 126, 30);
-        g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x, y, 128, 1);
-      }
-    });
-    parquet.wrapS = parquet.wrapT = T.RepeatWrapping; parquet.repeat.set(5, 9);
-    const glowTex = canvasTex(128, 128, (c, w) => { const gr = c.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, 'rgba(255,236,200,1)'); gr.addColorStop(0.18, 'rgba(255,190,110,.55)'); gr.addColorStop(0.5, 'rgba(255,150,70,.12)'); gr.addColorStop(1, 'rgba(255,140,60,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, w); });
-    const dotTex = canvasTex(32, 32, (c, w) => { const gr = c.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, w); });
-    const shaftTex = canvasTex(64, 256, (c, w, h) => {
-      const gx = c.createLinearGradient(0, 0, w, 0); gx.addColorStop(0, 'rgba(255,255,255,0)'); gx.addColorStop(0.5, 'rgba(255,255,255,1)'); gx.addColorStop(1, 'rgba(255,255,255,0)');
-      c.fillStyle = gx; c.fillRect(0, 0, w, h);
-      c.globalCompositeOperation = 'destination-in'; const gy = c.createLinearGradient(0, 0, 0, h); gy.addColorStop(0, 'rgba(0,0,0,.9)'); gy.addColorStop(0.7, 'rgba(0,0,0,.35)'); gy.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gy; c.fillRect(0, 0, w, h);
-    });
-
-    // ── 방
-    const add = (geo, mat, x, y, z, ry = 0, rx = 0) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); scene.add(m); return m; };
-    add(new T.PlaneGeometry(L + 200, HALL_H), wallMat(L + 200, HALL_H), bx - HW, FLOOR + HALL_H / 2, L / 2, Math.PI / 2);
-    add(new T.PlaneGeometry(L + 200, HALL_H), wallMat(L + 200, HALL_H), bx + HW, FLOOR + HALL_H / 2, L / 2, -Math.PI / 2);
-    add(new T.PlaneGeometry(HW * 2, HALL_H), wallMat(HW * 2, HALL_H), bx, FLOOR + HALL_H / 2, -1);
-    add(new T.PlaneGeometry(HW * 2, L + 1400), new T.MeshStandardMaterial({ map: parquet, roughness: 0.42, metalness: 0, color: 0x6a4e40, envMapIntensity: 0.06 }), bx, FLOOR, (L + 1400) / 2 - 200, 0, -Math.PI / 2);
-    // 천장 — 어두운 유리 천장(벨라리움)의 격자
-    const ceilTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#100705'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(52,36,28,.7)'; for (let i = 0; i <= 4; i++) { g.fillRect(i * 64 - 3, 0, 6, h); g.fillRect(0, i * 64 - 3, w, 6); } }, true);
-    ceilTex.wrapS = ceilTex.wrapT = T.RepeatWrapping; ceilTex.repeat.set(4, 10);
-    add(new T.PlaneGeometry(HW * 2, L + 400), new T.MeshLambertMaterial({ map: ceilTex }), bx, CEIL, L / 2, 0, Math.PI / 2);
-    // 징두리(나무 판) · 코니스(금박 몰딩)
-    const wood = new T.MeshStandardMaterial({ color: 0x2a140c, roughness: 0.6, metalness: 0.05, envMapIntensity: 0.08 });
-    const gilt = new T.MeshStandardMaterial({ color: 0x8B5A16, metalness: 1, roughness: 0.32, envMapIntensity: 0.45 });
-    for (const s of [-1, 1]) {
-      add(new T.BoxGeometry(14, 170, L + 200), wood, bx + s * (HW - 7), FLOOR + 85, L / 2);
-      add(new T.BoxGeometry(18, 26, L + 200), gilt, bx + s * (HW - 9), CEIL - 150, L / 2);
-      add(new T.BoxGeometry(12, 10, L + 200), gilt, bx + s * (HW - 6), FLOOR + 176, L / 2);
-    }
-    add(new T.BoxGeometry(HW * 2, 170, 14), wood, bx, FLOOR + 85, 7);
-    add(new T.BoxGeometry(HW * 2, 26, 18), gilt, bx, CEIL - 150, 9);
-
-    // ── 그림
-    const loader = new T.TextureLoader();
-    const texCache = new Map(); const loads = [];
-    function tex(src) {
-      if (texCache.has(src)) return texCache.get(src);
-      let done1; loads.push(new Promise((r) => { done1 = r; }));
-      const t = loader.load(src, () => done1(), undefined, () => done1());
-      t.encoding = T.sRGBEncoding; t.anisotropy = ANISO; texCache.set(src, t); return t;
-    }
-    const canvasMats = new Map();
-    const paintMat = (src) => { if (!canvasMats.has(src)) canvasMats.set(src, new T.MeshLambertMaterial({ map: tex(W_ + src), color: 0xC9B8A6 })); return canvasMats.get(src); };
-    const frameGeo = new T.BoxGeometry(1, 1, 1), planeGeo = new T.PlaneGeometry(1, 1);
-    function painting(src, w, h, m, parent) {
-      const g = new T.Group();
-      const f = new T.Mesh(frameGeo, gilt); f.scale.set(w + 2 * m, h + 2 * m, Math.max(6, m * 0.6)); f.position.z = f.scale.z / 2; g.add(f);
-      const c = new T.Mesh(planeGeo, paintMat(src)); c.scale.set(w, h, 1); c.position.z = f.scale.z + 0.6; g.add(c);
-      parent.add(g); return g;
-    }
-    // 살롱식 걸기 — 위에서 아래로 줄을 채운다. 한 줄 안에서 크기는 조금씩 다르고, 가운데 높이를 맞춘다
-    let pickN = 0; const order = FILL.map((_, i) => i).sort(() => R() - 0.5);
-    const nextFill = () => FILL[order[pickN++ % order.length]];
-    function hang(x0, x1, y0, y1, place, hMin, hMax, avoid) {
-      let y = y1;
-      while (true) {
-        const rh = hMin + R() * (hMax - hMin);
-        if (y - rh < y0) break;
-        const cy = y - rh / 2, items = [];
-        let x = x0, guard = 0;
-        while (guard++ < 40) {
-          const [src, a] = nextFill(), h = rh * (0.72 + R() * 0.28), w = h * a, m = clamp(Math.min(w, h) * 0.08, 7, 20), ow = w + 2 * m;
-          if (x + ow > x1) break;
-          if (avoid && cy + h / 2 + m > avoid.y0 && cy - h / 2 - m < avoid.y1 && x + ow > avoid.x0 && x < avoid.x1) { x = avoid.x1; continue; }
-          items.push({ src, w, h, m, x: x + ow / 2 }); x += ow + 18 + R() * 16;
-        }
-        const slack = Math.max(0, x1 - x) / (items.length + 1);
-        items.forEach((it, k) => place(it.src, it.w, it.h, it.m, it.x + (avoid ? 0 : slack * (k + 1)), cy + (R() - 0.5) * 10));
-        y -= rh + 26 + R() * 12;
-      }
-    }
-    for (const s of [-1, 1]) {
-      const side = new T.Group(); side.position.set(bx + s * (HW - 2), 0, 0); side.rotation.y = -s * Math.PI / 2; scene.add(side);
-      // 옆벽 로컬 x = 깊이 방향(입구 쪽이 +), 오른쪽 벽은 뒤집힌다
-      hang(140, L - 140, FLOOR + 210, CEIL - 190, (src, w, h, m, x, y) => { const g = painting(src, w, h, m, side); g.position.set(s < 0 ? -x : x, y, 0); }, 130, 300);
-    }
-    // 안쪽 벽 — 후보작 자리(.cands)는 비워 두고 둘레를 채운다
-    const back = new T.Group(); scene.add(back);
-    const AV = { x0: wx(box.x) - 24, x1: wx(box.x + box.w) + 24, y0: wy(box.y + box.h) - 24, y1: wy(box.y) + 24 };
-    hang(bx - HW + 30, bx + HW - 30, FLOOR + 210, CEIL - 190, (src, w, h, m, x, y) => { const g = painting(src, w, h, m, back); g.position.set(x, y, 0); }, 120, 230, AV);
-    // 후보작 다섯 점 — DOM 의 액자(.cf)·그림(img)·번호판 자리 그대로
-    const plateTex = (n) => canvasTex(96, 64, (c, w, h) => { const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#F4DB92'); gr.addColorStop(0.55, '#C9A14A'); gr.addColorStop(1, '#8E6A26'); c.fillStyle = gr; c.fillRect(0, 0, w, h); c.fillStyle = '#2E1F05'; c.font = '700 40px Georgia, serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(String(n), w / 2, h / 2 + 2); });
-    const candMeshes = [];
-    cands.forEach((cd) => {
-      const z1 = 8, z2 = 9;
-      const f = new T.Mesh(frameGeo, gilt); f.scale.set(cd.cf.width * (d0 - z1) / d0, cd.cf.height * (d0 - z1) / d0, 8); f.position.set(wx(cd.cf.x + cd.cf.width / 2, z1), wy(cd.cf.y + cd.cf.height / 2, z1), 4); back.add(f);
-      const mat = new T.MeshLambertMaterial({ map: tex(cd.src), color: 0xF4ECE2 });
-      const c = new T.Mesh(planeGeo, mat); c.scale.set(cd.img.width * (d0 - z2) / d0, cd.img.height * (d0 - z2) / d0, 1); c.position.set(wx(cd.img.x + cd.img.width / 2, z2), wy(cd.img.y + cd.img.height / 2, z2), z2); back.add(c);
-      const p = new T.Mesh(planeGeo, new T.MeshLambertMaterial({ map: plateTex(cd.n) })); p.scale.set(cd.plate.width, cd.plate.height, 1); p.position.set(wx(cd.plate.x + cd.plate.width / 2, 2), wy(cd.plate.y + cd.plate.height / 2, 2), 2); back.add(p);
-      candMeshes.push(mat);
-    });
-
-    // ── 문 — 짙은 옻칠 나무, 금박 몰딩 세 칸, 놋쇠 손잡이. 안쪽으로 열린다
-    const DOOR_H = 1320;
-    const doorTex = (flip) => canvasTex(256, 768, (g, w, h) => {
-      const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, '#2b130d'); gr.addColorStop(0.5, '#3d1c13'); gr.addColorStop(1, '#2a120c'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
-      for (let i = 0; i < 900; i++) { g.fillStyle = `rgba(0,0,0,${0.04 + Math.random() * 0.06})`; g.fillRect(Math.random() * w, Math.random() * h, 1, 6 + Math.random() * 30); }
-      const panel = (x, y, pw, ph) => { g.strokeStyle = '#c9963e'; g.lineWidth = 5; g.strokeRect(x, y, pw, ph); g.strokeStyle = 'rgba(255,226,150,.5)'; g.lineWidth = 1.5; g.strokeRect(x + 9, y + 9, pw - 18, ph - 18); g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x + 12, y + 12, pw - 24, ph - 24); };
-      panel(30, 34, w - 60, 250); panel(30, 314, w - 60, 140); panel(30, 484, w - 60, 250);
-      const hx = flip ? 14 : w - 22; g.fillStyle = '#d8ad55'; g.fillRect(hx, 380, 8, 70); g.fillStyle = '#fff1c0'; g.fillRect(hx + 2, 384, 2, 60);
-    });
-    const doors = [-1, 1].map((s) => {
-      const hinge = new T.Group(); hinge.position.set(bx + s * HW, FLOOR, L); scene.add(hinge);
-      const d = new T.Mesh(new T.BoxGeometry(HW, DOOR_H, 34), [wood, wood, wood, wood, new T.MeshStandardMaterial({ map: doorTex(s > 0), roughness: 0.38, metalness: 0.1, envMapIntensity: 0.6 }), wood]);
-      d.position.set(-s * HW / 2, DOOR_H / 2, 0); hinge.add(d);
-      return { hinge, s };
-    });
-    // 문 위·바깥 벽
-    add(new T.PlaneGeometry(HW * 2 + 1600, HALL_H + 400), new T.MeshLambertMaterial({ color: 0x1a0907 }), bx, FLOOR + DOOR_H + (HALL_H + 400) / 2, L + 18);
-    for (const s of [-1, 1]) add(new T.PlaneGeometry(1600, DOOR_H + 400), new T.MeshLambertMaterial({ color: 0x1a0907 }), bx + s * (HW + 800), FLOOR + DOOR_H / 2, L + 18);
-    // 문틈의 빛
-    const slit = new T.Mesh(planeGeo, new T.MeshBasicMaterial({ map: shaftTex, color: 0xffc27a, transparent: true, blending: T.AdditiveBlending, depthWrite: false, opacity: 1, toneMapped: false }));
-    slit.scale.set(34, DOOR_H * 1.1, 1); slit.position.set(bx, FLOOR + DOOR_H / 2, L + 20); slit.rotation.z = Math.PI; scene.add(slit);
-
-    // ── 빛: 가스 샹들리에(점광원 넷 + 빛망울), 위에서 내려오는 빛줄기, 안쪽 벽을 쓰는 빛
-    scene.add(new T.HemisphereLight(0xffe2c0, 0x1a0606, 0.12));
-    const gas = [];
-    [[0.18, -1], [0.18, 1], [0.6, -1], [0.6, 1]].forEach(([zk, s], i) => {
-      const p = new T.PointLight(0xffa860, 0, 1700, 1.4); p.position.set(bx + s * (HW - 260), CEIL - 330, L * zk); scene.add(p);
-      const glow = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xffc58a, transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false }));
-      glow.position.copy(p.position); glow.scale.setScalar(300); scene.add(glow);
-      // 샹들리에 불꽃 — 작은 빛 여러 개
-      const flames = [];
-      for (let k = 0; k < 6; k++) { const a = k / 6 * Math.PI * 2; const f = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xffe0b0, transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false })); f.position.set(p.position.x + Math.cos(a) * 60, p.position.y - 30, p.position.z + Math.sin(a) * 60); f.scale.setScalar(46); scene.add(f); flames.push(f); }
-      gas.push({ p, glow, flames, ph: i * 1.7, base: 2.3 });
-    });
-    const sconce = [];
-    for (const s of [-1, 1]) for (const zk of [0.36, 0.8]) {
-      const g = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xffb070, transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, opacity: 0.9 }));
-      g.position.set(bx + s * (HW - 30), FLOOR + 380, L * zk); g.scale.setScalar(150); scene.add(g); sconce.push(g);
-    }
-    const shafts = [];
-    for (let k = 0; k < 5; k++) {
-      const m = new T.Mesh(planeGeo, new T.MeshBasicMaterial({ map: shaftTex, color: 0xffd9a8, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, toneMapped: false, fog: false }));
-      m.scale.set(170 + R() * 120, HALL_H * 1.1, 1); m.position.set(bx + (R() - 0.5) * HW * 1.3, CEIL - HALL_H * 0.5, 300 + k * (L / 5) + R() * 200); m.rotation.z = 0.22 + (R() - 0.5) * 0.12; scene.add(m); shafts.push({ m, o: 0.08 + R() * 0.07 });
-    }
-    const sweep = new T.SpotLight(0xfff1dc, 0, 3200, 0.2, 0.75, 1); sweep.position.set(bx, by + 900, 1500); scene.add(sweep); scene.add(sweep.target);
-    const wash = new T.SpotLight(0xffe6c8, 0, 3200, 0.55, 0.9, 1); wash.position.set(bx, by + 700, 1700); wash.target.position.set(bx, by, 0); scene.add(wash); scene.add(wash.target);
-    // 빛 속의 먼지
-    const N = 700, dpos = new Float32Array(N * 3), dseed = new Float32Array(N);
-    for (let i = 0; i < N; i++) { dpos[i * 3] = bx + (R() - 0.5) * HW * 1.9; dpos[i * 3 + 1] = FLOOR + R() * HALL_H; dpos[i * 3 + 2] = R() * (L + 900); dseed[i] = R() * 100; }
-    const dgeo = new T.BufferGeometry(); dgeo.setAttribute('position', new T.BufferAttribute(dpos.slice(), 3));
-    const dust = new T.Points(dgeo, new T.PointsMaterial({ map: dotTex, size: 7, color: 0xffdcae, transparent: true, opacity: 0.0, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false }));
-    scene.add(dust);
-
-    // ── 진행
-    let t = 0, speed = 1, last = 0, raf = 0, settled = false, done = false;
-    const skip = () => { if (!settled) speed = 5; };
-    root.addEventListener('pointerdown', skip);
-    function frame(now) {
-      if (done) return;
-      const dt = last ? Math.min(50, now - last) : 16; last = now;
-      t += dt * speed; const time = now / 1000;
-      // 카메라 — 문 앞에서 전시실 안쪽 벽까지. 들어서며 아주 조금 올려다보고, 벽 앞에서 정면으로 선다
-      const c = eio(seg(t, ...TL.cam));
-      camera.position.set(lerp(CAM0.x, CAM1.x, c), lerp(CAM0.y, CAM1.y, eo(c)), lerp(CAM0.z, CAM1.z, c));
-      camera.rotation.set(Math.sin(c * Math.PI) * 0.1, Math.sin(c * Math.PI * 2) * 0.012, 0);
-      // 문
-      const od = eio(seg(t, ...TL.doors));
-      doors.forEach(({ hinge, s }) => { hinge.rotation.y = -s * od * 1.5; });
-      slit.material.opacity = (1 - od) * (0.75 + 0.25 * Math.sin(time * 9)) * (0.4 + 0.6 * seg(t, 0, 400)); slit.scale.x = 34 + od * 700;
-      // 노출 · 가스등 깜빡임
-      renderer.toneMappingExposure = lerp(0.42, 1.05, eo(seg(t, 250, 1700)));
-      const focus = eio(seg(t, TL.sweep[0], TL.sweep[1]));
-      gas.forEach((g) => {
-        const fl = 1 + 0.07 * Math.sin(time * 13 + g.ph) + 0.05 * Math.sin(time * 29.3 + g.ph * 2) + 0.03 * Math.sin(time * 47 + g.ph);
-        g.p.intensity = g.base * fl * eo(seg(t, 200, 1300)) * (1 - focus * 0.35);
-        g.glow.material.opacity = 0.8 * fl * (1 - focus * 0.25); g.glow.scale.setScalar(300 * (0.96 + 0.06 * fl));
-        g.flames.forEach((f, k) => { f.material.opacity = 0.9 * (1 + 0.15 * Math.sin(time * 21 + k * 1.3 + g.ph)); });
-      });
-      sconce.forEach((g, k) => { g.material.opacity = 0.75 * (1 + 0.1 * Math.sin(time * 17 + k * 2.1)) * (1 - focus * 0.3); });
-      shafts.forEach((s, k) => { s.m.material.opacity = s.o * eo(seg(t, 500, 1800)) * (1 - focus * 0.5) * (0.85 + 0.15 * Math.sin(time * 0.7 + k)); });
-      // 먼지 — 천천히 떠다닌다
-      const pa = dgeo.attributes.position.array;
-      for (let i = 0; i < N; i++) { const s = dseed[i]; pa[i * 3] = dpos[i * 3] + Math.sin(time * 0.31 + s) * 22; pa[i * 3 + 1] = dpos[i * 3 + 1] + Math.sin(time * 0.23 + s * 1.7) * 18 - ((time * 6 + s * 9) % 60); pa[i * 3 + 2] = dpos[i * 3 + 2] + Math.cos(time * 0.27 + s) * 22; }
-      dgeo.attributes.position.needsUpdate = true;
-      dust.material.opacity = 0.75 * eo(seg(t, 400, 1500)) * (1 - focus * 0.3);
-      // 후보작을 쓸고 지나가는 빛 → 다섯 점을 고르게 비춘다
-      const sw = seg(t, TL.sweep[0], TL.sweep[1]);
-      sweep.intensity = 2.6 * Math.sin(sw * Math.PI);
-      sweep.target.position.set(lerp(wx(box.x) - 60, wx(box.x + box.w) + 60, eio(sw)), by + 20, 0);
-      wash.intensity = 1.0 * eo(seg(t, TL.sweep[0] + 300, TL.sweep[1] + 200));
-      renderer.render(scene, camera);
-      if (!settled && t >= TL.settle) { settled = true; root.removeEventListener('pointerdown', skip); onSettle && onSettle(); finish(); }
-      raf = requestAnimationFrame(frame);
-    }
-    // 벽이 .cands 자리로 오므라든 뒤 덮개를 걷고 렌더러를 버린다
-    function finish() {
-      const r = (v) => `${Math.round(v)}px`;
-      const to = `inset(${r(box.y)} ${r(W - box.x - box.w)} ${r(H - box.y - box.h)} ${r(box.x)} round 8px)`;
-      const a = root.animate([{ clipPath: 'inset(0px 0px 0px 0px round 0px)' }, { clipPath: to }], { duration: 760, easing: 'cubic-bezier(.65,0,.25,1)', fill: 'forwards' });
-      a.finished.then(() => root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, easing: 'ease', fill: 'forwards' }).finished).then(() => {
-        done = true; cancelAnimationFrame(raf);
-        renderer.dispose(); try { renderer.forceContextLoss(); } catch (e) { /* noop */ }
-        root.remove(); resolve();
-      }).catch(() => { done = true; root.remove(); resolve(); });
-    }
-    // 그림을 조금 기다렸다가(최대 1.2초) 시작 — 문이 닫힌 동안 대부분 들어온다
-    Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, 1200))]).then(() => {
-      root.classList.add('run');
-      raf = requestAnimationFrame(frame);
-    });
+  // ── 재료
+  // 다마스크 — 짙은 적갈색 바탕에 조금 밝은 플록 무늬(양털 결) + 어두운 윤곽. 한 장 512px 을 1.1m 에 한 번
+  const damask = canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#6F2627'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 9000; i++) { const v = Math.random(); g.fillStyle = v < 0.5 ? 'rgba(0,0,0,.05)' : 'rgba(255,190,170,.035)'; g.fillRect(Math.random() * w, Math.random() * h, 1, 2); }
+    const motif = (cx, cy, s) => {
+      g.save(); g.translate(cx, cy); g.scale(s, s);
+      const p = new Path2D('M0 -118 C 26 -84 64 -70 70 -30 C 76 6 40 22 34 52 C 30 76 52 92 44 118 C 30 100 12 96 0 112 C -12 96 -30 100 -44 118 C -52 92 -30 76 -34 52 C -40 22 -76 6 -70 -30 C -64 -70 -26 -84 0 -118 Z');
+      g.fillStyle = 'rgba(140,48,44,.38)'; g.fill(p); g.strokeStyle = 'rgba(40,6,6,.25)'; g.lineWidth = 2.2; g.stroke(p);
+      const q = new Path2D('M0 -70 C 16 -50 30 -30 22 -4 C 16 14 6 24 0 40 C -6 24 -16 14 -22 -4 C -30 -30 -16 -50 0 -70 Z');
+      g.fillStyle = 'rgba(60,12,12,.22)'; g.fill(q);
+      g.strokeStyle = 'rgba(170,70,62,.5)'; g.lineWidth = 1.6; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(sx * 70, -30); g.bezierCurveTo(sx * 110, -40, sx * 120, 10, sx * 100, 40); g.stroke(); }
+      g.restore();
+    };
+    motif(128, 128, 0.9); motif(384, 384, 0.9); motif(384, 128, 0.42); motif(128, 384, 0.42);
   });
+  damask.wrapS = damask.wrapT = T.RepeatWrapping;
+  const wallMat = (rw, rh) => { const t = damask.clone(); t.needsUpdate = true; t.repeat.set(rw / 1.15, rh / 1.15); return reg(new T.MeshLambertMaterial({ map: t, color: 0xD8C2BC })); };
+  // 위는 천창 빛을 받아 밝고 아래로 갈수록 가라앉는다 — 벽 앞에 얇게 덮는 그늘(검정, 알파 그라데이션)
+  const shadeTex = canvasTex(4, 256, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.35, 'rgba(0,0,0,.06)'); gr.addColorStop(0.85, 'rgba(0,0,0,.38)'); gr.addColorStop(1, 'rgba(0,0,0,.5)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }, false);
+  const shadeMat = new T.MeshBasicMaterial({ map: shadeTex, transparent: true, depthWrite: false, toneMapped: false });
+  const parquet = canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#3a2215'; g.fillRect(0, 0, w, h);
+    const L2 = rnd(5);
+    for (let y = 0; y < h; y += 64) for (let x = 0; x < w; x += 64) {
+      const horiz = ((x + y) / 64) % 2 === 0;
+      for (let k = 0; k < 4; k++) {
+        const v = 52 + L2() * 30; g.fillStyle = `rgb(${v + 22 | 0},${v * 0.62 | 0},${v * 0.36 | 0})`;
+        if (horiz) g.fillRect(x + 1, y + k * 16 + 1, 62, 14); else g.fillRect(x + k * 16 + 1, y + 1, 14, 62);
+      }
+    }
+  });
+  parquet.wrapS = parquet.wrapT = T.RepeatWrapping; parquet.repeat.set(HW2 / 1.4, (L + 2) / 1.4);
+  const wood = reg(new T.MeshLambertMaterial({ color: 0x3B1E12 }));
+  const woodDark = reg(new T.MeshLambertMaterial({ color: 0x24110A }));
+  const gilt = reg(new T.MeshStandardMaterial({ color: 0x9A6A22, metalness: 1, roughness: 0.42, envMapIntensity: 0.5 }));
+  const cream = reg(new T.MeshLambertMaterial({ color: 0xC9B79A }));
+
+  // ── 방
+  add(new T.PlaneGeometry(HW2, WALL_H), wallMat(HW2, WALL_H), 0, WALL_H / 2, 0);                                  // 안쪽 벽
+  add(new T.PlaneGeometry(HW2, WALL_H), shadeMat, 0, WALL_H / 2, 0.004);
+  for (const s of [-1, 1]) {
+    add(new T.PlaneGeometry(L, WALL_H), wallMat(L, WALL_H), s * HW, WALL_H / 2, L / 2, -s * Math.PI / 2);         // 옆벽
+    add(new T.PlaneGeometry(L, WALL_H), shadeMat, s * (HW - 0.004), WALL_H / 2, L / 2, -s * Math.PI / 2);
+  }
+  add(new T.PlaneGeometry(HW2, L + 0.4), reg(new T.MeshLambertMaterial({ map: parquet, color: 0xC8B4A4 })), 0, 0, L / 2, 0, -Math.PI / 2);
+  // 징두리(나무 판 1m) · 걸레받이 · 의자 높이 몰딩 — 안쪽 벽과 옆벽
+  const DADO = 1.0;
+  add(new T.BoxGeometry(HW2, DADO, 0.06), wood, 0, DADO / 2, 0.03);
+  add(new T.BoxGeometry(HW2, 0.05, 0.1), gilt, 0, DADO, 0.05);
+  add(new T.BoxGeometry(HW2, 0.16, 0.08), woodDark, 0, 0.08, 0.04);
+  for (const s of [-1, 1]) {
+    add(new T.BoxGeometry(0.06, DADO, L), wood, s * (HW - 0.03), DADO / 2, L / 2);
+    add(new T.BoxGeometry(0.1, 0.05, L), gilt, s * (HW - 0.05), DADO, L / 2);
+  }
+  // 징두리 판넬 — 금박 가는 선의 네모 칸
+  for (let x = -HW + 0.35; x < HW - 0.6; x += 1.25) {
+    for (const [w, h] of [[1.0, 0.04]]) { add(new T.BoxGeometry(w, 0.025, 0.02), gilt, x + 0.5, 0.82, 0.07); add(new T.BoxGeometry(w, 0.025, 0.02), gilt, x + 0.5, 0.28, 0.07); void h; }
+    add(new T.BoxGeometry(0.025, 0.54, 0.02), gilt, x, 0.55, 0.07); add(new T.BoxGeometry(0.025, 0.54, 0.02), gilt, x + 1.0, 0.55, 0.07);
+  }
+  // 코니스(금박 몰딩 두 단) · 오목 몰딩(cove: 벽 꼭대기에서 천장까지 안으로 굽는 면) — 세 벽
+  const COVE = CEIL - WALL_H;
+  const coveTex = canvasTex(8, 128, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#F3E6CC'); gr.addColorStop(0.55, '#D8C3A0'); gr.addColorStop(1, '#8E7656'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+  const coveMat = reg(new T.MeshLambertMaterial({ map: coveTex, side: T.DoubleSide }));
+  // 사분원 면 — pt(u, a): u 는 몰딩 길이 방향(0..1), a 는 벽 꼭대기(0)→천장(π/2)
+  const coveGeo = (pt) => {
+    const NU = 2, NA = 10, pos = [], uv = [], idx = [];
+    for (let j = 0; j <= NA; j++) for (let i = 0; i < NU; i++) { const a = j / NA * Math.PI / 2; pos.push(...pt(i / (NU - 1), a)); uv.push(i, j / NA); }
+    for (let j = 0; j < NA; j++) { const a = j * NU, b = a + NU; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+    const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); return g;
+  };
+  scene.add(new T.Mesh(coveGeo((u, a) => [(u - 0.5) * HW2, WALL_H + COVE * Math.sin(a), COVE - COVE * Math.cos(a)]), coveMat));
+  for (const s of [-1, 1]) scene.add(new T.Mesh(coveGeo((u, a) => [s * (HW - COVE + COVE * Math.cos(a)), WALL_H + COVE * Math.sin(a), u * L]), coveMat));
+  add(new T.BoxGeometry(HW2, 0.22, 0.2), gilt, 0, WALL_H - 0.11, 0.1);
+  add(new T.BoxGeometry(HW2, 0.08, 0.3), gilt, 0, WALL_H + 0.02, 0.15);
+  add(new T.BoxGeometry(HW2, 0.05, 0.12), gilt, 0, WALL_H - 0.42, 0.06);
+  for (const s of [-1, 1]) {
+    add(new T.BoxGeometry(0.2, 0.22, L), gilt, s * (HW - 0.1), WALL_H - 0.11, L / 2);
+    add(new T.BoxGeometry(0.3, 0.08, L), gilt, s * (HW - 0.15), WALL_H + 0.02, L / 2);
+  }
+  // 천장 — 벨룸 아래로 들어오는 낮빛. 금박 테두리 · 철골 격자 · 천 무늬
+  const velum = canvasTex(512, 1024, (g, w, h) => {
+    const gr = g.createRadialGradient(w / 2, h * 0.3, 40, w / 2, h * 0.5, h * 0.7); gr.addColorStop(0, '#FFF9EC'); gr.addColorStop(1, '#E9DBBF'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(160,130,90,${Math.random() * 0.05})`; g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 1); }
+    g.fillStyle = 'rgba(90,64,38,.55)'; for (let x = 0; x <= w; x += w / 6) g.fillRect(x - 3, 0, 6, h); for (let y = 0; y <= h; y += h / 12) g.fillRect(0, y - 2, w, 4);
+    g.fillStyle = 'rgba(90,64,38,.18)'; for (let x = 0; x <= w; x += w / 24) g.fillRect(x - 1, 0, 2, h);
+  });
+  const ceilInW = HW2 - 2 * COVE - 1.2;
+  add(new T.PlaneGeometry(ceilInW, L - COVE - 0.6), new T.MeshBasicMaterial({ map: velum, color: 0xF2E7D2 }), 0, CEIL - 0.01, (L + COVE) / 2, 0, Math.PI / 2);
+  // 천창 둘레 — 크림 띠와 금박 선
+  const band = reg(new T.MeshLambertMaterial({ color: 0xB7A27F, side: T.DoubleSide }));
+  add(new T.PlaneGeometry(HW2, L + 0.4), band, 0, CEIL, L / 2, 0, Math.PI / 2);
+  add(new T.BoxGeometry(ceilInW + 0.2, 0.12, 0.14), gilt, 0, CEIL - 0.05, COVE + 0.6);
+  for (const s of [-1, 1]) add(new T.BoxGeometry(0.14, 0.12, L - COVE - 0.6), gilt, s * (ceilInW / 2 + 0.07), CEIL - 0.05, (L + COVE) / 2);
+
+  // ── 채움 그림 — 살롱식(바닥 위부터 코니스까지 빽빽이). 텍스처마다 InstancedMesh
+  const loader = new T.TextureLoader();
+  const fillTex = FILL.map(([src]) => { const t = loader.load(src, () => o.kick()); t.encoding = T.sRGBEncoding; t.anisotropy = o.aniso; return t; });
+  const slots = FILL.map(() => []), frames = [];
+  let pick = 0; const order = FILL.map((_, i) => i).sort(() => R() - 0.5);
+  const next = () => order[pick++ % order.length];
+  // 띠마다 위에서 아래로 채운다. 한 줄 안에서 가운데 높이를 맞추고 크기는 조금씩 다르게
+  function hang(x0, x1, y0, y1, hMin, hMax, toWorld, avoid) {
+    let y = y1;
+    while (true) {
+      const rh = hMin + R() * (hMax - hMin);
+      if (y - rh < y0) break;
+      const cy = y - rh / 2, items = [];
+      let x = x0, guard = 0, seg0 = 0;
+      while (guard++ < 60) {
+        const k = next(), a = FILL[k][1], h = rh * (0.7 + R() * 0.3), w = Math.min(h * a, rh * 1.9), hh = w / a, m = clamp(Math.min(w, hh) * 0.08, 0.06, 0.15), ow = w + 2 * m;
+        if (x + ow > x1) break;
+        const hit = avoid && avoid.find((r) => cy + hh / 2 + m > r.y0 && cy - hh / 2 - m < r.y1 && x + ow > r.x0 && x < r.x1);
+        if (hit) {   // 비켜 갈 자리 앞의 그림들은 오른쪽으로 붙여, 후보작 양옆의 간격이 같아지게
+          let sh = Infinity;
+          for (let k = seg0; k < items.length; k++) {
+            const it = items[k], r1 = it.x + it.ow / 2;
+            avoid.forEach((r) => { if (cy + it.h / 2 + it.m > r.y0 && cy - it.h / 2 - it.m < r.y1 && r.x0 >= r1 - 1e-6) sh = Math.min(sh, r.x0 - 0.16 - r1); });
+          }
+          if (sh > 0 && sh < Infinity) for (let k = seg0; k < items.length; k++) items[k].x += sh;
+          x = hit.x1 + 0.16; seg0 = items.length; continue;
+        }
+        items.push({ k, w, h: hh, m, ow, x: x + ow / 2 }); x += ow + 0.14 + R() * 0.14;
+      }
+      items.forEach((it) => { const p = toWorld(it.x, cy + (R() - 0.5) * 0.06); slots[it.k].push({ ...p, w: it.w, h: it.h }); frames.push({ ...p, w: it.w + 2 * it.m, h: it.h + 2 * it.m }); });
+      y -= rh + 0.2 + R() * 0.1;
+    }
+  }
+  const BAND0 = DADO + 0.22, BAND1 = WALL_H - 0.55;
+  hang(-HW + 0.25, HW - 0.25, BAND0, BAND1, 0.95, 1.7, (x, y) => ({ x, y, z: 0, ry: 0 }), o.avoid);
+  for (const s of [-1, 1]) hang(0.5, L - 0.6, BAND0, BAND1, 1.1, 2.3, (u, y) => ({ x: s * HW, y, z: s < 0 ? u : L - u, ry: -s * Math.PI / 2 }), null);
+  const frameMat = gilt, fd = 0.08, mx = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), v = new T.Vector3(), sc = new T.Vector3();
+  const fr = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), frameMat, frames.length);
+  frames.forEach((f, i) => {
+    q.setFromEuler(e.set(0, f.ry, 0)); v.set(0, 0, fd / 2).applyQuaternion(q).add(new T.Vector3(f.x, f.y, f.z));
+    fr.setMatrixAt(i, mx.compose(v, q, sc.set(f.w, f.h, fd)));
+  });
+  scene.add(fr);
+  const plane = new T.PlaneGeometry(1, 1), fillMats = [];
+  slots.forEach((list, k) => {
+    if (!list.length) return;
+    const mat = reg(new T.MeshLambertMaterial({ map: fillTex[k], color: 0x8A7C70 })); fillMats.push(mat);
+    const im = new T.InstancedMesh(plane, mat, list.length);
+    list.forEach((p, i) => { q.setFromEuler(e.set(0, p.ry, 0)); v.set(0, 0, fd + 0.004).applyQuaternion(q).add(new T.Vector3(p.x, p.y, p.z)); im.setMatrixAt(i, mx.compose(v, q, sc.set(p.w, p.h, 1))); });
+    scene.add(im);
+  });
+
+  // ── 안쪽 벽 앞 붉은 로프 — 놋쇠 기둥 둘(화면 가운데에는 기둥이 없다), 가운데로 늘어진 벨벳 줄
+  const brass = reg(new T.MeshStandardMaterial({ color: 0xC9A04A, metalness: 1, roughness: 0.3, envMapIntensity: 1 }));
+  const velvet = reg(new T.MeshLambertMaterial({ color: 0x7A1018 }));
+  const RZ = 1.7, posts = [-5.2, -2.6, 2.6, 5.2];
+  posts.forEach((x) => { add(new T.CylinderGeometry(0.03, 0.035, 0.95, 12), brass, x, 0.475, RZ); add(new T.SphereGeometry(0.06, 14, 10), brass, x, 0.97, RZ); add(new T.CylinderGeometry(0.16, 0.18, 0.04, 20), brass, x, 0.02, RZ); });
+  for (let i = 0; i < posts.length - 1; i++) {
+    const a = posts[i], b = posts[i + 1], pts = [];
+    for (let k = 0; k <= 16; k++) { const t = k / 16; pts.push(new T.Vector3(a + (b - a) * t, 0.93 - Math.sin(t * Math.PI) * 0.22 * (b - a) / 5.2, RZ)); }
+    add(new T.TubeGeometry(new T.CatmullRomCurve3(pts), 24, 0.024, 8, false), velvet, 0, 0, 0);
+  }
+  // 긴 의자 둘 — 전시실 가운데 양쪽(붉은 벨벳)
+  for (const s of [-1, 1]) for (const z of [9.5, 16.5]) {
+    add(new T.BoxGeometry(1.0, 0.16, 2.6), velvet, s * 2.9, 0.44, z);
+    add(new T.BoxGeometry(0.9, 0.34, 2.4), woodDark, s * 2.9, 0.19, z);
+  }
+
+  // ── 입구 — 바깥 대기실(어둡다) · 돌 벽 · 문틀 · 위의 명판 · 두 짝 문(안쪽으로 열린다)
+  const stone = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#6d6052'; g.fillRect(0, 0, w, h); for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '0,0,0' : '255,240,220'},${Math.random() * 0.05})`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } g.fillStyle = 'rgba(30,22,16,.55)'; for (let y = 0; y < h; y += 64) { g.fillRect(0, y, w, 3); for (let x = (y / 64) % 2 * 64; x < w; x += 128) g.fillRect(x, y, 3, 64); } });
+  stone.wrapS = stone.wrapT = T.RepeatWrapping;
+  const stoneMat = (rw, rh) => { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(rw / 1.6, rh / 1.6); return new T.MeshLambertMaterial({ map: t, color: 0x6a5c50 }); };
+  const DZ = L + 0.3, FW = (HW2 - DOOR_W) / 2;
+  for (const s of [-1, 1]) add(new T.BoxGeometry(FW, CEIL, 0.6), stoneMat(FW, CEIL), s * (DOOR_W / 2 + FW / 2), CEIL / 2, DZ);
+  add(new T.BoxGeometry(DOOR_W, CEIL - DOOR_H, 0.6), stoneMat(DOOR_W, CEIL - DOOR_H), 0, DOOR_H + (CEIL - DOOR_H) / 2, DZ);
+  // 문간 윗면(지나갈 때 올려다보이는 면) — 돌, 안쪽 빛을 받아 따뜻하게
+  { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(2, 0.4); add(new T.PlaneGeometry(DOOR_W, 0.6), new T.MeshBasicMaterial({ map: t, color: 0x9a8670 }), 0, DOOR_H - 0.002, DZ, 0, Math.PI / 2); }
+  for (const s of [-1, 1]) { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(0.4, 3); add(new T.PlaneGeometry(0.6, DOOR_H), new T.MeshLambertMaterial({ map: t, color: 0x7a6a5a }), s * (DOOR_W / 2 - 0.002), DOOR_H / 2, DZ, -s * Math.PI / 2); }
+  // 문틀(금박) · 문 위 처마 · 명판
+  const ext = new T.MeshStandardMaterial({ color: 0x7A5420, metalness: 1, roughness: 0.42, envMapIntensity: 0.3 });
+  for (const s of [-1, 1]) add(new T.BoxGeometry(0.26, DOOR_H + 0.26, 0.12), ext, s * (DOOR_W / 2 + 0.13), (DOOR_H + 0.26) / 2, DZ + 0.36);
+  add(new T.BoxGeometry(DOOR_W + 0.52, 0.26, 0.12), ext, 0, DOOR_H + 0.13, DZ + 0.36);
+  add(new T.BoxGeometry(DOOR_W + 1.3, 0.16, 0.34), ext, 0, DOOR_H + 0.42, DZ + 0.42);
+  for (const s of [-1, 1]) add(new T.BoxGeometry(0.5, DOOR_H + 0.6, 0.22), stoneMat(0.5, DOOR_H), s * (DOOR_W / 2 + 0.85), (DOOR_H + 0.6) / 2, DZ + 0.4);   // 문 옆 기둥(문 양옆, 가운데가 아니다)
+  const plaque = canvasTex(1024, 256, (g, w, h) => {
+    g.fillStyle = '#1d1410'; g.fillRect(0, 0, w, h); g.strokeStyle = '#C79A45'; g.lineWidth = 8; g.strokeRect(14, 14, w - 28, h - 28); g.lineWidth = 2; g.strokeRect(30, 30, w - 60, h - 60);
+    g.fillStyle = '#E8C77A'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '600 92px Georgia, "Times New Roman", serif'; g.fillText('SALON DE 1873', w / 2, h / 2 + 4);
+  });
+  add(new T.PlaneGeometry(2.8, 0.7), new T.MeshLambertMaterial({ map: plaque, color: 0xffffff, emissive: 0x1a1006 }), 0, DOOR_H + 1.05, DZ + 0.31);
+  // 대기실 — 바닥(흑백 대리석), 옆벽, 천장. 빛은 문틈과 양옆 벽등뿐이라 어둡게
+  const marble = canvasTex(256, 256, (g, w, h) => { for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { g.fillStyle = (x + y) % 2 ? '#2a2420' : '#8b8278'; g.fillRect(x * 64, y * 64, 64, 64); } });
+  marble.wrapS = marble.wrapT = T.RepeatWrapping; marble.repeat.set(4, 4);
+  add(new T.PlaneGeometry(HW2, 12), new T.MeshLambertMaterial({ map: marble, color: 0x6a6058 }), 0, 0.001, L + 6.6, 0, -Math.PI / 2);
+  for (const s of [-1, 1]) add(new T.PlaneGeometry(12, CEIL), stoneMat(12, CEIL), s * HW, CEIL / 2, L + 6.6, -s * Math.PI / 2);
+  add(new T.PlaneGeometry(HW2, 12), new T.MeshLambertMaterial({ color: 0x0e0907, side: T.DoubleSide }), 0, CEIL, L + 6.6, 0, Math.PI / 2);
+  const doorTex = (flip) => canvasTex(256, 864, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, '#2c1a10'); gr.addColorStop(0.5, '#3b2414'); gr.addColorStop(1, '#2a170e'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 1100; i++) { g.fillStyle = `rgba(0,0,0,${0.04 + Math.random() * 0.06})`; g.fillRect(Math.random() * w, Math.random() * h, 1, 8 + Math.random() * 40); }
+    const panel = (x, y, pw, ph) => { g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(x, y, pw, ph); g.strokeStyle = '#B98A3C'; g.lineWidth = 5; g.strokeRect(x, y, pw, ph); g.strokeStyle = 'rgba(255,226,150,.45)'; g.lineWidth = 1.5; g.strokeRect(x + 10, y + 10, pw - 20, ph - 20); };
+    panel(28, 30, w - 56, 300); panel(28, 360, w - 56, 150); panel(28, 540, w - 56, 300);
+    const hx = flip ? 10 : w - 18; g.fillStyle = '#d8ad55'; g.fillRect(hx, 420, 8, 80); g.fillStyle = '#fff1c0'; g.fillRect(hx + 2, 424, 2, 70);
+  });
+  const doorWood = new T.MeshStandardMaterial({ color: 0x2a170e, roughness: 0.6, metalness: 0 });
+  const doors = [-1, 1].map((s) => {
+    const hinge = new T.Group(); hinge.position.set(s * DOOR_W / 2, 0, DZ); scene.add(hinge);
+    const face = new T.MeshStandardMaterial({ map: doorTex(s > 0), roughness: 0.42, metalness: 0.1, envMapIntensity: 0.5 });
+    const d = new T.Mesh(new T.BoxGeometry(DOOR_W / 2, DOOR_H, 0.09), [doorWood, doorWood, doorWood, doorWood, face, face]);
+    d.position.set(-s * DOOR_W / 4, DOOR_H / 2, 0); hinge.add(d);
+    return { hinge, s };
+  });
+  // 문틈의 빛 — 가운데 세로 한 줄(가늘게)과 문 아래 바닥으로 새는 빛
+  const shaftTex = canvasTex(64, 256, (c, w, h) => {
+    const gx = c.createLinearGradient(0, 0, w, 0); gx.addColorStop(0, 'rgba(255,255,255,0)'); gx.addColorStop(0.5, 'rgba(255,255,255,1)'); gx.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = gx; c.fillRect(0, 0, w, h);
+    c.globalCompositeOperation = 'destination-in'; const gy = c.createLinearGradient(0, 0, 0, h); gy.addColorStop(0, 'rgba(0,0,0,.95)'); gy.addColorStop(0.75, 'rgba(0,0,0,.35)'); gy.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gy; c.fillRect(0, 0, w, h);
+  });
+  const glowTex = canvasTex(128, 128, (c, w) => { const gr = c.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, 'rgba(255,236,200,1)'); gr.addColorStop(0.2, 'rgba(255,196,120,.5)'); gr.addColorStop(0.55, 'rgba(255,150,70,.1)'); gr.addColorStop(1, 'rgba(255,140,60,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, w); });
+  const addMat = (map, color, opacity = 1) => new T.MeshBasicMaterial({ map, color, transparent: true, opacity, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const seam = add(plane, addMat(glowTex, 0xffd29a), 0, DOOR_H / 2, DZ + 0.06); seam.scale.set(0.12, DOOR_H * 1.05, 1);
+  const sill = add(plane, addMat(glowTex, 0xffc27a), 0, 0.01, DZ + 0.5, 0, -Math.PI / 2); sill.scale.set(DOOR_W * 1.2, 0.9, 1);
+  // 대기실 벽등(빛망울만)
+  const sconces = [];
+  for (const s of [-1, 1]) { const g = new T.Sprite(new T.SpriteMaterial({ map: glowTex, color: 0xffb070, transparent: true, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false })); g.position.set(s * (DOOR_W / 2 + 1.6), 3.3, DZ + 0.5); g.scale.setScalar(1.3); scene.add(g); sconces.push(g); }
+  // 천창에서 내려오는 빛줄기 · 빛 속의 먼지 — 입장할 때만 보인다
+  const shafts = [];
+  for (let k = 0; k < 6; k++) {
+    const m = add(plane, new T.MeshBasicMaterial({ map: shaftTex, color: 0xfff0d6, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, toneMapped: false }), (R() - 0.5) * HW2 * 0.7, CEIL * 0.5, 2.5 + k * (L - 4) / 6 + R() * 1.5);
+    m.scale.set(1.2 + R() * 1.0, CEIL * 1.15, 1); m.rotation.z = 0.16 + (R() - 0.5) * 0.08; shafts.push({ m, o: 0.05 + R() * 0.05 });
+  }
+  const N = 500, dpos = new Float32Array(N * 3), dseed = new Float32Array(N);
+  const dotTex = canvasTex(32, 32, (c, w) => { const gr = c.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, w); });
+  for (let i = 0; i < N; i++) { dpos[i * 3] = (R() - 0.5) * HW2 * 0.9; dpos[i * 3 + 1] = R() * CEIL; dpos[i * 3 + 2] = 1 + R() * (L - 1); dseed[i] = R() * 100; }
+  const dgeo = new T.BufferGeometry(); dgeo.setAttribute('position', new T.BufferAttribute(dpos.slice(), 3));
+  const dust = new T.Points(dgeo, new T.PointsMaterial({ map: dotTex, size: 0.05, color: 0xffe6c4, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  scene.add(dust);
+
+  let dimK = 1;
+  return {
+    /** 문 열림 0..1 */
+    setDoor(od, time) {
+      doors.forEach(({ hinge, s }) => { hinge.rotation.y = -s * od * 1.62; });   // 안쪽(-z)으로 열린다
+      const fl = 0.85 + 0.15 * Math.sin(time * 9);
+      seam.material.opacity = (1 - Math.min(1, od * 3)) * fl; sill.material.opacity = (1 - od) * 0.8 * fl;
+      sconces.forEach((g, k) => { g.material.opacity = 0.75 * (1 + 0.08 * Math.sin(time * 17 + k * 2.1)); });
+    },
+    /** 입장 동안의 공기(빛줄기·먼지) 0..1 */
+    setAir(a, time) {
+      shafts.forEach((s, k) => { s.m.material.opacity = s.o * a * (0.85 + 0.15 * Math.sin(time * 0.7 + k)); s.m.visible = a > 0.01; });
+      dust.visible = a > 0.01; dust.material.opacity = 0.7 * a;
+      if (a > 0.01) {
+        const pa = dgeo.attributes.position.array;
+        for (let i = 0; i < N; i++) { const s = dseed[i]; pa[i * 3] = dpos[i * 3] + Math.sin(time * 0.31 + s) * 0.2; pa[i * 3 + 1] = dpos[i * 3 + 1] + Math.sin(time * 0.23 + s * 1.7) * 0.15 - ((time * 0.05 + s * 0.09) % 0.6); pa[i * 3 + 2] = dpos[i * 3 + 2] + Math.cos(time * 0.27 + s) * 0.2; }
+        dgeo.attributes.position.needsUpdate = true;
+      }
+    },
+    /** 방 전체를 어둡게(확대 때 후보작 하나만 남도록) — k: 1 원래, 0.3 어둡게 */
+    dim(k) {
+      if (Math.abs(k - dimK) < 0.003) return; dimK = k;
+      dimList.forEach(([m, c, env]) => { m.color.copy(c).multiplyScalar(k); if (env !== undefined) m.envMapIntensity = env * k; });
+    },
+  };
 }
