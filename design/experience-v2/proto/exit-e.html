@@ -12,18 +12,24 @@
 <link rel="stylesheet" href="exit-common.css">
 <link rel="stylesheet" href="exit-e.css">
 <link rel="stylesheet" href="exit-keep.css">
+<link rel="stylesheet" href="exit-e-fx.css">
 </head>
 <body class="xe">
 
+<!-- 들어가기 — 어두운 방의 불이 위에서부터 한 줄씩 켜진다 -->
+<div class="lights" id="lights" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
 <!-- 출구 시안 E — 큰 선택(가치 판단)과 작은 선택의 위계.
-     큰 선택 둘(C1 · C4)은 한 화면씩: 질문 → 그 방의 물건(포스터 둘 / 고른 쪽 얼굴들) → 내 선택 → 같은 칸(선택지)에 맞춘 두 줄 "1874년"(출처 있는 사실) · "오늘의 관람객"(점, 내 점만 주황).
+     큰 선택 둘(C1 · C4)은 한 화면씩: 질문 → 그 방의 물건(포스터 둘 / 고른 쪽 얼굴들) → 내 선택 → 같은 칸(선택지)에 맞춘 두 줄 "1874년"(출처 있는 사실) · "오늘의 관람객"(두 쪽이 비율대로 벌어짐, 내 쪽만 주황).
      그다음 흰 쟁반 "그 밖에 고른 것"(C0 메달 · C2 행선지) → 가져가는 것 다섯 → 저장·공유. 평범한 세로 스크롤, 보이는 만큼 차례로 천천히 드러난다(스냅 · 자동 넘김 없음) -->
 <main class="xe-deck" id="deck">
   <div class="vsw-row"><nav class="vsw" aria-label="출구 시안"><span class="vsw-lb">출구 시안</span><a href="exit.html">A</a><a href="exit-b.html">B</a><a href="exit-c.html">C</a><a href="exit-d.html">D</a><a href="exit-e.html" aria-current="page">E</a></nav></div>
 
   <!-- 큰 선택 I · C1 -->
   <section class="xe-ch" id="ch1" data-st="c1" aria-labelledby="q1">
+    <div class="xe-bd" aria-hidden="true"><i class="bd-img c1"></i></div>
     <header class="xe-hd rv">
+      <div class="xe-big" aria-hidden="true"><span>1874, 봄</span></div>
       <div class="xe-room" id="room1"></div>
       <h2 class="xe-q" id="q1">어느 전시를<br>보러 가시겠습니까?</h2>
     </header>
@@ -38,7 +44,9 @@
 
   <!-- 큰 선택 II · C4 -->
   <section class="xe-ch" id="ch2" data-st="c4" aria-labelledby="q2">
+    <div class="xe-bd" aria-hidden="true"><i class="bd-img c4" id="bd2"></i></div>
     <header class="xe-hd rv">
+      <div class="xe-big" aria-hidden="true"><span>나다르 사진관</span></div>
       <div class="xe-room" id="room2"></div>
       <h2 class="xe-q" id="q2">사람을 남긴다면,<br>그림입니까 사진입니까?</h2>
     </header>

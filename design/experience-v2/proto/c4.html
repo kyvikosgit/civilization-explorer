@@ -9,9 +9,33 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="css/crowd.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sacramento&display=block">
+<link rel="stylesheet" href="../ticket/fonts.css">
 <link rel="stylesheet" href="c4.css">
+<link rel="stylesheet" href="c4-fx.css">
 </head>
-<body class="page c4">
+<body class="page c4 intro-on">
+
+<!-- ── 들어가기(약 3.2초, 누르면 건너뜀): 밤의 붉은 나다르 사진관 정면(부스와 같은 구성) → "Nadar" 서명 간판이 한 글자씩 켜진다(가스등 · 네온의 따뜻한 빛)
+     → 마그네슘 섬광 → 섬광 속으로 카메라가 가운데 문을 지나 안으로 → 초상화 벽이 깊이에서 밀려 나온다 -->
+<div class="intro" id="intro" role="button" tabindex="0" aria-label="나다르 사진관 — 누르면 건너뜁니다">
+  <div class="in-cam" id="inCam">
+    <div class="in-sky" aria-hidden="true"></div>
+    <div class="in-fac" aria-hidden="true">
+      <div class="in-cornice"></div>
+      <div class="in-sign"><span class="neon" id="neon"><i>N</i><i>a</i><i>d</i><i>a</i><i>r</i></span></div>
+      <div class="in-plate"><b>NADAR</b><span>35, Boulevard<br>des Capucines</span></div>
+      <div class="in-words"><span>PHOTOGRAPHIE</span><span>PORTRAITS</span></div>
+      <div class="in-wins">
+        <i class="iw"><s></s></i><i class="iw mid"><s></s></i><i class="iw"><s></s></i>
+      </div>
+      <div class="in-base"><i></i><i></i></div>
+    </div>
+    <div class="in-street" aria-hidden="true"><i class="rf"></i></div>
+  </div>
+  <div class="in-flash" id="inFlash" aria-hidden="true"></div>
+  <span class="in-skip" aria-hidden="true">누르면 건너뜁니다</span>
+</div>
 
 <div class="topbar">
   <a class="icon-btn" id="back" href="index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
@@ -47,6 +71,14 @@
     <div class="qs" data-k="paint" aria-hidden="true"><div class="qs-track" id="qsPaint"></div></div>
     <div class="qs" data-k="photo" aria-hidden="true"><div class="qs-track" id="qsPhoto"></div></div>
     <div class="veil" aria-hidden="true"></div>
+    <!-- 고른 뒤: 두 반쪽이 오늘의 비율대로 나뉘고, 그 위에 큰 숫자 -->
+    <div class="sp-nums" id="spNums" aria-hidden="true">
+      <div class="sp-cap" id="spCap">오늘의 관람객</div>
+      <div class="sn" data-k="paint"><b><span class="cnt">0</span><i>%</i></b><small>그림</small></div>
+      <div class="sn" data-k="photo"><b><span class="cnt">0</span><i>%</i></b><small>사진</small></div>
+      <i class="sp-seam"></i><i class="sp-sweep"></i>
+    </div>
+    <div class="flood" id="flood" aria-hidden="true"></div>
     <div class="halves" id="halves">
       <button class="half" data-k="paint" type="button"><span class="half-in"><b>그림으로</b><small>화가가 보고 그린 대로</small></span></button>
       <button class="half" data-k="photo" type="button"><span class="half-in"><b>사진으로</b><small>렌즈 앞에 앉은 그대로</small></span></button>
@@ -57,12 +89,9 @@
       <div class="q-mine" aria-live="polite"><h1 id="mineHead"></h1><p id="mineSubHead"></p></div>
     </header>
 
-    <!-- 오늘의 관람객(점 하나 = 열 사람, 내 점은 주황) · 그때는 이랬다 · 저장. 단추 줄은 늘 아래에 -->
+    <!-- 오늘의 관람객(위의 두 반쪽 · 큰 숫자) 기준 한 줄 · 그때는 이랬다 · 저장. 단추 줄은 늘 아래에 -->
     <section class="reveal crowd dark center" id="reveal" aria-live="polite">
       <div class="rv-scroll" id="rvScroll">
-        <div class="crowd-cap">오늘의 관람객</div>
-        <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
-        <div class="crowd-cols" id="crowdCols"></div>
         <div class="crowd-stamp" id="crowdStamp"></div>
         <div class="mine-card" id="mineCard" hidden><img id="mineImg" alt="저장한 카드"><div><b id="mineLabel"></b><small>수집함에 담았습니다</small></div></div>
         <div class="hist-dark"><b>그때는 이랬다</b>

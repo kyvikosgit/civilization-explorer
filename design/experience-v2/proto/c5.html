@@ -9,8 +9,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="c5.css">
+<link rel="stylesheet" href="c5-fx.css">
 </head>
-<body class="page c5">
+<body class="page c5 spot-on">
+
+<!-- 들어가기(약 3초): 완전한 어둠 → 〈인상, 해돋이〉가 걸린 벽에 전시장 조명 하나가 데워지며 켜진다(빛줄기 속 먼지) → 그 빛 안에 비추기 틀이 나타난다 -->
+<div class="spot" id="spot" aria-hidden="true">
+  <canvas class="sp-beam" id="spBeam"></canvas>
+  <i class="sp-dark"></i>
+  <i class="sp-warm"></i>
+  <i class="sp-black"></i>
+</div>
 
 <div class="topbar">
   <a class="icon-btn" href="index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
@@ -31,6 +40,7 @@
       <video id="sunVid" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
       <img id="sunImg" src="img/c5/sunrise-painting.jpg" alt="클로드 모네, 〈인상, 해돋이〉, 1872" draggable="false">
       <canvas id="sunCv" aria-hidden="true"></canvas>
+      <i class="sun-glow" aria-hidden="true"><b></b></i>
       <span class="sun-tmp" id="sunTmp" hidden>임시 영상</span>
       <button class="scan" id="scan" type="button" aria-label="〈인상, 해돋이〉를 비추기 (시연: 누르면 인식)">
         <span class="scan-view" aria-hidden="true"></span>

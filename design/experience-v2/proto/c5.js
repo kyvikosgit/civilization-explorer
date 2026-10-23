@@ -32,6 +32,62 @@ const SUN = {
 const SCENE_VIDEO = 'video/sunrise-scene.mp4';                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
 const SCENE_READY = false;                                    // ← 실제 영상을 위 이름으로 넣으면 true 한 줄. 그 전엔 요청하지 않는다(없는 파일 404 가 콘솔에 남지 않게). 못 불러오면 임시 영상으로
 const SCENE_PLACEHOLDER = 'video/sunrise-placeholder.mp4';    // 임시 영상(video/make-placeholder.py) — 쓰는 동안 "임시 영상" 표시
+// ════════ 들어가기 — 완전한 어둠 → 그림이 걸린 벽에 조명 하나가 데워지며 켜진다(빛줄기 · 먼지) → 그 빛 안에 비추기 틀
+const spotlight = (() => {
+  const el = document.getElementById('spot'), cv = document.getElementById('spBeam'), st = document.getElementById('sunStage'), body = document.body;
+  let raf = 0, alive = true, beam = null, W = 0, H = 0, geo = '', t0 = performance.now();
+  const dpr = Math.min(1.5, window.devicePixelRatio || 1);
+  const R = (() => { let s = 1874; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; })();
+  const dust = Array.from({ length: 70 }, () => ({ u: R(), v: R(), s: 0.5 + R() * 1.5, ph: R() * 6.283, sp: 0.3 + R() * 0.9, dr: (R() - 0.5) * 0.02 }));
+  let g = null, lamp = null;
+  function measure() {
+    const r = st.getBoundingClientRect(), sr = el.getBoundingClientRect();
+    const sx = r.left - sr.left + r.width / 2, sy = r.top - sr.top + r.height / 2;
+    const key = [sr.width, sr.height, r.left, r.top, r.width, r.height].map(Math.round).join(',');
+    if (key === geo) return; geo = key;
+    el.style.setProperty('--sx', `${sx}px`); el.style.setProperty('--sy', `${sy}px`);
+    el.style.setProperty('--rx', `${r.width * 0.78}px`); el.style.setProperty('--ry', `${r.height * 0.92}px`);
+    W = Math.round(sr.width * dpr); H = Math.round(sr.height * dpr); cv.width = W; cv.height = H; g = cv.getContext('2d');
+    // 천장의 조명에서 그림 아래까지 넓어지는 빛줄기(한 번 그려 두고 매 프레임 먼지만 얹는다)
+    const lx = sx * dpr, ly = Math.max(-40, r.top - sr.top - r.height * 1.35) * dpr, bw = r.width * 0.62 * dpr, by = (r.top - sr.top + r.height * 1.06) * dpr;
+    lamp = { lx, ly, bw, by, top: (r.top - sr.top) * dpr };
+    beam = document.createElement('canvas'); beam.width = W; beam.height = H; const b = beam.getContext('2d');
+    b.filter = `blur(${14 * dpr}px)`;
+    const grd = b.createLinearGradient(0, ly, 0, by); grd.addColorStop(0, 'rgba(255,232,196,.30)'); grd.addColorStop(0.55, 'rgba(255,226,186,.12)'); grd.addColorStop(1, 'rgba(255,220,176,.05)');
+    b.fillStyle = grd; b.beginPath(); b.moveTo(lx - 10 * dpr, ly); b.lineTo(lx + 10 * dpr, ly); b.lineTo(lx + bw, by); b.lineTo(lx - bw, by); b.closePath(); b.fill();
+    b.filter = 'none';
+    const pool = b.createRadialGradient(lx, (r.top - sr.top + r.height / 2) * dpr, 0, lx, (r.top - sr.top + r.height / 2) * dpr, r.width * 0.7 * dpr);
+    pool.addColorStop(0, 'rgba(255,226,186,.16)'); pool.addColorStop(1, 'rgba(255,226,186,0)'); b.fillStyle = pool; b.fillRect(0, 0, W, H);
+  }
+  function frame(now) {
+    raf = 0; if (!alive) return;
+    measure(); if (!g) { raf = requestAnimationFrame(frame); return; }
+    g.clearRect(0, 0, W, H); g.drawImage(beam, 0, 0);
+    const t = (now - t0) / 1000, { lx, ly, bw, by } = lamp;
+    for (const d of dust) {
+      // 빛줄기 안에서만 보이는 먼지 — 아주 느리게 내려오고 옆으로 흔들린다
+      const v = (d.v + t * 0.012 * d.sp) % 1, y = ly + (by - ly) * (0.1 + 0.9 * v), half = 10 * dpr + (bw - 10 * dpr) * ((y - ly) / (by - ly));
+      const u = ((d.u + Math.sin(t * 0.3 * d.sp + d.ph) * 0.05 + t * d.dr) % 1 + 1) % 1, x = lx + (u * 2 - 1) * half * 0.92;
+      const edge = 1 - Math.abs(u * 2 - 1), tw = 0.55 + 0.45 * Math.sin(t * 1.7 * d.sp + d.ph);
+      g.fillStyle = `rgba(255,240,215,${(0.55 * edge * tw).toFixed(3)})`;
+      g.beginPath(); g.arc(x, y, d.s * dpr, 0, 6.283); g.fill();
+    }
+    if (!reduceMotion) raf = requestAnimationFrame(frame);
+  }
+  function start() {
+    t0 = performance.now(); measure(); frame(t0);
+    el.classList.add('warm');
+    setTimeout(() => { body.classList.add('lit'); }, reduceMotion ? 500 : 1900);
+    setTimeout(() => { body.classList.remove('spot-on'); el.classList.add('room'); }, reduceMotion ? 700 : 2700);
+  }
+  const imgOk = document.getElementById('sunImg').decode ? document.getElementById('sunImg').decode().catch(() => {}) : Promise.resolve();
+  Promise.race([imgOk, new Promise((r) => setTimeout(r, 900))]).then(() => setTimeout(start, reduceMotion ? 0 : 420));   // 0.4초는 완전한 어둠
+  window.addEventListener('resize', () => { geo = ''; });
+  return {
+    found() { el.classList.add('settle'); body.classList.add('lit'); body.classList.remove('spot-on'); setTimeout(() => { el.classList.add('gone'); }, reduceMotion ? 0 : 500); setTimeout(() => { alive = false; el.hidden = true; }, reduceMotion ? 400 : 1900); },
+  };
+})();
+
 const sun = (() => {
   const stage = document.getElementById('sunStage'), vid = document.getElementById('sunVid'), img = document.getElementById('sunImg'), cv = document.getElementById('sunCv');
   const cap = document.getElementById('sunCap'), end = document.getElementById('sunEnd'), tmp = document.getElementById('sunTmp'), room = document.querySelector('.room');
@@ -160,6 +216,7 @@ const sun = (() => {
   }
   function play() {
     if (!vidOk) { finish(); return; }
+    stage.classList.remove('breathe'); if (!reduceMotion) stage.classList.add('exhale');   // 내쉬며 장면으로
     state = 'play'; vid.currentTime = 0; vid.playbackRate = reduceMotion ? 1 : SUN.RATE;
     const p = vid.play(); if (p && p.catch) p.catch(() => setTimeout(() => { if (state === 'play' && vid.paused) vid.play().catch(() => finish()); }, 400));   // 임시 영상으로 바뀌는 중이면 한 번 더
     if (!raf) raf = requestAnimationFrame(tick);
@@ -169,18 +226,21 @@ const sun = (() => {
     state = 'end'; setMix(0); draw(); cap.classList.remove('on'); stage.classList.remove('scene');
     try { vid.pause(); } catch (_) { /* noop */ }
     // 그림으로 돌아온 뒤 잠시 그림만 — 그다음 한 줄과 단추, 그 아래 연작 · 출구
-    clearTimeout(endTimer);
+    clearTimeout(endTimer); stage.classList.remove('exhale', 'glow');
+    // 해의 주황이 잠깐 빛나고, 그와 함께 마지막 한 줄
+    setTimeout(() => { void stage.offsetWidth; stage.classList.add('glow'); }, reduceMotion ? 0 : Math.max(0, SUN.END_DELAY_MS - 350));
     endTimer = setTimeout(() => { end.classList.add('on'); room.classList.add('ended'); haptic(8); }, reduceMotion ? 0 : SUN.END_DELAY_MS);
   }
   function start() {                                   // 그림이 뜬 뒤의 순서
     clearTimeout(holdTimer); clearTimeout(endTimer); end.classList.remove('on'); cap.classList.remove('on');
     if (SUN.ORDER === 'scene-paint' && !replayed) { setMix(1); play(); return; }
     state = 'hold'; setMix(0); draw();
+    stage.classList.remove('exhale', 'glow'); if (!reduceMotion) requestAnimationFrame(() => stage.classList.add('breathe'));   // 숨을 들이쉬듯 천천히 다가온다
     holdTimer = setTimeout(play, (replayed ? 0 : SUN.REVEAL_MS) + (replayed ? 1200 : SUN.HOLD_MS));
   }
   async function scan() {
     if (state !== 'scan') return;
-    state = 'found'; stage.dataset.state = 'found'; haptic(30);
+    state = 'found'; stage.dataset.state = 'found'; haptic(30); spotlight.found();
     await Promise.all([glReady, new Promise((r) => setTimeout(r, reduceMotion ? 150 : 700)), SUN.ORDER === 'scene-paint' ? vidReady() : null]);
     if (SUN.ORDER === 'scene-paint') { setMix(1); draw(); }                // 장면부터: 첫 프레임을 먼저 올려 둔다
     stage.dataset.state = 'shown'; stage.classList.add('shown');
@@ -218,8 +278,8 @@ const MOTIFS = ORDER.filter((k) => FR[k]);
 
 // ── 연작 벽: 모티프마다 이름표 + 따로 걸린 액자들
 const strip = $('#strip');
-strip.innerHTML = MOTIFS.map((k) => { const m = FR[k]; const n = m.frames.length; return `
-  <button class="motif" type="button" data-k="${k}" aria-label="${m.name} 연작 ${n}점 크게 보기">
+strip.innerHTML = MOTIFS.map((k, mi) => { const m = FR[k]; const n = m.frames.length; return `
+  <button class="motif" type="button" style="--i:${mi}" data-k="${k}" aria-label="${m.name} 연작 ${n}점 크게 보기">
     <span class="motif-hd"><b>${m.name}</b><small>${PLACE[k] || ''} · ${n}점</small></span>
     <span class="row" style="--n:${n};--rw:${m.w > m.h ? 100 : 84}%">${m.frames.map((f) => `<span class="fr"><img src="${IMG + f.file}" alt="" draggable="false" style="aspect-ratio:${m.w}/${m.h}"></span>`).join('')}</span>
   </button>`; }).join('');
@@ -439,6 +499,7 @@ async function open(k) {
   $('#nowClock').textContent = `지금 ${hhmm(enteredAt)}`; $('#nowWhat').textContent = cur.frames[k0].now || cur.frames[k0].when;
   nowLine.classList.remove('in'); void nowLine.offsetWidth; nowLine.classList.add('in');
   kept.hidden = true; keepBtn.hidden = false; pausedEl.hidden = true;
+  clearTimeout(closeT); view.classList.remove('closing');
   view.hidden = false; document.body.style.overflow = 'hidden';
   layout(); buildArc();
   await load(k);
@@ -449,9 +510,13 @@ async function open(k) {
   // 잠시 뒤 해가 지금 시간에서 저절로 가기 시작한다
   clearTimeout(startTimer); startTimer = setTimeout(() => { if (!reduceMotion && !drag && ready) { playing = true; if (t >= N - 1 - 1e-3) { phase = 'hold'; phaseT = 0; } kick(); } }, 1400);
 }
+let closeT = 0;
 function close() {
+  if (view.classList.contains('closing')) return;
   playing = false; clearTimeout(startTimer); if (raf) { cancelAnimationFrame(raf); raf = 0; }
-  view.hidden = true; document.body.style.overflow = '';
+  view.classList.add('closing');                                            // 가라앉은 뒤 닫힌다
+  clearTimeout(closeT); closeT = setTimeout(() => { view.classList.remove('closing'); view.hidden = true; }, reduceMotion ? 300 : 420);
+  document.body.style.overflow = '';
   const line = $('#wallLine'); if (line.hidden) line.hidden = false;        // 출구 벽의 문장 — 한 번만
 }
 $('#viewClose').addEventListener('click', close);
@@ -734,3 +799,9 @@ keepBtn.addEventListener('click', () => {
 window.__c5 = { FR, open, close, setStyle, setT: (v) => { playing = false; pausedEl.hidden = true; clearTimeout(startTimer); t = tTarget = tLag = v; render(); updateSun(); updateCaption(); }, sunPos: (u) => { const r = sky.getBoundingClientRect(); const p = sunPos(u); return { x: r.left + p.x, y: r.top + p.y }; },
   frameForTime: (k, hh) => frameForTime(FR[k], (() => { const d = new Date(); const [h, m] = hh.split(':').map(Number); d.setHours(h, m, 0, 0); return d; })()),
   get t() { return t; }, get tLag() { return tLag; }, get playing() { return playing; }, get style() { return style; }, get ready() { return ready; }, get phase() { return phase; }, get key() { return key; }, get gl() { return !!(gl && prog); }, get seen() { return [...seen]; } };
+
+// 다른 페이지로 — 어둠으로 잠긴 뒤 넘어간다(출구는 어둠에서 불이 켜지며 시작)
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href]'); if (!a || a.hasAttribute('download') || e.defaultPrevented || a.target) return;
+  e.preventDefault(); document.body.classList.add('leaving'); setTimeout(() => { location.href = a.href; }, reduceMotion ? 0 : 430);
+});

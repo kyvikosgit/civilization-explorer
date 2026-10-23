@@ -10,7 +10,7 @@
 // 움직임은 transform · opacity 만. 보이지 않는 화면 · 탭 숨김이면 멈춘다. 서버 없음, 업로드 없음.
 import { loadImage, startCamera, stopCamera, cameraErrorText, toast } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
-import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine } from './js/crowd.js';
+import { stampLine } from './js/crowd.js';
 import * as N from '../../../booth/js/nadar.js';
 
 const $ = (s) => document.querySelector(s);
@@ -155,48 +155,105 @@ function setMode(m) {
 }
 $$('#seg button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.m)));
 
-// ── 화면 전환
-function showQ() { pick(null); view = 'q'; stage.dataset.view = 'q'; syncFlow(); }
-function showWall() { pick(null); view = 'wall'; stage.dataset.view = 'wall'; syncFlow(); }
+// ── 화면 전환 — 벽이 가운데에서 두 문처럼 갈라진다(왼쪽 문은 그림, 오른쪽 문은 사진). 돌아올 때는 문이 다시 닫힌다
+let doorBusy = false;
+function makeDoors() {
+  const wv = $('#wallView'), out = [];
+  const tf = [...wv.querySelectorAll('.track')].map((t) => getComputedStyle(t).transform);
+  ['l', 'r'].forEach((side) => {
+    const d = document.createElement('div'); d.className = `door ${side}`; d.setAttribute('aria-hidden', 'true');
+    const c = wv.cloneNode(true); c.removeAttribute('id'); c.className = 'door-in';
+    c.querySelectorAll('[id]').forEach((e) => e.removeAttribute('id'));
+    c.querySelectorAll('.track').forEach((t, i) => { t.style.transform = tf[i]; });
+    c.querySelectorAll('button').forEach((b) => { b.tabIndex = -1; });
+    d.appendChild(c); stage.appendChild(d); out.push(d);
+  });
+  return out;
+}
+// 오른쪽 문의 액자는 위에서부터 차례로 사진으로 현상되고, 왼쪽 문은 모두 그림으로
+function dress(door, ph) {
+  door.querySelectorAll('.fr').forEach((f) => { const y = parseFloat(f.style.top) || 0; f.style.setProperty('--d', `${Math.round((y % 900) / 900 * 260)}ms`); f.classList.toggle('ph', ph); });
+}
+const DOOR_MS = 1000, DOOR_EASE = 'cubic-bezier(.65,0,.3,1)';
+function showQ() {
+  if (doorBusy || view === 'q') return;
+  pick(null);
+  if (REDUCED) { view = 'q'; stage.dataset.view = 'q'; syncFlow(); return; }
+  doorBusy = true; buzz();
+  const [L, R] = makeDoors();
+  dress(L, false); dress(R, true);
+  const seam = document.createElement('i'); seam.className = 'seam'; stage.appendChild(seam);
+  view = 'q'; stage.dataset.view = 'q'; syncFlow();
+  qView.classList.remove('q-in'); void qView.offsetWidth; qView.classList.add('q-in');
+  requestAnimationFrame(() => seam.classList.add('on'));
+  const opt = { duration: DOOR_MS, delay: 300, easing: DOOR_EASE, fill: 'forwards' };
+  L.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-54%)' }], opt);
+  const a = R.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(54%)' }], opt);
+  a.onfinish = () => { L.remove(); R.remove(); seam.remove(); doorBusy = false; };
+  setTimeout(() => qView.classList.remove('q-in'), 2000);
+}
+function showWall() {
+  if (doorBusy) return;
+  pick(null);
+  if (REDUCED || view !== 'q') { view = 'wall'; stage.dataset.view = 'wall'; syncFlow(); return; }
+  doorBusy = true;
+  const [L, R] = makeDoors();
+  dress(L, false); dress(R, true);
+  const opt = { duration: 850, easing: DOOR_EASE, fill: 'forwards' };
+  L.animate([{ transform: 'translateX(-54%)' }, { transform: 'translateX(0)' }], opt);
+  const a = R.animate([{ transform: 'translateX(54%)' }, { transform: 'translateX(0)' }], opt);
+  a.onfinish = () => {
+    view = 'wall'; stage.dataset.view = 'wall'; syncFlow();
+    [L, R].forEach((d) => d.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease', fill: 'forwards' }).onfinish = () => d.remove());
+    doorBusy = false;
+  };
+}
 $('#toQ').addEventListener('click', showQ);
 
 // ── 고르기
 const STANCES = { paint: { label: '그림', full: '그림으로', pct: 44 }, photo: { label: '사진', full: '사진으로', pct: 56 } };   // 예시 수치
 const VISITORS = '1,712';
-let stance = null, revealT = 0;
+let stance = null, revealT = 0, countRaf = 0;
+const flood = $('#flood');
 function pick(k) {
-  stance = k; clearTimeout(revealT);
+  stance = k; clearTimeout(revealT); cancelAnimationFrame(countRaf);
   if (k) qView.dataset.pick = k; else delete qView.dataset.pick;
+  qView.classList.remove('split', 'swept'); qView.style.setProperty('--pa', '50%'); qView.style.setProperty('--pp', '50%');
   $('#reveal').classList.remove('on');
-  if (!k) return;
+  if (!k) { flood.className = 'flood'; return; }
   $('#mineHead').textContent = `${STANCES[k].full} 남긴다.`;
   $('#mineSubHead').textContent = k === 'paint' ? '화가가 보고 그린 대로' : '렌즈 앞에 앉은 그대로';
   buzz();
-  revealT = setTimeout(reveal, REDUCED ? 0 : 750);
+  // 사진 쪽 = 마그네슘 섬광, 그림 쪽 = 따뜻한 니스 빛
+  if (!REDUCED) { flood.className = 'flood'; void flood.offsetWidth; flood.className = `flood ${k}`; }
+  revealT = setTimeout(reveal, REDUCED ? 0 : 1050);
 }
 $$('.half').forEach((b) => b.addEventListener('click', () => { if (!stance) pick(b.dataset.k); }));
 
-// ── 오늘의 관람객: 점(하나 = 열 사람)이 흩어졌다가 그림 · 사진 두 기둥 아래로 모인다. 내 점은 주황, 맨 마지막
+// ── 오늘의 관람객: 화면을 채운 반쪽이 물러나며 두 반쪽이 오늘의 비율대로 다시 나뉜다(폭 = 비율). 그 위에 큰 숫자가 0에서 올라가고, 끝나면 빛이 한 번 지나간다. 점은 쓰지 않는다
 const KEYS = ['paint', 'photo'];
-let crowd = null, lastCard = null;
+let lastCard = null;
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 function reveal() {
   if (!stance) return;
   const rv = $('#reveal'); rv.classList.add('on'); $('#rvScroll').scrollTop = 0;
-  $('#crowdCols').innerHTML = KEYS.map((k) => { const s = STANCES[k], me = k === stance; return `<div class="crowd-col${me ? ' me' : ''}"><b class="n">${s.pct}<i>%</i></b><span class="lab">${s.label}${me ? ' · 나' : ''}</span></div>`; }).join('');
   $('#crowdStamp').textContent = stampLine(VISITORS);
+  $('#spCap').textContent = `오늘의 관람객 ${VISITORS}명`;
   $('#mineCard').hidden = true; lastCard = null;
   const sv = $('#saveStance'); sv.disabled = false; sv.classList.remove('done'); $('#saveLab').textContent = '카드 저장';
-  const cs = $('#crowdStage'), n = dotsFor(VISITORS);
-  if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'dark', n, reduceMotion: REDUCED, seed: 5 });
-  requestAnimationFrame(() => {
-    crowd.resize();
-    const sr = cs.getBoundingClientRect(), w = sr.width / 2;
-    const rects = KEYS.map((k, i) => ({ x: i * w + 10, y: 8, w: w - 20, h: sr.height - 14 }));
-    const counts = split(n, KEYS.map((k) => STANCES[k].pct));
-    const groups = KEYS.map((k, i) => ({ pts: packRect(counts[i], rects[i], crowd.rnd) }));
-    crowd.place(scatter(n, { x: 0, y: 0, w: sr.width, h: sr.height }, crowd.rnd));
-    setTimeout(() => crowd.move(targetsFor(crowd, groups, KEYS.indexOf(stance)), { duration: 1250, stagger: 380 }), REDUCED ? 0 : 520);
-  });
+  qView.style.setProperty('--sheetH', `${rv.offsetHeight + 8}px`);
+  const sns = KEYS.map((k) => { const el = $(`.sn[data-k="${k}"]`); el.classList.toggle('me', k === stance); return el.querySelector('.cnt'); });
+  const pa = STANCES.paint.pct;
+  qView.classList.add('split');
+  requestAnimationFrame(() => { qView.style.setProperty('--pa', `${pa}%`); qView.style.setProperty('--pp', `${100 - pa}%`); });
+  if (REDUCED) { sns.forEach((c, i) => { c.textContent = STANCES[KEYS[i]].pct; }); return; }
+  const t0 = performance.now() + 250, D = 1250;
+  const step = (now) => {
+    const x = Math.max(0, Math.min(1, (now - t0) / D)), e = easeOut(x);
+    sns.forEach((c, i) => { c.textContent = Math.round(STANCES[KEYS[i]].pct * e); });
+    if (x < 1) countRaf = requestAnimationFrame(step); else { qView.classList.add('swept'); buzz(); }
+  };
+  countRaf = requestAnimationFrame(step);
 }
 $('#again').addEventListener('click', () => pick(null));
 
@@ -257,6 +314,45 @@ $('#saveStance').addEventListener('click', async () => {
   sv.disabled = false; sv.classList.add('done'); $('#saveLab').textContent = '다시 받기';
 });
 
+// ── 들어가기: 밤의 나다르 사진관 → 서명 간판이 한 글자씩 → 창이 켜짐 → 마그네슘 섬광 속으로 카메라가 문을 지나 → 벽이 깊이에서 밀려 나온다. 누르면 건너뜀
+let wallBuilt = false, introState = 'run';
+const intro = $('#intro');
+(() => {
+  const fac = intro.querySelector('.in-fac'), wins = intro.querySelector('.in-wins'), cam = $('#inCam'), letters = [...intro.querySelectorAll('.neon i')];
+  const timers = [];
+  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+  const enter = () => { stage.classList.add('entered'); document.body.classList.remove('intro-on'); };
+  let done = false;
+  const finish = (fast) => {
+    if (done) return; done = true; introState = 'done';
+    timers.forEach(clearTimeout);
+    if (fast) { letters.forEach((l) => l.classList.add('on')); intro.classList.add('warm'); }
+    enter(); intro.classList.add('out');
+    setTimeout(() => { intro.hidden = true; }, 800);
+  };
+  // 섬광은 문 한가운데에서 — 카메라는 그 문을 향해 들어간다
+  const aim = () => { const d = intro.querySelector('.iw.mid').getBoundingClientRect(), r = intro.getBoundingClientRect(); cam.style.transformOrigin = `${d.left + d.width / 2 - r.left}px ${d.top + d.height * 0.42 - r.top}px`; };
+  const run = () => { if (done) return;
+  if (REDUCED) {
+    letters.forEach((l) => l.classList.add('on')); fac.classList.add('lit'); wins.classList.add('warm'); intro.classList.add('warm');
+    at(1300, () => finish(false));
+  } else {
+    letters.forEach((l, i) => at(380 + i * 190, () => l.classList.add('on')));
+    at(1150, () => fac.classList.add('lit'));
+    at(1350, () => { wins.classList.add('warm'); intro.classList.add('warm'); });
+    at(2250, () => { aim(); intro.classList.add('flash'); introState = 'flash'; });
+    at(2360, () => { enter(); });
+    at(2480, () => finish(false));
+  }
+  };
+  // 간판 글꼴(서명체)을 받은 뒤 시작 — 늦으면 0.7초에 그냥 시작
+  Promise.race([document.fonts ? document.fonts.load('40px Sacramento').catch(() => {}) : null, new Promise((r) => setTimeout(r, 700))]).then(run);
+  const skip = () => { if (!done) finish(true); };
+  intro.addEventListener('click', skip);
+  intro.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); skip(); } });
+  window.__c4intro = { skip };
+})();
+
 // ── 시작: 인물 목록 → 작은 판 48장을 받은 뒤 건다(벽은 다 받으면 천천히 나타난다)
 (async () => {
   const data = await fetch('js/c4-people.json').then((r) => r.json());
@@ -264,6 +360,7 @@ $('#saveStance').addEventListener('click', async () => {
   await Promise.all(PEOPLE.flatMap((p) => ['paint', 'photo'].map((k) => loadImg(thumb(p.id, k)))));
   build();
   requestAnimationFrame(() => stage.classList.add('ready'));
+  wallBuilt = true;
   let t, lastW = innerWidth; window.addEventListener('resize', () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(t); t = setTimeout(build, 200); });
 })();
 
@@ -378,6 +475,11 @@ $('#saveMe').addEventListener('click', async () => {
 meState('idle');
 void loadImage;
 // 검수용
-window.__c4 = { get stance() { return stance; }, get crowd() { return crowd; }, get people() { return PEOPLE.length; }, get view() { return view; }, get mode() { return mode; },
+window.__c4 = { get stance() { return stance; }, get intro() { return introState; }, get people() { return PEOPLE.length; }, get view() { return view; }, get mode() { return mode; },
   get photos() { return isPh.size; }, get flowing() { return wallAnims.some((a) => a.playState === 'running'); }, get qFlowing() { return qAnims.some((a) => a.playState === 'running'); },
   get card() { return !!lastCard; }, cardURL: () => lastCard && lastCard.toDataURL('image/jpeg', 0.85), pick, setMode };
+// 다른 페이지로 — 화면이 어둠으로 잠긴 뒤 넘어간다(끊긴 페이지 전환 없이)
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href]'); if (!a || a.hasAttribute('download') || e.defaultPrevented || a.target) return;
+  e.preventDefault(); document.body.classList.add('leaving'); setTimeout(() => { location.href = a.href; }, REDUCED ? 0 : 430);
+});

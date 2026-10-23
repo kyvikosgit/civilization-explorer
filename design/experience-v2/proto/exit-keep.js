@@ -350,6 +350,28 @@ export async function mountKeep(root) {
     t.width = c.width; t.height = c.height; t.getContext('2d').drawImage(c, 0, 0);
   }
   size();
+  // 탁자에 하나씩 내려앉는다 — 보이기 시작하면(스크롤로 닿으면) 아래 것부터 차례로, 살짝 떠 있다가 부드럽게 닿고 그림자가 짙어진다
+  O.forEach((o) => o.el.classList.add('pre')); table.classList.add('wait');
+  let dropped = false;
+  const drop = () => {
+    if (dropped) return; dropped = true; busy = true; table.classList.remove('wait');
+    O.forEach((o, i) => {
+      const s = o.st * u, x = o.cx * u, y = o.cy * u, d = (RM ? 120 : 300) * i + 250, dir = i % 2 ? 1 : -1;
+      o.el.classList.remove('pre');
+      if (RM) { o.el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: d, fill: 'backwards' }); return; }
+      o.el.animate([
+        { transform: T(o, x - dir * 14 * u, y - 64 * u, o.rot + dir * 9, s * 1.2), opacity: 0, easing: 'cubic-bezier(.5,0,.85,.55)' },
+        { transform: T(o, x - dir * 4 * u, y - 18 * u, o.rot + dir * 3, s * 1.07), opacity: 1, offset: 0.45, easing: 'cubic-bezier(.4,0,.9,.6)' },
+        { transform: T(o, x, y + 1.5 * u, o.rot - dir * 0.5, s * 0.992), offset: 0.74, easing: 'cubic-bezier(.2,.7,.3,1)' },
+        { transform: T(o, x, y, o.rot, s) },
+      ], { duration: 880, delay: d, fill: 'backwards' });
+      o.sh.animate([{ opacity: 0 }, { opacity: 0.25, offset: 0.45 }, { opacity: 0.8 }], { duration: 880, delay: d, fill: 'backwards', easing: 'ease-in' });
+      const ct = o.el.querySelector('.kct'); ct.animate([{ opacity: 0 }, { opacity: 0, offset: 0.66 }, { opacity: 1 }], { duration: 880, delay: d, fill: 'backwards' });
+    });
+    setTimeout(() => { busy = false; }, (RM ? 120 : 300) * O.length + 900);
+  };
+  const dropIO = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { dropIO.disconnect(); drop(); } }, { threshold: 0.35 });
+  dropIO.observe(table);
   let rT = 0; window.addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(() => { if (!cur) { woodW = 0; size(); } }, 150); });
 
   // ── 집어 들기 · 돌리기 · 뒤집기 · 내려놓기
