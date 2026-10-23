@@ -12,6 +12,7 @@ import { loadImage, startCamera, stopCamera, cameraErrorText, toast } from '../.
 import { saveChoice } from './js/proto-common.js';
 import { stampLine } from './js/crowd.js';
 import * as N from '../../../booth/js/nadar.js';
+import { createSteam } from './js/fx-steam.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
@@ -225,7 +226,10 @@ function pick(k) {
   $('#mineSubHead').textContent = k === 'paint' ? '화가가 보고 그린 대로' : '렌즈 앞에 앉은 그대로';
   buzz();
   // 사진 쪽 = 마그네슘 섬광, 그림 쪽 = 따뜻한 니스 빛
-  if (!REDUCED) { flood.className = 'flood'; void flood.offsetWidth; flood.className = `flood ${k}`; }
+  if (!REDUCED) {
+    flood.className = 'flood'; void flood.offsetWidth; flood.className = `flood ${k}`;
+    if (k === 'photo') { try { const r = stage.getBoundingClientRect(), sm = createSteam($('#smoke'), { res: 0.5, tints: ['250,250,252', '236,238,246'] }); sm.burst(r.left + r.width * 0.72, r.top + r.height * 0.45, 30, { speed: 180, size: [110, 220], life: [1.0, 1.8], alpha: 0.6 }); } catch (e) { /* noop */ } }
+  }
   revealT = setTimeout(reveal, REDUCED ? 0 : 1050);
 }
 $$('.half').forEach((b) => b.addEventListener('click', () => { if (!stance) pick(b.dataset.k); }));
@@ -328,19 +332,40 @@ const intro = $('#intro');
     timers.forEach(clearTimeout);
     if (fast) { letters.forEach((l) => l.classList.add('on')); intro.classList.add('warm'); }
     enter(); intro.classList.add('out');
-    setTimeout(() => { intro.hidden = true; }, 800);
+    setTimeout(() => { intro.hidden = true; if (mist) mist.stop(); }, 800);
   };
   // 섬광은 문 한가운데에서 — 카메라는 그 문을 향해 들어간다
   const aim = () => { const d = intro.querySelector('.iw.mid').getBoundingClientRect(), r = intro.getBoundingClientRect(); cam.style.transformOrigin = `${d.left + d.width / 2 - r.left}px ${d.top + d.height * 0.42 - r.top}px`; };
+  // 밤안개(길 위로 흐르는 옅은 김) · 마그네슘 연기(섬광 뒤 피어오름)
+  const mistCv = $('#inMist'); let mist = null;
+  if (!REDUCED) {
+    try {
+      mist = createSteam(mistCv, { res: 0.35, tints: ['96,94,118', '80,76,96', '120,96,110'] });
+      const ih = innerHeight;
+      mist.emitter({ x: -60, y: ih * 0.86, jx: 40, rate: 9, vx: 4, wind: 26, vy: [1, 5], size: [220, 340], grow: [20, 40], alpha: [0.1, 0.18], life: [5, 8] });
+      mist.emitter({ x: innerWidth * 0.5, y: ih * 0.97, jx: innerWidth * 0.6, rate: 6, vx: 8, wind: 10, vy: [2, 8], size: [200, 320], grow: [16, 30], alpha: [0.08, 0.15], life: [4, 7] });
+      mist.prewarm(5); mist.start();
+    } catch (e) { mist = null; }
+  }
+  const puff = () => {
+    if (REDUCED) return;
+    try {
+      const sm = createSteam($('#smoke'), { res: 0.5, tints: ['250,250,252', '236,238,246', '255,246,232'] });
+      const d = intro.querySelector('.iw.mid').getBoundingClientRect();
+      sm.burst(d.left + d.width / 2, d.top + d.height * 0.4, 40, { speed: 300, size: [200, 360], life: [0.9, 1.6], alpha: 0.42, w: d.width * 1.4, h: d.height * 0.6 });
+      setTimeout(() => sm.burst(innerWidth / 2, innerHeight * 0.5, 22, { speed: 200, size: [260, 420], life: [0.9, 1.5], alpha: 0.24 }), 120);
+    } catch (e) { /* noop */ }
+  };
   const run = () => { if (done) return;
   if (REDUCED) {
     letters.forEach((l) => l.classList.add('on')); fac.classList.add('lit'); wins.classList.add('warm'); intro.classList.add('warm');
     at(1300, () => finish(false));
   } else {
+    intro.classList.add('go');
     letters.forEach((l, i) => at(380 + i * 190, () => l.classList.add('on')));
     at(1150, () => fac.classList.add('lit'));
     at(1350, () => { wins.classList.add('warm'); intro.classList.add('warm'); });
-    at(2250, () => { aim(); intro.classList.add('flash'); introState = 'flash'; });
+    at(2250, () => { aim(); intro.classList.add('flash'); introState = 'flash'; puff(); });
     at(2360, () => { enter(); });
     at(2480, () => finish(false));
   }

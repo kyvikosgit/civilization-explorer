@@ -65,7 +65,18 @@
 .intro.flash .in-flash { animation: flash .95s cubic-bezier(.2,.7,.3,1) both; }
 @keyframes flash { 0% { opacity: 0; } 7% { opacity: 1; } 22% { opacity: .96; } 100% { opacity: 0; } }
 .intro.flash .in-cam { animation: push .95s cubic-bezier(.55,0,.8,.35) both; }
-@keyframes push { from { transform: scale(1); } to { transform: scale(5.2); opacity: .2; } }
+@keyframes push { from { transform: scale(1.07); } to { transform: scale(5.2); opacity: .2; } }
+/* 다가가기 — 길 건너에서 정면 쪽으로 천천히(섬광 직전까지) */
+.intro.go .in-cam { animation: dolly 2.3s cubic-bezier(.35,0,.6,1) both; }
+@keyframes dolly { from { transform: scale(1); } to { transform: scale(1.07); } }
+/* 창빛이 가스등처럼 아주 조금 흔들린다 */
+.in-wins.warm .iw { animation: gas 2.6s ease-in-out infinite alternate; }
+.in-wins.warm .iw:nth-child(2) { animation-duration: 3.1s; } .in-wins.warm .iw:nth-child(3) { animation-duration: 2.2s; animation-delay: -.8s; }
+@keyframes gas { 0% { filter: brightness(1); } 40% { filter: brightness(.94); } 55% { filter: brightness(1.04); } 100% { filter: brightness(.97); } }
+/* 밤안개 — 길 위로 천천히 흘러간다 */
+.in-mist { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; pointer-events: none; opacity: .85; }
+/* 마그네슘 연기 — 화면 위층, 섬광 뒤 흩어진다 */
+.smoke { position: fixed; inset: 0; z-index: 101; width: 100%; max-width: 480px; height: 100%; margin: 0 auto; pointer-events: none; }
 .in-skip { position: absolute; left: 0; right: 0; bottom: calc(22px + var(--safe-b)); z-index: 6; text-align: center; font-size: 12.5px; color: rgba(255,255,255,.38); opacity: 0; animation: fadeIn .8s ease 1s both; }
 .intro.flash .in-skip { opacity: 0; animation: none; }
 body.intro-on { overflow: hidden; }
@@ -157,6 +168,8 @@ body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
   .wall-view .layer, .sn, .sp-seam, .q-view.split .qs { transition: opacity .4s ease !important; }
   .stage:not(.entered) .wall-view .layer.near, .stage:not(.entered) .wall-view .layer.far, .stage:not(.entered) .w-head, .stage:not(.entered) .w-foot { transform: none; }
   .door { display: none; }
+  .intro.go .in-cam, .in-wins.warm .iw { animation: none; }
+  .in-mist, .smoke { display: none; }
 }
 
 /* 탭 · 페이지 사이 — 끊지 않고 넘어간다 */

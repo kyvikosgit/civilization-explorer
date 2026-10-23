@@ -28,6 +28,9 @@ body.c5.spot-on .topbar { opacity: .25; }
 
 /* 비추기 — 처음엔 벽에 걸린 그림이 조명 아래 어렴풋이. 틀의 네 귀는 빛이 다 켜진 뒤 하나씩 */
 .scan-view { filter: blur(7px) brightness(.62) saturate(.9); }
+/* 다가가기 — 조명이 켜지는 동안 그림 쪽으로 천천히(카메라가 벽 앞으로 걸어간다) */
+body.spot-on .scan-view { transform: scale(.9); }
+body.c5 .scan-view { transition: filter 1s ease, opacity 1s ease, transform 3.4s cubic-bezier(.25,.1,.25,1); }
 .sun-stage[data-state="scan"] .scan-frame i { transition: transform .55s cubic-bezier(.2,.9,.3,1.2), opacity .4s ease, border-color .4s; }
 body.spot-on:not(.lit) .scan-frame i { opacity: 0; transform: scale(.2); }
 body.spot-on:not(.lit) .scan-txt { opacity: 0; transform: translateY(6px); }
@@ -73,6 +76,7 @@ body.leaving { opacity: 0; transition: opacity .42s ease; }
   .spot.warm .sp-beam { animation: fadeIn .6s ease both; }
   body.lit .sun-stage[data-state="scan"] .scan-frame { animation: none; }
   .scan-frame i, .scan-txt { transition: opacity .3s ease !important; transform: none !important; }
+  body.spot-on .scan-view { transform: scale(1.04); }
   .sun-stage.breathe > img, .sun-stage.gl.breathe > canvas, .sun-stage.exhale > img, .sun-stage.gl.exhale > canvas { transform: none; }
   .sun-stage.glow .sun-glow { animation: glowFade 1.6s ease both; }
   .sun-end.on .sun-line, .wall:not([hidden]) .motif, .view:not([hidden]) .frame { animation: none; }
