@@ -875,13 +875,10 @@ $('#back4').addEventListener('click', async () => {
   await s4.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(30px)' }], { duration: reduceMotion ? 200 : 460, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {});
   screenOn('s4', false);
 });
-// 처음으로 — 카드와 결과 화면이 물러나며 벽 앞으로, 역할 문장이 다시
+// 처음으로 — 체험 목록으로(이 체험의 처음이 아니라). 화면이 어두워지며 넘어간다
 $('#restart').addEventListener('click', async () => {
-  const s4 = $('#s4');
-  if (mode === 'reveal') again();
-  roleIn();
-  await s4.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.96)' }], { duration: reduceMotion ? 200 : 520, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {});
-  screenOn('s4', false);
+  await $('#s4').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduceMotion ? 120 : 380, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
+  location.href = 'index.html';
 });
 window.addEventListener('resize', layout);
 new ResizeObserver(() => layout()).observe(stage);

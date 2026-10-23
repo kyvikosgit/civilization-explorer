@@ -621,7 +621,7 @@ $('#collect').addEventListener('click', async () => {
   saveChoice('c1', { stance, label: s.label, where: s.where, pct: s.pct });
   btn.hidden = true; $('#restart').hidden = false;
 });
-$('#restart').addEventListener('click', () => location.replace(location.pathname));
+$('#restart').addEventListener('click', () => { location.href = 'index.html'; });   // 처음으로 — 체험 목록으로
 $('#again').addEventListener('click', () => { if (step === 6) goAsk(false); });   // 다시 고르기 — 두 포스터가 다시 떠오른다
 $('#backCol6').addEventListener('click', () => { if (step === 6) papersBack(); });
 
