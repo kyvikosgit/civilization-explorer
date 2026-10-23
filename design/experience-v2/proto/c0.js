@@ -30,24 +30,28 @@ const stampLine = (total, at = new Date()) => `오늘 ${String(at.getHours()).pa
 
 // 메달 — 금 원반, 월계관 두 가지, 가운데 연도. 이모지 없음. id 는 그라데이션 충돌을 피하려고 자리마다 다르게
 function medalSVG(id, year = true, vb = '0 0 100 100') {
+  // 주조 메달 — 작은 크기에서도 깨지지 않게: 가는 선 없이 면으로, 잎은 적고 크게, 글자는 돋을새김(밝은 그림자 한 겹)
   const leaves = [];
-  for (let i = 0; i < 9; i++) {
-    for (const deg of [100 + i * 12.5, 80 - i * 12.5]) {
-      const a = deg * Math.PI / 180, cx = 50 + Math.cos(a) * 31, cy = 55 + Math.sin(a) * 31;
-      leaves.push(`<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="3.1" ry="6" transform="rotate(${deg.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})" fill="#7A5412" stroke="#F3DB8E" stroke-width=".7"/>`);
+  for (let i = 0; i < 6; i++) {
+    for (const deg of [104 + i * 15, 76 - i * 15]) {
+      const a = deg * Math.PI / 180, cx = 50 + Math.cos(a) * 28.5, cy = 56 + Math.sin(a) * 28.5;
+      leaves.push(`<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="3.3" ry="6.6" transform="rotate(${(deg + (deg > 90 ? 28 : -28)).toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)})" fill="url(#${id}l)"/>`);
     }
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" aria-hidden="true">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" shape-rendering="geometricPrecision" aria-hidden="true">
     <defs>
-      <radialGradient id="${id}g" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#FFF4C4"/><stop offset=".42" stop-color="#E6BE55"/><stop offset=".8" stop-color="#A67A1E"/><stop offset="1" stop-color="#6E4A0E"/></radialGradient>
-      <linearGradient id="${id}r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1B8"/><stop offset="1" stop-color="#8A5E14"/></linearGradient>
+      <radialGradient id="${id}g" cx="38%" cy="32%" r="80%"><stop offset="0" stop-color="#FFF5CC"/><stop offset=".38" stop-color="#EFC965"/><stop offset=".78" stop-color="#C4922C"/><stop offset="1" stop-color="#8A6216"/></radialGradient>
+      <linearGradient id="${id}r" x1=".15" y1="0" x2=".85" y2="1"><stop offset="0" stop-color="#FFF0B4"/><stop offset=".45" stop-color="#D2A443"/><stop offset="1" stop-color="#6E4A0E"/></linearGradient>
+      <linearGradient id="${id}l" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7DC8C"/><stop offset="1" stop-color="#A57826"/></linearGradient>
     </defs>
-    <path d="M44 2 h12 l-2 10 h-8 z" fill="#B3262E"/>
-    <circle cx="50" cy="55" r="44" fill="url(#${id}g)" stroke="#5E3F0A" stroke-width="1.2"/>
-    <circle cx="50" cy="55" r="39.5" fill="none" stroke="url(#${id}r)" stroke-width="1.6" opacity=".9"/>
-    <circle cx="50" cy="55" r="36.5" fill="none" stroke="#6E4A0E" stroke-width=".8" opacity=".7"/>
+    <path d="M39 1 h22 v15 l-11 -5 l-11 5 z" fill="#A61F2A"/><path d="M47 1 h6 v12.4 l-3 -1.4 l-3 1.4 z" fill="#E7C66E"/>
+    <circle cx="50" cy="56" r="43" fill="url(#${id}r)"/>
+    <circle cx="50" cy="56" r="37.5" fill="#7C5612"/>
+    <circle cx="50" cy="56.6" r="36.6" fill="url(#${id}g)"/>
     ${leaves.join('')}
-    ${year ? '<text x="50" y="52" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-weight="700" font-size="9" letter-spacing="1.5" fill="#5E3F0A">SALON</text><text x="50" y="68" text-anchor="middle" font-family="Georgia, \'Times New Roman\', serif" font-weight="700" font-size="15" letter-spacing="1" fill="#4A3008">1873</text>' : ''}
+    ${year ? `<g font-family="Georgia, 'Times New Roman', serif" font-weight="700" text-anchor="middle">
+      <text x="50" y="53.6" font-size="9.5" letter-spacing="1.4" fill="#FFF3C6" opacity=".7">SALON</text><text x="50" y="53" font-size="9.5" letter-spacing="1.4" fill="#5A3B08">SALON</text>
+      <text x="50" y="70.6" font-size="14.5" letter-spacing=".6" fill="#FFF3C6" opacity=".7">1873</text><text x="50" y="70" font-size="14.5" letter-spacing=".6" fill="#4A3008">1873</text></g>` : ''}
   </svg>`;
 }
 
@@ -251,8 +255,8 @@ const face = new T.Mesh(new T.CircleGeometry(MR, 48), faceMat); face.position.z 
 const backFace = new T.Mesh(new T.CircleGeometry(MR, 48), medalRim); backFace.position.z = -MT / 2; backFace.rotation.y = Math.PI; medal.add(backFace);
 (() => {
   const img = new Image();
-  img.onload = () => { faceMat.map = canvasTex(256, 256, (c) => c.drawImage(img, 0, 0, 256, 256)); faceMat.needsUpdate = true; kick(); };
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(medalSVG('g', true, '6 11 88 88'));
+  img.onload = () => { faceMat.map = canvasTex(512, 512, (c) => c.drawImage(img, 0, 0, 512, 512)); faceMat.needsUpdate = true; kick(); };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(medalSVG('g', true, '7 13 86 86'));
 })();
 [medalRim, faceMat].forEach((m) => { m.transparent = true; });
 const medalAlpha = (a) => { medalRim.opacity = faceMat.opacity = a; };
