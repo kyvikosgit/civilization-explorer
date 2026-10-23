@@ -23,7 +23,7 @@ const WORKS = [
   { n: 5, src: '../works/c0-bonbock.jpg',    hd: 'img/c0-bonbock.jpg',    w: 1234, h: 1400, title: '르 봉 보크',            artist: '에두아르 마네',       year: '1873', coll: '필라델피아 미술관', shown: '1873년 살롱 출품' },
 ];
 // 벽에 거는 자리 — 위에서 아래로 번호 순: 1 / 2 · 3 / 4 · 5. 줄마다 그림(캔버스) 높이(m)
-const ROWS = [[0], [1, 2], [3, 4]], ROW_H = [1.45, 1.15, 1.9], GAP_X = 0.36, GAP_Y = 0.58, HANG_BOTTOM = 1.36;
+const ROWS = [[0], [1, 2], [3, 4]], ROW_H = [1.45, 1.15, 1.9], GAP_X = 0.36, GAP_Y = 0.58, HANG_BOTTOM = 1.62;   // 맨 아래 줄 이름표가 징두리(1.0m) 위 벽지에 오도록
 const TODAY = { 1: 9, 2: 27, 3: 18, 4: 39, 5: 7 };   // 예시 수치
 const JURY = '1,284';
 const stampLine = (total, at = new Date()) => `오늘 ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')} 기준 · ${total}명 · 수치는 예시`;
@@ -72,7 +72,8 @@ $('#critBtn').addEventListener('click', () => critSheet.open());
 
 // ═════════════════════════════ 장면 ═════════════════════════════
 const stage = $('#stage'), cv = $('#gl'), dock = $('#dock'), gest = $('#gest'), award = $('#award'), roleEl = $('#role');
-const setMode = (m) => { mode = m; stage.dataset.mode = m; };
+let wallT0 = 0;   // 벽에 선 시각 — 테두리 빛이 이때부터 차례로
+const setMode = (m) => { if (m === 'wall' && mode !== 'wall') wallT0 = performance.now(); mode = m; stage.dataset.mode = m; };
 const DPR = Math.min(2, window.devicePixelRatio || 1);
 let renderer;
 try {
@@ -189,6 +190,13 @@ function buildFrame(w, i) {
     hx: 0, hy: 0, s: 1, zb: 0, lift: 0, act: 0, k: -1 };
 }
 const frames = WORKS.map(buildFrame);
+// 이름표 — 벽에서 각 그림 아래: 제목 · 화가, 연도(번호 대신)
+const _lp = new T.Vector3();
+frames.forEach((f) => {
+  const el = document.createElement('div'); el.className = 'lb';
+  el.innerHTML = `<b>${f.w.title}</b><small>${f.w.artist}, ${f.w.year}</small>`;
+  $('#labels').appendChild(el); f.lab = el;
+});
 // 거는 자리 계산 — 아래 줄부터 쌓는다. 한 줄 안에서는 가운데 높이를 맞춘다
 (() => {
   let y = HANG_BOTTOM;
@@ -287,7 +295,7 @@ function camFor(k) {
   }
   if (k === 'wall') {   // 후보작 벽 — 역할 문장 아래부터 안내 위까지, 눈높이에서 정면
     const rb = roleEl.getBoundingClientRect(), top = Math.max(safeT + 96, rb.bottom - stage.getBoundingClientRect().top + 14);
-    return fit(CL, { l: 30, r: W - 30, t: top, b: H - 62 - safeB() }, HALL.EYE);
+    return fit(CL, { l: 30, r: W - 30, t: top, b: H - 96 - safeB() }, HALL.EYE);
   }
   // 'focus' — 앞으로 나온 그림(이름판 자리까지)을 상단 바와 메달 단추 사이에
   const f = frames[fi];
@@ -350,9 +358,16 @@ function apply(now = performance.now()) {
     if (thud && f === MED.f) { f.g.position.z -= 0.05 * thud * s; f.g.rotation.x += 0.025 * thud; }
     dim(f, 1 - 0.72 * dk * (1 - a));
     f.pool.material.opacity = 1 - 0.8 * dk;
-    f.plate.visible = !f.tpOn; f.titlePlate.visible = f.tpOn;
-    f.glow.material.opacity = f.glowV * 0.75;
-    f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5);
+    f.plate.visible = false; f.titlePlate.visible = f.tpOn;   // 번호판은 쓰지 않는다 — 벽에서는 아래 이름표(글자), 메달을 주면 이름판
+    const inv = f.inv || 0;
+    f.glow.material.opacity = f.glowV * 0.75 + inv * 0.5;
+    f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5 + inv * 0.45);
+    f.mats.bead.emissive.setRGB(0.3, 0.2, 0.04).multiplyScalar(inv * 0.5);
+    // 이름표 — 벽의 제자리 아래(그림이 앞으로 나와도 이름표는 벽에 남는다)
+    if (f.lab) {
+      _lp.set(f.hx, f.hy - f.oh * f.s / 2 - 0.05, f.zb).project(camera);
+      f.lab.style.transform = `translate(${((_lp.x + 1) / 2 * W).toFixed(1)}px, ${((1 - _lp.y) / 2 * H).toFixed(1)}px) translateX(-50%)`;
+    }
   });
   salon.dim(1 - 0.7 * dk);
   // 메달은 고른 액자에 붙은 채
@@ -415,12 +430,12 @@ function skipIntro() { if (mode === 'intro') speed = 4; }
 function step(dt, now) {
   let busy = !!g;
   if (mode === 'intro') busy = stepIntro(dt, now) || busy;
-  // 회전: 손을 떼면 관성으로 더 돌다가 제자리로 (모션 줄이기: 관성 없이 바로 돌아옴)
+  // 회전: 손을 떼면 넘치거나 튕기지 않고 정면으로 돌아온다(임계 감쇠)
   if (!g || g.type !== 'one' || g.mode !== 'rotate') {
-    const K = 70, C = reduceMotion ? 2 * Math.sqrt(K) : 7.5;
+    const K = 40, C = 2 * Math.sqrt(K);
     [yaw, yawV] = spring(yaw, yawV, 0, K, C, dt); [pitch, pitchV] = spring(pitch, pitchV, 0, K, C, dt);
-    if (Math.abs(yaw) > LIM) { yaw = Math.sign(yaw) * LIM; yawV *= -0.3; }
-    if (Math.abs(pitch) > LIM) { pitch = Math.sign(pitch) * LIM; pitchV *= -0.3; }
+    if (Math.abs(yaw) > LIM) { yaw = Math.sign(yaw) * LIM; yawV = 0; }
+    if (Math.abs(pitch) > LIM) { pitch = Math.sign(pitch) * LIM; pitchV = 0; }
     if (Math.abs(yaw) + Math.abs(pitch) + Math.abs(yawV) + Math.abs(pitchV) > 0.0006) busy = true; else { yaw = pitch = yawV = pitchV = 0; }
   }
   // 확대·이동
@@ -446,6 +461,10 @@ function step(dt, now) {
   });
   dimV += (dimT - dimV) * ef; if (Math.abs(dimT - dimV) > 0.002) busy = true; else dimV = dimT;
   frames.forEach((f) => { const e = 1 - Math.exp(-dt * 6); f.glowV += (f.glowT - f.glowV) * e; if (Math.abs(f.glowT - f.glowV) > 0.003) busy = true; else f.glowV = f.glowT; });
+  // 벽에 서 있는 동안 — 금박 테두리에 빛이 위에서부터 차례로 번졌다 사라진다(누를 수 있다는 신호, 글 안내 대신)
+  const inviting = mode === 'wall' && !reduceMotion, wt = now - wallT0 - 700;
+  frames.forEach((f, i) => { const ph = (((wt - i * 240) % 5200) + 5200) % 5200; f.inv = inviting && wt > 0 ? Math.pow(Math.sin(Math.PI * clamp(ph / 1300, 0, 1)), 2) : 0; });
+  if (inviting) busy = true;
   // 반사광: 그림이 나오면 금박 위를 한 번 쓸고 지나간다 · 끄는 동안엔 손가락을 따라간다
   if (mode !== 'intro') {
     const gt = (now - glintT0) / 1300;
@@ -613,10 +632,7 @@ function endPointer(e) {
     if (zoom <= 1.04 && !hitFrame({ x: a.x0, y: a.y0 }, [frames[fi]])) { setTimeout(() => { if (lastTap.t === now && mode === 'focus') toWall(); }, 260); }
     kick(); return;
   }
-  if (a.mode === 'rotate' && !reduceMotion) {
-    const s0 = a.samples[0], s1 = a.samples[a.samples.length - 1], dtm = Math.max(16, s1.t - s0.t);
-    yawV = clamp((s1.x - s0.x) / dtm * 1000 * KPX, -7, 7); pitchV = clamp((s1.y - s0.y) / dtm * 1000 * KPX, -7, 7);
-  }
+  yawV = pitchV = 0;   // 손을 떼면 튕기지 않고 그 자리에서 부드럽게 정면으로
   kick();
 }
 cv.addEventListener('pointerup', endPointer);
@@ -627,7 +643,7 @@ function resetView() { zoomT = 1; panXT = 0; panYT = 0; yawV = pitchV = 0; }
 function focus(i) {
   if (mode !== 'wall') return;
   fi = i; setMode('focus'); haptic(10);
-  $('#wallTitle').textContent = `후보작 ${WORKS[i].n}번`;
+  $('#wallTitle').textContent = WORKS[i].title;
   gest.classList.toggle('off', gestSeen);
   resetView(); zoom = 1; panX = panY = 0; dimT = 1; frames[i].fp = focusPose(frames[i]); kick();
   if (!reduceMotion) glintT0 = performance.now() + 500;
@@ -648,7 +664,7 @@ async function placeMedal() {
   hideGest(); resetView();
   chosen.glowT = 1; if (!reduceMotion) glintT0 = performance.now();
   haptic(14); kick();
-  $('#cfTitle').textContent = `${chosen.w.n}번에 올해의 메달을 줄까요?`;
+  $('#cfTitle').textContent = `〈${chosen.w.title}〉에 올해의 메달을 줄까요?`;
   await sleep(reduceMotion ? 100 : 420);
   if (mode === 'placed') confirm.open();
 }
@@ -873,7 +889,7 @@ new ResizeObserver(() => layout()).observe(stage);
 // 검수용
 window.__c0 = {
   get info() { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, tex: renderer.info.memory.textures, geo: renderer.info.memory.geometries, prog: renderer.info.programs.length }; },
-  get mode() { return mode; }, get fi() { return fi; }, get chosen() { return chosen ? chosen.w.n : null; }, get zoom() { return zoom; }, get cam() { return { ...cam }; }, get tI() { return tI; },
+  get mode() { return mode; }, get fi() { return fi; }, get chosen() { return chosen ? chosen.w.n : null; }, get zoom() { return zoom; }, get yaw() { return +yaw.toFixed(3); }, get cam() { return { ...cam }; }, get tI() { return tI; },
   get titleShown() { return !!(chosen && chosen.tpOn && chosen.titlePlate.visible); },
   // 후보작 그림 면의 화면 사각형(px)
   rect(i) { return frameScreenRect(frames[i]); },
