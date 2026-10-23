@@ -262,7 +262,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .flow { scrollbar-width: none; }
 .flow::-webkit-scrollbar { display: none; }
 .face, .pface { contain: paint; }
-.toast { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 12px); background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; padding: 10px 16px; border-radius: 20px; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 50; }
+.toast { position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top)); bottom: auto; transform: translate(-50%, -12px); background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; padding: 10px 16px; border-radius: 20px; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; z-index: 50; }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
 @media (prefers-reduced-motion: reduce) {
   .beat, .card-wrap.fly, .card-wrap.moving, .hint, .dim, .canvas, .tk-scrim { transition: none !important; animation: none !important; }
