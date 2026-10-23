@@ -257,10 +257,9 @@ function finish() {
   glintAt = null; render(); dryLoop();
   const label = $('#labelMain'); label.style.opacity = 0;
   setTimeout(() => { setLabel('outdoor'); label.style.opacity = ''; }, 260);
-  // 다 칠한 캔버스를 어두운 방에서 잠시 본 뒤, 방이 천천히 밝아진다(1.6초). 그다음 아래 글이 차례로
-  const T_LIT = REDUCED ? 0 : 900, T_AFTER = REDUCED ? 0 : 1700;
-  // 햇빛이 방을 채운다: 따뜻한 빛이 창 쪽에서 차오르고(0.8초) 캔버스가 이젤에서 살짝 떠오른 뒤, 흰 방으로 가라앉는다
-  setTimeout(() => document.body.classList.add('flooding'), REDUCED ? 0 : T_LIT - 500);
+  // 다 칠한 캔버스를 어두운 방에서 잠시(0.4초) 본 뒤 flooding: 방이 창 쪽으로 돌며 빛이 번져 하얗게 덮이고(1.2초, c3-env.js) — 그 순간 lit(바깥) — 빛이 물러나며 들판. 그다음 아래 글
+  const T_FLOOD = REDUCED ? 0 : 400, T_LIT = REDUCED ? 300 : T_FLOOD + 950, T_AFTER = REDUCED ? 600 : T_FLOOD + 2500;
+  setTimeout(() => document.body.classList.add('flooding'), T_FLOOD);
   setTimeout(() => {
     document.body.classList.add('lit'); document.documentElement.classList.add('lit');
     document.querySelector('meta[name=theme-color]').content = '#FFFFFF';
@@ -322,79 +321,20 @@ function introEnd() {
   STEPS.forEach(([c]) => B.classList.add(c));
   stage.classList.add('ready'); setTimeout(() => stage.classList.remove('ready'), 1700);
 }
-if (REDUCED) { introEnd(); } else {
+// 뒤 장면(c3-env.js)이 준비된 뒤에 시작한다 — 사진·이젤이 늦게 와도 어둠에서부터(최대 4초 기다림)
+let introGo = false;
+const introStart = () => {
+  if (introGo || !introOn) return; introGo = true;
   STEPS.forEach(([c, t]) => introTimers.push(setTimeout(() => { B.classList.add(c); if (c === 's-ready') introEnd(); }, t)));
+};
+if (REDUCED) { introEnd(); } else {
+  addEventListener('c3env-ready', introStart, { once: true });
+  if (window.__c3env && (window.__c3env.ready || window.__c3env.fallback)) introStart();
+  introTimers.push(setTimeout(introStart, 4000));
 }
 // 장면을 누르면 끝으로(캔버스를 누른 것이면 그대로 칠하기 시작)
 addEventListener('pointerdown', (e) => { if (introOn && !e.target.closest('a')) introEnd(); }, true);
 
-// ── 다 칠하면 이젤은 그대로, 뒤가 바깥이 된다: 모네 〈양귀비 들판〉(1873, 오르세 · 퍼블릭 도메인)을 아주 작게 떠서 흐릿한 들판 + 앞쪽 풀(바람에 흔들림) + 해
-{
-  const bg = $('#oBg'), gr = $('#oGrass'), gctx2 = gr.getContext('2d');
-  loadImage('../works/c2-arg-coquelicots-orsay.jpg').then((img) => {
-    const r = bg.getBoundingClientRect(), w = 72, h = Math.round(w * r.height / Math.max(1, r.width));
-    bg.width = w; bg.height = h; const c = bg.getContext('2d'); c.imageSmoothingQuality = 'high';
-    const s = Math.max(w / img.naturalWidth, h / img.naturalHeight), sw = w / s, sh = h / s;
-    c.drawImage(img, (img.naturalWidth - sw) / 2, 0, sw, sh, 0, 0, w, h);
-  }).catch(() => {});
-  let GW = 0, GH = 0, blades = [];
-  const sizeG = () => {
-    const r = gr.getBoundingClientRect(); GW = r.width; GH = r.height; const k = Math.min(2, devicePixelRatio || 1);
-    gr.width = Math.round(GW * k); gr.height = Math.round(GH * k); gctx2.setTransform(k, 0, 0, k, 0, 0);
-    blades = Array.from({ length: 150 }, () => { const y = GH * (0.25 + Math.random() * 0.8); return { x: Math.random() * GW, y, h: 14 + (y / GH) * 46 * (0.6 + Math.random() * 0.6), w: 1.2 + Math.random() * 2.2, ph: Math.random() * 6.28, c: ['#6E8A3A', '#879B45', '#A7AE58', '#5C7A34', '#C2B666'][(Math.random() * 5) | 0], f: Math.random() < 0.07 }; }).sort((a, b) => a.y - b.y);
-  };
-  sizeG(); addEventListener('resize', sizeG);
-  const drawGrass = (now) => {
-    gctx2.clearRect(0, 0, GW, GH);
-    // 흙과 이젤 발치의 그늘
-    const e = gctx2.createRadialGradient(GW / 2, GH * 0.3, 10, GW / 2, GH * 0.3, GW * 0.45);
-    e.addColorStop(0, 'rgba(96,70,40,.45)'); e.addColorStop(1, 'rgba(96,70,40,0)'); gctx2.fillStyle = e; gctx2.fillRect(0, 0, GW, GH);
-    blades.forEach((b) => {
-      const sway = Math.sin(now / 900 + b.ph + b.x * 0.01) * (3 + b.h * 0.12) + Math.sin(now / 2300 + b.x * 0.004) * 4;
-      gctx2.strokeStyle = b.c; gctx2.lineWidth = b.w; gctx2.lineCap = 'round';
-      gctx2.beginPath(); gctx2.moveTo(b.x, b.y); gctx2.quadraticCurveTo(b.x + sway * 0.3, b.y - b.h * 0.55, b.x + sway, b.y - b.h); gctx2.stroke();
-      if (b.f) { gctx2.fillStyle = '#C8452C'; gctx2.beginPath(); gctx2.arc(b.x + sway, b.y - b.h, 2.6, 0, 6.2832); gctx2.fill(); }   // 양귀비 몇 송이
-    });
-  };
-  let graf = 0;
-  const loopG = (now) => { drawGrass(now); if (B.classList.contains('lit') && !B.classList.contains('held') && !REDUCED) graf = requestAnimationFrame(loopG); else graf = 0; };
-  new MutationObserver(() => { if (B.classList.contains('lit') && !graf) graf = requestAnimationFrame(loopG); }).observe(B, { attributes: true, attributeFilter: ['class'] });
-  drawGrass(0);
-}
-
-// ── 기름등 깜빡임 + 공기 중 먼지(햇빛 줄기 안에서는 반짝인다)
-{
-  const dust = $('#dust'), dctx = dust.getContext('2d');
-  let DW = 0, DH = 0; const P = [];
-  const size = () => { const r = dust.getBoundingClientRect(); DW = r.width; DH = r.height; dust.width = Math.round(DW); dust.height = Math.round(DH); };
-  size(); addEventListener('resize', size);
-  for (let i = 0; i < 70; i++) P.push({ x: Math.random(), y: Math.random(), r: 0.5 + Math.random() * 1.4, vx: (Math.random() - 0.5) * 0.006, vy: (Math.random() - 0.3) * 0.004, ph: Math.random() * 6.28 });
-  // 햇빛 줄기 다각형(.beam 의 clip-path 와 같은 자리)
-  const inBeam = (x, y) => {
-    const pts = [[66, 0.16 * DH], [66, 0.56 * DH], [0.62 * DW, DH], [DW, 0.64 * DH]];
-    let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c;
-  };
-  let fl = 1, flT = 1, last = performance.now();
-  const tick = (now) => {
-    const dt = Math.min(0.05, (now - last) / 1000); last = now;
-    // 등불: 목표 밝기를 가끔 바꾸고 부드럽게 따라간다(불꽃의 흔들림)
-    if (Math.random() < 0.08) flT = 0.78 + Math.random() * 0.22;
-    fl += (flT - fl) * Math.min(1, dt * 14);
-    B.style.setProperty('--fl', fl.toFixed(3));
-    const beam = B.classList.contains('s-beam') && !B.classList.contains('lit');
-    dctx.clearRect(0, 0, DW, DH);
-    P.forEach((p) => {
-      p.x += p.vx * dt + Math.sin(now / 2400 + p.ph) * 0.0004; p.y += p.vy * dt;
-      if (p.x < -0.02) p.x = 1.02; if (p.x > 1.02) p.x = -0.02; if (p.y < -0.02) p.y = 1.02; if (p.y > 1.02) p.y = -0.02;
-      const x = p.x * DW, y = p.y * DH, lit = beam && inBeam(x, y);
-      const tw = 0.6 + 0.4 * Math.sin(now / 600 + p.ph * 3);
-      dctx.globalAlpha = lit ? 0.85 * tw : 0.16 * tw * fl;
-      dctx.fillStyle = lit ? '#FFF4DC' : '#FFC88A';
-      dctx.beginPath(); dctx.arc(x, y, lit ? p.r * 1.25 : p.r, 0, 6.2832); dctx.fill();
-    });
-    if (!REDUCED) requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
-}
+// 아틀리에·들판·이젤·등불 깜빡임(--fl)·먼지는 c3-env.js (three.js)
 // 검수용
 window.__c3 = { introEnd, get intro() { return introOn; }, get done() { return done; }, get held() { return reveal.classList.contains('hide'); }, get touched() { return touched; }, coverage: () => (outdoor ? coverage() : 0) };
