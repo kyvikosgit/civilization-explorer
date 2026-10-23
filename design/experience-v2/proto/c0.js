@@ -1,12 +1,11 @@
 // C0 아카데미 살롱 — 올해의 메달 한 점
 //   1 역할 → 2 후보작 뷰어(한 점씩 3D 금박 액자. 끌면 돌아가고 관성·되돌아옴, 두 손가락으로 붓질까지 확대, 옆으로 밀면 다음 후보)
-//   → "이 그림에 메달"(또는 그림 길게 누르기) → 액자에 금빛 테두리 + 메달이 아래 테두리에 내려앉음 → 확인 → 3 오늘의 심사위원단(다섯 액자가 한 줄로 물러나고 아래에 점) → 4 카드
+//   → "이 그림에 메달"(또는 그림 길게 누르기) → 액자에 금빛 테두리 + 메달이 아래 테두리에 내려앉음 → 확인 → 3 오늘의 심사위원단(다섯 액자가 한 줄로 물러나며 오늘의 비율만큼 조금씩 커지고 작아진다 — 그 크기가 곧 그래프. 아래엔 비율 숫자만) → 4 카드
 //   후보작·문구: 보드 experience-v2.html C0-A, 앱 missions.ts 'salon'. 비율·인원은 예시 수치. 제목은 고른 뒤에만.
 //   three.js 0.147 (부스 모리스 칼럼 뷰어와 같은 CDN·버전). 텍스처 ≤1400px, 픽셀 비율 ≤2, 움직임이 없으면 그리지 않는다.
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, icons, sheet, toast, sleep, reduceMotion, showScreen, haptic, saveChoice } from './js/proto-common.js';
-import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine } from './js/crowd.js';
 
 const WORKS = [
   { n: 1, src: '../works/c0-cambyses.jpg',   hd: 'img/c0-cambyses.jpg',   w: 960,  h: 695,  title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '' },
@@ -18,6 +17,7 @@ const WORKS = [
 const TODAY = { 1: 9, 2: 27, 3: 18, 4: 39, 5: 7 };   // 예시 수치
 const JURY = '1,284';
 const TOP = +Object.keys(TODAY).sort((a, b) => TODAY[b] - TODAY[a])[0];
+const stampLine = (total, at = new Date()) => `오늘 ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')} 기준 · ${total}명 · 수치는 예시`;
 
 // 메달 — 금 원반, 월계관 두 가지, 가운데 연도. 이모지 없음. id 는 그라데이션 충돌을 피하려고 자리마다 다르게
 function medalSVG(id, year = true, vb = '0 0 100 100') {
@@ -137,6 +137,14 @@ function ring(hw, hh, e0, e1, z0, z1, b, segs) {
 function gilt(color, rough) { return new T.MeshStandardMaterial({ color, metalness: 1, roughness: rough, roughnessMap: giltNoise, bumpMap: giltNoise, bumpScale: 0.0018, envMapIntensity: 0.62 }); }
 const beadGeo = new T.SphereGeometry(1, 8, 6), boxBack = new T.MeshStandardMaterial({ color: 0x3A2616, roughness: 0.9, metalness: 0 });
 const loader = new T.TextureLoader();
+const unitPlane = new T.PlaneGeometry(1, 1), OL_COLOR = new T.Color(0xD9672F).convertSRGBToLinear();
+function setOutline(f, th) {            // th: 선 두께(액자 로컬 단위)
+  const hw = f.pw / 2, hh = f.ph / 2, [t, b, l, r] = f.ol.children;
+  t.scale.set(f.pw, th, 1); t.position.set(0, hh - th / 2, 0);
+  b.scale.set(f.pw, th, 1); b.position.set(0, -hh + th / 2, 0);
+  l.scale.set(th, f.ph - th * 2, 1); l.position.set(-hw + th / 2, 0, 0);
+  r.scale.set(th, f.ph - th * 2, 1); r.position.set(hw - th / 2, 0, 0);
+}
 
 function buildFrame(w, i) {
   const a = w.w / w.h, pw = a >= 1 ? 1 : a, ph = a >= 1 ? 1 / a : 1, hw = pw / 2, hh = ph / 2;
@@ -187,7 +195,11 @@ function buildFrame(w, i) {
   });
   const glow = new T.Mesh(new T.PlaneGeometry(pw + 2 * M + 0.5, ph + 2 * M + 0.5), new T.MeshBasicMaterial({ map: glowTex, color: 0xFFD486, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
   glow.position.z = -0.08; g.add(glow);
-  return { w, i, g, pw, ph, ow: pw + 2 * M, oh: ph + 2 * M, mats, paint, plate, plateFace, titlePlate, tpFace, TPW, TPH, tpOn: false, glow, glowV: 0, glowT: 0, sC: 1, row: null, k: -1 };
+  // 결과 줄에서 내가 고른 그림 — 그림 가장자리 안쪽의 가는 주황 선(두께는 rowLayout 이 화면 2px 로 맞춘다)
+  const olMat = new T.MeshBasicMaterial({ color: OL_COLOR, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+  const ol = new T.Group(); for (let s = 0; s < 4; s++) ol.add(new T.Mesh(unitPlane, olMat));
+  ol.position.z = 0.004; ol.visible = false; g.add(ol);
+  return { w, i, g, pw, ph, ow: pw + 2 * M, oh: ph + 2 * M, mats, paint, plate, plateFace, titlePlate, tpFace, TPW, TPH, tpOn: false, glow, glowV: 0, glowT: 0, ol, olMat, olV: 0, olT: 0, sC: 1, row: null, k: -1 };
 }
 const frames = WORKS.map(buildFrame);
 function titleTex(f) {
@@ -220,7 +232,7 @@ const backFace = new T.Mesh(new T.CircleGeometry(MR, 48), medalRim); backFace.po
 [medalRim, faceMat].forEach((m) => { m.transparent = true; });
 const medalAlpha = (a) => { medalRim.opacity = faceMat.opacity = a; };
 medal.visible = false;
-const MED = { t0: 0, dir: 0, f: null, done: false };   // dir 1 = 내려앉는 중/앉음, -1 = 떠나는 중
+const MED = { t0: 0, dir: 0, f: null, done: false, sc: 1 };   // dir 1 = 내려앉는 중/앉음, -1 = 떠나는 중
 
 // ── 상태
 let W = 1, H = 1, wpp = 0.01, visW = 1, visH = 1, cyW = 0, spacingPx = 300;
@@ -230,6 +242,7 @@ let zoom = 1, zoomT = 1, panX = 0, panY = 0, panXT = 0, panYT = 0;
 let mode = 'pick';                         // pick | placed | reveal
 let chosen = null;
 let rv = 0, rvT = 0, rvFrom = 0, rvT0 = 0; // 결과 모드로의 전환(액자들이 한 줄로)
+const RV_MS = 800;
 let glintT0 = -1e9, specX = 1.6, specXT = 1.6;
 const X = [0, 0, 0, 0, 0];                 // 회전목마의 액자 중심(월드 x)
 const LIM = 35 * Math.PI / 180;
@@ -258,19 +271,26 @@ function layout() {
 }
 const Xat = (p) => { const i0 = clamp(Math.floor(p), 0, 3), t = p - i0; return lerp(X[i0], X[i0 + 1], t); };
 
-// 결과: 다섯 액자가 아래 테두리를 한 줄에 맞춰 선다. 그 위 번호, 아래 점 띠, 그 아래 비율 — 모두 같은 줄에. 덩어리 전체를 패널 위 남은 높이의 가운데에
+// 결과: 다섯 액자가 아래 테두리를 한 줄에 맞춰 선다. 크기는 오늘의 비율만큼 조금씩(가장 적은 그림 ≈ 가장 많은 그림의 0.77배 — 넓이로 약 0.6배).
+// 액자 아래 번호판, 그 아래 비율. 덩어리 전체를 상단 바와 패널 사이의 가운데에
 let row = null;
+const PLATE_GAP = 20, PLATE_H = 17, PCT_GAP = 9, PCT_H = 20, MEDAL_PX = 26;
 function rowLayout() {
-  const areaH = H - $('#reveal').offsetHeight;
-  const pad = 10, gap = 6, fw = Math.floor((W - pad * 2 - gap * 4) / 5);
-  const fh = frames.map((f) => fw * f.oh / f.ow), maxFh = Math.max(...fh);
-  const BAND = areaH < 420 ? 36 : 46, NUM = 22, TAG = 26, MEDAL = 30;
-  const top0 = qEl.getBoundingClientRect().top - stage.getBoundingClientRect().top;
-  const block = NUM + maxFh + 10 + BAND + TAG + MEDAL;
-  const baseY = Math.max(top0 + NUM + maxFh, top0 + (areaH - top0 - block) / 2 + NUM + maxFh);   // 액자 아래 테두리 줄
-  row = { fw, maxFh, BAND, baseY, numY: baseY - maxFh - 12, bandY: baseY + 10, tagY: baseY + 10 + BAND + 12, medalY: baseY + 10 + BAND + 12 + 24,
-    items: frames.map((f, i) => ({ x: pad + fw / 2 + i * (fw + gap), y: baseY - fh[i] / 2, fh: fh[i] })) };
-  frames.forEach((f, i) => { const it = row.items[i]; f.row = { x: (it.x - W / 2) * wpp, y: -(it.y - H / 2) * wpp, s: fw * wpp / f.ow }; });
+  const areaB = H - $('#reveal').offsetHeight, top0 = $('.wall-top').getBoundingClientRect().bottom - stage.getBoundingClientRect().top;
+  const PAD = 14, GAP = 8, max = Math.max(...Object.values(TODAY)), under = PLATE_GAP + PLATE_H + PCT_GAP + PCT_H;
+  const k = frames.map((f) => 0.72 + 0.28 * TODAY[f.w.n] / max);
+  let S = (W - PAD * 2 - GAP * 4) / frames.reduce((a, f, i) => a + f.ow * k[i], 0);                  // 그림 긴 변 1 = S px
+  S = Math.min(S, (areaB - top0 - 48 - under) / Math.max(...frames.map((f, i) => f.oh * k[i])));
+  const ws = frames.map((f, i) => f.ow * k[i] * S), hs = frames.map((f, i) => f.oh * k[i] * S), maxFh = Math.max(...hs);
+  const baseY = Math.round(top0 + (areaB - top0 - maxFh - under) / 2 + maxFh);
+  let x = (W - ws.reduce((a, b) => a + b, 0) - GAP * 4) / 2;
+  row = { baseY, plateY: baseY + PLATE_GAP, pctY: baseY + PLATE_GAP + PLATE_H + PCT_GAP, items: [], poolY: -((baseY - maxFh / 2) - H / 2) * wpp };
+  frames.forEach((f, i) => {
+    const cx = x + ws[i] / 2, px = k[i] * S; x += ws[i] + GAP;
+    row.items.push({ x: cx });
+    f.row = { x: (cx - W / 2) * wpp, y: -((baseY - hs[i] / 2) - H / 2) * wpp, s: px * wpp, medalUp: MEDAL_PX / (2 * MR * px) };
+    setOutline(f, 2 / px);
+  });
 }
 
 function dim(f, k) {
@@ -293,12 +313,14 @@ function apply() {
     f.g.scale.setScalar(lerp(f.sC, r.s, t));
     dim(f, lerp(1 - 0.6 * Math.min(Math.abs(d), 1), 1, t));
     f.plate.visible = t < 0.5 && !f.tpOn; f.titlePlate.visible = t < 0.5 && f.tpOn;
-    f.glow.material.opacity = f.glowV * 0.75;
-    f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5);
+    f.glow.material.opacity = f.glowV * 0.75 * (1 - t);                       // 결과 줄에서는 금빛 후광 대신 주황 선 하나
+    f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5 * (1 - t));
+    f.olMat.opacity = f.olV; f.ol.visible = f.olV > 0.01;
   });
   wall.position.set(-Xp * 0.22 * par * (1 - t), cyW, -2.6);
-  pool.material.opacity = 1 - t * 0.6;
-  if (MED.f) medal.visible = MED.dir !== 0 && t < 0.05;   // 결과 줄에서는 메달을 거둔다(내 그림은 주황 번호·점으로)
+  pool.material.opacity = 1 - t * 0.45; if (row) pool.position.y = lerp(cyW, row.poolY, t);   // 빛 웅덩이도 액자 줄 뒤로
+  // 메달은 고른 액자에 붙은 채 줄로 따라간다 — 액자가 작아져도 메달은 화면에서 약 26px 로 남는다
+  if (MED.f) { medal.visible = MED.dir !== 0; medal.scale.setScalar(MED.sc * lerp(1, MED.f.row ? MED.f.row.medalUp : 1, t)); faceMat.envMapIntensity = lerp(1, 0.25, t); faceMat.metalness = lerp(0.55, 0.3, t); faceMat.color.setRGB(1, lerp(1, 0.8, t), lerp(1, 0.5, t)); }   // 작아진 메달이 흰 원반으로 날리지 않게 금빛을 조금 짙게
   camera.zoom = zoom; camera.position.set(panX, panY, D); camera.updateProjectionMatrix();
   spec.position.x = specX;
   stage.classList.toggle('zoomed', zoom > 1.04 && mode === 'pick');
@@ -338,6 +360,7 @@ function step(dt, now) {
   }
   // 금빛 테두리
   frames.forEach((f) => { const e = 1 - Math.exp(-dt * 6); f.glowV += (f.glowT - f.glowV) * e; if (Math.abs(f.glowT - f.glowV) > 0.003) busy = true; else f.glowV = f.glowT; });
+  frames.forEach((f) => { const e = reduceMotion ? 1 : 1 - Math.exp(-dt * 7); f.olV += (f.olT - f.olV) * e; if (Math.abs(f.olT - f.olV) > 0.003) busy = true; else f.olV = f.olT; });
   // 반사광: 도착하면 금박 위를 한 번 쓸고 지나간다 · 끄는 동안엔 손가락을 따라간다
   const gt = (now - glintT0) / 1300;
   if (gt >= 0 && gt < 1) { specX = lerp(-3.4, 1.6, eio(gt)); busy = true; }
@@ -347,7 +370,7 @@ function step(dt, now) {
   // 이름판 펼치기
   if (TP.f) { const p = clamp((now - TP.t0) / (reduceMotion ? 1 : 520), 0, 1), e = 1 - Math.pow(1 - p, 3); TP.f.titlePlate.scale.set(lerp(0.3, 1, e), lerp(0.5, 1, e), 1); if (p < 1) busy = true; else TP.f = null; }
   // 결과 전환
-  if (rv !== rvT) { const p = clamp((now - rvT0) / (reduceMotion ? 1 : 950), 0, 1); rv = lerp(rvFrom, rvT, p); if (p >= 1) rv = rvT; busy = true; }
+  if (rv !== rvT) { const p = clamp((now - rvT0) / (reduceMotion ? 1 : RV_MS), 0, 1); rv = lerp(rvFrom, rvT, p); if (p >= 1) rv = rvT; busy = true; }
   return busy;
 }
 
@@ -360,7 +383,7 @@ function stepMedal(now) {
     const e = 1 - Math.pow(1 - p, 3);
     medal.position.set(0, lerp(yEnd + 0.32, yEnd, e), lerp(0.5, zEnd, e));
     medal.rotation.set(lerp(-0.35, 0, e), lerp(0.9, 0, e), lerp(0.18, -0.12, e));
-    medal.scale.setScalar(lerp(1.15, 1, e)); medalAlpha(Math.min(1, p * 3));
+    MED.sc = lerp(1.15, 1, e); medalAlpha(Math.min(1, p * 3));
     MED.done = p >= 1;
     return p < 1;
   }
@@ -520,26 +543,19 @@ $('#cfBack').addEventListener('click', unplace);
 $$('.sheet-dim').forEach((d) => d.addEventListener('click', () => { if (mode === 'placed') unplace(); }));
 $('#cfOk').addEventListener('click', () => { confirm.close(); reveal(); });
 
-// ── 3 오늘의 심사위원단: 다섯 액자가 한 줄로 물러나고, 심사위원(점 하나 = 열 사람)이 메달을 준 액자 아래로 모인다. 내 점은 주황, 맨 마지막에
+// ── 3 오늘의 심사위원단: 다섯 액자가 한 줄로 물러나며 오늘의 비율만큼 크기가 달라진다(0.8초) → 번호판·비율이 나타나고 → 패널이 올라온다
+//   내 그림만 표시: 그림 안쪽의 가는 주황 선 + 아래 테두리의 메달. 가장 많이 고른 그림은 크기 말고는 따로 표시하지 않는다
 const tagEls = frames.map((f) => {
-  const num = document.createElement('div'); num.className = 'rownum'; num.textContent = f.w.n; tagsEl.appendChild(num);
-  const tag = document.createElement('div'); tag.className = 'tag'; tagsEl.appendChild(tag);
-  const today = document.createElement('div'); today.className = 'today'; today.innerHTML = `<i>${medalSVG('t' + f.w.n, false)}</i>오늘의 메달`; tagsEl.appendChild(today);
-  return { num, tag, today };
+  const plate = document.createElement('div'); plate.className = 'rplate'; plate.textContent = f.w.n; tagsEl.appendChild(plate);
+  const pct = document.createElement('div'); pct.className = 'rpct'; pct.innerHTML = `${TODAY[f.w.n]}<i>%</i>`; tagsEl.appendChild(pct);
+  return { plate, pct };
 });
 function placeTags() {
   frames.forEach((f, i) => {
-    const it = row.items[i], t = tagEls[i];
-    t.num.style.transform = `translate(${it.x.toFixed(1)}px, ${row.numY.toFixed(1)}px) translate(-50%, -50%)`;
-    t.tag.style.transform = `translate(${it.x.toFixed(1)}px, ${row.tagY.toFixed(1)}px) translate(-50%, -50%)`;
-    t.today.style.transform = `translate(${it.x.toFixed(1)}px, ${row.medalY.toFixed(1)}px) translate(-50%, -50%)`;
+    const x = row.items[i].x.toFixed(1), t = tagEls[i];
+    t.plate.style.transform = `translate(${x}px, ${row.plateY}px) translateX(-50%)`;
+    t.pct.style.transform = `translate(${x}px, ${row.pctY}px) translateX(-50%)`;
   });
-}
-let crowd = null;
-function crowdTargets() {
-  const counts = split(crowd.n, frames.map((f) => TODAY[f.w.n]));
-  const groups = frames.map((f, i) => { const it = row.items[i]; return { pts: packRect(counts[i], { x: it.x - row.fw / 2 + 4, y: row.bandY, w: row.fw - 8, h: row.BAND - 4 }, crowd.rnd, 7) }; });
-  return targetsFor(crowd, groups, frames.indexOf(chosen));
 }
 function setRv(target) { rvFrom = rv; rvT = target; rvT0 = performance.now(); kick(); }
 let revSeq = 0;
@@ -550,7 +566,7 @@ function showTitle(f) {
 function hideTitles() { frames.forEach((f) => { f.tpOn = false; }); TP.f = null; kick(); }
 async function reveal() {
   mode = 'reveal';
-  const me = chosen, mineTop = me.w.n === TOP, seq = ++revSeq;
+  const me = chosen, top = WORKS.find((w) => w.n === TOP), seq = ++revSeq;
   stage.classList.add('is-reveal');
   // 메달을 준 뒤 — 고르는 동안 숨겨 둔 제목 · 화가 · 연도가 번호판 자리에. 잠시(1.2초) 그대로 둔 뒤 오늘의 심사위원단으로
   if (document.fonts) await Promise.race([document.fonts.load('700 40px Freesentation', '가'), sleep(400)]).catch(() => {});
@@ -558,25 +574,29 @@ async function reveal() {
   await sleep(reduceMotion ? 1200 : 520 + 1200);
   if (seq !== revSeq || mode !== 'reveal') return;
   $('#wallTitle').textContent = '오늘의 심사위원단';
-  $('#revTitle').textContent = mineTop ? `내가 고른 ${me.w.n}번이 오늘의 메달` : `오늘의 메달은 ${TOP}번`;
-  $('#revFig').innerHTML = `<div class="crowd-big">${TODAY[me.w.n]}<i>%</i></div><div class="crowd-lab">${me.w.n}번 〈${me.w.title}〉 · 나<small>같은 그림에 메달을 준 심사위원</small></div>`;
+  $('#revTitle').textContent = `〈${me.w.title}〉`;
+  $('#revMeta').textContent = `${me.w.artist} · ${me.w.year}`;
+  $('#revLine').innerHTML = `오늘 심사위원 <em>${TODAY[me.w.n]}%</em>가 같은 그림을 골랐습니다.`;
+  $('#revTop').textContent = me.w.n === TOP ? '오늘 가장 많은 심사위원이 고른 그림입니다.' : `가장 많이 고른 그림은 ${top.n}번 〈${top.title}〉 · ${TODAY[top.n]}%`;
   $('#revStamp').textContent = stampLine(JURY);
-  frames.forEach((f, i) => { const t = tagEls[i]; t.tag.className = 'tag' + (f === me ? ' me' : ''); t.tag.innerHTML = `${TODAY[f.w.n]}%${f === me ? '<small>나</small>' : ''}`; t.num.classList.toggle('me', f === me); });
+  tagEls.forEach((t, i) => t.pct.classList.toggle('me', frames[i] === me));
   zoomT = 1; panXT = 0; panYT = 0;
   await sleep(reduceMotion ? 50 : 380);
+  if (seq !== revSeq) return;
   rowLayout(); placeTags(); setRv(1);
-  if (!crowd) crowd = createCrowd($('#crowdCv'), { theme: 'dark', n: dotsFor(JURY), reduceMotion, seed: 2 });
-  crowd.resize();
-  const sTop = 64, sBot = row.numY - 18; crowd.place(scatter(crowd.n, { x: 14, y: sTop, w: W - 28, h: Math.max(40, sBot - sTop) }, crowd.rnd));
-  const showNums = () => { $('#reveal').classList.add('on', 'done');   // 점이 다 모인 뒤에 패널이 올라온다 — 비율을 먼저 말하지 않는다
-     tagEls.forEach((t) => t.tag.classList.add('show')); setTimeout(() => { tagEls[frames.indexOf(frames.find((f) => f.w.n === TOP))].today.classList.add('show'); haptic(16); }, reduceMotion ? 0 : 260); };
-  setTimeout(() => { if (seq !== revSeq) return; tagEls.forEach((t) => t.num.classList.add('show')); crowd.move(crowdTargets(), { duration: 1300, stagger: 420, onDone: showNums }); }, reduceMotion ? 0 : 900);
+  await sleep(reduceMotion ? 0 : RV_MS + 80);
+  if (seq !== revSeq) return;
+  tagEls.forEach((t) => { t.plate.classList.add('show'); t.pct.classList.add('show'); });
+  me.olT = 1; kick();
+  await sleep(reduceMotion ? 0 : 520);
+  if (seq !== revSeq) return;
+  $('#reveal').classList.add('on'); haptic(10);
 }
 function clearReveal() {
   revSeq++; hideTitles();
-  if (crowd) { crowd.stop(); crowd.clear(); }
-  $('#reveal').classList.remove('on', 'done'); stage.classList.remove('is-reveal');
-  tagEls.forEach((t) => { t.tag.classList.remove('show'); t.today.classList.remove('show'); t.num.classList.remove('show', 'me'); });
+  $('#reveal').classList.remove('on'); stage.classList.remove('is-reveal');
+  tagEls.forEach((t) => { t.plate.classList.remove('show'); t.pct.classList.remove('show', 'me'); });
+  frames.forEach((f) => { f.olT = 0; });
   $('#wallTitle').textContent = '';
 }
 $('#again').addEventListener('click', () => {
@@ -590,7 +610,7 @@ $('#again').addEventListener('click', () => {
 $('#save').addEventListener('click', () => {
   const me = chosen;
   $('#cardImg').src = me.w.src;
-  $('#cardPos').innerHTML = me.w.n === TOP ? `오늘 <b>${TODAY[me.w.n]}%</b> · 오늘의 메달` : `오늘 <b>${TODAY[me.w.n]}%</b> · 오늘의 메달은 ${TOP}번`;
+  $('#cardPos').innerHTML = `오늘 심사위원 <b>${TODAY[me.w.n]}%</b>가 같은 그림을 골랐습니다`;
   $('#cardNo').textContent = `후보작 ${me.w.n}번`;
   $('#cardTitle').textContent = `〈${me.w.title}〉`;
   $('#cardMeta').textContent = [me.w.artist, me.w.year, me.w.coll].filter(Boolean).join(' · ');
@@ -604,8 +624,8 @@ $('#save').addEventListener('click', () => {
 function enterViewer(i = 0) {
   showScreen('s2');
   confirm.close(); clearReveal();
-  frames.forEach((f) => { f.glowT = f.glowV = 0; });
-  if (MED.f) { MED.f.g.remove(medal); MED.f = null; } medal.visible = false; MED.dir = 0;
+  frames.forEach((f) => { f.glowT = f.glowV = 0; f.olT = f.olV = 0; });
+  if (MED.f) { MED.f.g.remove(medal); MED.f = null; } medal.visible = false; MED.dir = 0; MED.sc = 1;
   mode = 'pick'; chosen = null; dock.classList.remove('busy'); gest.classList.toggle('off', gestSeen);
   rv = rvT = 0; zoom = zoomT = 1; panX = panY = panXT = panYT = 0; yaw = pitch = yawV = pitchV = 0;
   idx = clamp(i, 0, 4); posT = idx; updateIdx();
@@ -621,7 +641,7 @@ $('#restart').addEventListener('click', () => showScreen('s1'));
 window.addEventListener('resize', () => {
   if (!$('#s2').classList.contains('on')) return;
   layout();
-  if (mode === 'reveal' && row) { placeTags(); if (crowd) { crowd.stop(); crowd.resize(); crowd.place(crowdTargets()); } }
+  if (mode === 'reveal' && row) placeTags();
 });
 
 // 검수용
@@ -629,5 +649,6 @@ window.__c0 = {
   get idx() { return idx; }, get pos() { return pos; }, get mode() { return mode; }, get chosen() { return chosen ? chosen.w.n : null; }, get zoom() { return zoom; }, get titleShown() { return !!(chosen && chosen.tpOn && chosen.titlePlate.visible); },
   plateRect() { const f = chosen || frames[idx]; const b = new T.Box3().setFromObject(f.tpOn ? f.titlePlate : f.plate); const a = b.min.clone().project(camera), c = b.max.clone().project(camera); return { x: (a.x + 1) / 2 * W, y: (1 - c.y) / 2 * H, w: (c.x - a.x) / 2 * W, h: (c.y - a.y) / 2 * H }; },
   canvasFrac() { const f = frames[idx]; return f.pw * f.sC / (W * wpp); },
-  go, place: placeMedal, reveal, enterViewer, get crowd() { return crowd; },
+  get rv() { return rv; }, get row() { return row; },
+  go, place: placeMedal, reveal, enterViewer,
 };
