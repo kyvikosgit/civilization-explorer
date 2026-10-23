@@ -255,3 +255,6 @@
 /* 앞으로 나온 그림 아래 — 다른 작품 보기(벽으로) · 이 그림에 메달 */
 .dock { grid-template-columns: 1fr 1.45fr; gap: 8px; }
 .btn.other { background: rgba(20,8,8,.55); border-color: rgba(233,199,122,.4); color: #F6E7C4; font-size: 15px; }
+
+/* 메달은 액자의 모든 테(::before/::after · 금빛 쓸기)보다 위 */
+.medal-pin { z-index: 5; }
