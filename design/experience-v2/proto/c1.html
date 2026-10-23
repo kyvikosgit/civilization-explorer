@@ -42,27 +42,26 @@
     <div class="role-head">
       <div class="eyebrow">Colonne Morris · Avril 1874</div>
       <h1>당신은 1874년 4월,<br>이 칼럼 앞을 지나는 파리 시민입니다</h1>
-      <p>칼럼을 돌려 보세요. 전단지 사이에 살롱 밖에서 열리는 전시의 안내문이 한 장 붙어 있습니다.</p>
     </div>
   </div>
   <button id="guide" class="guide" aria-label="칼럼을 스캔하세요 (데모로 진행)"><svg id="guideSvg" aria-hidden="true"></svg></button>
   <div id="pillWrap" class="pill-wrap"><span id="pill" class="pill">칼럼을 스캔하세요</span></div>
   <div class="s s1 s1-bottom"><p class="s-desc"><span>프로토타입 · 점선을 누르면 시작합니다</span></p></div>
 
-  <!-- 2 돌려보기 — 끌어서 돌리기(관성·자석), 전단지를 누르면 떠오른다 -->
+  <!-- 2 돌려보기 — 끌어서 돌리기(관성·자석), 전단지를 누르면 떠오른다. 질문으로 바로 가는 바는 처음부터 -->
   <div class="s s2 s2-bottom">
     <p class="s-desc">전단지를 눌러 살펴보세요</p>
     <div class="chips" id="chips" role="group" aria-label="전단지 6장"></div>
+    <div class="ask-bar"><button class="btn dark-line" id="toAskBar">질문으로</button></div>
   </div>
 
-  <!-- 3 살펴보기 — 떠 있는 전단지, 캡션. 안내문이면 펼쳐 보기 -->
+  <!-- 3 살펴보기 — 떠 있는 전단지, 캡션 (독립 전시 안내문은 여기를 거치지 않고 바로 4로 펼쳐진다) -->
   <div class="s s3 s3-bottom">
     <div class="caption" id="caption"><strong id="cTitle"></strong><p id="cBody"></p><p class="c-meta" id="cMeta"></p></div>
-    <button class="btn white" id="openBtn" hidden>안내문 펼쳐 보기</button>
     <p class="s-desc" id="s3Desc"><span>바깥을 누르면 칼럼으로 돌아갑니다</span></p>
   </div>
 
-  <!-- 4 안내문 펼치기 → 5 칼럼의 두 포스터 가운데 보러 갈 전시를 고른다 → 6 오늘의 관람객(두 포스터 아래) · 그때는 -->
+  <!-- 4 안내문(칼럼에서 누르면 떼어져 가운데로 오며 세 단이 펼쳐진다) → 5 칼럼의 두 포스터 가운데 보러 갈 전시를 고른다 → 6 오늘의 관람객(두 포스터 아래) · 그때는 -->
   <div class="s unfold" id="unfold">
     <div class="unfold-dim"></div>
     <div class="unfold-body">
@@ -71,7 +70,7 @@
 
       <!-- 4 -->
       <p class="hist-dark intro" id="histIntro" data-on="4">살롱의 심사위원도 아카데미의 교수도 아닌 화가들이 모여, 살롱의 심사를 거치지 않는 전시를 엽니다.</p>
-      <div class="unfold-btns" data-on="4"><button class="btn white" id="toAsk">다음</button></div>
+      <div class="unfold-btns" data-on="4"><button class="btn point later" id="toAsk">어느 전시를 보러 갈까요?</button></div>
 
       <!-- 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(둘 다 재현). 이번 주말 보러 갈 전시를 고른다 -->
       <div class="ask" id="ask" data-on="5">

@@ -346,3 +346,18 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .today.settled .rv-me, .today.settled .rv-others, .today.settled .crowd-stamp { opacity: 1; transform: none; }
 .today.settled .rv-others { transition-delay: .12s; } .today.settled .crowd-stamp { transition-delay: .24s; }
 @media (prefers-reduced-motion: reduce) { .today .rv-me, .today .rv-others, .today .crowd-stamp { transition: none; } }
+
+/* 0 들어가기 — 지도 위를 덮는 흰 판(부스 상단 바 그대로). 걷으면 지도 */
+.intro { position: fixed; inset: 0; max-width: 480px; margin: 0 auto; z-index: 7; background: var(--bg); display: flex; flex-direction: column; transition: opacity .35s ease, transform .35s ease, visibility 0s linear 0s; }
+.intro.off { opacity: 0; transform: translateY(-8px); visibility: hidden; pointer-events: none; transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s; }
+.intro-bar { flex: none; padding-top: var(--safe-t); height: calc(52px + var(--safe-t)); box-shadow: 0 1px 0 var(--hair); }
+.intro-body { flex: 1; min-height: 0; overflow-y: auto; padding: 16px var(--pad) 8px; }
+.intro-fig { margin: 0 0 16px; }
+.intro-fig img { display: block; width: 100%; aspect-ratio: 900 / 669; object-fit: cover; border-radius: 4px; background: var(--panel); }
+.intro-fig figcaption { margin-top: 6px; font-size: 11.5px; line-height: 1.45; color: var(--dim); }
+.intro-lines { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.intro-lines li { position: relative; padding-left: 14px; font-size: 15px; line-height: 1.55; color: #333; }
+.intro-lines li::before { content: ''; position: absolute; left: 2px; top: .7em; width: 5px; height: 5px; border-radius: 50%; background: var(--point); }
+.intro-role { margin: 18px 0 0; font-family: var(--display); font-weight: 800; font-size: 19px; line-height: 1.38; letter-spacing: -0.4px; }
+.intro-go { flex: none; padding: 10px var(--pad) calc(16px + var(--safe-b)); }
+@media (prefers-reduced-motion: reduce) { .intro, .intro.off { transition: none; } }

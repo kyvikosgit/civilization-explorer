@@ -1,6 +1,6 @@
 // C1 시민사회 — 자격을 묻기
 //   1 역할+스캔(점선을 누르면 칼럼이 바닥에서 솟는다) → 2 돌려보기(관성·자석·빛 쓸기, 전단지를 누르면 떠오른다)
-//   → 3 살펴보기(안내문이면 펼쳐 보기) → 4 안내문 펼침 → 5 질문(칼럼에 나란히 붙은 두 전시 포스터 — 이번 주말 어느 전시를 보러 갈까) → 6 오늘의 관람객 · 그때는 → 수집함
+//   → 3 살펴보기(다른 전단지) · 독립 전시 안내문을 누르면 바로 4: 칼럼에서 떼어져 가운데로 오며 세 단이 펼쳐진다 → 5 질문(칼럼에 나란히 붙은 두 전시 포스터 — 이번 주말 어느 전시를 보러 갈까) → 6 오늘의 관람객 · 그때는 → 수집함
 //   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 문구는 보드 C1 · missions.ts 'flyer' 원고.
 //   머문 시간·시선 추적 없음. 서버는 입장 2개의 숫자만(여기서는 예시 수치).
 import * as THREE from 'three';
@@ -18,6 +18,8 @@ const STANCES = {
   viewer: { label: '화가들이 직접 연 전시', pct: 62 },        // 카퓌신 대로 35번지 · 예시 수치
 };
 let step = 1, stance = null;
+let seq = 0;                                                // 뒤로 등으로 흐름이 바뀌면 올려서, 기다리던 비동기 단계를 무효로
+let askFrom = 2;                                            // 질문에 들어온 곳(2 칼럼 · 4 안내문) — 뒤로가 그리로 돌아간다
 function setStep(n) {
   step = n; document.body.dataset.step = String(n); window.scrollTo(0, 0);
   $$('[data-on]').forEach((el) => { el.hidden = !el.dataset.on.split(' ').includes(String(n)); });
@@ -37,8 +39,8 @@ try {
 function onEvent(type, d) {
   if (type === 'loaded') { loaded = true; waiters.splice(0).forEach((r) => r()); camLoading.classList.add('off'); }
   else if (type === 'error') console.warn('[morris]', d && d.message);
-  else if (type === 'risen') enterSpin();
-  else if (type === 'tap' && step === 2) openPrint(d.index);
+  else if (type === 'risen') { if (step === 'rise') enterSpin(); }
+  else if (type === 'tap' && step === 2) { if (d.index === TARGET) openTarget(); else openPrint(d.index); }
   else if (type === 'settled' && step === 3) attachLoop();
   else if (type === 'release' && step === 3) { leaveInspect(); setStep(2); }
   else if (type === 'centered') { markChip(d.index); if (step === 2) haptic(8); }
@@ -74,12 +76,13 @@ function setPill(text, found = false) {   // 끌 때는 글자를 남긴 채 사
 let scanning = false;
 async function scan() {
   if (scanning || step !== 1) return;
-  scanning = true;
+  scanning = true; const my = seq;
   guide.classList.add('found');
   setPill('모리스 칼럼을 인식했어요', true);
   haptic(30);
   if (!loaded) { camLoading.classList.remove('off'); await whenLoaded(); camLoading.classList.add('off'); }
   await sleep(reduceMotion ? 150 : 600);
+  if (my !== seq || step !== 1) { scanning = false; return; }   // 기다리는 사이 뒤로를 눌렀다
   setStep('rise');
   guide.classList.add('off');
   setPill('');
@@ -95,10 +98,18 @@ chips.innerHTML = ITEMS.map((it, i) => `<button class="chip" data-i="${i}" style
 $$('.chip', chips).forEach((b) => b.addEventListener('click', () => { if (viewer && step === 2) viewer.focusItem(+b.dataset.i); }));
 function markChip(i) { $$('.chip', chips).forEach((b) => b.classList.toggle('on', +b.dataset.i === i)); }
 function enterSpin() {
+  seq++;
   setStep(2);
   if (!viewer) return;
   viewer.setHighlight(true); viewer.setInteractive(true); viewer.setMagnet(true);
 }
+function toScan() {                                         // 칼럼 → 스캔 화면
+  seq++; scanning = false;
+  setStep(1); mvEl.classList.add('off'); guide.classList.remove('off', 'found'); setPill('칼럼을 스캔하세요');
+  if (!camLoading.classList.contains('off') && loaded) camLoading.classList.add('off');
+  if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); }
+}
+$('#toAskBar').addEventListener('click', () => { if (step === 2) goAsk(2); });
 
 // ── 3 살펴보기 — 떠 있는 전단지 + 삽화 애니메이션(전단지 3장은 부스 영상 그대로)
 const loop = document.createElement('video');
@@ -129,9 +140,6 @@ function openPrint(i) {
   if (!viewer.inspect(i)) return;
   const it = ITEMS[i];
   $('#cTitle').textContent = it.label; $('#cBody').textContent = it.body; $('#cMeta').textContent = it.meta; $('#cMeta').hidden = !it.meta;
-  const isTarget = i === TARGET;
-  $('#openBtn').hidden = !isTarget;
-  $('#s3Desc').hidden = isTarget;
   $('#closeBtn').hidden = false;
   setStep(3);
 }
@@ -142,34 +150,62 @@ function leaveInspect() {
 }
 $('#closeBtn').addEventListener('click', () => { if (viewer && step === 3) viewer.release(); });
 
-// ── 4 안내문이 펼쳐진다 (세 단 접힘)
-const flyer = $('#flyer');
-$('#openBtn').addEventListener('click', async () => {
-  if (step !== 3 || picked !== TARGET) return;
-  leaveInspect();
-  setStep(4);                                               // 'release' 이벤트는 step 3에서만 2로 돌아가므로 먼저 단계를 바꾼다
-  if (viewer) { viewer.release(); viewer.setInteractive(false); viewer.setMagnet(false); viewer.setHighlight(false); }
-  flyer.classList.add('folded'); flyer.classList.remove('away', 'small'); flyer.style.transform = '';
-  const fw = $('#flyerWrap'); fw.classList.remove('enter'); void fw.offsetWidth; fw.classList.add('enter');   // 칼럼으로 돌아가는 3D 전단지가 딤 아래로 사라진 뒤에 나타난다
-  $('#histIntro').classList.remove('show');
-  await sleep(reduceMotion ? 50 : 420);
-  flyer.classList.remove('folded');
+// ── 4 안내문 — 칼럼에서 누르면 그 자리에서 떼어져 가운데로 날아오며 세 단이 펼쳐진다(펼침이 곧 등장). 따로 펼치는 버튼 없음
+const flyer = $('#flyer'), flyerWrap = $('#flyerWrap'), histIntro = $('#histIntro'), toAsk = $('#toAsk');
+function openTarget() {
+  if (!viewer || viewer.mode !== 'column') return;
+  const p = viewer.project(TARGET), mr = mvEl.getBoundingClientRect();
+  viewer.setInteractive(false); viewer.setMagnet(false); viewer.setHighlight(false);
+  haptic(10);
+  showFlyer(p ? { x: mr.left + p.x, y: mr.top + p.y } : null);
+}
+async function showFlyer(from) {                            // from 없으면(질문에서 뒤로) 펼친 채로 바로
+  const my = ++seq;
+  setStep(4);
+  flyerWrap.getAnimations().forEach((a) => a.cancel());
+  if (!from || reduceMotion) { flyer.classList.remove('folded'); histIntro.classList.add('show'); toAsk.classList.add('ready'); return; }
+  flyer.classList.add('folded'); histIntro.classList.remove('show'); toAsk.classList.remove('ready');
+  void flyerWrap.offsetWidth;
+  const r = flyerWrap.getBoundingClientRect();
+  const dx = from.x - (r.left + r.width / 2), dy = from.y - (r.top + r.height / 2);
+  flyerWrap.animate([
+    { transform: `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(.34) rotate(-6deg)`, opacity: 0 },
+    { opacity: 1, offset: 0.12 },
+    { transform: 'none', opacity: 1 },
+  ], { duration: 950, easing: 'cubic-bezier(.2,.75,.2,1)' });
+  await sleep(260); if (my !== seq) return;
+  flyer.classList.remove('folded');                         // 가운데로 오는 동안 아래 단 → 위 단 순서로 펼쳐진다
   haptic(12);
-  await sleep(reduceMotion ? 100 : 1250);
-  $('#histIntro').classList.add('show');
-});
+  await sleep(1200); if (my !== seq) return;
+  histIntro.classList.add('show');
+  await sleep(1040); if (my !== seq) return;                // 누른 뒤 약 2.5초 — 읽을 즈음 질문 버튼
+  toAsk.classList.add('ready');
+}
+function toColumn() {                                       // 안내문·질문 → 칼럼
+  seq++;
+  setStep(2);
+  if (viewer) { viewer.setHighlight(true); viewer.setInteractive(true); viewer.setMagnet(true); }
+}
 
 // ── 5 질문 — 칼럼에 나란히 붙은 두 포스터. 보러 갈 전시의 포스터를 누르면 그 포스터가 눈앞으로 다가오고(눈여겨본 것처럼), 다른 포스터는 뒤로 물러난다 (정답 없음)
-$('#toAsk').addEventListener('click', () => { document.body.classList.remove('settled'); setStep(5); papers.classList.remove('decided', 'today'); $$('.paper', papers).forEach((x) => x.classList.remove('pick', 'back', 'me')); });
+function goAsk(from) {
+  seq++; askFrom = from; deciding = false;
+  if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); viewer.setHighlight(false); }
+  document.body.classList.remove('settled'); setStep(5);
+  papers.classList.remove('decided', 'today');
+  $$('.paper', papers).forEach((x) => { x.classList.remove('pick', 'back', 'me'); x.setAttribute('aria-checked', 'false'); });
+}
+toAsk.addEventListener('click', () => { if (step === 4) goAsk(4); });
 const papers = $('#papers');
 let deciding = false;
 $$('.paper', papers).forEach((b) => b.addEventListener('click', async () => {
   if (step !== 5 || deciding) return;
-  deciding = true; stance = b.dataset.k;
+  deciding = true; stance = b.dataset.k; const my = seq;
   $$('.paper', papers).forEach((x) => { const on = x === b; x.classList.toggle('pick', on); x.classList.toggle('back', !on); x.setAttribute('aria-checked', on); });
   papers.classList.add('decided');
   haptic(14);
   await sleep(reduceMotion ? 120 : 1050);
+  if (my !== seq || step !== 5) return;                     // 기다리는 사이 뒤로
   deciding = false;
   reveal();
 }));
@@ -226,12 +262,14 @@ $('#collect').addEventListener('click', async () => {
 });
 $('#restart').addEventListener('click', () => location.replace(location.pathname));
 
-// ── 뒤로
+// ── 뒤로 — 어느 단계에서든 한 단계 뒤로: 결과 → 질문 → (안내문 또는 칼럼) → 스캔 → 목록
 $('#backBtn').addEventListener('click', () => {
-  if (step === 3) { if (viewer) viewer.release(); return; }
-  if (step === 2) { setStep(1); mvEl.classList.add('off'); guide.classList.remove('off', 'found'); setPill('칼럼을 스캔하세요'); if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); } return; }
-  if (step === 5) { if (deciding) return; setStep(4); return; }
-  if (step === 4 || step === 6) location.replace(location.pathname);
+  if (step === 1) { location.href = 'index.html'; return; }
+  if (step === 'rise' || step === 2) { toScan(); return; }
+  if (step === 3) { if (viewer) viewer.release(); return; }   // 'release' 이벤트가 2로 돌려 놓는다
+  if (step === 4) { toColumn(); return; }
+  if (step === 5) { if (askFrom === 4) showFlyer(null); else toColumn(); return; }
+  if (step === 6) { goAsk(askFrom); return; }
 });
 
 setStep(1);

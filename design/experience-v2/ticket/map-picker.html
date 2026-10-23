@@ -132,7 +132,7 @@
   </div>
   <header class="quiz-top">
     <div class="quiz-bar">
-      <a class="icon-btn" href="../proto/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <button class="icon-btn" id="mapBack" type="button" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
       <span class="quiz-count"></span>
     </div>
@@ -160,6 +160,29 @@
     </div>
     <div id="chips" class="chips" role="radiogroup" aria-label="선택지"></div>
   </div>
+</section>
+
+<!-- 0 들어가기 — 지도 전에 그때의 역과 내 자리를 먼저. 부스 상단 바 그대로. 문장은 상세 페이지(experience-v2-detail.html C2)에 있는 사실만 -->
+<section class="intro" id="intro" aria-label="생라자르역">
+  <header class="quiz-bar intro-bar">
+    <a class="icon-btn" id="introBack" href="../proto/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
+    <span class="quiz-count"></span>
+  </header>
+  <div class="intro-body">
+    <figure class="intro-fig">
+      <img src="../../../booth/assets/clue/monet_gare_saint_lazare_1877.jpg" alt="클로드 모네 〈생라자르역〉, 1877. 유리 지붕 아래 증기를 뿜는 기관차" draggable="false">
+      <figcaption>클로드 모네 〈생라자르역〉 1877 · 오르세 미술관 · 퍼블릭 도메인</figcaption>
+    </figure>
+    <div class="eyebrow">Gare Saint-Lazare · 1870년대</div>
+    <ul class="intro-lines">
+      <li>생라자르역은 노르망디로 가는 서부철도의 파리 출발역이었습니다.</li>
+      <li>파리–루앙(1843), 루앙–르아브르(1847) 철길이 열려, 파리 사람들은 하루 만에 바닷가에 닿을 수 있게 되었습니다.</li>
+      <li>아르장퇴유에 살던 모네도 이 역으로 파리를 오갔습니다.</li>
+    </ul>
+    <p class="intro-role">당신은 생라자르역 매표창 앞에 선<br>파리 시민입니다.</p>
+  </div>
+  <div class="intro-go"><button class="btn" id="introGo" type="button">행선지 고르기</button></div>
 </section>
 
 <!-- 현장 단서 — 부스 소품(벽면 그림 · 신문 · 시간표 · 엽서)을 앱에서 다시 보기. booth/js/c2.js CLUES 그대로 -->
@@ -1075,6 +1098,16 @@ $('#save').addEventListener('click', () => {
   setTimeout(() => { $('#collN').hidden = false; $('#coll').classList.add('bump'); setTimeout(() => $('#coll').classList.remove('bump'), 500); const t = $('#toast'); t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); }, RM ? 100 : 1250);
 });
 window.flow = { issue, leave, R, layout, get crowd() { return crowd; } };
+</script>
+<script>
+// 0 들어가기 ↔ 1 지도: 지도 화면은 밑에서 그대로 그려 두고(레이아웃 유지) 들어가기 판만 덮었다 걷는다
+(function () {
+  const intro = document.getElementById('intro');
+  const show = (on) => { intro.classList.toggle('off', !on); intro.setAttribute('aria-hidden', on ? 'false' : 'true'); intro.inert = !on; };
+  document.getElementById('introGo').addEventListener('click', () => show(false));
+  document.getElementById('mapBack').addEventListener('click', () => show(true));
+  window.intro = { show };
+})();
 </script>
 </body>
 </html>
