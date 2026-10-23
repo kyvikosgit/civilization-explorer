@@ -30,7 +30,9 @@ const SUN = {
   REVEAL_MS: 900, HOLD_MS: 2200, DISSOLVE_S: 3.4, RATE: 0.85, END_DELAY_MS: 900, REPLAY_IN_S: 1.2,
 };
 const SCENE_VIDEO = 'video/sunrise-scene.mp4';                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
-const SCENE_READY = false;                                    // ← 실제 영상을 위 이름으로 넣으면 true 한 줄. 그 전엔 요청하지 않는다(없는 파일 404 가 콘솔에 남지 않게). 못 불러오면 임시 영상으로
+const SCENE_READY = true;                                     // 실제 영상(10/23 팀원 제작, 752×560 · 10초 · H.264로 다시 인코딩). 못 불러오면 임시 영상으로
+// 실제 영상을 그림에 맞추는 값 — 해 · 작은 배 위치를 재서 맞춤(가운데 기준 1.05배 · 아래로 높이의 2.5%). 해·배 오차 0.6% 이내, 가장자리 빈틈 없음
+const SCENE_FIT = { s: 1.05, x: 0, y: 0.025 };
 const SCENE_PLACEHOLDER = 'video/sunrise-placeholder.mp4';    // 임시 영상(video/make-placeholder.py) — 쓰는 동안 "임시 영상" 표시
 // ════════ 들어가기 — 완전한 어둠 → 그림이 걸린 벽에 조명 하나가 데워지며 켜진다(빛줄기 · 먼지) → 그 빛 안에 비추기 틀
 const spotlight = (() => {
@@ -97,10 +99,10 @@ const sun = (() => {
   // 영상: 실제 파일 → 없으면 임시 영상 → 그것도 없으면 장면 없이 그림만
   vid.muted = true; vid.playsInline = true; vid.loop = false;
   vid.addEventListener('error', () => {
-    if (!placeholder) { placeholder = true; tmp.hidden = false; vid.src = SCENE_PLACEHOLDER; vid.load(); }
+    if (!placeholder) { placeholder = true; tmp.hidden = false; stage.classList.add('tmp-vid'); vid.src = SCENE_PLACEHOLDER; vid.load(); }
     else { vidOk = false; if (state === 'play') finish(); }
   });
-  if (SCENE_READY) vid.src = SCENE_VIDEO; else { placeholder = true; tmp.hidden = false; vid.src = SCENE_PLACEHOLDER; }
+  if (SCENE_READY) vid.src = SCENE_VIDEO; else { placeholder = true; tmp.hidden = false; stage.classList.add('tmp-vid'); vid.src = SCENE_PLACEHOLDER; }
 
   // 그림 비율 그대로 — 스캔본의 실제 비율(스캔 2048×1589)로 자리를 잡는다. 자르지 않는다
   const imgReady = img.decode ? img.decode().catch(() => {}) : Promise.resolve();
@@ -112,9 +114,9 @@ const sun = (() => {
     if (!c) return null;
     const VS = 'attribute vec2 p; varying vec2 v; void main(){ v = vec2(p.x * .5 + .5, .5 - p.y * .5); gl_Position = vec4(p, 0., 1.); }';
     // 앞머리(front)에서만 흐림 반지름이 커진다: 그림은 풀리며 붓결이 녹고, 장면은 맺히며 또렷해진다. 12탭 원형 흐림
-    const FS = `precision mediump float; varying vec2 v; uniform sampler2D uP, uV, uK; uniform float uMix, uSoft; uniform vec2 uVS, uPx;
+    const FS = `precision mediump float; varying vec2 v; uniform sampler2D uP, uV, uK; uniform float uMix, uSoft, uSc; uniform vec2 uVS, uPx, uT;
       vec3 P(vec2 q){ return texture2D(uP, q).rgb; }
-      vec3 S(vec2 q){ return texture2D(uV, (q - .5) * uVS + .5).rgb; }
+      vec3 S(vec2 q){ return texture2D(uV, ((q - .5 - uT) / uSc) * uVS + .5).rgb; }
       vec3 blurP(vec2 q, float r){ vec3 a = P(q) * 2.; for (int i = 0; i < 12; i++) { float t = float(i) * .5236; vec2 o = vec2(cos(t), sin(t)) * r * uPx * (i < 6 ? .55 : 1.); a += P(q + o); } return a / 14.; }
       vec3 blurS(vec2 q, float r){ vec3 a = S(q) * 2.; for (int i = 0; i < 12; i++) { float t = float(i) * .5236 + .26; vec2 o = vec2(cos(t), sin(t)) * r * uPx * (i < 6 ? .55 : 1.); a += S(q + o); } return a / 14.; }
       void main(){
@@ -144,7 +146,8 @@ const sun = (() => {
         c.texImage2D(c.TEXTURE_2D, 0, c.RGB, 1, 1, 0, c.RGB, c.UNSIGNED_BYTE, new Uint8Array([18, 16, 14])); return t; };
       const tP = tex(0), tV = tex(1), tK = tex(2);
       c.uniform1i(U('uP'), 0); c.uniform1i(U('uV'), 1); c.uniform1i(U('uK'), 2); c.uniform1f(U('uSoft'), 0.36);
-      return { c, tP, tV, tK, uMix: U('uMix'), uVS: U('uVS'), uPx: U('uPx'), vidFrame: false };
+      c.uniform1f(U('uSc'), 1); c.uniform2f(U('uT'), 0, 0);
+      return { c, tP, tV, tK, uMix: U('uMix'), uVS: U('uVS'), uPx: U('uPx'), uSc: U('uSc'), uT: U('uT'), vidFrame: false };
     } catch (e) { console.warn('[c5 sunrise] webgl', e); return null; }
   }
   // 풀리는 순서 텍스처: 그림의 큰 밝기(밝은 자리 먼저, 0.8) + 아주 넓은 낮은 주파수 흔들림(0.2) → 순위 균등화(진행이 고르게) → 부드럽게
@@ -193,6 +196,7 @@ const sun = (() => {
     if (vid.readyState >= 2 && mix > 0) { c.activeTexture(c.TEXTURE1); c.bindTexture(c.TEXTURE_2D, g.tV); c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, vid); g.vidFrame = true; }
     const ra = cv.width / cv.height, va = vid.videoWidth && vid.videoHeight ? vid.videoWidth / vid.videoHeight : 4 / 3;
     c.uniform2f(g.uVS, va > ra ? ra / va : 1, va > ra ? 1 : va / ra);
+    const fit = placeholder ? { s: 1, x: 0, y: 0 } : SCENE_FIT; c.uniform1f(g.uSc, fit.s); c.uniform2f(g.uT, fit.x, fit.y);
     c.uniform1f(g.uMix, g.vidFrame ? mix : 0);
     c.drawArrays(c.TRIANGLE_STRIP, 0, 4);
   }

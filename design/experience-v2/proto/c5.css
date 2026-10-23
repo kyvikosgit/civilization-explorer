@@ -14,6 +14,8 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .sun-stage { position: relative; width: 100%; aspect-ratio: var(--ar, 2048 / 1589); overflow: hidden; background: #12100E; isolation: isolate; }
 .sun-stage > video, .sun-stage > img, .sun-stage > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .sun-stage > video { object-fit: cover; object-position: 50% 50%; z-index: 1; }
+/* 실제 영상은 그림에 맞춰 1.05배 · 아래로 2.5%(c5.js SCENE_FIT 과 같은 값 — 웹GL 이 없을 때) */
+.sun-stage:not(.tmp-vid) > video { transform: translateY(2.5%) scale(1.05); }
 .sun-stage > img, .sun-stage > canvas { opacity: 0; transform: scale(1.01); transition: opacity 1s ease, transform 1.6s var(--ease-out); pointer-events: none; -webkit-user-select: none; user-select: none; }
 .sun-stage > img { object-fit: fill; z-index: 2; }
 .sun-stage > canvas { z-index: 3; }
