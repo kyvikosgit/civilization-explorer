@@ -6,7 +6,8 @@
 //   1874년 살롱 관람객 수는 출처가 없어 "수십만"으로만 적는다(화가들의 전시 약 3,500명은 Rewald 1973 · 프랑스 문화부).
 import { clearChoices, reduceMotion } from './js/proto-common.js';
 import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, rng } from './js/crowd.js';
-import { STATIONS, C1, C4, C4_FACES, VISITORS, POINT, anyReal, fmt, stampLine, posterHTML, artThumb, setupShare, fontsReady, loadImg, cover, drawPoster, drawArt } from './exit-common.js';
+import { STATIONS, C1, C4, C4_FACES, VISITORS, POINT, anyReal, fmt, stampLine, posterHTML, setupShare, fontsReady, loadImg, cover, drawArt } from './exit-common.js';
+import { mountKeep } from './exit-keep.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const S = Object.fromEntries(STATIONS.map((s) => [s.id, s]));
@@ -112,15 +113,7 @@ $('#minorCards').innerHTML = `
   <article class="xe-mc rv"><div class="th trip"><img class="pc" src="${c2.img}" alt=""><img class="tk" src="${c2.ticket}" alt=""></div>
     <div class="tx"><small>행선지${ex(c2)}</small><b>${c2.choice} · ${c2.sub.split(' · ')[0]}</b><span>오늘 <em>${c2.opt.pct}%</em>가 ${c2.choicePlain}</span></div></article>`;
 
-// ── 가져가는 것 다섯: 기차표 · 엽서 · 메달 카드 · 전시 포스터 · 사진관 카드(고른 쪽 얼굴 콜라주, 내 초상이 있으면 그것)
-const KEEP = [
-  { lb: '기차표', html: `<span class="x-th x-tk"><img src="${c2.ticket}" alt=""></span>` },
-  { lb: '엽서', html: `<span class="x-th x-pc"><img src="${c2.img}" alt=""><i class="st"></i></span>` },
-  { lb: '메달 카드', html: artThumb(c0.art) },
-  { lb: '전시 포스터', html: posterHTML(S.c1.expo, 'x-th') },
-  { lb: S.c4.art.lb, html: artThumb(S.c4.art) },
-];
-$('#keep').innerHTML = KEEP.map((k) => `<div class="xe-k rv">${k.html}<span>${k.lb}</span></div>`).join('');
+// ── 가져가는 것 다섯 — 탁자 위의 물건(exit-keep.js): 기차표 · 엽서 · 메달 카드 · 전시 포스터 · 사진관 카드. 아래 "모두 한 장으로 저장"은 그 탁자 1080×1920
 document.querySelectorAll('.rv').forEach((el) => rvIO.observe(el));
 $('#foot').textContent = `${stampLine(VISITORS)}${anyReal ? ' · 들르지 않은 곳은 예시' : ''}`;
 
@@ -204,5 +197,7 @@ async function renderShare() {
 }
 setupShare($('#share'), renderShare, 'monet100_나의선택.png');
 $('#restart').addEventListener('click', () => { clearChoices(); location.href = 'index.html'; });
+const keep = await mountKeep($('#keep'));
+setupShare($('#shareTable'), keep.renderTable, 'monet100_가져가는것.png');
 
 window.__exitE = { MAJOR, render: renderShare, get done() { return MAJOR.map((m) => $(m.el).classList.contains('done')); } };

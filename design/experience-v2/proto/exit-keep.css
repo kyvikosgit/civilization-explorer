@@ -1,0 +1,81 @@
+/* 출구 · 가져가는 것 — 탁자 위의 물건(exit-keep.js). 클래스는 kt- · kobj · k* · kl- 로 시작 */
+
+/* 탁자 — 짙은 나무(캔버스) · 왼쪽 위 낮은 빛 · 가장자리 어둡게 */
+.kt { position: relative; height: 540px; overflow: hidden; background: #2A1B11; box-shadow: inset 0 1px 0 rgba(255,214,170,.10); }
+.kt-wood { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.kt-light { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(115% 80% at 8% 0%, rgba(255,196,128,.24), rgba(255,196,128,0) 60%); }
+.kt-vig { position: absolute; inset: 0; pointer-events: none; z-index: 2; background: radial-gradient(125% 95% at 45% 42%, rgba(0,0,0,0) 50%, rgba(0,0,0,.6) 100%); }
+.kt-hd { position: absolute; left: 20px; top: 18px; z-index: 3; margin: 0; font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: 0; color: rgba(255,236,214,.62); }
+.kt-objs { position: absolute; inset: 0; z-index: 1; }
+
+/* 물건 하나 — 기준 크기는 "들었을 때", 탁자 위에서는 scale(--st) 로 줄여 둔다 */
+.kobj { --st: 1; --r: 3px; --t: 2px; --edge: #DDD; position: absolute; left: 0; top: 0; transform-origin: 50% 50%; cursor: pointer; touch-action: pan-y; -webkit-user-select: none; user-select: none; outline: none; }
+.kobj::before { content: ''; position: absolute; inset: calc(-10px / var(--st)); }                       /* 작은 기차표도 손가락에 걸리게 */
+.kobj:focus-visible .kf.front { outline: calc(2px / var(--st)) solid rgba(255,236,214,.8); outline-offset: calc(3px / var(--st)); }
+.k3d { position: absolute; inset: 0; transform-style: preserve-3d; transform: perspective(1400px); }
+.kf { position: absolute; inset: 0; border-radius: var(--r); overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: translateZ(calc(var(--t) / 2)); }
+.kf.back { transform: rotateY(180deg) translateZ(calc(var(--t) / 2)); }
+.kf img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; -webkit-user-drag: none; pointer-events: none; }
+/* 빛 — 왼쪽 위가 밝고 오른쪽 아래가 어둡다(탁자와 같은 빛). 판 가장자리에 얇은 빛 · 그늘 */
+.kf::after { content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,222,176,.13), rgba(255,222,176,0) 45%, rgba(20,10,0,.12));
+  box-shadow: inset calc(1px / var(--st)) calc(1px / var(--st)) 0 rgba(255,246,228,.28), inset calc(-1px / var(--st)) calc(-1px / var(--st)) 0 rgba(40,25,10,.22); }
+/* 들고 돌릴 때 지나가는 반사 */
+.ksn { position: absolute; left: -60%; top: -60%; width: 220%; height: 220%; z-index: 1; pointer-events: none; opacity: .25;
+  background: linear-gradient(115deg, rgba(255,250,240,0) 38%, rgba(255,250,240,.22) 48%, rgba(255,250,240,0) 58%); }
+/* 판 두께 — 들었을 때: 앞 · 뒤 사이의 겹(3D), 탁자 위: 오른쪽 아래로 살짝 보이는 옆면 */
+.ke { position: absolute; inset: 0; border-radius: var(--r); background: var(--edge); }
+.kside { position: absolute; inset: 0; border-radius: var(--r); background: color-mix(in srgb, var(--edge) 70%, #2A1A0C);
+  transform: translate3d(calc(.6px / var(--st)), calc(1.3px / var(--st)), calc(var(--t) / -2 - .2px)); transition: opacity .2s; }
+.k-ticket .kside { transform: translate3d(calc(.9px / var(--st)), calc(1.8px / var(--st)), calc(var(--t) / -2 - .2px)); }
+.k-poster .kside { display: none; }
+/* 그림자 — 닿은 자리(짙고 좁게) + 떨어진 빛(넓게). 들면 넓고 옅게, 멀리 */
+.kct, .ksh { position: absolute; inset: 0; border-radius: var(--r); pointer-events: none; }
+.kct { background: rgba(6,3,0,.75); transform: translate(calc(.6px / var(--st)), calc(1.2px / var(--st))); filter: blur(calc(1.2px / var(--st))); }
+.ksh { background: rgba(6,3,0,.7); transform: translate(calc(4px / var(--st)), calc(8px / var(--st))); filter: blur(calc(7px / var(--st))); opacity: .8; }
+.k-poster .ksh { transform: translate(calc(5px / var(--st)), calc(10px / var(--st))) scaleY(1.015); transform-origin: 50% 0; }
+
+/* 포스터 — 한 번 접었다 편 종이: 접힌 선은 탁자에 닿고 위 · 아래 끝이 살짝 들려 있다(골짜기) */
+.kf.front.fold { overflow: visible; transform-style: preserve-3d; backface-visibility: visible; -webkit-backface-visibility: visible; }
+.kf.front.fold::after { display: none; }
+.ph { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; background-size: 100% 200%; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.ph::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.ph.t { top: 0; background-position: 50% 0; border-radius: var(--r) var(--r) 0 0; transform-origin: 50% 100%; transform: rotateX(5deg); }
+.ph.t::after { background: linear-gradient(0deg, rgba(40,25,10,.13), rgba(40,25,10,0) 30%), linear-gradient(135deg, rgba(255,222,176,.14), rgba(255,222,176,0) 60%, rgba(20,10,0,.04)); }
+.ph.b { top: 50%; background-position: 50% 100%; border-radius: 0 0 var(--r) var(--r); transform-origin: 50% 0; transform: rotateX(-5deg); }
+.ph.b::after { background: linear-gradient(180deg, rgba(40,25,10,.16), rgba(40,25,10,.04) 35%, rgba(255,240,215,.06) 100%); }
+
+/* 집어 든 판 — 화면 위 층(가운데) · 나머지는 어두워진다 */
+.kl { position: fixed; inset: 0; z-index: 85; max-width: 480px; margin: 0 auto; touch-action: none; overflow: hidden; }
+.kl-scrim { position: absolute; inset: 0; background: rgba(9,6,3,.76); opacity: 0; transition: opacity .42s ease; }
+.kl.on .kl-scrim { opacity: 1; }
+.kl .kobj { z-index: 1; cursor: grab; touch-action: none; }
+.kl .kobj::before { inset: 0; }
+.kobj.up .kside { opacity: 0; }
+.kobj.up .kct { opacity: 0; }
+.kobj.up .ksh { transform: translate(16px, 34px) scale(1.02); filter: blur(26px); opacity: .62; }
+.kobj.anim { transition: transform .48s var(--ease-out); }
+.kobj.anim .ksh, .kobj.anim .kct { transition: transform .48s var(--ease-out), filter .48s var(--ease-out), opacity .48s ease; }
+.kobj.anim .k3d { transition: transform .44s var(--ease-out); }
+.kobj.anim .kside { transition: opacity .2s; }
+.kl-cap { position: absolute; left: 16px; right: 16px; z-index: 2; display: grid; justify-items: center; gap: 12px; opacity: 0; transform: translateY(6px); transition: opacity .28s ease .2s, transform .28s var(--ease-out) .2s; pointer-events: none; }
+.kl.on .kl-cap { opacity: 1; transform: none; pointer-events: auto; }
+.kl-name { margin: 0; max-width: 100%; font-size: 13.5px; line-height: 1.4; color: rgba(255,240,222,.72); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kl-name b { font-weight: 700; color: rgba(255,244,230,.95); }
+.kl-name i { font-style: normal; color: rgba(255,240,222,.42); }
+.kl-save { height: 36px; padding: 0 16px 0 13px; border-radius: 18px; display: inline-flex; align-items: center; gap: 6px; background: rgba(255,248,238,.1); color: #FFF6EA;
+  font-family: var(--display); font-weight: 600; font-size: 13px; box-shadow: inset 0 0 0 1px rgba(255,240,222,.3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.kl-save svg { width: 16px; height: 16px; }
+.kl-save:active { background: rgba(255,248,238,.18); }
+.kl-save[disabled] { opacity: .5; }
+
+/* 탁자 아래 — 한 장으로 저장 */
+.kt-acts { padding: 18px 20px calc(26px + var(--safe-b, 0px)); background: #121110; }
+.kt-acts .btn.white { height: 52px; }
+.kt-acts .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.kt-acts .row .btn { height: 46px; font-size: 14.5px; }
+.kt-acts .foot { margin: 14px 0 0; font-size: 12px; line-height: 1.5; color: rgba(255,255,255,.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .kl-scrim, .kl-cap, .kobj.anim, .kobj.anim .ksh, .kobj.anim .kct, .kobj.anim .k3d { transition: none !important; }
+}

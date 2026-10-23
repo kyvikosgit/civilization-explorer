@@ -73,10 +73,11 @@ body.xe h1, body.xe h2, body.xe h3, body.xe .btn { letter-spacing: 0; }
 .xe-ch.done .xe-pct { opacity: 1; }
 
 /* ── 작은 선택 · 가져가는 것 — 흰 쟁반(작게) */
-.xe-end { position: relative; min-height: 100dvh; padding-top: 28px; display: flex; flex-direction: column; }
-.xe-sheet { flex: 1; background: #fff; color: var(--ink); border-radius: 18px 18px 0 0; padding: 26px 20px calc(26px + var(--safe-b)); }
+.xe-end { position: relative; padding-top: 28px; display: flex; flex-direction: column; }
+.xe-sheet { flex: 1; background: #fff; color: var(--ink); border-radius: 18px 18px 0 0; padding: 26px 20px 34px; }
+/* 가져가는 것 — 탁자(exit-keep.css) */
+.xe-keep { position: relative; background: #121110; }
 .xe-sec-hd { font-size: 20px; }
-.xe-sec-hd.keep { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--hair); }
 
 .xe-minor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
 .xe-mc { display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--hair); border-radius: 10px; overflow: hidden; background: var(--panel); }
@@ -90,17 +91,6 @@ body.xe h1, body.xe h2, body.xe h3, body.xe .btn { letter-spacing: 0; }
 .xe-mc .tx b { font-family: var(--display); font-weight: 800; font-size: 15px; line-height: 1.3; }
 .xe-mc .tx span { margin-top: 4px; font-size: 13px; color: #4A4A47; }
 .xe-mc .tx span em { font-style: normal; font-weight: 700; color: #B4501F; }
-
-.xe-keep { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 16px; align-items: end; }
-.xe-k { display: grid; justify-items: center; gap: 8px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 11.5px; line-height: 1.25; color: #333; }
-.xe-k .x-th, .xe-k .x-poster { --s: 50px; }
-.xe-k .x-th.x-tk { width: 60px; height: 32px; background: transparent; box-shadow: none; overflow: visible; margin-bottom: 14px; }
-.xe-k .x-th.x-tk img { height: auto; box-shadow: 0 4px 10px rgba(0,0,0,.25); transform: rotate(-4deg); }
-.xe-k .x-th.x-pc { width: 58px; height: 42px; margin-bottom: 9px; border: 3px solid #F2EEE4; }
-.xe-k .x-th.x-pc .st { position: absolute; right: 3px; top: 3px; width: 9px; height: 11px; background: #5C6E8E; outline: 1.5px solid #F2EAD6; }
-
-.xe-acts { display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-top: 28px; }
-.xe-foot { margin: 14px 0 0; font-size: 12px; line-height: 1.5; color: var(--dim); }
 
 @media (max-height: 700px) {
   .xe-q { font-size: 22px; }

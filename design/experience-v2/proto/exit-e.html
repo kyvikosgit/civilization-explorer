@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="exit-common.css">
 <link rel="stylesheet" href="exit-e.css">
+<link rel="stylesheet" href="exit-keep.css">
 </head>
 <body class="xe">
 
@@ -50,20 +51,24 @@
     <div class="xe-cmp" id="cmp2"></div>
   </section>
 
-  <!-- 작은 선택 · 가져가는 것 · 저장 -->
+  <!-- 작은 선택 -->
   <section class="xe-end" id="minor" aria-labelledby="minorH">
     <div class="xe-sheet">
       <h2 class="xe-sec-hd rv" id="minorH">그 밖에 고른 것</h2>
       <div class="xe-minor" id="minorCards"></div>
+    </div>
+  </section>
 
-      <h2 class="xe-sec-hd keep rv">가져가는 것</h2>
-      <div class="xe-keep" id="keep"></div>
-
-      <div class="xe-acts rv">
-        <button class="btn" id="share" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>저장 · 공유</button>
-        <button class="btn line" id="restart" type="button">처음부터</button>
+  <!-- 가져가는 것 — 어두운 나무 탁자 위의 물건 다섯(exit-keep.js). 누르면 집어 들고, 끌어서 돌리고, 기차표 · 엽서는 두 번 눌러 뒷면 -->
+  <section class="xe-keep" aria-label="가져가는 것">
+    <div class="rv" id="keep"></div>
+    <div class="kt-acts">
+      <button class="btn white" id="shareTable" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>모두 한 장으로 저장</button>
+      <div class="row">
+        <button class="btn dark-line" id="share" type="button">나의 선택 저장</button>
+        <button class="btn dark-line" id="restart" type="button">처음부터</button>
       </div>
-      <p class="xe-foot rv" id="foot"></p>
+      <p class="foot" id="foot"></p>
     </div>
   </section>
 </main>
