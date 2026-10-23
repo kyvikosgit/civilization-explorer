@@ -3,24 +3,25 @@
 // ── 고증 근거(무엇을 어디서) ───────────────────────────────────────────────────────────
 //  거리: 나다르가 직접 찍은 35, boulevard des Capucines 정면 사진(퍼블릭 도메인, img/c4n/build.py 에 출처)을 밤으로 옮긴 판.
 //  사진관 안 — 나다르 아틀리에 실내 사진 세 장(BnF, c.1861; expositions.bnf.fr/les-nadar/grand_en/nad_088 · nad_089 · nad_311)
-//   · 나무 판벽과 두 짝 문(아래 긴 판 · 가운데 짧은 판 · 위 넓은 판)            ← nad_088 · nad_089
-//   · 문 위쪽 판에 걸린 작은 금박 액자의 유화들(한 짝에 셋씩 세로로)           ← nad_088 · nad_089  → 초상 12점이 여기
-//   · 오래된 타일 난로(흰 유약 타일 7줄 격자 · 메달 · 벽감 · 둘째 줄 통풍 창살 · 받침 · 위의 육각 탑과 톱니)  ← nad_088 · nad_089
-//   · 난로 양옆 조각된 나무 콘솔(위에 천사 머리, 아래로 늘어진 과일 · 잎 장식)   ← nad_088 · nad_089
-//   · 난로 위 그릇 넷, 탑 양옆 벽 선반 위 키 큰 그릇(사진에서 어두움 — 재질 미확정, 어두운 청동빛으로 = '청동 몇 점'),
-//     벽의 도자기 접시들(문 위 한 줄 · 난로 옆 세로 셋)  ← nad_088
-//   · 위의 들보 앞면(가로 몰딩 띠)에 접시가 한 줄, 그 위로 유리 지붕 · 유리창(낮빛)  ← nad_088 · nad_089 · nad_311
-//   · 기하 무늬 바닥(재질 — 타일인지 깔개인지 — 은 사진으로 확정 못 함, 무늬만)    ← nad_088 · nad_089
-//   · 모서리 벽: 얇은 어두운 리플(물결 골) 몰딩 액자 + 흰 매트, 한 매트에 작은 그림 여럿을 나란히,
-//     가로 매트 액자들을 거의 맞붙여 격자로 쌓음(카리커처 · 소묘)              ← nad_311  → 초상 12점이 여기
-//   · 색: 1876년 라캉(Lacan)의 기록(2차 인용) — 건물 안팎을 입구부터 유리 지붕까지 붉게 칠함 → 판벽 · 문 · 벽을 붉은 갈색 칠로.
-//     (다마스크 천은 기록에 없음 → 쓰지 않음)
+//   [사진에서 그대로 잘라 쓴 것 — img/c4room/build.py(좌표 · 톤), 밝기는 그대로 노멀로도 쓴다]
+//   · 타일 난로 앞면(메달 · 벽감 · 둘째 줄 창살 · 아래 달걀 띠) · 받침 · 탑(두 줄 벽감)과 관   ← nad_088
+//   · 난로 양옆 조각 콘솔(천사 머리 · 과일 늘어짐)과 그 위 큰 성인상 둘                       ← nad_088
+//   · 처마 위 뚜껑 단지 둘 · 작은 단지 둘 · 가운데 앞의 작은 기사 조상(어두운 — 청동으로 보임)   ← nad_088
+//   · 탑 양옆 벽 선반 위 키 큰 원통 그릇 · 작은 조상 · 뒤 벽의 꽃잎 장식판                        ← nad_088
+//   · 접시: 문 위 한 줄(왼쪽 문 = 큰 접시 · 장식판, 오른쪽 문 = 큰 접시 셋) · 콘솔 위 세로 셋       ← nad_088
+//   · '나다르 판테온'(1854 석판화) — nad_311 에 걸린 모습을 그대로(흐릿함). 커먼즈의 고해상도 스캔으로 바꿀 수 있음
+//   [사진을 보고 지은 것]
+//   · 나무 판벽과 두 짝 문(아래 긴 판 · 가운데 짧은 판 · 위 넓은 판), 문 위 판의 작은 금박 액자 셋씩   ← nad_088 · nad_089  → 초상 12점
+//   · 모서리: 흰 매트 + 얇은 어두운 리플 몰딩, 한 매트에 그림 여럿, 가로 매트를 맞붙인 격자, 위에 판테온  ← nad_311  → 초상 12점
+//   · 들보 앞면(가로 몰딩 띠)의 접시 한 줄, 그 위 유리 지붕 · 위에서 오는 낮빛                         ← nad_088 · nad_089 · nad_311
+//   · 기하 무늬 바닥(재질 — 타일인지 깔개인지 — 은 사진으로 확정 못 함, 무늬만)                        ← nad_088 · nad_089
+//   · 크기: nad_088 에서 문 높이 2.7 m 를 기준으로 잰 비율(난로 ≈ 문 너비, 받침 + 몸통 ≈ 문 높이의 0.7, 위로 탑)
+//   · 색: 1876년 라캉(Lacan)의 기록(2차 인용) — 안팎을 입구부터 유리 지붕까지 붉게 칠함 → 나무 판벽을 짙은 붉은 갈색으로
+//     (나뭇결: Poly Haven "Wood Table Worn", CC0 — img/c3env 와 같은 파일). 다마스크 천은 기록에 없음 → 쓰지 않음.
 //  기록이 말하지 않는 것(중립으로만 채움, 꾸미지 않음):
-//   · 세 장면(모서리 · 문 · 난로)의 실제 위치 관계 — 한 벽에 나란히 이어 붙였다. 양 끝은 장식 없는 판벽.
-//   · 도자기 · 타일의 색(사진이 흑백) — 크림색 유약 + 갈회색 무늬 하나로만. 타일 메달 · 벽감 속 인물은 형태만(얼굴 · 성인상은 새로 그리지 않음).
-//   · 나다르 판테온(Panthéon Nadar) 판화 — nad_311 모서리 맨 위에 있지만 이 기기에 실을 판본이 없어 그 자리는 비워 둔다.
-//   · 콘솔 위 나무 성인상 · 선반 위 작은 조상 · 청동 샹들리에 · 의자 · 장의자 · 탁자 · 음악 상자 · 시계 · 사진기 — 기록에 있으나 생략
-//     (형태를 지어내 조잡해지느니 비운다. 초상을 더 걸 가구도 만들지 않는다).
+//   · 세 장면(모서리 · 문 · 난로)의 실제 위치 관계 — 한 벽에 나란히 이어 붙였다. 양 끝은 같은 짜임의 판벽.
+//   · 유약 · 도자기의 색(사진이 흑백) — 사진의 밝기를 크림 ↔ 짙은 갈색 사이로만 옮김.
+//   · 청동 샹들리에 · 의자 · 장의자 · 탁자 · 음악 상자 · 시계 · 사진기 — 기록에 있으나 생략(초상을 더 걸 가구도 만들지 않는다).
 //   · 그림 자리에 거는 것은 24명의 초상(유화). 매트 안의 그림도 원래는 카리커처 · 소묘였으나, 여기서는 같은 사람의 초상화를 그대로 넣는다.
 //   · 사진으로 바뀌면: 나다르의 명함판(카드에 붙인 알부민 인화) 모양 — 문 액자는 크림색 대지(아래 스튜디오 이름, 기록된 곳만),
 //     매트 안은 대지 테두리만 좁게.
@@ -29,7 +30,7 @@
 // ────────────────────────────────────────────────────────────────────────────────
 // 바꾸기: 그림을 누르면(레이캐스트) 앞에서 마그네슘 섬광 · 연기가 피고, 그 판이 종이에서부터 현상된다(어두운 곳 먼저, 호박빛 → 맑게).
 //   되돌리면 니스 빛이 대각선으로 쓸며 그림이 돌아온다. 메시는 움직이지 않는다(셰이더 색만).
-// 낮의 사진관: 빛은 위의 유리 지붕에서(흰 낮빛), 가스등은 없다.
+// 낮의 사진관: 빛은 위의 유리 지붕에서(흰 낮빛, 아래로 갈수록 어두워짐 — 셰이더의 높이 감쇠) + 바닥에서 되비치는 따뜻한 빛. 가스등은 없다.
 import * as T from 'three';
 import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
@@ -51,7 +52,7 @@ export async function createNadar({ canvas, reduced = false, people, thumb, stud
   renderer.setPixelRatio(DPR);
   renderer.outputEncoding = T.sRGBEncoding;
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMappingExposure = 0.95;
   const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const tex = (c, srgb = true, rep = false) => { const t = new T.CanvasTexture(c); t.encoding = srgb ? T.sRGBEncoding : T.LinearEncoding; t.anisotropy = ANISO; if (rep) t.wrapS = t.wrapT = T.RepeatWrapping; return t; };
   const R = rng(1861);
@@ -101,14 +102,14 @@ export async function createNadar({ canvas, reduced = false, people, thumb, stud
     cg.putImageData(ci, 0, 0); rg.putImageData(ri, 0, 0);
     const a = tex(cc, true), b = tex(rc, false); a.wrapS = b.wrapS = T.RepeatWrapping; return [a, b];
   })();
-  // 붉은 칠(라캉 1876: 안팎을 붉게) — 칠 밑으로 나뭇결 · 붓자국이 아주 옅게
-  const paintT = (() => {
-    const S = 512, c = cnv(S, S), g = c.getContext('2d'), r2 = rng(31);
-    g.fillStyle = '#62261d'; g.fillRect(0, 0, S, S);
-    for (let i = 0; i < 90; i++) { const x = r2() * S, w = 1 + r2() * 4; g.fillStyle = `rgba(${r2() < 0.55 ? '40,8,4' : '150,70,55'},${0.006 + r2() * 0.012})`; g.fillRect(x, 0, w, S); }
-    for (let i = 0; i < 7000; i++) { g.fillStyle = `rgba(${r2() < 0.5 ? '30,6,3' : '170,86,66'},${r2() * 0.05})`; g.fillRect(r2() * S, r2() * S, 1, 1 + r2() * 7); }
-    return tex(c, true, true);
-  })();
+  // 실물 텍스처: 판벽은 CC0 나무(Poly Haven "Wood Table Worn", C3 와 같은 파일)를 붉은 갈색으로 물들여(라캉: 붉게 칠함),
+  //   난로 · 콘솔 · 그릇 · 접시 · 조상 · 장식판 · 판테온은 BnF 실내 사진에서 잘라 낸 것(img/c4room/build.py)
+  const [woodD, woodNi, woodRi, stoveI, objI, panI, AT] = await Promise.all(['img/c3env/wood-diff.jpg', 'img/c3env/wood-nor.jpg', 'img/c3env/wood-rough.jpg', 'img/c4room/stove.jpg', 'img/c4room/objets.png', 'img/c4room/pantheon.jpg'].map(loadImg).concat(fetch('img/c4room/atlas.json').then((r) => r.json())));
+  const imgTex = (im, srgb = true, rep = false) => { const t = new T.Texture(im || cnv(4, 4)); t.encoding = srgb ? T.sRGBEncoding : T.LinearEncoding; t.anisotropy = ANISO; if (rep) t.wrapS = t.wrapT = T.RepeatWrapping; t.needsUpdate = true; return t; };
+  const woodT = imgTex(woodD, true, true), woodN = imgTex(woodNi, false, true), woodR = imgTex(woodRi, false, true);
+  const stoveT = imgTex(stoveI), objT = imgTex(objI), panT = imgTex(panI);
+  // 사진의 밝기 → 노멀(사진 속 빛이 위에서 오므로 밝기 ≈ 돋을새김). 한 번만, 1024²
+  const stoveN = (() => { if (!stoveI) return null; const c = cnv(stoveI.naturalWidth, stoveI.naturalHeight), g = ctx2(c); g.filter = 'blur(0.6px)'; g.drawImage(stoveI, 0, 0); return tex(normalFrom(c, 2.4, false), false); })();
   // 바닥: nad_088 · 089 의 기하 무늬(네모 칸 · 마름모 넷이 만드는 십자 · 가운데 작은 네모). 색은 기록이 없어 무채 갈색 셋
   const floorT = (() => {
     const S = 512, c = cnv(S, S), g = c.getContext('2d'), r2 = rng(44), n = 4, s = S / n;
@@ -125,75 +126,6 @@ export async function createNadar({ canvas, reduced = false, people, thumb, stud
     return tex(c, true, true);
   })();
   // 유약 타일(난로): 높이 그림 → 노멀 · 색. 메달 · 벽감은 형태만(얼굴 · 인물은 그리지 않는다)
-  function tileSheet(W, H, cols, rows, typeAt, bands = 0) {
-    const h = cnv(W, H), g = ctx2(h);
-    g.fillStyle = 'rgb(60,60,60)'; g.fillRect(0, 0, W, H);
-    const tb = bands * H, rh = (H - 2 * tb) / rows;
-    for (const yb of bands ? [0, H - tb] : []) { const gr = g.createLinearGradient(0, yb, 0, yb + tb); gr.addColorStop(0, 'rgb(110,110,110)'); gr.addColorStop(0.35, 'rgb(225,225,225)'); gr.addColorStop(0.6, 'rgb(160,160,160)'); gr.addColorStop(1, 'rgb(100,100,100)'); g.fillStyle = gr; g.fillRect(0, yb, W, tb); }
-    let x = 0;
-    cols.forEach((cw, ci) => {
-      const w = cw * W;
-      for (let r = 0; r < rows; r++) {
-        const y = tb + r * rh, X = x + 2, Y = y + 2, w2 = w - 4, h2 = rh - 4, type = typeAt(ci, r);
-        g.fillStyle = 'rgb(150,150,150)'; g.fillRect(X, Y, w2, h2);
-        const gr = g.createLinearGradient(X, Y, X + w2 * 0.2, Y + h2 * 0.2); gr.addColorStop(0, 'rgb(205,205,205)'); gr.addColorStop(1, 'rgb(180,180,180)'); g.fillStyle = gr; g.fillRect(X + 4, Y + 4, w2 - 8, h2 - 8);
-        const cx = X + w2 / 2, cy = Y + h2 / 2, m = Math.min(w2, h2);
-        if (type === 'roundel') {
-          dome(g, cx, cy, m * 0.43, m * 0.43, 0, 235, 150); g.fillStyle = 'rgb(130,130,130)'; g.beginPath(); g.arc(cx, cy, m * 0.33, 0, 6.2832); g.fill(); dome(g, cx, cy, m * 0.28, m * 0.28, 0, 215, 140);
-        } else if (type === 'niche') {
-          const nw = w2 * 0.56, nh = h2 * 0.8, nx = cx - nw / 2, ny = cy - nh / 2;
-          g.fillStyle = 'rgb(105,105,105)'; g.beginPath(); g.moveTo(nx, ny + nh); g.lineTo(nx, ny + nw / 2); g.arc(cx, ny + nw / 2, nw / 2, Math.PI, 0); g.lineTo(nx + nw, ny + nh); g.closePath(); g.fill();
-          dome(g, cx, cy + nh * 0.12, nw * 0.24, nh * 0.34, 0, 225, 120); dome(g, cx, cy - nh * 0.26, nw * 0.13, nw * 0.13, 0, 225, 120);
-        } else if (type === 'grille') {
-          g.fillStyle = 'rgb(35,35,35)'; g.fillRect(X + w2 * 0.16, Y + h2 * 0.16, w2 * 0.68, h2 * 0.68);
-          for (let k = 0; k < 6; k++) dome(g, X + w2 * (0.22 + k * 0.112), cy, w2 * 0.022, h2 * 0.32, 0, 215, 90);
-        }
-      }
-      x += w;
-    });
-    return h;
-  }
-  function glazeFrom(hc) {   // 높이 → 크림색 유약(파인 곳은 조금 짙게)
-    const w = hc.width, h = hc.height, d = ctx2(hc).getImageData(0, 0, w, h).data, c = cnv(w, h), g = c.getContext('2d'), im = g.createImageData(w, h), r2 = rng(17);
-    for (let i = 0; i < w * h; i++) {
-      const v = d[i * 4] / 255, t = sstep(0.18, 0.75, v), n = r2() * 0.03;
-      im.data[i * 4] = lerp(112, 222, t) * (0.98 + n); im.data[i * 4 + 1] = lerp(102, 213, t) * (0.98 + n); im.data[i * 4 + 2] = lerp(86, 192, t) * (0.98 + n); im.data[i * 4 + 3] = 255;
-    }
-    g.putImageData(im, 0, 0); return c;
-  }
-  // 난로 앞면(nad_088): 좁은 기둥 · 넓은 다섯 · 좁은 기둥 / 여섯 줄, 둘째 줄의 1 · 3 · 5 칸은 통풍 창살, 나머지는 메달과 벽감이 엇갈린다
-  const stoveFrontH = tileSheet(768, 744, [0.075, 0.17, 0.17, 0.17, 0.17, 0.17, 0.075], 7, (c, r) => (c === 0 || c === 6) ? 'niche' : (r === 1 && c % 2 === 1) ? 'grille' : ((r + c) % 2 ? 'roundel' : 'niche'), 0.035);
-  const stoveSideH = tileSheet(384, 744, [0.5, 0.5], 6, () => 'plain', 0.035);
-  const towerH = tileSheet(768, 384, [1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6, 1 / 6], 3, () => 'niche');
-  const stoveTex = (hc, k) => [tex(glazeFrom(hc)), tex(normalFrom(hc, k, false), false)];
-  const [sfC, sfN] = stoveTex(stoveFrontH, 9), [ssC, ssN] = stoveTex(stoveSideH, 7), [twC, twN] = stoveTex(towerH, 7);
-  // 조각 콘솔(nad_088 의 난로 양옆): 위에 소용돌이 머리 · 천사 머리와 날개 · 아래로 늘어진 과일 · 잎 · 끝의 방울
-  const carveN = (() => {
-    const W = 128, H = 640, c = cnv(W, H), g = ctx2(c), r2 = rng(23);
-    g.fillStyle = 'rgb(90,90,90)'; g.fillRect(0, 0, W, H);
-    dome(g, W * 0.3, 40, 30, 26, 0, 230, 110); dome(g, W * 0.7, 40, 30, 26, 0, 230, 110); dome(g, W / 2, 30, 50, 12, 0, 200, 110);
-    for (let k = 0; k < 9; k++) { const a = -0.2 + k * 0.17; for (const s of [-1, 1]) dome(g, W / 2 + s * (26 + k * 2.4), 128 - k * 4.5, 22, 5, s * a + (s < 0 ? Math.PI : 0), 210, 110); }
-    dome(g, W / 2, 128, 26, 30, 0, 245, 120);
-    for (let row = 0; row < 14; row++) { const y = 190 + row * 28, wd = lerp(46, 16, row / 13), n = row < 10 ? 3 : 2; for (let k = 0; k < n; k++) dome(g, W / 2 + (k - (n - 1) / 2) * wd * 0.8 + (r2() - 0.5) * 4, y + (r2() - 0.5) * 6, wd * 0.42, 15, 0, 238, 115); if (row % 3 === 0) for (const s of [-1, 1]) dome(g, W / 2 + s * wd * 1.05, y + 8, 18, 7, s * 0.9, 200, 100); }
-    dome(g, W / 2, 610, 10, 22, 0, 230, 110);
-    return tex(normalFrom(c, 5, false), false);
-  })();
-  // 도자기 접시(4가지): 0 테두리 띠 + 가운데 그림 자리 · 1 둘레 골(꽃잎 접시) · 2 민 접시에 가는 선 · 3 짙은 바탕에 밝은 테두리 점. 색은 중립(크림 · 갈회색)
-  const plateT = (() => {
-    const S = 256, c = cnv(S * 4, S), g = c.getContext('2d'), deco = '#7f6a50', deco2 = '#625a52';
-    for (let k = 0; k < 4; k++) {
-      const cx = k * S + S / 2, cy = S / 2, R0 = S / 2;
-      g.fillStyle = k === 3 ? '#7a5e44' : '#ddd3bd'; g.fillRect(k * S, 0, S, S);
-      const ring = (r, w, col) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.arc(cx, cy, r, 0, 6.2832); g.stroke(); };
-      if (k === 0) { ring(R0 * 0.84, R0 * 0.2, 'rgba(110,88,62,.8)'); for (let i = 0; i < 24; i++) { const a = i / 24 * 6.2832; g.fillStyle = '#ece5d4'; g.beginPath(); g.ellipse(cx + Math.cos(a) * R0 * 0.84, cy + Math.sin(a) * R0 * 0.84, R0 * 0.06, R0 * 0.03, a, 0, 6.2832); g.fill(); } ring(R0 * 0.6, 3, deco); const gr = g.createRadialGradient(cx, cy, 0, cx, cy, R0 * 0.55); gr.addColorStop(0, 'rgba(98,90,82,.35)'); gr.addColorStop(1, 'rgba(98,90,82,.12)'); g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, R0 * 0.55, 0, 6.2832); g.fill(); }
-      if (k === 1) { for (let i = 0; i < 16; i++) { const a = i / 16 * 6.2832; g.fillStyle = i % 2 ? 'rgba(110,88,62,.6)' : 'rgba(255,255,255,.15)'; g.beginPath(); g.moveTo(cx + Math.cos(a) * R0 * 0.5, cy + Math.sin(a) * R0 * 0.5); g.arc(cx, cy, R0, a, a + 6.2832 / 16); g.lineTo(cx + Math.cos(a + 6.2832 / 16) * R0 * 0.5, cy + Math.sin(a + 6.2832 / 16) * R0 * 0.5); g.fill(); } ring(R0 * 0.5, 3, deco); ring(R0 * 0.2, R0 * 0.12, 'rgba(98,90,82,.4)'); }
-      if (k === 2) { ring(R0 * 0.9, 4, deco2); ring(R0 * 0.8, 3, deco2); ring(R0 * 0.5, 4, deco2); for (let i = 0; i < 12; i++) { const a = i / 12 * 6.2832; g.fillStyle = 'rgba(98,90,82,.55)'; g.beginPath(); g.ellipse(cx + Math.cos(a) * R0 * 0.65, cy + Math.sin(a) * R0 * 0.65, R0 * 0.08, R0 * 0.035, a, 0, 6.2832); g.fill(); } }
-      if (k === 3) { ring(R0 * 0.82, R0 * 0.16, 'rgba(236,229,212,.7)'); for (let i = 0; i < 30; i++) { const a = i / 30 * 6.2832; g.fillStyle = '#5a4430'; g.beginPath(); g.arc(cx + Math.cos(a) * R0 * 0.82, cy + Math.sin(a) * R0 * 0.82, R0 * 0.025, 0, 6.2832); g.fill(); } ring(R0 * 0.55, 2, '#d8cdb6'); }
-    }
-    return tex(c);
-  })();
-  // 그릇(난로 위 · 선반): 크림 유약에 갈회색 가로 띠만(사진이 흑백 — 무늬는 중립)
-  const vaseT = (() => { const c = cnv(16, 256), g = c.getContext('2d'); g.fillStyle = '#cfc4ac'; g.fillRect(0, 0, 16, 256); for (const [y, h, a] of [[30, 10, 0.7], [46, 3, 0.6], [110, 50, 0.32], [170, 3, 0.6], [214, 8, 0.7]]) { g.fillStyle = `rgba(105,84,60,${a})`; g.fillRect(0, y, 16, h); } return tex(c); })();
   // 유리 지붕 · 유리창: 가는 쇠살, 낮빛
   const glassT = (() => { const c = cnv(256, 256), g = c.getContext('2d'); g.fillStyle = '#f7f5ef'; g.fillRect(0, 0, 256, 256); g.fillStyle = '#4a3a32'; g.fillRect(0, 0, 5, 256); g.fillRect(128, 0, 3, 256); g.fillRect(0, 0, 256, 4); g.fillRect(0, 170, 256, 3); const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(210,205,195,.35)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); return tex(c, true, true); })();
   // 캔버스 올(그림 면) — 노멀맵의 반복값이 그림 판의 uv 를 바꾸므로 반복 없이 촘촘하게 그린다
@@ -222,23 +154,21 @@ export async function createNadar({ canvas, reduced = false, people, thumb, stud
 
   // ───────────────────────── 재질
   const M = {
-    paint: new T.MeshStandardMaterial({ color: C('#ffffff'), map: paintT, roughness: 0.6, metalness: 0, vertexColors: true, envMapIntensity: 0.45 }),
-    paintDark: new T.MeshStandardMaterial({ color: C('#e0c8c0'), emissive: C('#2e100b'), map: paintT, roughness: 0.75, metalness: 0, envMapIntensity: 0.3 }),
+    // 판벽: 나뭇결이 비치는 짙은 붉은 갈색(칠 · 착색)
+    paint: new T.MeshStandardMaterial({ color: C('#c0675a'), map: woodT, normalMap: woodN, normalScale: new T.Vector2(0.8, 0.8), roughnessMap: woodR, roughness: 0.85, metalness: 0, vertexColors: true, envMapIntensity: 0.55 }),
+    paintDark: new T.MeshStandardMaterial({ color: C('#a05a50'), emissive: C('#1c0906'), map: woodT, roughness: 0.8, metalness: 0, envMapIntensity: 0.3 }),
     gilt: new T.MeshStandardMaterial({ color: C('#e6c477'), metalness: 1, roughness: 1, map: ornCol, roughnessMap: ornRough, normalMap: ornN, vertexColors: true, envMapIntensity: 1.15 }),
     ebon: new T.MeshStandardMaterial({ color: C('#1a1310'), metalness: 0.05, roughness: 0.38, normalMap: ornN, normalScale: new T.Vector2(1.4, 1.4), vertexColors: true, envMapIntensity: 0.9 }),
     mat: new T.MeshStandardMaterial({ color: C('#ece6d6'), roughness: 0.95, metalness: 0, envMapIntensity: 0.3 }),
     matCore: new T.MeshStandardMaterial({ color: C('#f6f1e4'), roughness: 0.9, metalness: 0, envMapIntensity: 0.3, vertexColors: true }),
     brass: new T.MeshStandardMaterial({ color: C('#c9a35a'), metalness: 1, roughness: 0.38, envMapIntensity: 1.1 }),
-    bronze: new T.MeshStandardMaterial({ color: C('#7a5a34'), metalness: 1, roughness: 0.5, envMapIntensity: 1.0 }),
     iron: new T.MeshStandardMaterial({ color: C('#1b1716'), metalness: 0.7, roughness: 0.45 }),
-    carved: new T.MeshStandardMaterial({ color: C('#3d281c'), roughness: 0.55, metalness: 0, normalMap: carveN, normalScale: new T.Vector2(1.6, 1.6), envMapIntensity: 0.6 }),
+    carved: new T.MeshStandardMaterial({ map: stoveT, normalMap: stoveN, normalScale: new T.Vector2(1.3, 1.3), roughness: 0.6, metalness: 0, envMapIntensity: 0.5 }),
     wood: new T.MeshStandardMaterial({ color: C('#3a2419'), roughness: 0.6, metalness: 0, vertexColors: true, envMapIntensity: 0.5 }),
-    stoveF: new T.MeshStandardMaterial({ color: C('#ddd4c4'), map: sfC, normalMap: sfN, roughness: 0.22, metalness: 0, envMapIntensity: 1.0 }),
-    stoveS: new T.MeshStandardMaterial({ color: C('#ddd4c4'), map: ssC, normalMap: ssN, roughness: 0.22, metalness: 0, envMapIntensity: 1.0 }),
-    stoveT: new T.MeshStandardMaterial({ color: C('#ddd4c4'), map: twC, normalMap: twN, roughness: 0.22, metalness: 0, envMapIntensity: 1.0 }),
-    glaze: new T.MeshStandardMaterial({ color: C('#bdb29c'), roughness: 0.26, metalness: 0, vertexColors: true, envMapIntensity: 0.8 }),
-    vase: new T.MeshStandardMaterial({ color: C('#d9d0c0'), map: vaseT, roughness: 0.26, metalness: 0, envMapIntensity: 0.8 }),
-    plate: new T.MeshStandardMaterial({ map: plateT, color: C('#d8d0c0'), roughness: 0.3, metalness: 0, envMapIntensity: 0.75, side: T.DoubleSide }),
+    stove: new T.MeshStandardMaterial({ map: stoveT, normalMap: stoveN, normalScale: new T.Vector2(1.1, 1.1), roughness: 0.42, metalness: 0, envMapIntensity: 0.5 }),
+    plate: new T.MeshStandardMaterial({ map: objT, alphaTest: 0.5, roughness: 0.42, metalness: 0, envMapIntensity: 0.5, side: T.DoubleSide }),
+    cut: new T.MeshStandardMaterial({ map: objT, alphaTest: 0.5, roughness: 0.6, metalness: 0, envMapIntensity: 0.4, side: T.DoubleSide }),
+    print: new T.MeshStandardMaterial({ map: panT, roughness: 0.9, metalness: 0, envMapIntensity: 0.25 }),
     floor: new T.MeshStandardMaterial({ map: floorT, roughness: 0.7, metalness: 0, envMapIntensity: 0.35 }),
     glass: new T.MeshBasicMaterial({ map: glassT, color: C('#ffffff').multiplyScalar(1.05), toneMapped: false }),
     shadow: new T.MeshBasicMaterial({ map: shadowT, color: 0x000000, transparent: true, opacity: 0.5, depthWrite: false, toneMapped: false }),
@@ -264,6 +194,8 @@ export async function createNadar({ canvas, reduced = false, people, thumb, stud
     ripple: prof([{ p: [0, 0.4] }, { p: [0, 0.62] }, { b: 7, a: [0.5, 0.62, 0.5, 180, 0, 8] }, { b: 5, p: [1, 0.0] }]),
     // 판벽 · 문의 판 테두리(볼렉션)
     panel: prof([{ p: [0, 0] }, { p: [0.05, 0.5] }, { a: [0.35, 0.5, 0.3, 180, 90, 4] }, { p: [0.7, 0.8] }, { a: [0.85, 0.8, 0.15, 180, 0, 3] }, { p: [1, 0] }]),
+    // 판의 솟은 면 둘레(경사로 깎임)
+    field: prof([{ p: [0, 1] }, { p: [0.15, 0.95] }, { p: [1, 0.15] }, { p: [1, 0] }]),
     bevel: prof([{ p: [-1, -1] }, { p: [0, 0] }]),
   };
   const PERIOD = [0.024, 0.05, 0.1, 0.018, 0.4, 0.3, 0.036, 0.008];   // 띠마다 무늬 한 번의 길이(m)
@@ -372,16 +304,29 @@ float c4band(vec2 uv){ float e = uv.x*0.55 + (1.0-uv.y)*0.45; return uGlow > 0.0
     return tex(c);
   }
 
-  // ───────────────────────── 사진관 장면(낮)
+  // ───────────────────────── 사진관 장면(낮) — 빛은 위의 유리 지붕에서. 사진들처럼 어두운 실내, 위가 밝고 아래로 갈수록 어두워진다
   const scene = new T.Scene();
-  scene.background = C('#2a1410');
+  scene.background = C('#120806');
   scene.environment = envTex;
-  scene.add(new T.HemisphereLight(C('#f4efe6'), C('#4a2018'), 0.62));
-  const sun = new T.DirectionalLight(C('#fff4e4'), 1.2); sun.position.set(1.2, 9, 4.2); scene.add(sun);       // 유리 지붕의 낮빛(위 · 조금 앞)
-  const fillL = new T.DirectionalLight(C('#e9edf2'), 0.3); fillL.position.set(-2, 2.2, 8); scene.add(fillL);   // 앞쪽 창
+  scene.add(new T.HemisphereLight(C('#efe9df'), C('#6a3a20'), 0.5));                                           // 하늘빛 · 바닥에서 되비치는 따뜻한 빛
+  const sun = new T.DirectionalLight(C('#fff3e2'), 1.55); sun.position.set(0.6, 10, 3.2); scene.add(sun);      // 유리 지붕(거의 바로 위)
+  const fillL = new T.DirectionalLight(C('#e9edf2'), 0.16); fillL.position.set(-2, 2.2, 8); scene.add(fillL);  // 앞쪽 창
   const flashL = new T.PointLight(C('#eef2ff'), 0, 3.4, 2); scene.add(flashL);
   const WHITE = C('#eef2ff'), WARM = C('#ffb760'), sweepPos = new T.Vector3();   // 섬광(흰) · 니스 빛(따뜻한)은 점광원 하나를 번갈아 쓴다
   const root = new T.Group(); scene.add(root);
+  // 위에서 오는 빛의 감쇠: 높이에 따라 직접광 · 간접광을 줄인다(셰이더 몇 줄 — 그림자 맵 없이)
+  const topLit = (m, lo = 0.3) => {
+    const prev = m.onBeforeCompile;
+    m.onBeforeCompile = (sh, r) => {
+      prev.call(m, sh, r);
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vC4Y;').replace('#include <project_vertex>', '#include <project_vertex>\n vC4Y = (modelMatrix * vec4(transformed, 1.0)).y;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying float vC4Y;')
+        .replace('#include <lights_fragment_end>', `#include <lights_fragment_end>\n { float c4f = mix(${lo.toFixed(2)}, 1.22, smoothstep(0.05, 3.4, vC4Y)); reflectedLight.directDiffuse *= c4f; reflectedLight.indirectDiffuse *= mix(c4f, 1.0, 0.25); reflectedLight.directSpecular *= c4f; reflectedLight.indirectSpecular *= mix(c4f, 1.0, 0.4); }`);
+    };
+    const key = m.customProgramCacheKey.bind(m); m.customProgramCacheKey = () => key() + '|top' + lo;
+    return m;
+  };
+  for (const k of ['paint', 'paintDark', 'gilt', 'ebon', 'mat', 'matCore', 'brass', 'carved', 'wood', 'stove', 'plate', 'cut', 'print', 'floor']) topLit(M[k]);
 
   // 정적인 것은 재질마다 하나로 합친다(그림 판만 따로 — 셰이더 값이 하나씩 다르다)
   const G = new Map();
@@ -398,55 +343,74 @@ float c4band(vec2 uv){ float e = uv.x*0.55 + (1.0-uv.y)*0.45; return uGlow > 0.0
   }
   const box = (w, h, d, x, y, z) => new T.BoxGeometry(w, h, d).translate(x, y, z);
   const rbox = (w, h, d, x, y, z, r = 0.008) => new RoundedBoxGeometry(w, h, d, 2, r).translate(x, y, z);
-  const worldUV = (g, s = 0.9) => { const p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) + p.getZ(i)) / s, p.getY(i) / s); return g; };
+  // 나뭇결 좌표: 세계 좌표로(가로결 / vert = 세로결 — 문짝 · 기둥)
+  const worldUV = (g, s = 1.1, vert = false) => { const p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < p.count; i++) { const a = (p.getX(i) + p.getZ(i)) / s, b = p.getY(i) / s; vert ? uv.setXY(i, b, a) : uv.setXY(i, a, b); } return g; };
+  const wood = (g, vert = false) => put(M.paint, worldUV(g, 1.1, vert));
   const lathe = (pts, seg = 20) => new T.LatheGeometry(pts.map(([r, y]) => new T.Vector2(r, y)), seg);
+  // 아틀라스 칸 → uv. 앞에서 비춘 대로(물체 좌표 x · y 를 칸 안으로) — 사진 속 모습 그대로 앞면에 얹힌다
+  const cell = (k, obj = false, fx0 = 0, fx1 = 1, fy0 = 0, fy1 = 1) => {
+    const [x, y, w, h] = (obj ? AT.objets : AT.stove)[k], [W, H] = obj ? AT.objetsSize : AT.stoveSize;
+    return { u0: (x + fx0 * w) / W, u1: (x + fx1 * w) / W, v0: 1 - (y + fy1 * h) / H, v1: 1 - (y + fy0 * h) / H };
+  };
+  const proj = (g, r, x0, x1, y0, y1) => { const p = g.attributes.position, uv = g.attributes.uv; for (let i = 0; i < p.count; i++) uv.setXY(i, lerp(r.u0, r.u1, clamp((p.getX(i) - x0) / (x1 - x0), 0, 1)), lerp(r.v0, r.v1, clamp((p.getY(i) - y0) / (y1 - y0), 0, 1))); return g; };
 
   // ── 크기(m). 한 벽에 왼쪽부터: 판벽 · 모서리 매트 격자(nad_311) · 문 1 · 난로(nad_088) · 문 2 · 판벽
-  const WALL_H = 3.45, OPEN = 1.3, LEAF_H = 2.7;
+  //    nad_088 의 비율: 문 높이 2.7 m 를 기준으로 사진 1px ≈ 3.2 mm(벽면), 앞으로 나온 난로 쪽은 원근을 빼 ≈ 2.9 mm
+  const WALL_H = 3.45, OPEN = 1.3, LEAF_H = 2.7, PXW = 2.7 / 848, PXS = PXW * 0.9;
   const SEC = []; let xc = 0;
-  for (const [k, w] of [['fill', 0.9], ['corner', 2.0], ['strip', 0.2], ['door', 1.5], ['strip', 0.15], ['stove', 2.3], ['strip', 0.15], ['door', 1.5], ['fill', 0.9]]) { SEC.push({ k, x0: xc, w, cx: xc + w / 2 }); xc += w; }
+  for (const [k, w] of [['fill', 0.9], ['corner', 2.2], ['strip', 0.2], ['door', 1.5], ['strip', 0.1], ['stove', 2.1], ['strip', 0.1], ['door', 1.5], ['fill', 0.9]]) { SEC.push({ k, x0: xc, w, cx: xc + w / 2 }); xc += w; }
   const TOTAL = xc;
   const doors = SEC.filter((s) => s.k === 'door'), corner = SEC.find((s) => s.k === 'corner'), stoveS = SEC.find((s) => s.k === 'stove');
-  const X0 = corner.cx - 0.2, X1 = doors[1].cx + 0.1, MID = (X0 + X1) / 2;   // 카메라가 오가는 범위(가운데를 0으로)
+  const X0 = corner.cx - 0.15, X1 = doors[1].cx + 0.1, MID = (X0 + X1) / 2;   // 카메라가 오가는 범위(가운데를 0으로)
   root.position.x = -MID;
+  const STOVE_X = stoveS.cx - MID;
 
   // 벽 · 걸레받이 · 바닥 · 위의 들보(아랫면 · 앞면의 가로 띠) · 유리
-  put(M.paint, worldUV(new T.PlaneGeometry(TOTAL, WALL_H).translate(TOTAL / 2, WALL_H / 2, 0)));
-  put(M.paint, rbox(TOTAL, 0.16, 0.025, TOTAL / 2, 0.08, 0.0125, 0.006));
-  put(M.paint, rbox(TOTAL, 0.03, 0.035, TOTAL / 2, 0.165, 0.016, 0.01));
+  wood(new T.PlaneGeometry(TOTAL, WALL_H, 1, 1).translate(TOTAL / 2, WALL_H / 2, 0));
+  wood(rbox(TOTAL, 0.18, 0.03, TOTAL / 2, 0.09, 0.015, 0.008));
+  wood(rbox(TOTAL, 0.035, 0.042, TOTAL / 2, 0.19, 0.021, 0.012));
   const floor = new T.Mesh(new T.PlaneGeometry(TOTAL + 8, 10).translate(TOTAL / 2, -5, 0), M.floor); floor.rotation.x = -Math.PI / 2;
   floor.geometry.attributes.uv.array.forEach((v, i, a) => { a[i] = v * (i % 2 ? 10 : TOTAL + 8) / 1.2; }); root.add(floor);
-  const contact = new T.Mesh(new T.PlaneGeometry(TOTAL, 0.4).translate(TOTAL / 2, 0, 0), new T.MeshBasicMaterial({ map: beamT, color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false })); contact.rotation.x = -Math.PI / 2; contact.position.set(0, 0.003, 0.06); root.add(contact);
+  const contact = new T.Mesh(new T.PlaneGeometry(TOTAL, 0.4).translate(TOTAL / 2, 0, 0), new T.MeshBasicMaterial({ map: beamT, color: 0x000000, transparent: true, opacity: 0.45, depthWrite: false })); contact.rotation.x = -Math.PI / 2; contact.position.set(0, 0.003, 0.06); root.add(contact);
   const BZ = 0.85, BY0 = WALL_H, BY1 = 4.05;
-  put(M.paintDark, new T.PlaneGeometry(TOTAL, BZ).rotateX(Math.PI / 2).translate(TOTAL / 2, BY0, BZ / 2));
-  put(M.paint, worldUV(box(TOTAL, BY1 - BY0, 0.06, TOTAL / 2, (BY0 + BY1) / 2, BZ + 0.03)));
-  for (const [y, h, d] of [[BY0 + 0.025, 0.05, 0.05], [BY0 + 0.12, 0.025, 0.03], [BY1 - 0.09, 0.025, 0.03], [BY1 - 0.02, 0.05, 0.06]]) put(M.paint, rbox(TOTAL, h, d, TOTAL / 2, y, BZ + 0.06 + d / 2, 0.01));
+  put(M.paintDark, worldUV(new T.PlaneGeometry(TOTAL, BZ).rotateX(Math.PI / 2).translate(TOTAL / 2, BY0, BZ / 2)));
+  wood(box(TOTAL, BY1 - BY0, 0.06, TOTAL / 2, (BY0 + BY1) / 2, BZ + 0.03));
+  for (const [y, h, d] of [[BY0 + 0.025, 0.05, 0.05], [BY0 + 0.12, 0.025, 0.03], [BY1 - 0.09, 0.025, 0.03], [BY1 - 0.02, 0.05, 0.06]]) wood(rbox(TOTAL, h, d, TOTAL / 2, y, BZ + 0.06 + d / 2, 0.012));
   const glassG = new T.PlaneGeometry(TOTAL, 1.7).translate(TOTAL / 2, BY1 + 0.85, BZ); glassG.attributes.uv.array.forEach((v, i, a) => { a[i] = v * (i % 2 ? 1.7 : TOTAL) / 1.0; });
   root.add(new T.Mesh(glassG, M.glass));
 
-  // 판(볼렉션 테두리 + 솟은 면)
+  // 판(볼렉션 테두리 + 둘레를 깎은 솟은 면)
   function panel(cx, cy, w, h, z, raised = true) {
-    put(M.paint, sweep(PROF.panel, rectPath(w / 2, h / 2), 0.03, 0.016).translate(cx, cy, z));
-    if (raised) put(M.paint, rbox(w - 0.03, h - 0.03, 0.014, cx, cy, z + 0.005, 0.006));
+    put(M.paint, sweep(PROF.panel, rectPath(w / 2, h / 2), 0.042, 0.026).translate(cx, cy, z));
+    if (raised) { put(M.paint, sweep(PROF.field, rectPath(w / 2 - 0.05, h / 2 - 0.05), 0.05, 0.018).translate(cx, cy, z)); wood(box(w - 0.1, h - 0.1, 0.004, cx, cy, z + 0.016), h > w); }
   }
-  // 도자기 접시: 오목한 접시(돌림판) · kind 1 은 둘레가 꽃잎처럼 물결
-  function plate(x, y, z, r, kind) {
-    const g = lathe([[0, 0], [r * 0.5, 0.004], [r * 0.6, 0.012], [r * 0.9, 0.02], [r, 0.026], [r * 1.0, 0.012], [r * 0.6, 0.0]], 40).rotateX(Math.PI / 2);
-    const p = g.attributes.position, uv = g.attributes.uv;
-    for (let i = 0; i < p.count; i++) {
-      let px = p.getX(i), py = p.getY(i); const a = Math.atan2(py, px), rr = Math.hypot(px, py) / r;
-      if (kind === 1) { const k = 1 + 0.07 * Math.cos(a * 16) * rr * rr; px *= k; py *= k; p.setXY(i, px, py); }
-      uv.setXY(i, (kind + 0.5 + px / (2.16 * r)) / 4, 0.5 + py / (2.16 * r));
-    }
-    g.computeVertexNormals();
+  // 사진에서 오려 낸 접시(nad_088): 오목한 돌림판에 사진의 무늬. d = 지름(m)
+  function plate(x, y, z, k, d) {
+    const r = d / 2, g = lathe([[0, 0], [r * 0.5, 0.004], [r * 0.62, 0.014], [r * 0.9, 0.022], [r, 0.028], [r * 1.0, 0.014], [r * 0.6, 0.0]], 40).rotateX(Math.PI / 2);
+    proj(g, cell(k, true), -r, r, -r, r); g.computeVertexNormals();
     put(M.plate, g.translate(x, y, z + 0.004));
-    put(M.shadow, new T.PlaneGeometry(r * 2.5, r * 2.5).translate(x + 0.008, y - 0.02, z + 0.001));
+    put(M.shadow, new T.PlaneGeometry(d * 1.3, d * 1.3).translate(x + 0.006, y - 0.025, z + 0.001));
+  }
+  // 오려 낸 판(장식판 · 조상): 사진 칸의 비율 그대로, 아래 끝(y)을 기준으로 높이 h
+  function cutout(k, x, y, z, h, mat = M.cut, shadow = true) {
+    const [, , cw, ch] = AT.objets[k], w = h * cw / ch, g = new T.PlaneGeometry(w, h);
+    proj(g, cell(k, true), -w / 2, w / 2, -h / 2, h / 2);
+    put(mat, g.translate(x, y + h / 2, z));
+    if (shadow) put(M.shadow, new T.PlaneGeometry(w * 1.2, h * 1.1).translate(x + 0.01, y + h / 2 - 0.03, z - 0.003));
+    return w;
+  }
+  // 사진의 무늬를 두른 돌림 그릇: 옆모습(r, y)과 사진 칸(가로로 그릇이 차지한 부분 fx0..fx1)
+  function vessel(k, x, y, z, pts, fx0, fx1, seg = 22) {
+    const g = lathe(pts, seg), H = Math.max(...pts.map((p) => p[1])), Rm = Math.max(...pts.map((p) => p[0]));
+    proj(g, cell(k, false, fx0, fx1), -Rm, Rm, 0, H);
+    put(M.stove, g.translate(x, y, z));
   }
 
   // ── 그림(초상) 하나: 그림 판(바꾸기 셰이더) + 누르는 판(보이지 않음)
   const frames = [], pickables = [];
   function addPic(id, cx, cy, z, w, h, kind) {
     const { m, u } = picMaterial(paintTex(id), photoTex(id, kind));
+    topLit(m, 0.55);
     const pic = new T.Mesh(new T.PlaneGeometry(w, h), m); pic.position.set(cx, cy, z); root.add(pic);
     const f = { i: frames.length, id, pic, u, ph: false, anim: null, OW: w, OH: h };
     frames.push(f); return f;
@@ -454,22 +418,23 @@ float c4band(vec2 uv){ float e = uv.x*0.55 + (1.0-uv.y)*0.45; return uGlow > 0.0
   function hitPlane(f, cx, cy, z, w, h) { const m = new T.Mesh(new T.PlaneGeometry(w, h), M.hit); m.position.set(cx, cy, z); m.userData.fi = f.i; root.add(m); pickables.push(m); }
   // 문 판의 작은 금박 액자 유화(nad_088)
   function giltFrame(id, cx, cy, pw, pr, z) {
-    const ph = pw * 1.25, Mw = 0.04, Dz = 0.03;
+    const ph = pw * 1.25, Mw = 0.042, Dz = 0.032;
     put(M.gilt, sweep(PROF[pr], rectPath(pw / 2, ph / 2), Mw, Dz).translate(cx, cy, z));
     put(M.wood, box(pw + 0.01, ph + 0.01, 0.002, cx, cy, z + 0.001));
     const f = addPic(id, cx, cy, z + Dz * 0.22, pw + 0.006, ph + 0.006, 'card');
     f.OW = pw + 2 * Mw; f.OH = ph + 2 * Mw;
     hitPlane(f, cx, cy, z + Dz + 0.004, f.OW, f.OH);
-    put(M.shadow, new T.PlaneGeometry(f.OW * 1.2 + 0.04, f.OH * 1.16 + 0.04).translate(cx + 0.006, cy - 0.022, z + 0.0008));
+    put(M.shadow, new T.PlaneGeometry(f.OW * 1.2 + 0.04, f.OH * 1.16 + 0.05).translate(cx + 0.004, cy - 0.03, z + 0.0008));
   }
   // 흰 매트 + 어두운 리플 몰딩(nad_311). 한 매트에 그림 여럿 — wins: [{ id, x, y, pw }](매트 가운데 기준)
-  function matFrame(cx, cy, mw, mh, wins, z) {
-    const Mw = 0.032, Dz = 0.024, zMat = z + Dz * 0.42, BV = 0.005;
+  function matFrame(cx, cy, mw, mh, wins, z, Mw = 0.032) {
+    const Dz = 0.024, zMat = z + Dz * 0.42, BV = 0.005;
     const sh = new T.Shape(); sh.moveTo(-mw / 2, -mh / 2); sh.lineTo(mw / 2, -mh / 2); sh.lineTo(mw / 2, mh / 2); sh.lineTo(-mw / 2, mh / 2); sh.closePath();
     for (const w of wins) {
-      const ph = w.pw * 1.25, hw = w.pw / 2 + BV, hh = ph / 2 + BV, hp = new T.Path();
+      const ph = w.ph || w.pw * 1.25, hw = w.pw / 2 + BV, hh = ph / 2 + BV, hp = new T.Path();
       hp.moveTo(w.x - hw, w.y - hh); hp.lineTo(w.x - hw, w.y + hh); hp.lineTo(w.x + hw, w.y + hh); hp.lineTo(w.x + hw, w.y - hh); hp.closePath(); sh.holes.push(hp);
       put(M.matCore, sweep(PROF.bevel, rectPath(hw, hh), BV, BV).translate(cx + w.x, cy + w.y, zMat));
+      if (w.print) { put(M.print, new T.PlaneGeometry(w.pw + 0.014, ph + 0.014).translate(cx + w.x, cy + w.y, z + Dz * 0.16)); continue; }
       const f = addPic(w.id, cx + w.x, cy + w.y, z + Dz * 0.16, w.pw + 0.014, ph + 0.014, 'slim');
       f.OW = w.pw + 0.05; f.OH = ph + 0.05;
       hitPlane(f, cx + w.x, cy + w.y, zMat + 0.004, w.pw + 0.035, ph + 0.035);
@@ -477,88 +442,103 @@ float c4band(vec2 uv){ float e = uv.x*0.55 + (1.0-uv.y)*0.45; return uGlow > 0.0
     put(M.mat, new T.ShapeGeometry(sh).translate(cx, cy, zMat));
     put(M.wood, box(mw, mh, 0.002, cx, cy, z + 0.001));
     put(M.ebon, sweep(PROF.ripple, rectPath(mw / 2, mh / 2), Mw, Dz).translate(cx, cy, z));
-    put(M.shadow, new T.PlaneGeometry((mw + 2 * Mw) * 1.12 + 0.03, (mh + 2 * Mw) * 1.14 + 0.03).translate(cx + 0.005, cy - 0.018, z + 0.0008));
+    put(M.shadow, new T.PlaneGeometry((mw + 2 * Mw) * 1.12 + 0.03, (mh + 2 * Mw) * 1.14 + 0.04).translate(cx + 0.004, cy - 0.026, z + 0.0008));
   }
 
   // ── 24명: 문 1(6) · 문 2(6) · 모서리 매트 격자(12). 사람 목록 순서는 그대로, 어디에 거는지만 정한다
   let pi = 0; const next = () => people[pi++];
   // 두 짝 문(nad_088 · 089): 문틀 · 문짝마다 아래 긴 판 · 가운데 짧은 판 · 위 넓은 판, 위 판에 작은 금박 액자 셋
   const LEAF_FR = [[[0.25, 0.012, 'giltA'], [0.235, -0.01, 'giltB'], [0.25, 0.006, 'giltA']], [[0.24, -0.008, 'giltB'], [0.25, 0.01, 'giltA'], [0.235, -0.004, 'giltB']]];
+  // 문 위 접시 · 장식판(nad_088 문틀 위 한 줄: 왼쪽 문 = 큰 접시 · 장식판, 오른쪽 문 = 큰 접시 셋). [칸, 문 가운데에서 x(m)] — 지름은 사진 그대로
+  const OVER = [[['p7', -0.43], ['p1', -0.02], ['cart', 0.4]], [['p5', -0.44], ['p6', 0.0], ['p7', 0.45]]];
   doors.forEach((s, di) => {
-    const c = s.cx, LW = OPEN / 2, zS = 0.03;
-    for (const sx of [-1, 1]) put(M.paint, rbox(0.1, LEAF_H + 0.12, 0.06, c + sx * (OPEN / 2 + 0.05), (LEAF_H + 0.12) / 2, 0.03));
-    put(M.paint, rbox(OPEN + 0.2, 0.12, 0.065, c, LEAF_H + 0.06, 0.0325));
-    put(M.paint, rbox(OPEN + 0.28, 0.035, 0.09, c, LEAF_H + 0.135, 0.045));
+    const c = s.cx, LW = OPEN / 2, zS = 0.034;
+    for (const sx of [-1, 1]) wood(rbox(0.11, LEAF_H + 0.13, 0.07, c + sx * (OPEN / 2 + 0.055), (LEAF_H + 0.13) / 2, 0.035, 0.012), true);
+    wood(rbox(OPEN + 0.22, 0.13, 0.075, c, LEAF_H + 0.065, 0.0375, 0.012));
+    wood(rbox(OPEN + 0.3, 0.04, 0.1, c, LEAF_H + 0.15, 0.05, 0.014));
     for (const sx of [-1, 1]) {
       const lx = c + sx * LW / 2, fr = LEAF_FR[(sx < 0 ? 0 : 1) ^ di];
-      put(M.paint, box(LW - 0.004, LEAF_H, 0.03, lx, LEAF_H / 2, zS - 0.015));
+      wood(box(LW - 0.004, LEAF_H, 0.03, lx, LEAF_H / 2, zS - 0.015), true);
       panel(lx, 0.555, 0.47, 0.79, zS); panel(lx, 1.16, 0.47, 0.22, zS); panel(lx, 1.995, 0.51, 1.25, zS, false);
-      // 위 판: 액자 셋을 세로로(크기 · 좌우가 조금씩 다르게 — 사진에서처럼 줄 맞춤이 아니다)
       let y = 2.6;
-      for (const [pw, dx, pr] of fr) { const oh = pw * 1.25 + 0.08; y -= oh / 2; const p = next(); if (p) giltFrame(p.id, lx + dx, y, pw, pr, zS + 0.001); y -= oh / 2 + 0.028; }
+      for (const [pw, dx, pr] of fr) { const oh = pw * 1.25 + 0.084; y -= oh / 2; const p = next(); if (p) giltFrame(p.id, lx + dx, y, pw, pr, zS + 0.001); y -= oh / 2 + 0.026; }
     }
     put(M.wood, box(0.006, LEAF_H - 0.02, 0.004, c, LEAF_H / 2, zS + 0.001));
     put(M.brass, box(0.012, 2.3, 0.008, c + 0.026, 1.3, zS + 0.006));                   // 걸쇠 막대
     put(M.brass, rbox(0.05, 0.11, 0.012, c + 0.026, 1.12, zS + 0.008, 0.004));
     for (const sx of [-1, 1]) put(M.brass, new T.SphereGeometry(0.02, 14, 10).translate(c + sx * 0.05, 1.12, zS + 0.03));
-    // 문 위 접시(nad_088: 문틀 위로 큰 접시와 작은 접시)
-    [[-0.56, 0.1, 2], [-0.27, 0.135, 0], [0.02, 0.1, 3], [0.3, 0.14, 1], [0.58, 0.095, 2]].forEach(([dx, r, k], j) => plate(c + (di ? -dx : dx), 3.0 + (j % 2) * 0.03, 0, r, k));
+    for (const [k, dx] of OVER[di]) {
+      const [, , cw, ch] = AT.objets[k], d = Math.max(cw, ch) * PXW, yc = LEAF_H + 0.17 + d / 2 + 0.03;
+      k === 'cart' ? cutout(k, c + dx, yc - ch * PXW / 2, 0.01, ch * PXW, M.plate) : plate(c + dx, yc, 0, k, d);
+    }
   });
-  // 모서리(nad_311): 가로 매트 넷을 거의 맞붙여 2×2 격자(매트마다 3 · 3 · 2 · 2), 위에 세로 매트 둘
+  // 모서리(nad_311): 위에 '나다르 판테온'(1854 석판화, 사진 속 그대로), 아래 가로 매트 넷을 맞붙인 2×2 격자(3 · 3 · 2 · 2), 판테온 양옆 세로 매트 둘
   {
     const c = corner.cx, PW = 0.155, MW = 0.66, MH = 0.31, OW = MW + 0.064, OH = MH + 0.064, gap = 0.01;
     const three = (ids) => ids.map((p, k) => ({ id: p.id, x: (k - 1) * (PW + 0.04), y: 0, pw: PW }));
     const two = (ids) => ids.map((p, k) => ({ id: p.id, x: (k - 0.5) * (PW + 0.12), y: 0, pw: PW }));
-    const yB = 1.62, yT = yB + OH + gap;
+    const yB = 1.36, yT = yB + OH + gap;
     const tl = [next(), next(), next()].filter(Boolean), tr = [next(), next(), next()].filter(Boolean), bl = [next(), next()].filter(Boolean), br = [next(), next()].filter(Boolean);
     matFrame(c - (OW + gap) / 2, yT, MW, MH, three(tl), 0.002);
     matFrame(c + (OW + gap) / 2, yT, MW, MH, three(tr), 0.002);
     matFrame(c - (OW + gap) / 2, yB, MW, MH, two(bl), 0.002);
     matFrame(c + (OW + gap) / 2, yB, MW, MH, two(br), 0.002);
-    const s1 = next(), s2 = next(), yS = yT + OH / 2 + 0.03;
-    if (s1) matFrame(c - 0.47, yS + 0.27, 0.36, 0.44, [{ id: s1.id, x: 0, y: 0.012, pw: 0.24 }], 0.002);
-    if (s2) matFrame(c + 0.52, yS + 0.24, 0.32, 0.38, [{ id: s2.id, x: 0, y: 0.01, pw: 0.21 }], 0.002);
+    const pw = 0.86, ph = pw * 293 / 357, yP = yT + OH / 2 + 0.03 + (ph + 0.16 + 0.09) / 2;
+    matFrame(c - 0.08, yP, pw + 0.14, ph + 0.16, [{ x: 0, y: 0.01, pw, ph, print: true }], 0.002, 0.045);
+    const s1 = next(), s2 = next();
+    if (s1) matFrame(c - 0.82, yP + 0.08, 0.3, 0.37, [{ id: s1.id, x: 0, y: 0.01, pw: 0.2 }], 0.002);
+    if (s2) matFrame(c + 0.68, yP - 0.02, 0.32, 0.4, [{ id: s2.id, x: 0, y: 0.01, pw: 0.22 }], 0.002);
   }
   while (pi < people.length) { const p = next(); console.warn('[c4] 걸 자리가 없는 사람', p && p.id); }
-  // 양 끝 · 사이 띠: 장식 없는 판벽(기록 없음 — 중립)
+  // 양 끝 · 사이 띠: 판벽(기록의 판벽과 같은 짜임, 장식 없음)
   for (const s of SEC) {
     if (s.k === 'fill') { const n = Math.round(s.w / 0.45); for (let i = 0; i < n; i++) { const x = s.x0 + s.w * (i + 0.5) / n; panel(x, 0.6, s.w / n - 0.12, 0.72, 0.0); panel(x, 2.1, s.w / n - 0.12, 1.9, 0.0); } }
-    if (s.k === 'strip') panel(s.cx, 1.45, s.w - 0.08, 2.5, 0.0);
+    if (s.k === 'strip') panel(s.cx, 1.45, s.w - 0.04, 2.5, 0.0, false);
   }
-  // 난로(nad_088): 받침 · 아래 띠 · 몸통(타일 격자) · 위 처마 · 탑 · 위의 그릇. 양옆 조각 콘솔 · 벽 선반(그릇 · 작은 청동 조상) · 접시
+  // 난로(nad_088): 앞면 · 옆면 · 받침 · 탑 · 콘솔 · 그릇 · 조상 · 장식판은 모두 사진에서 잘라 낸 그대로(크기도 사진 비율)
   {
-    const c = stoveS.cx, sz = 0.31, bw = 1.5, bh = 1.42, bd = 0.58, y0 = 0.36;
-    put(M.wood, rbox(1.64, 0.3, 0.68, c, 0.15, sz + 0.02, 0.012));
-    put(M.glaze, rbox(1.56, 0.06, 0.62, c, y0 - 0.03, sz, 0.015));
-    const body = new T.Mesh(new T.BoxGeometry(bw, bh, bd), [M.stoveS, M.stoveS, M.glaze, M.glaze, M.stoveF, M.stoveS]); body.position.set(c, y0 + bh / 2, sz); root.add(body);
-    put(M.glaze, rbox(1.6, 0.05, 0.64, c, y0 + bh + 0.025, sz, 0.012));
-    put(M.glaze, rbox(1.64, 0.05, 0.68, c, y0 + bh + 0.075, sz, 0.015));
-    const top = y0 + bh + 0.1;
-    const tower = new T.Mesh(new T.CylinderGeometry(0.2, 0.2, 0.62, 6, 1, true).rotateY(Math.PI / 6), M.stoveT); tower.position.set(c, top + 0.31, sz - 0.05); root.add(tower);
-    put(M.glaze, new T.CylinderGeometry(0.235, 0.22, 0.06, 6).rotateY(Math.PI / 6).translate(c, top + 0.03, sz - 0.05));
-    put(M.glaze, new T.CylinderGeometry(0.235, 0.205, 0.07, 6).rotateY(Math.PI / 6).translate(c, top + 0.655, sz - 0.05));
-    put(M.glaze, new T.CylinderGeometry(0.17, 0.235, 0.035, 6).rotateY(Math.PI / 6).translate(c, top + 0.707, sz - 0.05));
-    for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; put(M.glaze, rbox(0.06, 0.06, 0.03, c + Math.cos(a) * 0.2, top + 0.72, sz - 0.05 + Math.sin(a) * 0.2, 0.008)); }   // 탑 위 톱니(nad_088)
-    const jug = (x, h) => put(M.vase, lathe([[0, 0], [0.05, 0], [0.065, 0.05 * h], [0.072, 0.11 * h], [0.05, 0.17 * h], [0.038, 0.19 * h], [0.046, 0.23 * h], [0.04, 0.235 * h], [0, 0.235 * h]], 18).translate(x, top, sz + 0.05));
-    jug(c - 0.36, 0.85); jug(c + 0.36, 0.85); jug(c - 0.62, 0.7); jug(c + 0.62, 0.7);
+    const c = stoveS.cx, [, , bwp, bhp] = AT.stove.body, bw = bwp * PXS, bh = bhp * PXS, bd = 0.56, sz = 0.33;
+    const [, , pwp, php] = AT.stove.plinth, pw = pwp * PXS, phh = php * PXS, y0 = phh;
+    // 받침(짙은 나무, 사진 그대로)
+    const pl = new T.BoxGeometry(pw, phh, bd + 0.1); proj(pl, cell('plinth'), -pw / 2, pw / 2, -phh / 2, phh / 2); put(M.carved, pl.translate(c, phh / 2, sz));
+    // 몸통: 앞면 = 타일 전체, 옆면 = 왼쪽 세 칸(같은 크기로)
+    const fr = new T.PlaneGeometry(bw, bh); proj(fr, cell('body'), -bw / 2, bw / 2, -bh / 2, bh / 2); put(M.stove, fr.translate(c, y0 + bh / 2, sz + bd / 2));
+    for (const sx of [-1, 1]) { const sd = new T.PlaneGeometry(bd, bh); proj(sd, cell('body', false, 0, bd / bw), -bd / 2, bd / 2, -bh / 2, bh / 2); put(M.stove, sd.rotateY(sx * Math.PI / 2).translate(c + sx * bw / 2, y0 + bh / 2, sz)); }
+    const top = y0 + bh;
+    // 처마: 몸통 아래 띠(달걀 무늬)를 두 단으로
+    for (const [w, h, d, yy] of [[bw + 0.04, 0.035, bd + 0.04, top + 0.0175], [bw + 0.08, 0.035, bd + 0.08, top + 0.0525]]) { const g = new T.BoxGeometry(w, h, d); proj(g, cell('body', false, 0, 1, 0.955, 1), -w / 2, w / 2, -h / 2, h / 2); put(M.stove, g.translate(c, yy, sz)); }
+    const top2 = top + 0.07;
+    // 탑: 네모 기둥을 45° 돌려 두 면이 보이게(사진 속 두 줄 벽감), 위에 넓어지는 관
+    const [, , twp, thp] = AT.stove.tower, tw = twp * PXS, th = thp * PXS, side = tw / Math.SQRT2;
+    const tg = new T.BoxGeometry(side, th, side).rotateY(Math.PI / 4); proj(tg, cell('tower'), -tw / 2, tw / 2, -th / 2, th / 2); put(M.stove, tg.translate(c, top2 + th / 2, sz - 0.08));
+    const [, , cwp, chp] = AT.stove.crown, cw = cwp * PXS, ch = chp * PXS;
+    const cg = new T.CylinderGeometry(cw / 2, side * 0.78, ch, 4, 1).rotateY(Math.PI / 4); proj(cg, cell('crown'), -cw / 2, cw / 2, -ch / 2, ch / 2); put(M.stove, cg.translate(c, top2 + th + ch / 2, sz - 0.08));
+    // 처마 위 그릇(사진 위치 · 크기): 뚜껑 단지 둘 · 작은 단지 둘, 가운데 앞에 작은 조상(기사)
+    const jar = [[0, 0], [0.06, 0], [0.068, 0.03], [0.085, 0.07], [0.095, 0.15], [0.09, 0.2], [0.075, 0.22], [0.08, 0.235], [0.07, 0.26], [0.03, 0.29], [0.018, 0.3], [0.022, 0.315], [0, 0.318]];
+    const jug = [[0, 0], [0.055, 0], [0.06, 0.02], [0.055, 0.04], [0.047, 0.1], [0.052, 0.17], [0.06, 0.2], [0.05, 0.215], [0, 0.215]];
+    vessel('jarL', c - 0.53, top2, sz + 0.1, jar, 0.06, 0.94); vessel('jarR', c + 0.55, top2, sz + 0.1, jar, 0.04, 0.94);
+    vessel('jugL', c - 0.25, top2, sz + 0.12, jug, 0.04, 0.96); vessel('jugR', c + 0.25, top2, sz + 0.12, jug, 0.0, 0.94);
+    cutout('knight', c - 0.02, top2, sz + bd / 2 - 0.08, AT.objets.knight[3] * PXS, M.cut, false);
     for (const sx of [-1, 1]) {
-      // 조각 콘솔
-      const kx = c + sx * 0.95;
-      const k = new T.Mesh(new T.BoxGeometry(0.26, 1.3, 0.13), [M.wood, M.wood, M.wood, M.wood, M.carved, M.wood]); k.position.set(kx, 1.15, 0.065); root.add(k);
-      put(M.wood, rbox(0.34, 0.09, 0.2, kx, 1.845, 0.1, 0.01)); put(M.wood, rbox(0.3, 0.06, 0.16, kx, 0.47, 0.08, 0.01));
-      // 벽 선반 둘: 키 큰 그릇 · 작은 청동 조상
-      const bx = c + sx * 0.5, by = 2.15;
-      put(M.wood, rbox(0.32, 0.035, 0.2, bx, by, 0.1, 0.008));
-      { const bs = new T.Shape(); bs.moveTo(0, 0); bs.lineTo(0.17, 0); bs.lineTo(0.17, -0.03); bs.quadraticCurveTo(0.05, -0.04, 0.02, -0.2); bs.lineTo(0, -0.2); bs.closePath(); put(M.wood, new T.ExtrudeGeometry(bs, { depth: 0.05, bevelEnabled: false, curveSegments: 8 }).rotateY(-Math.PI / 2).translate(bx + 0.025, by - 0.0175, 0)); }
-      // 선반 위 키 큰 그릇(nad_088 에서 탑 양옆의 어두운 원통형 그릇 — 재질은 사진으로 확정 못 함, 어두운 청동빛으로)
-      put(M.bronze, lathe([[0, 0], [0.05, 0], [0.05, 0.02], [0.03, 0.04], [0.03, 0.06], [0.06, 0.12], [0.075, 0.2], [0.07, 0.27], [0.045, 0.33], [0.035, 0.37], [0.05, 0.4], [0.042, 0.41], [0, 0.41]], 20).translate(bx, by + 0.0175, 0.1));
-      // 접시: 콘솔 위 세로 셋(작게) · 그 위 큰 접시
-      for (let i = 0; i < 3; i++) plate(c + sx * 0.97, 2.26 + i * 0.22, 0, 0.075, (i + (sx > 0 ? 1 : 0)) % 2 ? 2 : 0);
-      plate(c + sx * 0.72, 3.08, 0, 0.14, sx > 0 ? 1 : 0);
+      // 조각 콘솔(사진 그대로) · 그 위의 큰 성인상
+      const [, , kwp, khp] = AT.stove[sx < 0 ? 'conL' : 'conR'], kw = kwp * PXS, kh = khp * PXS, kx = c + sx * 0.83, ky = 0.36;
+      const kg = new T.BoxGeometry(kw, kh, 0.15); proj(kg, cell(sx < 0 ? 'conL' : 'conR'), -kw / 2, kw / 2, -kh / 2, kh / 2); put(M.carved, kg.translate(kx, ky + kh / 2, 0.075));
+      wood(rbox(kw + 0.08, 0.05, 0.2, kx, ky + kh + 0.025, 0.1, 0.01));
+      const sk = sx < 0 ? 'saintL' : 'saintR'; cutout(sk, kx + sx * 0.01, ky + kh + 0.05, 0.12, AT.objets[sk][3] * PXS, M.cut, false);
+      // 벽 선반: 키 큰 그릇(사진의 무늬) · 작은 조상, 뒤 벽에 꽃잎 장식판
+      const bx = c + sx * 0.42, by = 2.32;
+      wood(rbox(0.44, 0.035, 0.22, bx, by, 0.11, 0.008));
+      { const bs = new T.Shape(); bs.moveTo(0, 0); bs.lineTo(0.19, 0); bs.lineTo(0.19, -0.03); bs.quadraticCurveTo(0.05, -0.05, 0.03, -0.22); bs.lineTo(0, -0.22); bs.closePath(); wood(new T.ExtrudeGeometry(bs, { depth: 0.05, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2, curveSegments: 8 }).rotateY(-Math.PI / 2).translate(bx + 0.025 + sx * 0.08, by - 0.0175, 0)); }
+      const vk = sx < 0 ? 'vaseL' : 'vaseR', vh = AT.stove[vk][3] * PXS * 0.97;
+      vessel(vk, c + sx * 0.52, by + 0.0175, 0.12, [[0, 0], [0.06, 0], [0.064, 0.02], [0.06, 0.04], [0.062, 0.1], [0.07, vh * 0.8], [0.078, vh * 0.95], [0.082, vh], [0, vh]], sx < 0 ? 0.2 : 0.06, sx < 0 ? 0.92 : 0.96);
+      const fk = sx < 0 ? 'figL' : 'figR'; cutout(fk, c + sx * 0.3, by + 0.0175, 0.12, AT.objets[fk][3] * PXS, M.cut, false);
+      const qk = sx < 0 ? 'plqL' : 'plqR'; cutout(qk, c + sx * 0.3, by + 0.2, 0.006, AT.objets[qk][3] * PXW, M.plate);
+      // 접시: 콘솔 위로 세로 셋(작게, 사진 위치)
+      [['p2', 2.94], ['p3', 2.72], [sx < 0 ? 'p4' : 'p2', 2.5]].forEach(([k, y], i) => plate(c + sx * 0.86, y, 0, sx > 0 && i === 0 ? 'p4' : k, AT.objets[k][2] * PXW));
     }
   }
-  // 들보 앞면의 접시 한 줄(nad_088 · 311: 꽃잎 접시와 둥근 접시가 번갈아)
-  for (let x = 0.5, k = 0; x < TOTAL - 0.3; x += 0.78, k++) plate(x, (BY0 + BY1) / 2 + 0.02, BZ + 0.06, k % 2 ? 0.13 : 0.12, k % 2 ? 1 : 0);
+  // 들보 앞면의 접시 한 줄(nad_088 · 089 · 311: 들보 앞면에 접시와 꽃잎 장식판이 번갈아)
+  for (let x = 0.45, k = 0; x < TOTAL - 0.3; x += 0.62, k++) { const kk = ['p5', 'p1', 'p6', 'p7'][k % 4]; plate(x, (BY0 + BY1) / 2 + 0.02, BZ + 0.06, kk, 0.32); }
   // 합치기
   for (const [mat, list] of G) { const mesh = new T.Mesh(mergeG(list, !!mat.vertexColors), mat); if (mat === M.shadow) mesh.renderOrder = 1; root.add(mesh); }
   G.clear();
@@ -576,7 +556,7 @@ float c4band(vec2 uv){ float e = uv.x*0.55 + (1.0-uv.y)*0.45; return uGlow > 0.0
 
   // ───────────────────────── 카메라 · 흐름
   const cam = new T.PerspectiveCamera(50, 1, 0.05, 80);
-  const CAM = { y: 1.9, z: 3.4, ty: 2.3 };
+  const CAM = { y: 1.9, z: 3.9, ty: 2.25 };
   const XLIM = (X1 - X0) / 2;
   const st = { x: doors[0].cx - MID, v: 0, dir: 1, pitch: 0, pitchT: 0, z: CAM.z, y: CAM.y, ty: CAM.ty, tx: 0, mode: 'street', drag: null, cruise: reduced ? 0 : 0.075, ramp: 0, entering: null, q: null };
   let W = 1, H = 1;
@@ -835,6 +815,8 @@ float c4band(vec2 uv){ float e = uv.x*0.55 + (1.0-uv.y)*0.45; return uGlow > 0.0
       if (st.x > XLIM + 0.3 || st.x < -XLIM - 0.3) { st.x = clamp(st.x, -XLIM - 0.3, XLIM + 0.3); st.v *= -0.2; }
       if (!ptr) st.pitchT *= 1 - Math.min(1, dt * 0.25);
     }
+    // 난로 앞에서는 한 걸음 물러나 난로 · 탑 · 콘솔을 한눈에(사진 nad_088 의 구도)
+    if (st.mode === 'wall') { const k = 1 - sstep(0.45, 1.5, Math.abs(st.x - STOVE_X)); st.z += (CAM.z + 0.95 * k - st.z) * Math.min(1, dt * 1.1); st.ty += (CAM.ty + 0.22 * k - st.ty) * Math.min(1, dt * 1.1); }
     st.pitch += (st.pitchT - st.pitch) * Math.min(1, dt * 6);
     const bob = reduced ? 0 : Math.sin(tSec * 0.31) * 0.02;
     // 벽을 비스듬히(가는 쪽을 조금 앞서 보며) — 액자 · 문틀 · 난로의 두께가 보이고 앞뒤 시차가 생긴다
