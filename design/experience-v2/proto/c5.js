@@ -22,20 +22,22 @@ const Q = new URLSearchParams(location.search);          // 검수용: ?now=15:4
 // ════════ 〈인상, 해돋이〉 — 마지막 방의 한 점(본 흐름). 연작은 아래 "연작 보기" 뒤로
 //   한 자리에서 끊기지 않게(10/23 다시 짬): 화면에서 틀(그림 비율)의 자리는 비추기부터 끝까지 한 번도 바뀌지 않는다.
 //   ① 비추기: 어두운 벽 · 조명 아래, 가운데 그림 비율의 틀(네 귀). 틀 안에는 초점이 안 맞은 그림
-//   ② 인식(시연: 누르면): 그림이 그 틀에 그대로 맺힌다 — 크기 · 자리 그대로, 네 귀가 잠깐 주황으로 잠기고 사라진다
-//   ③ 같은 틀 안에서 그림이 움직이는 장면으로 풀린다(밝은 자리부터 부드러운 앞머리 · 배는 한 덩어리 · 형태 변형 없음)
+//   ② 인식(시연: 누르면): 같은 틀 안이 곧바로 움직이는 장면이 된다 — 비추기 화면에서 재생 중인 영상으로 약 0.9초 부드럽게(그림을 먼저 보이지 않는다).
+//      네 귀는 제자리에서 잠깐 주황으로 잠기고 사라진다. 크기 · 자리 그대로
+//      (클라이언트: "스캔하면 영상이 나오다가 그게 그림으로 전환돼야지 그림 영상 그림 전환되는게 이상해")
+//   ③ 틀 안에서 장면이 잠깐 흐른 뒤
 //   ④ 장면이 틀 밖으로 번져 화면 전체를 채운다 — 화면 전체 크기의 웹GL 캔버스가 틀 → 화면으로 아주 천천히 커진다(CSS 확대 없음, 늘 또렷).
 //      틀 가장자리는 무르게 풀리고, 틀 밖 어두운 벽은 장면의 빛깔로 밝아진다(방이 그 아침의 항구가 된다). 글자는 물러난다
 //   ⑤ 화면 가득 장면(해 x≈0.60 · 배 x≈0.47 이 늘 보이게 둘 사이를 가운데로, 아주 느린 밀기) · 아래에 작은 때와 곳
 //   ⑥ 끝 무렵 장면이 처음 틀로 되돌아오고, 그 틀 안에서 천천히(5초) 그림으로
-//   ⑦ 그림이 틀에 머문다 → 한 줄 · [처음으로 | 수집함에 저장] · 다시 보기(③부터)
+//   ⑦ 그림이 틀에 머문다 → 한 줄 · [처음으로 | 수집함에 저장] · 다시 보기(틀 안의 그림 → 장면 약 1초 크로스페이드 뒤 ④부터 같은 순서)
 //   prefers-reduced-motion: 커지지 않고 틀 안에서 크로스페이드만. 웹GL 이 없으면 틀 안 CSS 페이드
 const SUN = {
   RATE: 0.62,                 // 영상 빠르기(10초 → 약 16초). 커지고 머물고 돌아올 시간을 벌고, 물 · 연기가 느긋하게
-  FOUND_MS: 1200,             // 인식 → 틀 안의 그림이 또렷해지기
-  HOLD_MS: 1500,              // 그 뒤 그림만 보이는 잠깐
-  IN_S: 3.4,                  // ③ 그림 → 장면(틀 안)
-  EXP_AT: 2.6, EXP_S: 3.8,    // ④ 틀 → 화면 가득(풀림이 3/4쯤 지났을 때 시작)
+  CONFIRM_MS: 280,            // 인식 → 네 귀가 잠기는 잠깐 뒤 장면 시작
+  FADE_IN_MS: 900,            // ② 비추기 화면 → 재생 중인 장면(틀 안, 부드러운 페이드)
+  REPLAY_IN_S: 1.0,           // 다시 보기: 틀 안의 그림 → 장면 크로스페이드
+  EXP_AT: 1.8, EXP_S: 3.8,    // ④ 틀 → 화면 가득(장면이 틀 안에서 잠깐 흐른 뒤)
   CON_S: 3.4, CON_LAP: 0.5,   // ⑥ 화면 → 틀(다 돌아오기 0.5초 전부터 그림으로 풀리기 시작)
   OUT_S: 5.0,                 // ⑥ 장면 → 그림(틀 안)
   TAIL_S: 1.0,                // 영상이 끝난 뒤 마지막 프레임 위로 이어지는 몫(이때는 이미 거의 그림)
@@ -43,7 +45,7 @@ const SUN = {
   FOCUS: [0.535, 0.5],        // 화면 가득일 때 가운데에 둘 자리(그림 좌표) — 배 0.47 과 해 0.60 사이
   END_DELAY_MS: 900,
 };
-const SUN_RM = { IN_S: 1.6, OUT_S: 2.4, TAIL_S: 0.3 };       // 움직임 줄이기: 틀 안 크로스페이드만
+const SUN_RM = { OUT_S: 2.4, TAIL_S: 0.3 };                  // 움직임 줄이기: 틀 안 크로스페이드만
 const SCENE_VIDEO = 'video/sunrise-scene.mp4';                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
 const SCENE_READY = true;                                     // 실제 영상(10/23 팀원 제작, 752×560 · 10초 · H.264로 다시 인코딩). 못 불러오면 임시 영상으로
 // 실제 영상을 그림에 맞추는 값 — 해 · 작은 배 위치를 재서 맞춤(가운데 기준 1.05배 · 아래로 높이의 2.5%). 해·배 오차 0.6% 이내, 가장자리 빈틈 없음
@@ -112,7 +114,7 @@ const sun = (() => {
   const ez = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * x * (x * (x * 6 - 15) + 10); };   // smootherstep — 들어가고 나오는 끝이 아주 무르다
   const clamp01 = (x) => Math.max(0, Math.min(1, x));
   let state = 'scan', mix = 0, wide = 0, placeholder = false, vidOk = true, endTimer = 0, raf = 0, g = null;
-  let tNow = 0, endWall = 0, lastVt = -1, lastVtWall = 0, rect = null;
+  let tNow = 0, endWall = 0, lastVt = -1, lastVtWall = 0, rect = null, replaying = false, flat = reduceMotion ? 1 : 0;
 
   // 영상: 실제 파일 → 없으면 임시 영상 → 그것도 없으면 장면 없이 그림만
   vid.muted = true; vid.playsInline = true; vid.loop = false;
@@ -191,7 +193,7 @@ const sun = (() => {
       c.uniform1i(U('uP'), 0); c.uniform1i(U('uV'), 1); c.uniform1i(U('uK'), 2); c.uniform1f(U('uSoft'), 0.36);
       c.uniform1f(U('uSc'), 1); c.uniform2f(U('uT'), 0, 0); c.uniform1f(U('uFlat'), reduceMotion ? 1 : 0);
       c.clearColor(0, 0, 0, 0);
-      const names = ['uMix', 'uVS', 'uPx', 'uSc', 'uT', 'uRes', 'uDpr', 'uR', 'uFeather', 'uRoom'];
+      const names = ['uMix', 'uFlat', 'uVS', 'uPx', 'uSc', 'uT', 'uRes', 'uDpr', 'uR', 'uFeather', 'uRoom'];
       const u = {}; names.forEach((n) => { u[n] = U(n); });
       return { c, tP, tV, tK, u, vidFrame: false };
     } catch (e) { console.warn('[c5 sunrise] webgl', e); return null; }
@@ -274,7 +276,7 @@ const sun = (() => {
     const va = vid.videoWidth && vid.videoHeight ? vid.videoWidth / vid.videoHeight : 4 / 3;
     c.uniform2f(u.uVS, va > AR ? AR / va : 1, va > AR ? 1 : va / AR);
     const fit = placeholder ? { s: 1, x: 0, y: 0 } : SCENE_FIT; c.uniform1f(u.uSc, fit.s); c.uniform2f(u.uT, fit.x, fit.y);
-    c.uniform1f(u.uMix, g.vidFrame ? mix : 0);
+    c.uniform1f(u.uMix, g.vidFrame ? mix : 0); c.uniform1f(u.uFlat, flat);
     c.uniform4f(u.uR, R.x, R.y, R.w, R.h);
     c.uniform2f(u.uPx, 1 / Math.max(1, R.w), 1 / Math.max(1, R.h));                // 흐림 반지름은 화면 px 기준
     c.uniform1f(u.uFeather, 64 * ez(wide / 0.3));                                     // 커지는 동안만 틀 가장자리가 무르게
@@ -292,9 +294,9 @@ const sun = (() => {
   const vidDur = () => (isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 10);
   function plan() {
     const D = vidDur() / rate();
-    if (reduceMotion) { const outEnd = D + SUN_RM.TAIL_S; return { inS: SUN_RM.IN_S, expS: Infinity, expE: Infinity, conS: Infinity, conE: Infinity, outS: outEnd - SUN_RM.OUT_S, outEnd }; }
+    if (reduceMotion) { const outEnd = D + SUN_RM.TAIL_S; return { inS: replaying ? SUN.REPLAY_IN_S : 0, expS: Infinity, expE: Infinity, conS: Infinity, conE: Infinity, outS: outEnd - SUN_RM.OUT_S, outEnd }; }
     const outEnd = D + SUN.TAIL_S, outS = outEnd - SUN.OUT_S, conE = outS + SUN.CON_LAP, conS = conE - SUN.CON_S;
-    return { inS: SUN.IN_S, expS: SUN.EXP_AT, expE: SUN.EXP_AT + SUN.EXP_S, conS, conE, outS, outEnd };
+    return { inS: replaying ? SUN.REPLAY_IN_S : 0, expS: SUN.EXP_AT, expE: SUN.EXP_AT + SUN.EXP_S, conS, conE, outS, outEnd };
   }
   function clock(now) {
     const vt = vid.currentTime, r = rate(), dur = vidDur();
@@ -307,7 +309,8 @@ const sun = (() => {
     raf = 0; if (state !== 'play') return;
     tNow = clock(now || performance.now());
     const P = plan(), t = tNow;
-    mix = Math.min(ez(t / P.inS), 1 - ez((t - P.outS) / (P.outEnd - P.outS)));
+    mix = Math.min(P.inS > 0 ? ez(t / P.inS) : 1, 1 - ez((t - P.outS) / (P.outEnd - P.outS)));   // 처음은 장면부터(1). 다시 보기만 그림 → 장면
+    flat = reduceMotion || (P.inS > 0 && t < P.inS) ? 1 : 0;                  // 다시 보기의 들어가기는 고른 크로스페이드, 장면 → 그림은 밝은 자리부터
     wide = reduceMotion || !g ? 0 : ez((t - P.expS) / (P.expE - P.expS)) * (1 - ez((t - P.conS) / (P.conE - P.conS)));
     pushK = ez((t - P.expS - 1.2) / Math.max(1, P.conS - P.expS - 1.2));
     body.classList.toggle('immersed', wide > 0.015);
@@ -318,14 +321,25 @@ const sun = (() => {
     if (t >= P.outEnd) { finish(); return; }
     raf = requestAnimationFrame(tick);
   }
-  function play() {
+  function play(fromScan) {
     if (!vidOk) { finish(); return; }
     clearTimeout(endTimer); end.classList.remove('on'); cap.classList.remove('on'); stage.classList.remove('glow');
-    state = 'play'; tNow = 0; endWall = 0; lastVt = -1; mix = 0; wide = 0; pushK = 0;
+    replaying = !fromScan;
+    state = 'play'; tNow = 0; endWall = 0; lastVt = -1; wide = 0; pushK = 0; mix = replaying ? 0 : 1; flat = reduceMotion || replaying ? 1 : 0;
     try { vid.pause(); vid.currentTime = 0; } catch (_) { /* noop */ }
     vid.playbackRate = rate();
-    if (g) { draw(); cv.classList.add('on'); stage.classList.add('live'); }   // 같은 프레임에 그림(<img>) → 캔버스(같은 자리 · 같은 그림)
     const p = vid.play(); if (p && p.catch) p.catch(() => setTimeout(() => { if (state === 'play' && vid.paused) vid.play().catch(() => finish()); }, 400));   // 임시 영상으로 바뀌는 중이면 한 번 더
+    if (g) {
+      draw(); stage.classList.add('live');
+      if (fromScan) {
+        // 비추기 화면 위로 재생 중인 장면이 같은 틀에 부드럽게 든다(그림을 거치지 않는다). 다 든 뒤 비추기 막을 치운다
+        cv.classList.add('soft'); requestAnimationFrame(() => cv.classList.add('on'));
+        setTimeout(() => { cv.classList.remove('soft'); stage.classList.add('shown'); document.getElementById('scan').hidden = true; }, (reduceMotion ? 300 : SUN.FADE_IN_MS) + 120);
+      } else cv.classList.add('on');                                          // 다시 보기: 틀의 그림(<img>) → 같은 그림의 캔버스, 그다음 장면으로 크로스페이드
+    } else {
+      stage.classList.add('shown', 'scene');                                  // 웹GL 없음: 비추기 막이 걷히며 영상이 드러난다
+      setTimeout(() => { document.getElementById('scan').hidden = true; }, 1300);
+    }
     if (!raf) raf = requestAnimationFrame(tick);
   }
   function finish() {
@@ -333,7 +347,7 @@ const sun = (() => {
     state = 'end'; mix = 0; wide = 0; draw(); cap.classList.remove('on'); stage.classList.remove('scene'); body.classList.remove('immersed');
     try { vid.pause(); } catch (_) { /* noop */ }
     // 캔버스 → 그림(<img>): 같은 자리 · 같은 그림. 페이지가 굴러도 그림이 틀과 함께 가도록 쉬는 동안은 <img> 가 맡는다
-    stage.classList.remove('live'); cv.classList.remove('on');
+    stage.classList.add('shown'); stage.classList.remove('live'); cv.classList.remove('on', 'soft');
     clearTimeout(endTimer);
     // 해의 주황이 잠깐 빛나고, 그와 함께 마지막 한 줄
     setTimeout(() => { void stage.offsetWidth; stage.classList.add('glow'); }, reduceMotion ? 0 : Math.max(0, SUN.END_DELAY_MS - 350));
@@ -342,18 +356,15 @@ const sun = (() => {
   async function scan() {
     if (state !== 'scan') return;
     state = 'found'; stage.dataset.state = 'found'; haptic(30); spotlight.found();
-    // 틀은 그대로 — 그 안의 흐린 그림이 초점을 맞추며 또렷한 그림이 된다
-    requestAnimationFrame(() => stage.classList.add('shown'));
-    // 비추기 막이 다 걷히면 아예 치운다(투명해진 막이 그림을 덮는 브라우저가 있다)
-    const scanBtn = document.getElementById('scan'); setTimeout(() => { scanBtn.hidden = true; }, reduceMotion ? 350 : SUN.FOUND_MS + 150);
-    await Promise.all([glReady, vidReady(), new Promise((r) => setTimeout(r, reduceMotion ? 300 : SUN.FOUND_MS + SUN.HOLD_MS))]);
+    // 틀은 그대로 — 네 귀가 잠깐 잠기고, 같은 틀 안이 곧바로 움직이는 장면이 된다
+    await Promise.all([glReady, vidReady(), new Promise((r) => setTimeout(r, reduceMotion ? 100 : SUN.CONFIRM_MS))]);
     stage.dataset.state = 'shown';
-    play();
+    play(true);
   }
   function replay() {
     if (state !== 'end') return; state = 'replay'; haptic(6);
     end.classList.remove('on'); stage.classList.remove('glow');
-    setTimeout(play, reduceMotion ? 200 : 1100);   // 한 줄과 단추가 물러난 뒤 ③부터
+    setTimeout(() => play(false), reduceMotion ? 200 : 1100);   // 한 줄과 단추가 물러난 뒤, 틀의 그림 → 장면(약 1초) → ④부터 같은 순서
   }
   document.getElementById('scan').addEventListener('click', scan);
   document.getElementById('sunReplay').addEventListener('click', replay);

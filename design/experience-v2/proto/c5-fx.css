@@ -1,4 +1,4 @@
-/* C5 효과 — 어둠 속 전시장 조명 하나(데워지며 켜짐 · 빛줄기 속 먼지) → 빛 안의 비추기 틀 → 인식: 틀 그대로 그림이 맺힘(네 귀가 잠깐 잠김) → 장면이 틀 밖으로 번져 화면 가득 → 틀로 돌아와 그림, 해의 주황이 잠깐 빛남.
+/* C5 효과 — 어둠 속 전시장 조명 하나(데워지며 켜짐 · 빛줄기 속 먼지) → 빛 안의 비추기 틀 → 인식: 같은 틀 안이 곧바로 장면(네 귀가 잠깐 잠김) → 장면이 틀 밖으로 번져 화면 가득 → 틀로 돌아와 그림, 해의 주황이 잠깐 빛남.
    연작 벽 · 한 점 보기도 끊지 않고 열고 닫는다. transform · opacity 위주. prefers-reduced-motion: 크로스페이드만 */
 
 /* ── 조명 */
@@ -42,8 +42,7 @@ body.spot-on:not(.lit) .scan-txt { opacity: 0; transform: translateY(6px); }
 body.lit .sun-stage[data-state="scan"] .scan-frame { animation: frameBreath 3.2s ease-in-out 1.2s infinite; }
 @keyframes frameBreath { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 /* 인식 — 네 귀가 제자리에서 주황으로 잠기고(살짝 빛), 그림이 또렷해지는 동안 천천히 사라진다 */
-.sun-stage[data-state="found"] .scan-frame i { border-color: var(--point); filter: drop-shadow(0 0 5px rgba(217,103,47,.7)); transition: border-color .35s ease, filter .35s ease, opacity .8s ease .55s; opacity: 0; }
-.sun-stage[data-state="found"] .scan-view { transition: filter 1.2s ease, opacity 1.2s ease, transform 1.2s cubic-bezier(.4,0,.2,1); }
+.sun-stage[data-state="found"] .scan-frame i, .sun-stage[data-state="shown"] .scan-frame i { border-color: var(--point); filter: drop-shadow(0 0 5px rgba(217,103,47,.7)); transition: border-color .35s ease, filter .35s ease, opacity .8s ease .55s; opacity: 0; }
 .scan:active .scan-frame i { border-color: var(--point); }
 
 /* 그림으로 돌아올 때 — 해의 주황이 잠깐 빛난다(해 · 물 위 빛줄기) */
