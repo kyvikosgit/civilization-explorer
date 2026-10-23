@@ -17,18 +17,33 @@ const DETAIL_LAG = 400;                                 // 겹칠: 세부가 색
 const PLACE = { haystacks: '지베르니 · 1890–91', rouen: '루앙 · 1892–94', parliament: '런던 · 1900–04', waterloo: '런던 · 1900–03', seine: '지베르니 · 1897' };
 const ORDER = ['haystacks', 'rouen', 'parliament', 'waterloo', 'seine'];
 const STYLES = ['모핑', '붓자국', '빛 쓸림', '번짐', '겹칠'];
-const Q = new URLSearchParams(location.search);          // 검수용: ?now=15:40 ?style=2 ?order=scene-paint
+const Q = new URLSearchParams(location.search);          // 검수용: ?now=15:40 ?style=2
 
 // ════════ 〈인상, 해돋이〉 — 마지막 방의 한 점(본 흐름). 연작은 아래 "연작 보기" 뒤로
-//   비추기(시연: 뷰파인더를 누르면 인식) → 그림이 화면 폭 가득, 그림 비율 그대로 → 약 3초 그림만 → 그림이 그날 아침의 장면으로 풀린다(3.4초)
-//   → 장면(소리 없음, 조작 없음, 0.85배로 느리게) → 끝 무렵 다시 그림으로(3.4초) → 잠시 뒤 "모네는 이 아침을 이렇게 남겼습니다." · 다시 보기 · 이 그림 저장
-//   풀림: 빛이 먼저 — 해 · 물 위 빛 · 하늘의 밝은 자리부터 아주 넓고 부드러운 앞머리로 번져 나간다(낮은 주파수만, 얼룩무늬 없음).
-//         앞머리가 지나가는 자리에서 그림의 붓결은 살짝 풀리고(흐림) 장면은 초점이 맺히듯 또렷해진다. 형태를 움직이는 변형은 없다(색조와 초점만).
-//   영상은 4:3 → 그림 비율로 가운데를 잘라(높이 맞춤 · cover) 그림과 같은 자리에 겹친다. 웹GL 이 없으면 CSS 페이드
+//   한 자리에서 끊기지 않게(10/23 다시 짬): 화면에서 틀(그림 비율)의 자리는 비추기부터 끝까지 한 번도 바뀌지 않는다.
+//   ① 비추기: 어두운 벽 · 조명 아래, 가운데 그림 비율의 틀(네 귀). 틀 안에는 초점이 안 맞은 그림
+//   ② 인식(시연: 누르면): 그림이 그 틀에 그대로 맺힌다 — 크기 · 자리 그대로, 네 귀가 잠깐 주황으로 잠기고 사라진다
+//   ③ 같은 틀 안에서 그림이 움직이는 장면으로 풀린다(밝은 자리부터 부드러운 앞머리 · 배는 한 덩어리 · 형태 변형 없음)
+//   ④ 장면이 틀 밖으로 번져 화면 전체를 채운다 — 화면 전체 크기의 웹GL 캔버스가 틀 → 화면으로 아주 천천히 커진다(CSS 확대 없음, 늘 또렷).
+//      틀 가장자리는 무르게 풀리고, 틀 밖 어두운 벽은 장면의 빛깔로 밝아진다(방이 그 아침의 항구가 된다). 글자는 물러난다
+//   ⑤ 화면 가득 장면(해 x≈0.60 · 배 x≈0.47 이 늘 보이게 둘 사이를 가운데로, 아주 느린 밀기) · 아래에 작은 때와 곳
+//   ⑥ 끝 무렵 장면이 처음 틀로 되돌아오고, 그 틀 안에서 천천히(5초) 그림으로
+//   ⑦ 그림이 틀에 머문다 → 한 줄 · [처음으로 | 수집함에 저장] · 다시 보기(③부터)
+//   prefers-reduced-motion: 커지지 않고 틀 안에서 크로스페이드만. 웹GL 이 없으면 틀 안 CSS 페이드
 const SUN = {
-  ORDER: Q.get('order') === 'paint-scene-paint' ? 'paint-scene-paint' : 'scene-paint',   // 기본(10/23): 비추면 장면(영상)부터 → 끝에 그림으로 천천히. 'paint-scene-paint' 는 예전 순서
-  REVEAL_MS: 900, HOLD_MS: 2200, DISSOLVE_S: 3.4, DISSOLVE_OUT_S: 5.0, RATE: 0.85, END_DELAY_MS: 900, REPLAY_IN_S: 1.2,
+  RATE: 0.62,                 // 영상 빠르기(10초 → 약 16초). 커지고 머물고 돌아올 시간을 벌고, 물 · 연기가 느긋하게
+  FOUND_MS: 1200,             // 인식 → 틀 안의 그림이 또렷해지기
+  HOLD_MS: 1500,              // 그 뒤 그림만 보이는 잠깐
+  IN_S: 3.4,                  // ③ 그림 → 장면(틀 안)
+  EXP_AT: 2.6, EXP_S: 3.8,    // ④ 틀 → 화면 가득(풀림이 3/4쯤 지났을 때 시작)
+  CON_S: 3.4, CON_LAP: 0.5,   // ⑥ 화면 → 틀(다 돌아오기 0.5초 전부터 그림으로 풀리기 시작)
+  OUT_S: 5.0,                 // ⑥ 장면 → 그림(틀 안)
+  TAIL_S: 1.0,                // 영상이 끝난 뒤 마지막 프레임 위로 이어지는 몫(이때는 이미 거의 그림)
+  PUSH: 0.035,                // ⑤ 화면 가득일 때 아주 느린 밀기
+  FOCUS: [0.535, 0.5],        // 화면 가득일 때 가운데에 둘 자리(그림 좌표) — 배 0.47 과 해 0.60 사이
+  END_DELAY_MS: 900,
 };
+const SUN_RM = { IN_S: 1.6, OUT_S: 2.4, TAIL_S: 0.3 };       // 움직임 줄이기: 틀 안 크로스페이드만
 const SCENE_VIDEO = 'video/sunrise-scene.mp4';                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
 const SCENE_READY = true;                                     // 실제 영상(10/23 팀원 제작, 752×560 · 10초 · H.264로 다시 인코딩). 못 불러오면 임시 영상으로
 // 실제 영상을 그림에 맞추는 값 — 해 · 작은 배 위치를 재서 맞춤(가운데 기준 1.05배 · 아래로 높이의 2.5%). 해·배 오차 0.6% 이내, 가장자리 빈틈 없음
@@ -86,15 +101,18 @@ const spotlight = (() => {
   Promise.race([imgOk, new Promise((r) => setTimeout(r, 900))]).then(() => setTimeout(start, reduceMotion ? 0 : 420));   // 0.4초는 완전한 어둠
   window.addEventListener('resize', () => { geo = ''; });
   return {
-    found() { el.classList.add('settle'); body.classList.add('lit'); body.classList.remove('spot-on'); setTimeout(() => { el.classList.add('gone'); }, reduceMotion ? 0 : 500); setTimeout(() => { alive = false; el.hidden = true; }, reduceMotion ? 400 : 1900); },
+    // 인식: 조명은 남긴 채 어둠만 천천히 걷힌다(틀은 그대로)
+    found() { el.classList.add('settle'); body.classList.add('lit'); body.classList.remove('spot-on'); setTimeout(() => { el.classList.add('gone'); }, reduceMotion ? 0 : 700); setTimeout(() => { alive = false; el.hidden = true; }, reduceMotion ? 400 : 2200); },
   };
 })();
 
 const sun = (() => {
   const stage = document.getElementById('sunStage'), vid = document.getElementById('sunVid'), img = document.getElementById('sunImg'), cv = document.getElementById('sunCv');
-  const cap = document.getElementById('sunCap'), end = document.getElementById('sunEnd'), tmp = document.getElementById('sunTmp'), room = document.querySelector('.room');
+  const cap = document.getElementById('sunCap'), end = document.getElementById('sunEnd'), tmp = document.getElementById('sunTmp'), room = document.querySelector('.room'), body = document.body;
   const ez = (x) => { x = Math.max(0, Math.min(1, x)); return x * x * x * (x * (x * 6 - 15) + 10); };   // smootherstep — 들어가고 나오는 끝이 아주 무르다
-  let state = 'scan', mix = 0, placeholder = false, vidOk = true, replayed = false, holdTimer = 0, endTimer = 0, raf = 0, g = null;
+  const clamp01 = (x) => Math.max(0, Math.min(1, x));
+  let state = 'scan', mix = 0, wide = 0, placeholder = false, vidOk = true, endTimer = 0, raf = 0, g = null;
+  let tNow = 0, endWall = 0, lastVt = -1, lastVtWall = 0, rect = null;
 
   // 영상: 실제 파일 → 없으면 임시 영상 → 그것도 없으면 장면 없이 그림만
   vid.muted = true; vid.playsInline = true; vid.loop = false;
@@ -104,33 +122,58 @@ const sun = (() => {
   });
   if (SCENE_READY) vid.src = SCENE_VIDEO; else { placeholder = true; tmp.hidden = false; stage.classList.add('tmp-vid'); vid.src = SCENE_PLACEHOLDER; }
 
-  // 그림 비율 그대로 — 스캔본의 실제 비율(스캔 2048×1589)로 자리를 잡는다. 자르지 않는다
+  // 그림 비율 그대로 — 스캔본의 실제 비율로 틀을 잡는다. 자르지 않는다
   const imgReady = img.decode ? img.decode().catch(() => {}) : Promise.resolve();
-  imgReady.then(() => { if (img.naturalWidth) stage.style.setProperty('--ar', `${img.naturalWidth} / ${img.naturalHeight}`); });
+  let AR = 2048 / 1589;
+  imgReady.then(() => { if (img.naturalWidth) { AR = img.naturalWidth / img.naturalHeight; stage.style.setProperty('--ar', `${img.naturalWidth} / ${img.naturalHeight}`); } });
 
-  // ── WebGL: 그림과 장면을 한 자리에서 섞는다
+  // ── WebGL: 화면 전체 크기의 캔버스 하나. 그림 · 장면을 지금의 사각형(uR, CSS px) 안에 그리고, 밖은 투명(또는 장면 빛깔이 번진 벽)
   function initGL() {
-    const c = cv.getContext('webgl', { premultipliedAlpha: false, alpha: false, antialias: false, preserveDrawingBuffer: true });
+    const c = cv.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false, preserveDrawingBuffer: true });
     if (!c) return null;
-    const VS = 'attribute vec2 p; varying vec2 v; void main(){ v = vec2(p.x * .5 + .5, .5 - p.y * .5); gl_Position = vec4(p, 0., 1.); }';
+    const VS = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }';
     // 앞머리(front)에서만 흐림 반지름이 커진다: 그림은 풀리며 붓결이 녹고, 장면은 맺히며 또렷해진다. 12탭 원형 흐림
-    const FS = `precision mediump float; varying vec2 v; uniform sampler2D uP, uV, uK; uniform float uMix, uSoft, uSc; uniform vec2 uVS, uPx, uT;
+    const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+      precision highp float;
+      #else
+      precision mediump float;
+      #endif
+      uniform sampler2D uP, uV, uK; uniform float uMix, uSoft, uSc, uFlat, uDpr, uFeather, uRoom; uniform vec2 uVS, uPx, uT, uRes; uniform vec4 uR;
       vec3 P(vec2 q){ return texture2D(uP, q).rgb; }
       vec3 S(vec2 q){ return texture2D(uV, ((q - .5 - uT) / uSc) * uVS + .5).rgb; }
       vec3 blurP(vec2 q, float r){ vec3 a = P(q) * 2.; for (int i = 0; i < 12; i++) { float t = float(i) * .5236; vec2 o = vec2(cos(t), sin(t)) * r * uPx * (i < 6 ? .55 : 1.); a += P(q + o); } return a / 14.; }
       vec3 blurS(vec2 q, float r){ vec3 a = S(q) * 2.; for (int i = 0; i < 12; i++) { float t = float(i) * .5236 + .26; vec2 o = vec2(cos(t), sin(t)) * r * uPx * (i < 6 ? .55 : 1.); a += S(q + o); } return a / 14.; }
       void main(){
-        float k = texture2D(uK, v).r;                                 // 풀리는 순서(0 = 먼저)
-        float t = -uSoft + uMix * (1. + 2. * uSoft);
-        float e = smoothstep(t - uSoft, t + uSoft, k);                // 1 = 아직 그림
-        float front = 1. - abs(2. * e - 1.);                          // 앞머리 0..1
-        float glob = sin(3.14159 * clamp(uMix, 0., 1.));              // 전체가 옮겨 가는 한가운데
-        float r = 4. * front + 1. * glob;                            // 흐림 반지름(px)
-        vec3 p = r > .3 ? blurP(v, r) : P(v);
-        vec3 s = r > .3 ? blurS(v, r * .8) : S(v);
-        vec3 col = mix(s, p, e);
-        col += front * front * .05 * vec3(1., .84, .64);              // 앞머리에 아주 옅은 아침 빛
-        gl_FragColor = vec4(col, 1.);
+        vec2 px = vec2(gl_FragCoord.x, uRes.y * uDpr - gl_FragCoord.y) / uDpr;      // CSS px, 왼쪽 위 기준
+        vec2 q = (px - uR.xy) / uR.zw;                                             // 그림 좌표
+        vec2 dd = min(px - uR.xy, uR.xy + uR.zw - px); float d = min(dd.x, dd.y); // 틀 가장자리까지(+ 안쪽)
+        float inA = uFeather > .5 ? smoothstep(-uFeather * .3, uFeather, d) : clamp(d * uDpr + .5, 0., 1.);
+        vec2 qc = clamp(q, 0., 1.);
+        vec3 col = vec3(0.);
+        if (inA > 0.) {
+          float k = texture2D(uK, qc).r;                                // 풀리는 순서(0 = 먼저)
+          float t = -uSoft + uMix * (1. + 2. * uSoft);
+          float e = mix(smoothstep(t - uSoft, t + uSoft, k), 1. - uMix, uFlat);   // 1 = 아직 그림(uFlat: 움직임 줄이기 — 고른 크로스페이드)
+          float front = (1. - abs(2. * e - 1.)) * (1. - uFlat);         // 앞머리 0..1
+          float glob = sin(3.14159 * clamp(uMix, 0., 1.)) * (1. - uFlat);
+          float r = 4. * front + 1. * glob;                            // 흐림 반지름(px)
+          vec3 p = r > .3 ? blurP(qc, r) : P(qc);
+          vec3 s = r > .3 ? blurS(qc, r * .8) : S(qc);
+          col = mix(s, p, e);
+          col += front * front * .05 * vec3(1., .84, .64);              // 앞머리에 아주 옅은 아침 빛
+        }
+        // 틀 밖: 어두운 벽이 장면의 빛깔로 밝아진다(가장자리 빛을 넓게 흐려 번지게). 장면 쪽일 때만
+        vec3 gc = vec3(0.); float ga = 0.;
+        if (uRoom > .002 && inA < 1.) {
+          // 가장자리 줄을 아주 넓게(그림 폭의 절반) 평균 — 세로 줄무늬 없이 빛깔만 번진다
+          vec2 c0 = clamp(q, .04, .96);
+          for (int i = 0; i < 12; i++) { float f = float(i); gc += S(clamp(c0 + vec2((f / 11. - .5) * .5, (mod(f, 3.) - 1.) * .07), 0., 1.)); }
+          gc = gc / 12. * .9;
+          float od = max(0., -d);
+          ga = uRoom * exp(-od / (.3 * max(uRes.x, uRes.y)));
+        }
+        vec3 rgb = col * inA + gc * ga * (1. - inA);
+        gl_FragColor = vec4(rgb, inA + ga * (1. - inA));
       }`;
     try {
       const sh = (type, src) => { const s = c.createShader(type); c.shaderSource(s, src); c.compileShader(s); if (!c.getShaderParameter(s, c.COMPILE_STATUS)) throw new Error(c.getShaderInfoLog(s)); return s; };
@@ -146,8 +189,11 @@ const sun = (() => {
         c.texImage2D(c.TEXTURE_2D, 0, c.RGB, 1, 1, 0, c.RGB, c.UNSIGNED_BYTE, new Uint8Array([18, 16, 14])); return t; };
       const tP = tex(0), tV = tex(1), tK = tex(2);
       c.uniform1i(U('uP'), 0); c.uniform1i(U('uV'), 1); c.uniform1i(U('uK'), 2); c.uniform1f(U('uSoft'), 0.36);
-      c.uniform1f(U('uSc'), 1); c.uniform2f(U('uT'), 0, 0);
-      return { c, tP, tV, tK, uMix: U('uMix'), uVS: U('uVS'), uPx: U('uPx'), uSc: U('uSc'), uT: U('uT'), vidFrame: false };
+      c.uniform1f(U('uSc'), 1); c.uniform2f(U('uT'), 0, 0); c.uniform1f(U('uFlat'), reduceMotion ? 1 : 0);
+      c.clearColor(0, 0, 0, 0);
+      const names = ['uMix', 'uVS', 'uPx', 'uSc', 'uT', 'uRes', 'uDpr', 'uR', 'uFeather', 'uRoom'];
+      const u = {}; names.forEach((n) => { u[n] = U(n); });
+      return { c, tP, tV, tK, u, vidFrame: false };
     } catch (e) { console.warn('[c5 sunrise] webgl', e); return null; }
   }
   // 풀리는 순서 텍스처: 그림의 큰 밝기(밝은 자리 먼저, 0.8) + 아주 넓은 낮은 주파수 흔들림(0.2) → 순위 균등화(진행이 고르게) → 부드럽게
@@ -168,7 +214,7 @@ const sun = (() => {
     }
     const K = new Float32Array(n); for (let i = 0; i < n; i++) K[i] = .8 * (1 - (L[i] - lo) / (hi - lo + 1e-6)) + .2 * N2[i];
     // 가운데 작은 배 — 영상 속 배는 노를 저어 오른쪽으로 화면 폭의 약 3.5% 간다(그림의 배는 x 0.46).
-    //   두 배 자리와 물그림자를 한 덩어리로 묶어 함께 먼저 바뀌게 한다 → 배가 두 척으로 겹쳐 보이지 않는다
+    //   두 배 자리와 물그림자를 한 덩어리로 묶어 함께 바뀌게 한다(그림 → 장면에선 맨 나중, 장면 → 그림에선 맨 먼저) → 배가 두 척으로 겹쳐 보이지 않는다
     for (let y = 0; y < Hh; y++) for (let x = 0; x < S; x++) {
       const dx = (x / S - 0.482) / 0.085, dy = (y / Hh - 0.755) / 0.075, d = Math.sqrt(dx * dx + dy * dy);
       const w = d < 0.7 ? 1 : d > 1.15 ? 0 : 1 - (d - 0.7) / 0.45; if (w > 0) K[y * S + x] = K[y * S + x] * (1 - w) + 1.25 * w;
@@ -183,80 +229,132 @@ const sun = (() => {
     const sm2 = xa.getImageData(0, 0, S, Hh).data; for (let i = 0; i < n; i++) out[i] = sm2[i * 4];
     return { S, Hh, out };
   }
+  // 그림 텍스처: 2048² 로 다시 뽑아 밉맵까지(틀 크기로 줄여 그릴 때도 <img> 와 같은 또렷함 — 틀에서 캔버스 ↔ 그림이 바뀌어도 티가 나지 않게)
+  function paintingTex(c) {
+    const N = 2048, s = document.createElement('canvas'); s.width = N; s.height = N; const x = s.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, N, N);
+    c.activeTexture(c.TEXTURE0); c.bindTexture(c.TEXTURE_2D, g.tP); c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, s);
+    c.generateMipmap(c.TEXTURE_2D); c.texParameteri(c.TEXTURE_2D, c.TEXTURE_MIN_FILTER, c.LINEAR_MIPMAP_LINEAR);
+  }
   const glReady = imgReady.then(() => {
     g = initGL(); stage.classList.add(g ? 'gl' : 'nogl'); if (!g) return;
     const { c } = g;
-    c.activeTexture(c.TEXTURE0); c.bindTexture(c.TEXTURE_2D, g.tP); c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, img);
+    paintingTex(c);
     const k = keyData(); c.activeTexture(c.TEXTURE2); c.bindTexture(c.TEXTURE_2D, g.tK); c.pixelStorei(c.UNPACK_ALIGNMENT, 1);
     c.texImage2D(c.TEXTURE_2D, 0, c.LUMINANCE, k.S, k.Hh, 0, c.LUMINANCE, c.UNSIGNED_BYTE, k.out);
-    size(); draw();
   });
-  function size() {
-    if (!g) return; const r = stage.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1);
-    cv.width = Math.max(2, Math.round(r.width * dpr)); cv.height = Math.max(2, Math.round(r.height * dpr)); g.c.viewport(0, 0, cv.width, cv.height);
-    g.c.uniform2f(g.uPx, 1 / Math.max(1, r.width), 1 / Math.max(1, r.height));      // 흐림 반지름은 화면 px 기준
-  }
-  window.addEventListener('resize', () => { size(); draw(); });
-  function draw() {
-    if (!g) return; const { c } = g;
-    if (vid.readyState >= 2 && mix > 0) { c.activeTexture(c.TEXTURE1); c.bindTexture(c.TEXTURE_2D, g.tV); c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, vid); g.vidFrame = true; }
-    const ra = cv.width / cv.height, va = vid.videoWidth && vid.videoHeight ? vid.videoWidth / vid.videoHeight : 4 / 3;
-    c.uniform2f(g.uVS, va > ra ? ra / va : 1, va > ra ? 1 : va / ra);
-    const fit = placeholder ? { s: 1, x: 0, y: 0 } : SCENE_FIT; c.uniform1f(g.uSc, fit.s); c.uniform2f(g.uT, fit.x, fit.y);
-    c.uniform1f(g.uMix, g.vidFrame ? mix : 0);
-    c.drawArrays(c.TRIANGLE_STRIP, 0, 4);
-  }
 
-  // ── 흐름(영상 시간 기준. 0.85배로 재생하므로 풀림 3.4초 = 영상 2.9초)
-  const setMix = (m) => { mix = m; };
+  // ── 사각형: 틀(S, 화면 위 그림 자리) ↔ 화면 가득(F, 그림 비율 그대로 cover). 크기는 로그로, 자리는 초점이 곧게 옮겨 가도록
+  const dprOf = () => Math.min(2, window.devicePixelRatio || 1);
+  function rectNow() {
+    const C = cv.getBoundingClientRect(), s = stage.getBoundingClientRect();
+    const S = { x: s.left - C.left, y: s.top - C.top, w: s.width, h: s.height };
+    if (wide <= 0) return { C, R: S, S };
+    const [fx, fy] = SUN.FOCUS, VW = C.width, VH = C.height;
+    // 화면 가득: 그림 비율 그대로 화면을 덮는 크기 × 아주 느린 밀기. 초점을 화면 가운데에 두되 가장자리가 비지 않게
+    const push = 1 + SUN.PUSH * pushK;
+    const Fw = Math.max(VW, VH * AR) * push, Fh = Fw / AR;
+    const Fx = Math.min(0, Math.max(VW - Fw, VW / 2 - fx * Fw)), Fy = Math.min(0, Math.max(VH - Fh, VH / 2 - fy * Fh));
+    const k = wide;
+    const w = Math.exp(Math.log(S.w) + (Math.log(Fw) - Math.log(S.w)) * k), h = w / AR;
+    // 초점(그림 좌표 fx, fy)이 화면에서 곧게 옮겨 간다
+    const p0x = S.x + fx * S.w, p0y = S.y + fy * S.h, p1x = Fx + fx * Fw, p1y = Fy + fy * Fh;
+    const px = p0x + (p1x - p0x) * k, py = p0y + (p1y - p0y) * k;
+    return { C, R: { x: px - fx * w, y: py - fy * h, w, h }, S };
+  }
+  let pushK = 0;
+  function size(C) {
+    const dpr = dprOf(), W = Math.max(2, Math.round(C.width * dpr)), H = Math.max(2, Math.round(C.height * dpr));
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; g.c.viewport(0, 0, W, H); }
+    g.c.uniform2f(g.u.uRes, C.width, C.height); g.c.uniform1f(g.u.uDpr, W / C.width);
+  }
+  function draw() {
+    if (!g) return; const { c, u } = g;
+    const { C, R } = rectNow(); rect = R; size(C);
+    if (vid.readyState >= 2 && (mix > 0 || wide > 0)) { c.activeTexture(c.TEXTURE1); c.bindTexture(c.TEXTURE_2D, g.tV); c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, vid); g.vidFrame = true; }
+    const va = vid.videoWidth && vid.videoHeight ? vid.videoWidth / vid.videoHeight : 4 / 3;
+    c.uniform2f(u.uVS, va > AR ? AR / va : 1, va > AR ? 1 : va / AR);
+    const fit = placeholder ? { s: 1, x: 0, y: 0 } : SCENE_FIT; c.uniform1f(u.uSc, fit.s); c.uniform2f(u.uT, fit.x, fit.y);
+    c.uniform1f(u.uMix, g.vidFrame ? mix : 0);
+    c.uniform4f(u.uR, R.x, R.y, R.w, R.h);
+    c.uniform2f(u.uPx, 1 / Math.max(1, R.w), 1 / Math.max(1, R.h));                // 흐림 반지름은 화면 px 기준
+    c.uniform1f(u.uFeather, 64 * ez(wide / 0.3));                                     // 커지는 동안만 틀 가장자리가 무르게
+    c.uniform1f(u.uRoom, g.vidFrame ? Math.max(0.14 * mix, 0.85 * ez(wide / 0.55)) : 0);   // 틀 밖 벽이 장면 빛깔로
+    c.clear(c.COLOR_BUFFER_BIT); c.drawArrays(c.TRIANGLE_STRIP, 0, 4);
+  }
+  window.addEventListener('resize', () => { if (state === 'play') draw(); });
+  // 캔버스가 화면을 덮는 동안 손가락이 페이지를 굴리지 않게
+  cv.addEventListener('wheel', (e) => { if (state === 'play') e.preventDefault(); }, { passive: false });
+  cv.addEventListener('touchmove', (e) => { if (state === 'play') e.preventDefault(); }, { passive: false });
+
+  // ── 흐름. 시계는 영상 시간(재생 빠르기로 나눈 실제 초). 영상이 끝나면 마지막 프레임 위로 벽시계가 이어 받는다
   const vidReady = () => new Promise((r) => { if (vid.readyState >= 2) r(); else { vid.addEventListener('loadeddata', r, { once: true }); setTimeout(r, 4000); } });
-  function tick() {
+  const rate = () => (reduceMotion ? 1 : SUN.RATE);
+  const vidDur = () => (isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 10);
+  function plan() {
+    const D = vidDur() / rate();
+    if (reduceMotion) { const outEnd = D + SUN_RM.TAIL_S; return { inS: SUN_RM.IN_S, expS: Infinity, expE: Infinity, conS: Infinity, conE: Infinity, outS: outEnd - SUN_RM.OUT_S, outEnd }; }
+    const outEnd = D + SUN.TAIL_S, outS = outEnd - SUN.OUT_S, conE = outS + SUN.CON_LAP, conS = conE - SUN.CON_S;
+    return { inS: SUN.IN_S, expS: SUN.EXP_AT, expE: SUN.EXP_AT + SUN.EXP_S, conS, conE, outS, outEnd };
+  }
+  function clock(now) {
+    const vt = vid.currentTime, r = rate(), dur = vidDur();
+    if (vt !== lastVt) { lastVt = vt; lastVtWall = now; }
+    const stuckAtEnd = vt > dur - 0.3 && now - lastVtWall > 350;           // 끝에서 ended 가 오지 않는 브라우저
+    if (vid.ended || stuckAtEnd || !vidOk) { if (!endWall) endWall = now; return Math.max(tNow, dur / r + (now - endWall) / 1000); }
+    return Math.max(tNow, vt / r);
+  }
+  function tick(now) {
     raf = 0; if (state !== 'play') return;
-    const rate = reduceMotion ? 1 : SUN.RATE, D = SUN.DISSOLVE_S * rate, DO = SUN.DISSOLVE_OUT_S * rate, vt = vid.currentTime, dur = isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 10;
-    const sceneFirst = SUN.ORDER === 'scene-paint';
-    const mIn = sceneFirst ? (replayed ? ez(vt / (SUN.REPLAY_IN_S * rate)) : 1) : ez(vt / D);
-    const outAt = Math.max(D + .5, dur - DO - .12);   // 장면 → 그림은 천천히(영상 시간 약 4.3초 = 실제 5초)
-    const mOut = 1 - ez((vt - outAt) / DO);
-    setMix(Math.min(mIn, mOut));
-    stage.classList.toggle('scene', vt < outAt && (sceneFirst || vt > 0));   // 장면 쪽으로 가는 중 — "임시 영상" 표시 · 웹GL 없을 때의 CSS 페이드
-    cap.classList.toggle('on', mix > .7 && vt < outAt - .3);
+    tNow = clock(now || performance.now());
+    const P = plan(), t = tNow;
+    mix = Math.min(ez(t / P.inS), 1 - ez((t - P.outS) / (P.outEnd - P.outS)));
+    wide = reduceMotion || !g ? 0 : ez((t - P.expS) / (P.expE - P.expS)) * (1 - ez((t - P.conS) / (P.conE - P.conS)));
+    pushK = ez((t - P.expS - 1.2) / Math.max(1, P.conS - P.expS - 1.2));
+    body.classList.toggle('immersed', wide > 0.015);
+    stage.classList.toggle('scene', t > 0.05 && t < P.outS);                  // 장면 쪽 — "임시 영상" 표시 · 웹GL 없을 때의 CSS 페이드
+    const capOn = reduceMotion || !g ? mix > .85 && t < P.outS - .3 : t > P.expE - .2 && t < P.conS - .1;
+    cap.classList.toggle('on', capOn);
     draw();
-    if (vt >= outAt + DO || vid.ended) { finish(); return; }
+    if (t >= P.outEnd) { finish(); return; }
     raf = requestAnimationFrame(tick);
   }
   function play() {
     if (!vidOk) { finish(); return; }
-    stage.classList.remove('breathe'); if (!reduceMotion) stage.classList.add('exhale');   // 내쉬며 장면으로
-    state = 'play'; vid.currentTime = 0; vid.playbackRate = reduceMotion ? 1 : SUN.RATE;
+    clearTimeout(endTimer); end.classList.remove('on'); cap.classList.remove('on'); stage.classList.remove('glow');
+    state = 'play'; tNow = 0; endWall = 0; lastVt = -1; mix = 0; wide = 0; pushK = 0;
+    try { vid.pause(); vid.currentTime = 0; } catch (_) { /* noop */ }
+    vid.playbackRate = rate();
+    if (g) { draw(); cv.classList.add('on'); stage.classList.add('live'); }   // 같은 프레임에 그림(<img>) → 캔버스(같은 자리 · 같은 그림)
     const p = vid.play(); if (p && p.catch) p.catch(() => setTimeout(() => { if (state === 'play' && vid.paused) vid.play().catch(() => finish()); }, 400));   // 임시 영상으로 바뀌는 중이면 한 번 더
     if (!raf) raf = requestAnimationFrame(tick);
   }
   function finish() {
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
-    state = 'end'; setMix(0); draw(); cap.classList.remove('on'); stage.classList.remove('scene');
+    state = 'end'; mix = 0; wide = 0; draw(); cap.classList.remove('on'); stage.classList.remove('scene'); body.classList.remove('immersed');
     try { vid.pause(); } catch (_) { /* noop */ }
-    // 그림으로 돌아온 뒤 잠시 그림만 — 그다음 한 줄과 단추, 그 아래 연작 · 출구
-    clearTimeout(endTimer); stage.classList.remove('exhale', 'glow');
+    // 캔버스 → 그림(<img>): 같은 자리 · 같은 그림. 페이지가 굴러도 그림이 틀과 함께 가도록 쉬는 동안은 <img> 가 맡는다
+    stage.classList.remove('live'); cv.classList.remove('on');
+    clearTimeout(endTimer);
     // 해의 주황이 잠깐 빛나고, 그와 함께 마지막 한 줄
     setTimeout(() => { void stage.offsetWidth; stage.classList.add('glow'); }, reduceMotion ? 0 : Math.max(0, SUN.END_DELAY_MS - 350));
     endTimer = setTimeout(() => { end.classList.add('on'); room.classList.add('ended'); haptic(8); }, reduceMotion ? 0 : SUN.END_DELAY_MS);
   }
-  function start() {                                   // 그림이 뜬 뒤의 순서
-    clearTimeout(holdTimer); clearTimeout(endTimer); end.classList.remove('on'); cap.classList.remove('on');
-    if (SUN.ORDER === 'scene-paint' && !replayed) { setMix(1); play(); return; }
-    state = 'hold'; setMix(0); draw();
-    stage.classList.remove('exhale', 'glow'); if (!reduceMotion) requestAnimationFrame(() => stage.classList.add('breathe'));   // 숨을 들이쉬듯 천천히 다가온다
-    holdTimer = setTimeout(play, (replayed ? 0 : SUN.REVEAL_MS) + (replayed ? 1200 : SUN.HOLD_MS));
-  }
   async function scan() {
     if (state !== 'scan') return;
     state = 'found'; stage.dataset.state = 'found'; haptic(30); spotlight.found();
-    await Promise.all([glReady, new Promise((r) => setTimeout(r, reduceMotion ? 150 : 700)), SUN.ORDER === 'scene-paint' ? vidReady() : null]);
-    if (SUN.ORDER === 'scene-paint') { setMix(1); draw(); }                // 장면부터: 첫 프레임을 먼저 올려 둔다
-    stage.dataset.state = 'shown'; stage.classList.add('shown');
-    start();
+    // 틀은 그대로 — 그 안의 흐린 그림이 초점을 맞추며 또렷한 그림이 된다
+    requestAnimationFrame(() => stage.classList.add('shown'));
+    // 비추기 막이 다 걷히면 아예 치운다(투명해진 막이 그림을 덮는 브라우저가 있다)
+    const scanBtn = document.getElementById('scan'); setTimeout(() => { scanBtn.hidden = true; }, reduceMotion ? 350 : SUN.FOUND_MS + 150);
+    await Promise.all([glReady, vidReady(), new Promise((r) => setTimeout(r, reduceMotion ? 300 : SUN.FOUND_MS + SUN.HOLD_MS))]);
+    stage.dataset.state = 'shown';
+    play();
   }
-  function replay() { if (state !== 'end') return; replayed = true; haptic(6); vid.pause(); vid.currentTime = 0; start(); }
+  function replay() {
+    if (state !== 'end') return; state = 'replay'; haptic(6);
+    end.classList.remove('on'); stage.classList.remove('glow');
+    setTimeout(play, reduceMotion ? 200 : 1100);   // 한 줄과 단추가 물러난 뒤 ③부터
+  }
   document.getElementById('scan').addEventListener('click', scan);
   document.getElementById('sunReplay').addEventListener('click', replay);
   // 끝 단추 공통: 처음으로(체험 목록) · 수집함에 저장 → 같은 자리에서 '수집함에 담았어요'
@@ -264,14 +362,15 @@ const sun = (() => {
     const b = e.currentTarget; if (b.disabled) return;
     saveChoice('c5', { work: 'impression-sunrise' }); b.disabled = true; b.textContent = '수집함에 담았어요'; haptic(12); toast('수집함에 저장했습니다', 1600);
   });
-  return { scan, replay, get state() { return state; }, get mix() { return mix; }, get order() { return SUN.ORDER; }, get gl() { return !!g; }, get placeholder() { return placeholder; }, get vt() { return vid.currentTime; }, get src() { return vid.currentSrc; } };
+  return { scan, replay, get state() { return state; }, get mix() { return mix; }, get wide() { return wide; }, get t() { return tNow; }, get plan() { return plan(); },
+    get rect() { return rect; }, get gl() { return !!g; }, get placeholder() { return placeholder; }, get vt() { return vid.currentTime; }, get src() { return vid.currentSrc; } };
 })();
 window.__c5sun = sun;
-// 그림 · 아래 한 자리 · 연작 · 출구를 한 덩어리로 남은 높이의 가운데에. 연작 · 출구는 끝나기 전엔 자리만 차지하고 보이지 않으므로 끝나도 그림이 움직이지 않는다
+// 그림 · 아래 한 자리 · 연작 · 출구를 한 덩어리로 남은 높이의 가운데에. 연작 · 출구는 끝나기 전엔 자리만 차지하고 보이지 않으므로 끝나도 틀이 움직이지 않는다
 {
   const wrap = document.querySelector('.sun-wrap'), hd = document.querySelector('.room .role-hd'), tb = document.querySelector('.topbar');
   const blk = () => ['.sun-wrap', '.series-link', '.exit-link'].reduce((a, q) => a + document.querySelector(q).offsetHeight, 0);
-  const center = () => { if (!document.getElementById('wall').hidden) return; const free = window.innerHeight - tb.offsetHeight - hd.offsetHeight - blk() - 24; wrap.style.marginTop = `${Math.max(14, Math.round(free / 2))}px`; };
+  const center = () => { if (!document.getElementById('wall').hidden) return; const free = window.innerHeight - tb.offsetHeight - hd.offsetHeight - blk() - 24; wrap.style.marginTop = `${Math.max(8, Math.round(free / 2))}px`; };
   center(); window.addEventListener('resize', center); document.fonts && document.fonts.ready.then(center);
   document.getElementById('sunImg').decode?.().then(center).catch(() => {});
 }

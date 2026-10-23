@@ -1,4 +1,4 @@
-/* C5 효과 — 어둠 속 전시장 조명 하나(데워지며 켜짐 · 빛줄기 속 먼지) → 빛 안의 비추기 틀 → 인식 뒤 그림이 숨을 들이쉬듯 다가옴 → 장면 → 그림으로 돌아오며 해의 주황이 잠깐 빛남.
+/* C5 효과 — 어둠 속 전시장 조명 하나(데워지며 켜짐 · 빛줄기 속 먼지) → 빛 안의 비추기 틀 → 인식: 틀 그대로 그림이 맺힘(네 귀가 잠깐 잠김) → 장면이 틀 밖으로 번져 화면 가득 → 틀로 돌아와 그림, 해의 주황이 잠깐 빛남.
    연작 벽 · 한 점 보기도 끊지 않고 열고 닫는다. transform · opacity 위주. prefers-reduced-motion: 크로스페이드만 */
 
 /* ── 조명 */
@@ -38,13 +38,13 @@ body.spot-on:not(.lit) .scan-txt { opacity: 0; transform: translateY(6px); }
 .scan-frame i:nth-child(3) { transform-origin: 0 100%; transition-delay: .16s; } .scan-frame i:nth-child(4) { transform-origin: 100% 100%; transition-delay: .24s; }
 .scan-txt { transition: opacity .7s ease .35s, transform .8s var(--ease-out) .35s; }
 .sun-stage[data-state="scan"] .scan-frame { animation: none; }
-body.lit .sun-stage[data-state="scan"] .scan-frame { animation: framePulse 3.2s ease-in-out 1.2s infinite; }
-@keyframes framePulse { 0%, 100% { transform: none; } 50% { transform: scale(1.025); } }
+/* 기다리는 동안 네 귀는 제자리에서 숨만 쉰다(크기 · 자리는 그대로 — 틀이 곧 그림이 맺힐 자리) */
+body.lit .sun-stage[data-state="scan"] .scan-frame { animation: frameBreath 3.2s ease-in-out 1.2s infinite; }
+@keyframes frameBreath { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+/* 인식 — 네 귀가 제자리에서 주황으로 잠기고(살짝 빛), 그림이 또렷해지는 동안 천천히 사라진다 */
+.sun-stage[data-state="found"] .scan-frame i { border-color: var(--point); filter: drop-shadow(0 0 5px rgba(217,103,47,.7)); transition: border-color .35s ease, filter .35s ease, opacity .8s ease .55s; opacity: 0; }
+.sun-stage[data-state="found"] .scan-view { transition: filter 1.2s ease, opacity 1.2s ease, transform 1.2s cubic-bezier(.4,0,.2,1); }
 .scan:active .scan-frame i { border-color: var(--point); }
-
-/* ── 인식 뒤: 그림이 숨을 들이쉬듯 천천히 다가온다 → 장면으로 풀리며 내쉰다 */
-.sun-stage.breathe > img, .sun-stage.gl.breathe > canvas { transform: scale(1.075); transition: opacity 1s ease, transform 3.2s cubic-bezier(.45,0,.4,1); }
-.sun-stage.exhale > img, .sun-stage.gl.exhale > canvas { transform: none; transition: opacity 1s ease, transform 4.2s cubic-bezier(.45,0,.55,1); }
 
 /* 그림으로 돌아올 때 — 해의 주황이 잠깐 빛난다(해 · 물 위 빛줄기) */
 .sun-glow { position: absolute; z-index: 4; left: 60.9%; top: 30.6%; width: 30%; aspect-ratio: 1; margin: -15% 0 0 -15%; border-radius: 50%; pointer-events: none; opacity: 0; mix-blend-mode: screen;
@@ -77,7 +77,7 @@ body.leaving { opacity: 0; transition: opacity .42s ease; }
   body.lit .sun-stage[data-state="scan"] .scan-frame { animation: none; }
   .scan-frame i, .scan-txt { transition: opacity .3s ease !important; transform: none !important; }
   body.spot-on .scan-view { transform: scale(1.04); }
-  .sun-stage.breathe > img, .sun-stage.gl.breathe > canvas, .sun-stage.exhale > img, .sun-stage.gl.exhale > canvas { transform: none; }
+  .sun-stage[data-state="found"] .scan-frame i { filter: none; transition: opacity .3s ease !important; }
   .sun-stage.glow .sun-glow { animation: glowFade 1.6s ease both; }
   .sun-end.on .sun-line, .wall:not([hidden]) .motif, .view:not([hidden]) .frame { animation: none; }
   .view:not([hidden]) { animation: fadeIn .3s ease both; }

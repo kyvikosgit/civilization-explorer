@@ -27,34 +27,28 @@
   <span></span>
 </div>
 
-<!-- 마지막 방 — 〈인상, 해돋이〉 한 점. 비추면 그림이 뜨고, 그림이 그날 아침의 장면으로 풀렸다가 다시 그림으로 돌아온다 -->
+<!-- 마지막 방 — 〈인상, 해돋이〉 한 점. 비추면 그 틀에 그림이 맺히고, 그림이 그날 아침의 장면으로 풀려 화면(방) 전체로 번졌다가 다시 틀 안의 그림으로 돌아온다 -->
 <main class="wrap room">
   <header class="role-hd rise" style="--i:0">
     <div class="eyebrow">C5 · 모네 전시관</div>
     <p class="sub">1872년 르아브르, 모네가 묵던 호텔 창밖의 항구</p>
   </header>
 
-  <!-- 무대 — 그림 비율 그대로의 한 자리. 비추기 → 그림 → 장면 → 그림이 모두 이 자리에서 일어난다 -->
+  <!-- 틀 — 그림 비율 그대로의 한 자리. 비추기 틀 = 그림이 맺히는 자리 = 장면이 풀리고 되돌아오는 자리. 처음부터 끝까지 크기 · 자리가 바뀌지 않는다 -->
   <section class="sun-wrap rise" style="--i:1" aria-label="인상, 해돋이">
     <div class="sun-stage" id="sunStage" data-state="scan">
       <video id="sunVid" muted playsinline preload="auto" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
       <img id="sunImg" src="img/c5/sunrise-painting.jpg" alt="클로드 모네, 〈인상, 해돋이〉, 1872" draggable="false">
-      <canvas id="sunCv" aria-hidden="true"></canvas>
       <i class="sun-glow" aria-hidden="true"><b></b></i>
-      <span class="sun-tmp" id="sunTmp" hidden>임시 영상</span>
       <button class="scan" id="scan" type="button" aria-label="〈인상, 해돋이〉를 비추기 (시연: 누르면 인식)">
         <span class="scan-view" aria-hidden="true"></span>
-        <span class="scan-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <span class="scan-frame" id="scanFrame" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         <span class="scan-txt"><b>〈인상, 해돋이〉를 비춰 보세요</b><small>시연 · 누르면 인식</small></span>
       </button>
     </div>
 
-    <!-- 그림 아래 한 자리 — 장면일 때는 때와 곳, 끝나면 한 줄과 단추 -->
+    <!-- 틀 아래 한 자리 — 끝나면 한 줄과 단추 -->
     <div class="sun-below">
-      <div class="sun-cap" id="sunCap" aria-live="polite">
-        <b>1872년 11월 13일 아침, 르아브르</b>
-        <small>날짜는 추정 · AI로 재현한 장면</small>
-      </div>
       <div class="sun-end" id="sunEnd">
         <p class="sun-line">모네는 이 아침을 이렇게 남겼습니다.</p>
         <p class="sun-meta">〈인상, 해돋이〉 · 1872 · 마르모탕 모네 미술관, 파리</p>
@@ -80,6 +74,14 @@
 
   <div class="exit-link"><a class="btn quiet" id="toExit" href="exit-e.html">출구에서 오늘의 관람객 보기 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></a></div>
 </main>
+
+<!-- 장면 — 화면 전체 크기의 캔버스 하나. 틀 자리에서 그림 → 장면으로 풀리고, 틀 밖으로 번져 화면을 채웠다가 다시 틀로 -->
+<canvas class="sun-cv" id="sunCv" aria-hidden="true"></canvas>
+<div class="sun-cap" id="sunCap" aria-live="polite">
+  <b>1872년 11월 13일 아침, 르아브르</b>
+  <small>날짜는 추정 · AI로 재현한 장면</small>
+</div>
+<span class="sun-tmp" id="sunTmp" hidden>임시 영상</span>
 
 <!-- 한 점이 된 연작 — 전체 화면. 열리면 해는 지금 시간에 가 있다. 해를 끌어 하루를 돌린다 -->
 <div class="view" id="view" hidden>
