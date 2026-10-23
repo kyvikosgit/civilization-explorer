@@ -58,6 +58,21 @@ a{color:inherit}
 .split .a{flex:38;background:#2a2622;color:var(--sub)}
 .split .b{flex:62;background:var(--point);color:#fff;justify-content:flex-end}
 
+/* 참고 */
+.refs{margin-top:72px;padding-top:36px;border-top:1px solid var(--line)}
+.refs-hd{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.refs-hd h3{font-family:var(--hd);font-weight:800;font-size:22px;letter-spacing:-.02em}
+.refs-hd p{font-size:15px;color:var(--sub)}
+.refs ul{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:24px}
+.ref figure{margin:0}
+.ref .im{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#1e1c19;box-shadow:0 0 0 1px var(--line)}
+.ref img{width:100%;height:100%;object-fit:cover}
+.ref b{display:block;margin-top:12px;font-size:15px;font-weight:700;line-height:1.35}
+.ref b small{font-weight:600;color:var(--meta);font-size:13px}
+.ref span{display:block;margin-top:4px;font-size:14px;line-height:1.5;color:var(--sub)}
+.src{display:inline-block;margin-top:6px;font-size:12px;color:var(--meta);text-decoration:none;border-bottom:1px solid rgba(125,117,107,.4)}
+.src:hover{color:var(--sub)}
+
 /* 3 여섯 방 */
 .rooms-sec{background:linear-gradient(var(--bg),var(--bg2) 20%,var(--bg2) 80%,var(--bg))}
 .rooms{display:grid;grid-template-columns:repeat(3,1fr);gap:64px 40px;margin-top:64px}
@@ -78,12 +93,15 @@ a{color:inherit}
 .exit figcaption{margin-top:16px;font-size:15px;color:var(--sub)}
 .exit figcaption b{color:var(--ink);font-weight:700}
 
-/* 5 왜 */
+/* 5 기대 효과 */
 .why{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
-.why div{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px 26px}
-.why b{display:block;font-family:var(--hd);font-weight:800;font-size:24px;letter-spacing:-.02em}
+.why>div{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:30px 26px 26px}
+.why b{display:block;font-family:var(--hd);font-weight:800;font-size:22px;line-height:1.3;letter-spacing:-.02em}
 .why b::before{content:"";display:block;width:22px;height:3px;background:var(--point);margin-bottom:18px}
-.why span{display:block;margin-top:8px;font-size:16px;color:var(--sub)}
+.why span{display:block;margin-top:10px;font-size:15.5px;line-height:1.6;color:var(--sub)}
+.why em{font-style:normal;color:var(--ink);font-weight:700}
+.why .src{margin-top:12px}
+.why .dot{display:inline;color:var(--meta);font-size:12px;margin:0 4px}
 
 /* 6 끝 */
 .foot{padding:40px 0 72px;border-top:1px solid var(--line)}
@@ -115,6 +133,8 @@ a{color:inherit}
   .fan .p1{transform:translate(-112%,-46%) rotate(-8deg) scale(.86)}
   .fan .p3{transform:translate(12%,-46%) rotate(8deg) scale(.86)}
   .rooms{grid-template-columns:repeat(2,1fr)}
+  .refs ul{grid-template-columns:repeat(2,1fr)}
+  .why{grid-template-columns:repeat(2,1fr)}
   .exit{grid-template-columns:1fr;gap:40px}
   .exit .phone{max-width:280px;margin:0 auto}
   .exit figure{max-width:520px;margin:0 auto}
@@ -138,7 +158,12 @@ a{color:inherit}
   .room h3{font-size:19px;margin-top:6px}
   .room p{font-size:14.5px}
   .why{grid-template-columns:1fr;gap:12px}
-  .why div{padding:24px 22px}
+  .why>div{padding:24px 22px 22px}
+  .why b{font-size:21px}
+  .refs{margin-top:48px;padding-top:28px}
+  .refs ul{grid-template-columns:1fr 1fr;gap:24px 12px}
+  .ref b{font-size:14px}
+  .ref span{font-size:13px}
   .foot .wrap{flex-direction:column;align-items:stretch}
   .links{flex-direction:column}
   .btn{justify-content:center}
@@ -178,6 +203,19 @@ a{color:inherit}
       <div class="beat rv"><div class="n">02</div><h3>고른다</h3><p>정답 없는 질문 하나. 그 시대 사람이 되어 답합니다.</p></div>
       <div class="beat rv"><div class="n">03</div><h3>남의 선택을 본다</h3><p>고르자마자 오늘 관람객이 어떻게 골랐는지 보입니다.</p>
         <div class="split" aria-label="예시: 살롱 38%, 독립 전시 62%"><span class="a">살롱 38%</span><span class="b">독립 전시 62% · 나</span></div></div>
+    </div>
+    <div class="refs">
+      <div class="refs-hd rv"><h3>참고</h3><p>고르고 나서 남의 선택을 보는 방식은 이미 많은 사람이 즐깁니다.</p></div>
+      <ul>
+        <li class="ref rv"><figure><div class="im"><img src="experience-v2/pitch/ref/life-is-strange.jpg" alt="Life is Strange: Before the Storm 에피소드 끝 화면 — 선택마다 플레이어 비율" width="600" height="450" loading="lazy"></div>
+          <figcaption><b>Life is Strange <small>2017</small></b><span>에피소드가 끝나면 내 선택 옆에 전체 플레이어의 비율이 붙습니다.</span><a class="src" href="https://life-is-strange.fandom.com/wiki/File:Episode_2_choices_screen.jpg" target="_blank" rel="noopener">이미지 · Life is Strange Wiki</a></figcaption></figure></li>
+        <li class="ref rv"><figure><div class="im"><img src="experience-v2/pitch/ref/detroit-flowchart.jpg" alt="Detroit: Become Human 장 끝 흐름도 — 내가 간 갈래와 World's Stats 버튼" width="600" height="450" loading="lazy"></div>
+          <figcaption><b>Detroit: Become Human <small>2018</small></b><span>장이 끝날 때마다 내가 간 갈래를 흐름도로, 전 세계 비율과 함께 보여 줍니다.</span><a class="src" href="https://detroit-become-human.fandom.com/wiki/File:The_Interrogation_Flowchart_-_Detroit_Become_Human.jpg" target="_blank" rel="noopener">이미지 · Detroit Wiki</a></figcaption></figure></li>
+        <li class="ref rv"><figure><div class="im"><img src="experience-v2/pitch/ref/walking-dead-stats.jpg" alt="텔테일 The Walking Dead 에피소드 3 선택 통계 영상의 한 장면" width="600" height="450" loading="lazy"></div>
+          <figcaption><b>The Walking Dead <small>2012</small></b><span>텔테일은 플레이어들이 무엇을 골랐는지 에피소드마다 통계 영상으로 냈습니다.</span><a class="src" href="https://www.youtube.com/watch?v=EIIwtzQvTY0" target="_blank" rel="noopener">영상 · Telltale Games</a></figcaption></figure></li>
+        <li class="ref rv"><figure><div class="im"><img src="experience-v2/pitch/ref/nyt-dialect-quiz.jpg" alt="뉴욕타임스 사투리 퀴즈 — 답할 때마다 나와 비슷하게 말하는 지역이 지도에 뜬다" width="600" height="450" loading="lazy"></div>
+          <figcaption><b>뉴욕타임스 사투리 퀴즈 <small>2013</small></b><span>답할 때마다 나와 비슷하게 말하는 지역이 지도에 바로 뜹니다.</span><a class="src" href="https://peabodyawards.com/nytimesdialectquiz/" target="_blank" rel="noopener">이미지 · Peabody Awards</a></figcaption></figure></li>
+      </ul>
     </div>
   </div>
 </section>
@@ -236,14 +274,20 @@ a{color:inherit}
   </div>
 </section>
 
-<!-- 5 왜 -->
+<!-- 5 기대 효과 -->
 <section class="sec" style="padding-top:0">
   <div class="wrap">
-    <div class="sec-hd rv"><p class="kick">왜 이 방식인가</p></div>
+    <div class="sec-hd rv">
+      <p class="kick">기대 효과</p>
+      <h2>이 방식이 통하는 이유.</h2>
+    </div>
     <div class="why">
-      <div class="rv"><b>정답이 없다</b><span>미술을 몰라도 누구나 답할 수 있습니다.</span></div>
-      <div class="rv"><b>궁금하다</b><span>나와 같은 선택이 몇 퍼센트일지, 누구나 궁금합니다.</span></div>
-      <div class="rv"><b>가져간다</b><span>기차표와 엽서, 초상 사진이 폰에 남습니다.</span></div>
+      <div class="rv"><b>내 자리가 궁금하면 끝까지 합니다</b><span>뉴욕타임스 사투리 퀴즈는 연말을 열흘 남짓 남기고 나왔는데도 <em>그해 가장 많이 본 페이지</em>가 됐습니다.</span><a class="src" href="https://wnyc.org/story/the-man-behind-the-dialect-quiz" target="_blank" rel="noopener">Here &amp; Now, 2014</a> <span class="dot">·</span> <a class="src" href="https://peabodyawards.com/nytimesdialectquiz/" target="_blank" rel="noopener">Peabody Awards</a></div>
+      <div class="rv"><b>선택 통계는 그 자체로 화제가 됩니다</b><span>텔테일은 에피소드마다 선택 통계 영상을 냈고, 게임 매체는 그 숫자를 기사로 다뤘습니다.</span><a class="src" href="https://kotaku.com/the-walking-dead-episode-3-stats-show-most-of-us-still-5949251" target="_blank" rel="noopener">Kotaku, 2012</a></div>
+      <div class="rv"><b>그림 앞에 머물 이유가 생깁니다</b><span>관람객이 작품 한 점을 보는 시간은 <em>평균 30초가 채 안 됩니다</em>. 방마다 할 일이 하나씩 있어 그 앞에 서게 됩니다.</span><a class="src" href="https://digitalcommons.montclair.edu/educ-fdns-facpubs/106" target="_blank" rel="noopener">Smith 외, 2017 · 시카고 미술관 28.6초</a></div>
+            <div class="rv"><b>가져간 것이 입소문이 됩니다</b><span>기차표, 엽서, 초상 카드는 그대로 SNS에 올릴 수 있는 한 장입니다.</span></div>
+      <div class="rv"><b>관람객의 선택이 홍보 문구가 됩니다</b><span>“오늘 관람객 62%가 독립 전시를 골랐다” 같은 문장이 매일 새로 쌓입니다.</span></div>
+      <div class="rv"><b>운영 부담이 작습니다</b><span>모든 체험이 폰 안에서 돌아갑니다. 실시간 AI가 없고, 서버는 선택 수만 셉니다.</span></div>
     </div>
   </div>
 </section>
@@ -253,7 +297,7 @@ a{color:inherit}
 <!-- 6 끝 -->
 <footer class="foot">
   <div class="wrap">
-    <p class="note">폰 안에서 동작 · 실시간 AI 없음 · 서버는 선택 수만 집계<br><small>화면 속 수치는 예시입니다.</small></p>
+    <p class="note">폰 안에서 동작 · 실시간 AI 없음 · 서버는 선택 수만 집계<br><small>화면과 문구 속 수치는 예시입니다.</small></p>
     <div class="links">
       <a class="btn main" href="experience-v2/proto/index.html">직접 눌러 보기</a>
       <a class="btn" href="experience-v2-detail.html">자세한 기획안</a>
