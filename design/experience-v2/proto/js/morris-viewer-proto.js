@@ -1,7 +1,9 @@
 // C1 모리스 칼럼 3D — 부스 프로토타입 booth/js/morris-viewer.js 의 사본 + 체험 재기획 프로토타입 확장 (부스 원본은 그대로 둔다)
 //
 // 프로토타입 확장 (아래 '// [proto]' 표시)
-//   · rise(): 칼럼이 바닥에서 솟아오른다 — 바닥면 클리핑 + 회전 플러리시 + 배경 반투명 잔상(모션 블러 느낌) + 종이 펄럭임 + 위에서 내려오는 조명
+//   · 다가가기: 칼럼은 처음부터 거리에 서 있다(솟지 않는다). frameFar(위·아래 px)로 스캔 윤곽에 맞춘 먼 시점을 정하고,
+//     approach(초)로 카메라가 걸어서 다가간다(살짝 돌아 들어가며, 가까워질수록 위의 가스등 빛이 종이에 닿는다) — onEvent('arrived')
+//   · open 항목: 펼친 채 다시 꽂은 전단지(접힌 자국 두 줄, 압정 하나에 바람) · snapTo(i): 즉시 그 인쇄물 쪽으로
 //   · 자석: 손을 떼고 느려지면 가장 가까운 전단지가 정면에 오도록 끌어당기고, 멈추는 순간 살짝 튕긴다 — onEvent('centered', {index})
 //   · 빛 쓸기: 돌릴 때 정면을 지나는 종이에 빛이 지나간다(emissive)
 //   · project(index): 전단지 가운데의 화면 좌표·정면도 (오늘의 비율 표식 핀 고정용)
@@ -30,7 +32,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   const snap = document.createElement('canvas');
   snap.className = 'mv-snap';
   container.appendChild(snap);
-  const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });   // [proto] 솟아오를 때 잔상을 남기려면 버퍼를 보존해야 한다
+  const renderer = new T.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });   // [proto] 살펴보기 정지 이미지를 언제든 떠 올 수 있게 버퍼를 보존한다
   renderer.domElement.className = 'mv-gl';
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0xffffff, 1);
@@ -51,7 +53,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     scene.add(new T.HemisphereLight(0xffffff, 0xcfcac0, 0.9));
   }
   const hemi = new T.HemisphereLight(0xdfeef2, 0x8f8a80, 0.25); scene.add(hemi);
-  let clearA = 1, overheadMax = 2.4;   // [proto · C1 움직임] setAmbience — 배경을 비우고(뒤의 DOM 거리가 보이게) 해 질 녘 빛으로
+  let clearA = 1, overheadMax = 2.4, expBase = 1.05;   // [proto · C1 움직임] setAmbience — 배경을 비우고(뒤의 DOM 거리가 보이게) 해 질 녘 빛으로
   const key = new T.DirectionalLight(0xfff0dc, 1.5);
   key.position.set(2.6, 6.5, 4.2);
   key.target.position.set(0, 1.6, 0);
@@ -66,12 +68,15 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   const fill = new T.DirectionalLight(0xdfe8ff, 0.35);
   fill.position.set(-5, 2.5, 3);
   scene.add(fill);
-  // [proto] 위에서 내려오는 조명 — 솟아오를 때 켜진다
+  // [proto] 위에서 내려오는 가스등 빛 — 칼럼에 다가갈수록 종이에 닿는다(far 에 따라)
   const overhead = new T.SpotLight(0xfff2dc, 0, 16, Math.PI / 7, 0.55, 1.2);
   overhead.position.set(0.4, 9.5, 2.2); overhead.target.position.set(0, 2.2, 0);
   scene.add(overhead); scene.add(overhead.target);
-  const riseState = { t: -1, dur: 1.9, spin: 0, flutter: 0, contact: null, done: false };
-  const floorPlane = new T.Plane(new T.Vector3(0, 1, 0), 0.002);   // y ≥ -0.002 만 그린다 (바닥은 남고 칼럼은 바닥 아래가 잘린다)
+  const riseState = { flutter: 0, fluttered: false, contact: null };   // 종이 펄럭임(호스트가 세기를 준다)
+  // [proto] 다가가기 — far 1 = 스캔 윤곽에 맞춘 먼 시점, 0 = 칼럼 앞. farCfg 는 frameFar 가 정한다
+  let far = 0;
+  const farCfg = { mul: 1.8, lift: 0.3, elev: 0.015, rot: -0.55 };
+  const appr = { t: -1, dur: 2.8, from: 1, to: 0 };
 
   // ── 재질 텍스처 (캔버스) — 녹흑색 도장 주철 + 금색 장식
   const IRON = [29, 38, 31];
@@ -162,7 +167,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
 
   const column = new T.Group();
   scene.add(column);
-  const place = new T.Group();              // [proto] 바닥·접지 그림자 — 칼럼과 같이 돌지만 같이 솟지는 않는다
+  const place = new T.Group();              // [proto] 바닥·접지 그림자 — 칼럼과 같이 돈다
   scene.add(place);
   function addMesh(geo, mat) { const m = new T.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; column.add(m); return m; }
   function lathe(pts, mat, seg) { return addMesh(new T.LatheGeometry(pts.map((p) => new T.Vector2(p[0], p[1])), seg || 96), mat); }
@@ -311,13 +316,20 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       g.beginPath(); g.ellipse(x + R2() * w, y + R2() * h, w * (0.05 + R2() * 0.15), h * (0.02 + R2() * 0.05), R2() * 3, 0, 7); g.fill();
     }
   }
-  function paperize(img, fresh) {
+  function paperize(img, fresh, creased) {
     const max = 1024, sc = Math.min(1, max / Math.max(img.width, img.height));
     const w = Math.round(img.width * sc), h = Math.round(img.height * sc);
     const c = document.createElement('canvas'); c.width = w; c.height = h;
     const g = c.getContext('2d');
     const R2 = rnd(w * 31 + h);
-    if (fresh) {                                   // [proto] 갓 꽂은 접힌 전단지 — 찢김·바램 없이, 접힌 아랫단(두께)만 살짝 어둡게
+    if (creased) {                                 // [proto] 펼친 채 다시 꽂은 전단지 — 세 단 접힌 자국(그늘 + 빛) 두 줄
+      g.drawImage(img, 0, 0, w, h);
+      [1 / 3, 2 / 3].forEach((f) => {
+        const y = h * f, cg = g.createLinearGradient(0, y - 7, 0, y + 7);
+        cg.addColorStop(0, 'rgba(70,50,15,0)'); cg.addColorStop(0.45, 'rgba(70,50,15,0.22)'); cg.addColorStop(0.55, 'rgba(255,250,232,0.30)'); cg.addColorStop(1, 'rgba(255,250,232,0)');
+        g.fillStyle = cg; g.fillRect(0, y - 7, w, 14);
+      });
+    } else if (fresh) {                            // [proto] 갓 꽂은 접힌 전단지 — 찢김·바램 없이, 접힌 아랫단(두께)만 살짝 어둡게
       g.drawImage(img, 0, 0, w, h);
       const fe = g.createLinearGradient(0, h * 0.86, 0, h);
       fe.addColorStop(0, 'rgba(60,45,20,0)'); fe.addColorStop(0.75, 'rgba(60,45,20,0.10)'); fe.addColorStop(1, 'rgba(40,30,15,0.32)');
@@ -455,19 +467,20 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     list.forEach((f, i) => {
       const w = f.w || 0.6, h = w * (f.ratio || 1.5);
       const o = {
-        w, h, r: R + (f.fresh ? 0.03 : 0.014 + i * 0.0004), fresh: !!f.fresh,
+        w, h, r: R + (f.fresh ? 0.03 : f.open ? 0.022 : 0.014 + i * 0.0004), fresh: !!f.fresh, open: !!f.open,
         ang: f.ang != null ? f.ang : i * 0.9, cy: (f.top != null ? f.top : SHAFT_Y1 - 0.1) - h / 2,
-        tilt: f.fresh ? 0.015 : (L() - 0.5) * 0.05,
+        tilt: f.fresh ? 0.015 : f.open ? -0.01 : (L() - 0.5) * 0.05,
       };
       const p = makePoster(f, i, o);
       pending++;
       const apply = (img) => {
-        const map = paperize(img, f.fresh);
+        const map = paperize(img, f.fresh || f.open, f.open);
         p.front.map = map; p.front.emissiveMap = map; p.front.emissive.set(0xffffff); p.front.emissiveIntensity = 0;
-        p.front.color.set(0xffffff); p.front.roughness = f.fresh ? 0.5 : 0.8; p.front.needsUpdate = true;
+        p.front.color.set(f.kind === 'car' ? 0xe2d6bb : 0xffffff); p.front.roughness = f.fresh ? 0.5 : f.open ? 0.62 : 0.8; p.front.needsUpdate = true;
         done();
       };
-      if (f.img) setTimeout(() => apply(f.img), 0);
+      if (f.img && f.img.then) f.img.then(apply, () => { done(); post('error', { message: 'item_load_failed_' + i }); });   // [proto] 캔버스를 만드는 중(약속)
+      else if (f.img) setTimeout(() => apply(f.img), 0);
       else loader.load(f.src, apply, undefined, () => { done(); post('error', { message: 'item_load_failed_' + i }); });
     });
   }
@@ -481,9 +494,9 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     const t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.ClampToEdgeWrapping; return t;
   })();
   let gust = 0, gustT = 0, gustDur = 1;
-  function breeze(q, time) {
+  function breeze(q, time, k = 1) {
     const pa = q.geo.attributes.position, b = q.base, o = q.o;
-    const amp = 0.35 + gust * 1.1;
+    const amp = (0.35 + gust * 1.1) * k;
     const sway = (Math.sin(time * 1.3) * 0.6 + Math.sin(time * 2.9 + 1) * 0.4) * (0.004 + gust * 0.012);
     for (let i = 0; i < pa.count; i++) {
       const x = b[i * 3], y = b[i * 3 + 1];
@@ -492,7 +505,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       const corner = Math.pow(Math.abs(u - 0.5) * 2, 2);
       const lift = 0.004 + 0.022 * Math.pow(v, 1.3) + 0.01 * corner * v;
       const wave = (Math.sin(u * 3.4 + time * 4.6) * 0.55 + Math.sin(v * 2.6 + time * 3.1 + u) * 0.45) * 0.016 * amp * Math.pow(v, 1.4);
-      const d = lift + wave + gust * 0.03 * Math.pow(v, 1.6);
+      const d = (lift + gust * 0.03 * Math.pow(v, 1.6)) * (k < 1 ? 0.6 : 1) + wave;
       pa.setXYZ(i, tv.x + tn.x * d, tv.y + tn.y * d, tv.z + tn.z * d);
     }
     pa.needsUpdate = true; q.geo.computeVertexNormals(); q.geo.computeBoundingSphere();
@@ -532,6 +545,12 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     let target = -p.o.ang + 0.12;                       // 살짝 비스듬히
     target += Math.round((rot - target) / (Math.PI * 2)) * Math.PI * 2;
     focusRot = target; focusIdx = i; idle = false; vel = 0; dirty = true; centeredIdx = i;
+  }
+  function snapTo(i) {                                  // [proto] 즉시 — 흐린 판 뒤에서 자리를 맞출 때
+    const p = posters.filter((q) => q.idx === i)[0]; if (!p) return;
+    let target = -p.o.ang + 0.12; target += Math.round((rot - target) / (Math.PI * 2)) * Math.PI * 2;
+    rot = target; focusRot = null; vel = 0; idle = false; centeredIdx = i; dirty = true;
+    column.rotation.y = rot + farCfg.rot * far; place.rotation.y = column.rotation.y; placeCamera();
   }
   // [proto] 종이 펄럭임 — 압정(위 가운데)에서 멀수록 크게, 표면 법선 방향으로
   function flutterPosters(amt, time) {
@@ -579,18 +598,20 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     const p = posters.filter((q) => q.idx === i)[0]; if (!p) return;
     p.hidden = on; p.mesh.visible = !on; p.tack.visible = !on; dirty = true;
   }
-  function setColumnClip(planes) {
-    column.traverse((o) => { if (!o.material) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => { m.clippingPlanes = planes; m.needsUpdate = true; }); });
+  // [proto] 먼 시점 — 칼럼 꼭대기·밑동이 화면(컨테이너) 세로 topPx·bottomPx 에 오도록 거리와 시선 높이를 정한다(스캔 윤곽과 겹치게)
+  function frameFar(topPx, bottomPx) {
+    const t2 = Math.tan(camera.fov * Math.PI / 360), Hh = H();
+    const D = TOTAL_H * Hh / Math.max(40, bottomPx - topPx) / (2 * t2);
+    const perM = Hh / (2 * D * t2);
+    farCfg.mul = D / fitDist();
+    farCfg.lift = ((topPx + bottomPx) / 2 - Hh / 2) / perM;
+    dirty = true;
   }
-  function rise() {
-    if (riseState.t >= 0) return;
-    column.position.y = -TOTAL_H * 1.02;
-    // 바닥 아래는 칼럼만 자른다(배경은 그대로) — 전역 clippingPlanes 는 배경까지 잘라 빈 사각형이 보였다
-    renderer.localClippingEnabled = true; setColumnClip([floorPlane]);
-    // [proto · C1 품질 점검] 잔상(색 버퍼를 지우지 않는 모션 블러)과 종이 펄럭임은 뺐다 — 칼럼은 조용히 솟고 반 바퀴 남짓 천천히 돈다
-    riseState.t = 0; riseState.spin = reduceMotion ? 0 : 0.9; riseState.done = false;
-    if (riseState.contact) riseState.contact.material.opacity = 0;
-    idle = false; vel = 0; dirty = true;
+  // 카메라가 걸어서 다가간다(to 0) · 물러난다(to 1). dur 0 이면 바로
+  function approach(dur = 2.8, to = 0) {
+    idle = false; vel = 0; focusRot = null; dirty = true;
+    if (!dur || reduceMotion) { far = to; appr.t = -1; post(to < 0.5 ? 'arrived' : 'left'); return; }
+    appr.t = 0; appr.from = far; appr.to = to; appr.dur = dur;
   }
   function fitDist() {
     const vfov = camera.fov * Math.PI / 180;
@@ -598,9 +619,10 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     return Math.max((TOTAL_H * 0.5 + 0.3) / Math.tan(vfov / 2), (MAX_R + 0.3) / Math.tan(hfov / 2));
   }
   function placeCamera() {
-    const d = fitDist() * zoom, k = (1 - zoom) / (1 - ZMIN);
-    const ty = TOTAL_H * 0.5 * (1 - k) + 2.0 * k;
-    camera.position.set(0, ty + Math.sin(elev) * d, Math.cos(elev) * d);
+    const d = fitDist() * zoom * (1 + (farCfg.mul - 1) * far), k = (1 - zoom) / (1 - ZMIN);
+    const ty = TOTAL_H * 0.5 * (1 - k) + 2.0 * k + farCfg.lift * far;
+    const el = elev + (farCfg.elev - elev) * far;
+    camera.position.set(0, ty + Math.sin(el) * d, Math.cos(el) * d);
     camera.lookAt(0, ty, 0);
   }
   function resize() {
@@ -878,31 +900,22 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     const time = now / 1000;
     let animating = false;
     if (mode === 'column') {
-      if (riseState.t >= 0) {            // [proto] 솟아오르기
-        riseState.t = Math.min(1, riseState.t + dt / riseState.dur);
-        const t = riseState.t, e = reduceMotion ? 1 : 1 - Math.pow(1 - t, 3);
-        const over = reduceMotion ? 0 : Math.sin(Math.min(1, t) * Math.PI) * 0.06 * (1 - t);
-        column.position.y = -TOTAL_H * 1.02 * (1 - e) + over;
-        riseState.spin *= Math.pow(0.25, dt);
-        rot += riseState.spin * dt;
-        overhead.intensity = overheadMax * e;
-        if (riseState.contact) riseState.contact.material.opacity = e;
+      if (appr.t >= 0) {                 // [proto] 다가가기 — 걷는 듯 천천히 시작해 칼럼 앞에서 부드럽게 멈춘다
+        appr.t = Math.min(1, appr.t + dt / appr.dur);
+        const t = appr.t, e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2.4) / 2;
+        far = appr.from + (appr.to - appr.from) * e;
         animating = true;
-        if (t >= 1) {
-          riseState.t = -1; column.position.y = 0; setColumnClip(null);
-          riseState.done = true; idle = false; vel = 0.006; lastTouch = performance.now();
-          post('risen');
-        }
+        if (t >= 1) { appr.t = -1; far = appr.to; lastTouch = performance.now(); post(appr.to < 0.5 ? 'arrived' : 'left'); }
       } else if (focusRot !== null) {           // 지정한 인쇄물이 정면에 오도록 돌린다
         const dlt = focusRot - rot; rot += Math.sign(dlt) * Math.min(Math.abs(dlt), Math.max(Math.abs(dlt) * dt * focusSpeed, dt * 0.05)); animating = true;
         if (Math.abs(dlt) < 0.002) { rot = focusRot; focusRot = null; post('focused', { index: focusIdx }); }
       } else if (idle) { rot += 0.12 * dt; animating = true; }
       else if (Math.abs(vel) > 0.0001 && count() === 0) { rot += vel; vel *= 0.94; animating = true; }
       // [proto] 자석 — 손을 뗀 뒤 느려지면 가장 가까운 전단지가 정면에 오도록 끌어당긴다. 멈추는 순간 살짝 튕기고 'centered'
-      if (magnet && riseState.t < 0 && focusRot === null && !idle && count() === 0 && Math.abs(vel) < 0.012) {
+      if (magnet && appr.t < 0 && far < 0.01 && focusRot === null && !idle && count() === 0 && Math.abs(vel) < 0.012) {
         let best = null, bd = 1e9;
         posters.forEach((q) => {
-          if (!active.has(q.idx)) return;
+          if (!active.has(q.idx) || q.hidden) return;
           let tgt = -q.o.ang + 0.12; tgt += Math.round((rot - tgt) / (Math.PI * 2)) * Math.PI * 2;
           const d = Math.abs(tgt - rot); if (d < bd) { bd = d; best = { q, tgt }; }
         });
@@ -914,15 +927,18 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       }
       if (Math.abs(vel) > 0.02) centeredIdx = -1;
       if (bounce > 0) { bounce = Math.max(0, bounce - dt * 4); animating = true; }
-      column.rotation.y = rot; place.rotation.y = rot;
+      // 다가가는 동안 칼럼 둘레를 조금 돌아 들어간다(같은 거리에서 시점만) · 가까워질수록 위의 가스등 빛이 종이에 닿는다
+      column.rotation.y = rot + farCfg.rot * far * far; place.rotation.y = column.rotation.y;
+      overhead.intensity = overheadMax * Math.pow(Math.max(0, 1 - far), 1.6);
+      renderer.toneMappingExposure = expBase * (1 - 0.4 * far);   // 멀리서는 저녁 어스름 속 — 가까이 갈수록 밝아진다
       const bz = 1 - 0.012 * Math.sin(bounce * Math.PI);    // 튕김: 카메라가 아주 살짝 다가갔다 돌아온다
-      column.scale.setScalar(bz); column.position.y = riseState.t >= 0 ? column.position.y : (1 - bz) * TOTAL_H * 0.5;
+      column.scale.setScalar(bz); column.position.y = (1 - bz) * TOTAL_H * 0.5;
       parallax();
       // 상호작용 인쇄물 — 활성 항목만 가장자리 숨쉬기 빛, 누름/올림 들림
       const breath = 0.5 + 0.5 * Math.sin(time * Math.PI * 2 / 2.6);
       let lifting = false;
       // [proto] 빛 쓸기 — 종이가 정면(카메라 쪽, 약간 왼쪽 위에서 오는 빛)을 지날 때 밝아진다. 돌리는 속도가 있을수록 또렷하게
-      const sweepAmt = Math.min(1, Math.abs(vel) * 40 + (focusRot !== null ? 0.6 : 0)) * 0.22 + 0.06;
+      const sweepAmt = Math.min(1, Math.abs(vel) * 40 + (focusRot !== null ? 0.6 : 0) + (appr.t >= 0 ? Math.sin(Math.PI * appr.t) * 0.8 : 0)) * 0.22 + 0.06;
       posters.forEach((q) => {
         const target = q.idx === pressIdx ? 1 : (q.idx === hoverIdx ? 0.6 : (q.idx === centeredIdx && magnet ? 0.3 : 0));
         q.lift += (target - q.lift) * Math.min(1, dt * 14);
@@ -935,6 +951,10 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
         const face = Math.cos(rot + q.o.ang - 0.35);                 // 1 = 빛을 정면으로 받는 각
         const sweep = Math.pow(Math.max(0, face), 9) * sweepAmt;
         q.front.emissiveIntensity = 0.05 * q.lift + sweep;
+        if (q.o.open && q.mesh.parent === column && !q.hidden) {      // [proto] 펼친 채 다시 꽂은 전단지 — 압정 하나라 아랫단이 조금 들려 바람에 흔들린다(윤기 없음)
+          if (!(riseState.flutter > 0.001)) breeze(q, time, 0.55);
+          if (Math.cos(rot + q.o.ang - 0.2) > 0.05) lifting = true;
+        }
         if (q.o.fresh && q.mesh.parent === column && !q.hidden) {     // [proto] 바람에 들리는 접힌 전단지 + 윤기
           if (!(riseState.flutter > 0.001)) breeze(q, time);
           const fc = Math.max(0, Math.cos(rot + q.o.ang - 0.2));
@@ -987,26 +1007,27 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   return {
     get mode() { return mode; },
     inspect, release, reset, resize, focusItem, setInspectMap,
-    rise, project, projectRect, setPosterHidden, flutterPosters,   // [proto]
+    approach, frameFar, snapTo, project, projectRect, setPosterHidden, flutterPosters,   // [proto]
     setGlow(on) { glowOn = on; dirty = true; },                    // [proto] 주황 숨쉬기 테두리 끄기
     gust(sec = 2.4) { if (!reduceMotion) { gustT = gustDur = sec; } },                              // [proto] 한 번 부는 바람 — 접힌 전단지가 크게 들린다
     setMagnet(on) { magnet = on; centeredIdx = -1; },              // [proto]
-    setFlutter(a) { riseState.flutter = a; dirty = true; },        // [proto · C1 움직임] 솟는 동안 종이가 바람에 펄럭인다(호스트가 세기를 준다)
+    setFlutter(a) { riseState.flutter = a; dirty = true; },        // [proto · C1 움직임] 종이가 바람에 펄럭인다(호스트가 세기를 준다)
     setAmbience(o) {                                               // [proto · C1 움직임] 해 질 녘: 투명 배경 · 따뜻한 조명 · 어두운 안개
       if ('transparent' in o) { clearA = o.transparent ? 0 : 1; backdropMesh.visible = !o.transparent; renderer.setClearColor(0xffffff, clearA); }
       if (o.key != null) key.intensity = o.key; if (o.keyColor != null) key.color.set(o.keyColor);
       if (o.fill != null) fill.intensity = o.fill; if (o.fillColor != null) fill.color.set(o.fillColor);
       if (o.hemi != null) hemi.intensity = o.hemi;
-      if (o.exposure != null) renderer.toneMappingExposure = o.exposure;
+      if (o.exposure != null) renderer.toneMappingExposure = expBase = o.exposure;
       if (o.fog != null) scene.fog.color.set(o.fog);
-      if (o.overhead != null) { overheadMax = o.overhead; if (riseState.done) overhead.intensity = o.overhead; }
+      if (o.overhead != null) overheadMax = o.overhead;
       if (o.overheadColor != null) overhead.color.set(o.overheadColor);
       if (o.ground != null && groundMat) groundMat.color.set(o.ground);
       if (o.groundRough != null && groundMat) groundMat.roughness = o.groundRough;
       if (o.groundEnv != null && groundMat) groundMat.envMapIntensity = o.groundEnv;
       dirty = true;
     },
-    get rot() { return rot; }, get risen() { return riseState.done; }, get riseT() { return riseState.t; },
+    get rot() { return rot; }, get far() { return far; },
+    setFar(v) { far = v; appr.t = -1; dirty = true; },
     setIdle(on) { idle = on; dirty = true; },
     get debugMap() { const p = insp && insp.p; return p ? { type: p.front.map && p.front.map.constructor.name, video: !!(p.front.map && p.front.map.isVideoTexture), alpha: !!p.front.alphaMap } : null; },
     setHighlight(on) { highlight = on; dirty = true; },

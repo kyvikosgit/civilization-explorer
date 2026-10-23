@@ -1,28 +1,32 @@
 // C1 시민사회 — 어느 전시를 보러 갈까
-//   1 역할+스캔(점선을 누르면 칼럼이 바닥에서 솟는다)
-//   → 2 찾기: 끌어서 칼럼을 돌린다. 어느 포스터든 누르면 떼어 읽고(3 살펴보기 · 한국어 한 줄 설명), 찾을 것은 누군가 접어서 압정에 꽂아 두고 간 전단지
+//   1 역할+스캔: 칼럼은 처음부터 저녁 거리에 서 있다. 점선 윤곽이 그 칼럼에 겹쳐 있고, 누르면(스캔)
+//     → 카메라가 가스등 거리를 걸어 칼럼 앞으로 다가간다(살짝 돌아 들어가며, 가까워질수록 위 가스등 빛이 포스터에 닿는다). 칼럼은 솟지 않는다
+//   → 2 둘러보기: 끌어서 칼럼을 돌린다. 포스터·만평 어느 것이든 누르면 떼어 읽고(3 · 한국어 한 줄 설명), 찾을 것은 누군가 접어서 압정에 꽂아 두고 간 전단지
 //        (갓 꽂은 종이라 바람에 들리고 가스등 빛에 윤이 난다 — 화살표 없음. 오래 못 찾으면 칼럼이 그쪽으로 천천히 돌고 바람이 한 번 분다)
-//   → 4 그 전단지가 압정에서 빠져 가운데로 오며 세 단이 펼쳐진다 · 한 줄 설명 · 놋쇠 명판
-//   → 5 명판을 누르면 펼친 전단지가 오른쪽 자리로 물러나고, 칼럼 위 살롱 공고가 떼어져 왼쪽으로 온다 → 이번 주말 어느 전시를 보러 갈까
-//   → 6 오늘의 관람객(점 없이, 두 포스터가 비율만큼 커지고 작아지며 숫자가 센다) → 수집함
-//   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 두 전시 인쇄물은 캔버스 조판 재현(js/c1-posters.js)
+//   → 4 그 전단지가 압정에서 빠져 가운데로 오며 세 단이 펼쳐진다 · 한 줄 설명 · 놋쇠 명판 · '칼럼 더 둘러보기'
+//        뒤로·바깥·'칼럼 더 둘러보기' → 전단지는 펼친 채 같은 압정에 다시 꽂히고(찾은 표시), 칼럼 아래에 같은 명판이 남는다 — 더 둘러보다가 준비되면 누른다
+//   → 5 명판을 누르면 전단지는 오른쪽 자리로, 칼럼 위 살롱 공고가 떼어져 왼쪽으로 온다 → 이번 주말 어느 전시를 보러 갈까
+//        뒤로 → 두 인쇄물이 칼럼의 제자리로 돌아간다
+//   → 6 오늘의 관람객(점 없이, 두 포스터가 비율만큼 커지고 작아지며 숫자가 센다) → 수집함. 뒤로·다시 고르기 → 5 · '칼럼 더 둘러보기' → 2
+//   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 두 전시 인쇄물·샴 만평 지면은 캔버스 조판(js/c1-posters.js)
 //   머문 시간·시선 추적 없음. 서버는 입장 2개의 숫자만(여기서는 예시 수치).
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, icons, toast, sleep, reduceMotion, haptic, saveChoice } from './js/proto-common.js';
 import { createMorrisViewer } from './js/morris-viewer-proto.js';
-import { ITEMS, SALON, EXPO, FILLER, BACKDROP, VISITORS } from './js/morris-items-proto.js';
+import { ITEMS, SALON, EXPO, EXPO_OPEN, FILLER, BACKDROP, VISITORS } from './js/morris-items-proto.js';
 import { stampLine } from './js/crowd.js';
-import { drawSalon, drawExpo, drawExpoCover, loadPosterFonts, imageURL } from './js/c1-posters.js';
+import { drawSalon, drawExpo, drawExpoCover, drawClipping, loadImage, loadPosterFonts, imageURL } from './js/c1-posters.js';
 
 icons();
-const mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap'), guide = $('#guide'), camLoading = $('#camLoading');
+const mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap'), guide = $('#guide'), camLoading = $('#camLoading'), streetEl = $('#street');
 const STANCES = {
   jury: { label: '심사위원이 고른 전시', pct: 38 },           // 살롱 1874
   viewer: { label: '화가들이 직접 연 전시', pct: 62 },        // 카퓌신 대로 35번지 · 예시 수치
 };
 let step = 1, stance = null;
 let seq = 0;                                                // 뒤로 등으로 흐름이 바뀌면 올려서, 기다리던 비동기 단계를 무효로
+let found = false;                                          // 전단지를 찾아 한 번 펼쳤다 — 이후 칼럼에는 펼친 채 꽂혀 있고, 명판이 칼럼 아래에 남는다
 function setStep(n) {
   step = n; document.body.dataset.step = String(n); window.scrollTo(0, 0);
   $$('[data-on]').forEach((el) => { el.hidden = !el.dataset.on.split(' ').includes(String(n)); });
@@ -57,14 +61,13 @@ function buildCars() {
     el.animate(frames, { duration: c.dur * 1000, delay: c.delay * 1000, iterations: Infinity, easing: 'linear' });
   });
 }
-const streetEl = $('#street');
 let introDone = false;
 async function streetIntro() {
   buildCars();
-  if (reduceMotion) { $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; return; }
+  if (reduceMotion) { $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; showStanding(); return; }
   document.body.classList.add('intro'); streetEl.classList.add('push');
   const lamps = $$('.lamp');
-  const skip = () => { if (introDone) return; introDone = true; lamps.forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); };
+  const skip = () => { if (introDone) return; introDone = true; lamps.forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
   $('#stage').addEventListener('pointerdown', skip, { once: true });
   await sleep(450);
   for (const l of lamps) { if (introDone) return; l.classList.add('lit'); await sleep(170); }
@@ -93,15 +96,22 @@ Promise.all([salonCv, expoCv, coverCv].map(imageURL)).then(([salonU, expoU, cove
   $('.notice.salon').style.backgroundImage = `url(${salonU})`;
   $('.notice.expo').style.backgroundImage = `url(${expoU})`;
 });
+// 샴 만평 — 그림(작다)을 받아 신문지 지면으로 조판. 지면 비율이 칼럼 위 종이 크기를 정하므로 먼저 만든다
+const clips = {};
+await Promise.all(ITEMS.filter((it) => it.clip).map((it) => loadImage(it.clip.src).then((im) => { clips[it.id] = drawClipping(im, it.clip); }).catch((e) => console.warn('[clip]', it.id, e))));
 
 // ── 3D 모리스 칼럼
 let loaded = false; const waiters = [];
 const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => waiters.push(r)));
-let picked = -1;
+let picked = -1, focusWait = null;
 let viewer = null;
 try {
   viewer = createMorrisViewer(THREE, RoomEnvironment, mvEl, {
-    items: ITEMS.map((it) => ({ ...it, img: it.gen === 'salon' ? salonCv : it.gen === 'expo' ? coverCv : null, active: true })),
+    items: ITEMS.map((it) => ({
+      ...it, active: true,
+      img: it.gen === 'salon' ? salonCv : it.gen === 'expo' ? coverCv : it.gen === 'expoOpen' ? expoCv : clips[it.id] || null,
+      ratio: clips[it.id] ? clips[it.id].height / clips[it.id].width : it.ratio || 1.2,
+    })),
     filler: FILLER, backdrop: BACKDROP, onEvent,
   });
 } catch (e) { console.error(e); }
@@ -109,15 +119,19 @@ try {
 if (viewer) {
   viewer.setAmbience({ transparent: true, key: 0.62, keyColor: 0xffd3a2, fill: 0.22, fillColor: 0x8a96c8, hemi: 0.16, exposure: 0.98, fog: 0x1b1722, overhead: 4.0, overheadColor: 0xffc887, ground: 0x3b3833, groundRough: 0.5, groundEnv: 0.18 });
   viewer.setGlow(false);
+  viewer.setIdle(false);
+  viewer.setPosterHidden(EXPO_OPEN, true);
+  viewer.setInteractive(false);
 }
 function onEvent(type, d) {
-  if (type === 'loaded') { loaded = true; waiters.splice(0).forEach((r) => r()); camLoading.classList.add('off'); }
+  if (type === 'loaded') { loaded = true; waiters.splice(0).forEach((r) => r()); camLoading.classList.add('off'); showStanding(); }
   else if (type === 'error') console.warn('[morris]', d && d.message);
-  else if (type === 'risen') { if (step === 'rise') enterHunt(); }
-  else if (type === 'tap' && step === 2) { if (d.index === EXPO) openFlyer(); else openPrint(d.index); }
+  else if (type === 'arrived') { if (step === 'approach') arrive(); }
+  else if (type === 'focused') { const w = focusWait; focusWait = null; if (w) w(); }
+  else if (type === 'tap' && step === 2) { if (d.index === EXPO || d.index === EXPO_OPEN) openFlyer(); else openPrint(d.index); }
   else if (type === 'tapMiss' && step === 2) nudge('바랜 포스터는 단단히 붙어 있어요');
   else if (type === 'settled' && step === 3) attachLoop();
-  else if (type === 'release' && step === 3) { leaveInspect(); setStep(2); }
+  else if (type === 'release' && step === 3) { leaveInspect(); toHunt(); }
   else if (type === 'centered' && step === 2) { haptic(8); if (d.index === EXPO && viewer) viewer.gust(2.2); }
 }
 
@@ -133,20 +147,36 @@ const PROFILE = [[0.55, 0], [0.585, 0.03], [0.612, 0.06], [0.618, 0.08], [0.618,
   [0.12, 3.745], [0.065, 3.759], [0.046, 3.773], [0.034, 3.802], [0.044, 3.817], [0.067, 3.846], [0.068, 3.86], [0.063, 3.875],
   [0.052, 3.889], [0.034, 3.904], [0.023, 3.918], [0.027, 3.947], [0.036, 3.961], [0.035, 3.975], [0.023, 3.99], [0.014, 4.019],
   [0.018, 4.063], [0.01, 4.092], [0.003, 4.164], [0, 4.165]];
+const GH = 4.165, GPAD = 0.05;
 (function buildGuide() {
-  const H = 4.165, pt = ([r, y]) => `${r.toFixed(3)},${(H - y).toFixed(3)}`;
+  const pt = ([r, y]) => `${r.toFixed(3)},${(GH - y).toFixed(3)}`;
   const right = PROFILE.map(pt), left = PROFILE.slice().reverse().map(([r, y]) => pt([-r, y]));
   const outline = `M${right.join(' L')} L${left.join(' L')} Z`;
   const bands = [[0.5, 0.728], [0.5, 2.906], [0.545, 3.02], [0.545, 3.11]].map(([r, y]) => `M${pt([-r, y])} L${pt([r, y])}`).join(' ');
   const svg = $('#guideSvg');
-  svg.setAttribute('viewBox', `-0.68 -0.05 1.36 ${H + 0.1}`);
+  svg.setAttribute('viewBox', `-0.68 -${GPAD} 1.36 ${GH + GPAD * 2}`);
   svg.innerHTML = `<path class="g-fill" d="${outline}"/><path class="g-band" d="${bands}"/><path class="g-draw" pathLength="1" d="${outline}"/><path class="g-line" d="${outline}"/>`;
 })();
+// 먼 시점 — 3D 칼럼이 점선 윤곽과 겹치도록(꼭대기·밑동 px). 화면 크기가 바뀌면 다시
+function frameToGuide() {
+  if (!viewer) return;
+  const g = $('#guideSvg').getBoundingClientRect(), m = mvEl.getBoundingClientRect();
+  if (!g.height || !m.height) return;
+  const k = g.height / (GH + GPAD * 2);
+  viewer.frameFar(g.top - m.top + GPAD * k, g.top - m.top + (GPAD + GH) * k);
+}
+// 칼럼은 처음부터 거리에 서 있다 — 준비되면(칼럼 생성 + 거리 도입 끝) 저녁 거리 속에 드러난다
+function showStanding() {
+  if (!loaded || !introDone || !viewer || step !== 1) return;
+  viewer.resize(); frameToGuide(); viewer.setFar(1);
+  mvEl.classList.remove('off');
+}
+window.addEventListener('resize', () => { if (step === 1 && viewer) { viewer.resize(); frameToGuide(); } });
 let pillT = 0;
-function setPill(text, found = false) {   // 끌 때는 글자를 남긴 채 사라지게 — 빈 알약이 잠깐 보이지 않게
+function setPill(text, ok = false) {   // 끌 때는 글자를 남긴 채 사라지게 — 빈 알약이 잠깐 보이지 않게
   clearTimeout(pillT);
   if (!text) { pillWrap.classList.add('off'); pillT = setTimeout(() => { pill.textContent = ''; pill.classList.remove('found'); }, 320); return; }
-  pill.textContent = text; pill.classList.toggle('found', found); pillWrap.classList.remove('off');
+  pill.textContent = text; pill.classList.toggle('found', ok); pillWrap.classList.remove('off');
 }
 
 let scanning = false;
@@ -157,41 +187,45 @@ async function scan() {
   setPill('모리스 칼럼을 인식했어요', true);
   haptic(30);
   if (!loaded) { camLoading.classList.remove('off'); await whenLoaded(); camLoading.classList.add('off'); }
-  await sleep(reduceMotion ? 150 : 600);
+  if (!introDone) { introDone = true; $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); }
+  showStanding();
+  await sleep(reduceMotion ? 150 : 650);
   if (my !== seq || step !== 1) { scanning = false; return; }   // 기다리는 사이 뒤로를 눌렀다
-  setStep('rise');
+  setStep('approach');
   guide.classList.add('off');
   setPill('');
-  mvEl.classList.remove('off');
-  if (viewer) { viewer.resize(); viewer.reset(); viewer.setHighlight(false); viewer.setInteractive(false); viewer.rise(); riseFlutter(); }
+  streetEl.classList.add('near');                           // 거리도 함께 가까워진다(먼 배경이라 조금만)
+  if (viewer) viewer.approach(reduceMotion ? 0 : 2.9, 0);   // 카메라가 걸어서 다가간다 → 'arrived'
+  else arrive();
   scanning = false;
 }
 guide.addEventListener('click', scan);
-// 솟는 동안 칼럼의 종이가 바람에 펄럭인다 — 빠르게 일어나 머물다가 칼럼이 서면 잦아든다. 서는 순간 가스등이 한 번 부풀어 오른다
-function riseFlutter() {
-  if (!viewer || reduceMotion) return;
-  const t0 = performance.now(); let landed = false;
-  const f = (now) => {
-    const t = (now - t0) / 1000;
-    const a = t < 0.35 ? t / 0.35 : t < 1.5 ? 1 : Math.max(0, Math.exp(-(t - 1.5) * 2.2) * (1 - (t - 1.5) / 2.2));
-    viewer.setFlutter(a * 0.85);
-    if (!landed && t > 1.75) { landed = true; document.body.classList.remove('landed'); void document.body.offsetWidth; document.body.classList.add('landed'); haptic(18); }
-    if (t < 3.7) requestAnimationFrame(f); else viewer.setFlutter(0);
-  };
-  requestAnimationFrame(f);
+function arrive() {                                         // 칼럼 앞 — 가스등이 한 번 부풀고, 접힌 전단지가 바람에 한 번 들린다
+  document.body.classList.remove('landed'); void document.body.offsetWidth; document.body.classList.add('landed');
+  haptic(12);
+  if (viewer && !found) setTimeout(() => { if (step === 2) viewer.gust(1.6); }, 500);
+  enterHunt();
 }
 
-// ── 2 찾기 — 끌어서 돌리고, 아무 포스터나 눌러 떼어 읽는다. 오래 못 찾으면(손을 놓고 있을 때) 칼럼이 그쪽으로 천천히 돌고 바람이 분다
-let found = false, huntT = 0, lastTouch = 0, assisted = false, huntTimer = 0;
+// ── 2 둘러보기 — 끌어서 돌리고, 아무 포스터·만평이나 눌러 떼어 읽는다. 오래 못 찾으면(손을 놓고 있을 때) 칼럼이 그쪽으로 천천히 돌고 바람이 분다
+let huntT = 0, lastTouch = 0, assisted = false, huntTimer = 0;
 mvEl.addEventListener('pointerdown', () => { lastTouch = performance.now(); }, { passive: true });
-function enterHunt() {
+const dock = $('#toAsk2');
+function huntUI() {                                         // 찾은 뒤에는 한 줄 + 칼럼 아래 놋쇠 명판
+  document.body.classList.toggle('found', found);
+  dock.classList.toggle('ready', found); dock.tabIndex = found ? 0 : -1;
+  if (found) $('#huntLine').innerHTML = '칼럼의 다른 포스터와 <em>만평</em>도<br>떼어 읽어 볼 수 있어요';
+}
+function toHunt() {                                         // 칼럼 둘러보기로 (이미 칼럼 앞에 서 있는 상태에서)
   seq++;
-  setStep(2);
-  if (!viewer) return;
-  viewer.setHighlight(true); viewer.setInteractive(true); viewer.setMagnet(true);
+  setStep(2); huntUI();
+  if (viewer) { viewer.setHighlight(true); viewer.setInteractive(true); viewer.setMagnet(true); }
+}
+function enterHunt() {
+  toHunt();
   clearInterval(huntTimer);
   huntTimer = setInterval(() => {
-    if (step !== 2 || found) return;
+    if (step !== 2 || found || !viewer) return;
     huntT += 1;
     if (!assisted && huntT >= 22 && performance.now() - lastTouch > 4000) {
       assisted = true;
@@ -207,11 +241,12 @@ function nudge(text, ms = 1800) {                           // 아래 안내 한
   sub.classList.add('nudge'); sub.textContent = text;
   nudgeT = setTimeout(() => { sub.classList.remove('nudge'); sub.innerHTML = keep; }, ms);
 }
-function toScan() {                                         // 칼럼 → 스캔 화면
+function toScan() {                                         // 칼럼 → 스캔 화면: 카메라가 다시 물러나 점선 윤곽 자리로
   seq++; scanning = false;
-  setStep(1); mvEl.classList.add('off'); guide.classList.remove('off', 'found'); setPill('칼럼을 스캔하세요');
+  setStep(1); guide.classList.remove('off', 'found'); setPill('칼럼을 스캔하세요');
+  streetEl.classList.remove('near');
   if (!camLoading.classList.contains('off') && loaded) camLoading.classList.add('off');
-  if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); }
+  if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); frameToGuide(); viewer.approach(reduceMotion ? 0 : 1.3, 1); }
 }
 
 // ── 3 살펴보기 — 떠 있는 포스터 + 한 줄 설명(전단지 3장은 부스 삽화 애니메이션 그대로)
@@ -251,73 +286,104 @@ function leaveInspect() {
   if (viewer) viewer.setInspectMap(null);
   $('#closeBtn').hidden = true;
 }
-$('#closeBtn').addEventListener('click', () => { if (viewer && step === 3) viewer.release(); });
+$('#closeBtn').addEventListener('click', () => {
+  if (step === 3 && viewer) viewer.release();
+  else if (step === 4) flyerBack();
+});
 
-// ── 4 접힌 전단지 — 칼럼의 그 자리(같은 크기)에서 압정을 빠져나와 가운데로 날아오며 세 단이 펼쳐진다. 칼럼 위 3D 전단지는 같은 순간 사라진다
+// ── 4 전단지 — 처음: 칼럼의 그 자리(같은 크기)에서 압정을 빠져나와 가운데로 날아오며 세 단이 펼쳐진다
+//    찾은 뒤: 펼친 채 꽂혀 있던 전단지가 그대로 빠져나와 가운데로. 칼럼 위 3D 전단지는 같은 순간 사라진다
 const flyer = $('#flyer'), flyerWrap = $('#flyerWrap'), histIntro = $('#histIntro'), plaque = $('#toAsk'), unfoldCap = $('#unfoldCap');
-function flyerFrom() {                                       // 칼럼 위 접힌 전단지 → 화면의 접힌 DOM 전단지(가운데 단 크기) 변환
+function rectOnScreen(i) {                                  // 칼럼 위 인쇄물 → 화면 좌표 사각형
   if (!viewer) return null;
-  const r = viewer.projectRect(EXPO), mr = mvEl.getBoundingClientRect(), w = flyerWrap.getBoundingClientRect();
+  const r = viewer.projectRect(i), mr = mvEl.getBoundingClientRect();
+  return r ? { cx: mr.left + r.cx, cy: mr.top + r.cy, w: r.w, h: r.h } : null;
+}
+function flyerAt(i) {                                       // 칼럼 위 전단지(접힌 · 펼친) → 화면의 DOM 전단지 변환
+  const r = rectOnScreen(i), w = flyerWrap.getBoundingClientRect();
   if (!r || !w.width) return null;
-  const s = r.w / w.width;
-  return `translate(${(mr.left + r.cx - (w.left + w.width / 2)).toFixed(1)}px, ${(mr.top + r.cy - (w.top + w.height / 2)).toFixed(1)}px) scale(${s.toFixed(3)})`;
+  return `translate(${(r.cx - (w.left + w.width / 2)).toFixed(1)}px, ${(r.cy - (w.top + w.height / 2)).toFixed(1)}px) scale(${(r.w / w.width).toFixed(3)})`;
 }
 function openFlyer() {
   if (!viewer || viewer.mode !== 'column') return;
+  const first = !found;
   found = true;
   viewer.setInteractive(false); viewer.setMagnet(false);
   haptic(12);
-  showFlyer(true);
+  showFlyer(first ? 'folded' : 'open');
 }
-async function showFlyer(fly) {                              // fly=false(질문에서 뒤로)면 펼친 채로 바로
+function resetFlyerUI(shown) {
+  [flyerWrap, flyer, plaque].forEach((e) => e.getAnimations().forEach((a) => a.cancel()));
+  [histIntro, unfoldCap].forEach((e) => e.classList.toggle('show', shown));
+  plaque.classList.toggle('ready', shown);
+  $('#backCol4').classList.toggle('show', shown);
+}
+async function showFlyer(from) {                             // from: 'folded'(처음) · 'open'(다시 꺼냄) · null(질문에서 뒤로 — 쓰지 않음)
   const my = ++seq;
   setStep(4);
-  document.body.classList.remove('leaving');
-  if (viewer) { viewer.setPosterHidden(SALON, false); }
-  [flyerWrap, flyer, plaque].forEach((e) => e.getAnimations().forEach((a) => a.cancel()));
-  if (!fly || reduceMotion) {
-    if (viewer) viewer.setPosterHidden(EXPO, true);
-    flyer.classList.remove('folded'); histIntro.classList.add('show'); plaque.classList.add('ready'); unfoldCap.classList.add('show');
+  document.body.classList.remove('leaving', 'returning');
+  $('#closeBtn').hidden = false;
+  if (viewer) viewer.setPosterHidden(SALON, false);
+  const src = from === 'folded' ? EXPO : EXPO_OPEN;
+  if (reduceMotion || !from) {
+    if (viewer) { viewer.setPosterHidden(EXPO, true); viewer.setPosterHidden(EXPO_OPEN, true); }
+    resetFlyerUI(true); flyer.classList.remove('folded');
     return;
   }
-  flyer.classList.add('folded'); histIntro.classList.remove('show'); plaque.classList.remove('ready'); unfoldCap.classList.remove('show');
+  resetFlyerUI(false);
+  flyer.classList.toggle('folded', from === 'folded');
   void flyerWrap.offsetWidth;
-  const from = flyerFrom();
-  if (viewer) viewer.setPosterHidden(EXPO, true);
-  if (from) {
+  const at = flyerAt(src);
+  if (viewer) { viewer.setPosterHidden(EXPO, true); viewer.setPosterHidden(EXPO_OPEN, true); }
+  if (at) {
     flyerWrap.animate([
-      { transform: from, filter: 'brightness(.62)' },
-      { transform: from.replace(/scale\(([\d.]+)\)/, (m, k) => `scale(${(+k * 1.12).toFixed(3)})`) + ' translateY(-6px) rotateX(18deg)', filter: 'brightness(.75)', offset: 0.16 },   // 압정에서 빠지며 아래가 들린다
+      { transform: at, filter: 'brightness(.62)' },
+      { transform: at.replace(/scale\(([\d.]+)\)/, (m, k) => `scale(${(+k * 1.12).toFixed(3)})`) + ' translateY(-6px) rotateX(18deg)', filter: 'brightness(.75)', offset: 0.16 },   // 압정에서 빠지며 아래가 들린다
       { transform: 'translateY(-14px) rotate(-1.5deg)', filter: 'brightness(1)', offset: 0.78 },
       { transform: 'none', filter: 'brightness(1)' },
-    ], { duration: 1050, easing: 'cubic-bezier(.3,.1,.2,1)' });
+    ], { duration: from === 'folded' ? 1050 : 900, easing: 'cubic-bezier(.3,.1,.2,1)' });
   }
-  await sleep(640); if (my !== seq) return;
-  flyer.classList.remove('folded');                         // 가운데로 오며 아래 단 → 위 단 순서로 펼쳐진다
-  haptic(12);
-  await sleep(900); if (my !== seq) return;
+  if (from === 'folded') {
+    await sleep(640); if (my !== seq) return;
+    flyer.classList.remove('folded');                       // 가운데로 오며 아래 단 → 위 단 순서로 펼쳐진다
+    haptic(12);
+    await sleep(900); if (my !== seq) return;
+  } else { await sleep(620); if (my !== seq) return; }
   unfoldCap.classList.add('show');
   histIntro.classList.add('show');
-  await sleep(1100); if (my !== seq) return;
+  await sleep(from === 'folded' ? 1000 : 450); if (my !== seq) return;
   plaque.classList.add('ready');
+  $('#backCol4').classList.add('show');
 }
-async function flyerBack() {                                 // 4 → 2: 다시 접혀 칼럼의 자리로 돌아가 꽂힌다
+// 4 → 2: 펼친 채 같은 압정에 다시 꽂힌다(찾은 표시). 어두운 판은 날아가는 동안 걷힌다
+async function flyerBack() {
+  if (step !== 4) return;
   const my = ++seq;
+  document.body.classList.add('returning');
+  $('#closeBtn').hidden = true;
   if (!reduceMotion) {
-    flyer.classList.add('folded'); histIntro.classList.remove('show'); plaque.classList.remove('ready'); unfoldCap.classList.remove('show');
-    await sleep(520); if (my !== seq) return;
-    const to = flyerFrom();
-    if (to) await flyerWrap.animate([{ transform: 'none', filter: 'brightness(1)' }, { transform: to, filter: 'brightness(.62)' }], { duration: 620, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' }).finished.catch(() => {});
-    if (my !== seq) return;
+    const to = flyerAt(EXPO_OPEN);
+    if (to) {
+      setTimeout(() => { if (my === seq && viewer) viewer.setPosterHidden(EXPO_OPEN, false); }, 700);   // 닿기 직전에 3D 종이를 먼저 — 사라지는 틈이 없게
+      await flyerWrap.animate([
+        { transform: 'none', filter: 'brightness(1)', opacity: 1 },
+        { transform: 'translateY(-10px) rotate(-1deg)', filter: 'brightness(.95)', opacity: 1, offset: 0.2 },
+        { transform: to, filter: 'brightness(.62)', opacity: 1, offset: 0.9 },
+        { transform: to, filter: 'brightness(.62)', opacity: 0 },
+      ], { duration: 820, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards' }).finished.catch(() => {});
+      if (my !== seq) return;
+    }
   }
-  flyerWrap.getAnimations().forEach((a) => a.cancel());
-  if (viewer) viewer.setPosterHidden(EXPO, false);
-  $('#huntLine').innerHTML = '접힌 전단지는 살롱 공고 아래<br>제자리에 다시 꽂아 두었습니다';
-  setStep(2);
-  if (viewer) { viewer.setHighlight(true); viewer.setInteractive(true); viewer.setMagnet(true); }
+  if (viewer) viewer.setPosterHidden(EXPO_OPEN, false);
+  document.body.classList.remove('returning');
+  toHunt();
+  setTimeout(() => { if (step !== 4) resetFlyerUI(false); }, 500);
 }
+$('#backCol4').addEventListener('click', flyerBack);
+$('.unfold-dim').addEventListener('click', () => { if (step === 4) flyerBack(); });
 
-// ── 5 질문 — 명판을 누르면: 펼친 전단지는 오른쪽 자리로 물러나고, 칼럼이 살롱 공고 쪽으로 돌며 그 공고가 떼어져(아래가 먼저 들리며) 왼쪽 자리로. 그리고 질문
+// ── 5 질문 — 명판을 누르면: 칼럼이 살롱 공고 쪽으로 돌고, 그 공고가 떼어져(아래가 먼저 들리며) 왼쪽 자리로 · 전단지는 오른쪽 자리로. 그리고 질문
+//    4(펼친 전단지)에서: 전단지는 화면의 그 자리에서 오른쪽으로 물러난다 · 2(칼럼, 명판)에서: 전단지도 칼럼에서 떼어져 온다
 const papers = $('#papers');
 const pSalon = $('.paper.salon', papers), pExpo = $('.paper.expo', papers);
 let deciding = false;
@@ -327,12 +393,27 @@ function resetPapers() {
   $$('.paper', papers).forEach((x) => { x.style.visibility = ''; x.classList.remove('pick', 'back', 'me', 'float'); x.setAttribute('aria-checked', 'false'); x.style.removeProperty('--k'); x.getAnimations().forEach((a) => a.cancel()); $$('*', x).forEach((c) => c.getAnimations().forEach((a) => a.cancel())); });
 }
 function rectOf(el) { const r = el.getBoundingClientRect(); return { cx: r.left + r.width / 2, cy: r.top + r.height / 2, w: r.width, h: r.height }; }
+// 칼럼 위 인쇄물 하나를 떼어 질문 자리(포스터 p)로 — 아래가 먼저 들리며 떨어져 나와 앞으로 온다
+function peel(p, idx, delay = 0) {
+  const sn = rectOf($('.notice', p));
+  let src = rectOnScreen(idx);
+  if (!src) { const mr = mvEl.getBoundingClientRect(); src = { cx: mr.left + mr.width / 2, cy: mr.top + mr.height * 0.45, w: sn.w * 0.5 }; }
+  const k = (src.w / sn.w).toFixed(3), tx = (src.cx - sn.cx).toFixed(1), ty = (src.cy - sn.cy).toFixed(1);
+  p.animate([
+    { transform: `translate3d(${tx}px, ${ty}px, 0) scale(${k})`, filter: 'brightness(.5)', transformOrigin: '50% 0%' },
+    { transform: `translate3d(${tx}px, ${(+ty - 4).toFixed(1)}px, 30px) rotateX(32deg) scale(${(k * 1.05).toFixed(3)})`, filter: 'brightness(.62)', offset: 0.24, transformOrigin: '50% 0%' },
+    { transform: 'translate3d(0, -14px, 50px) rotateX(-8deg) rotateY(10deg) scale(1.03)', filter: 'brightness(1.06)', offset: 0.8, transformOrigin: '50% 30%' },
+    { transform: 'none', filter: 'brightness(1)', transformOrigin: '50% 40%' },
+  ], { duration: 1350, delay, easing: 'cubic-bezier(.33,.1,.25,1)', fill: 'backwards' });
+  $('.paper-lb', p).animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: delay + 1100, easing: 'ease', fill: 'backwards' });
+}
+// 4 → 5
 plaque.addEventListener('click', async () => {
-  if (step !== 4) return;
+  if (step !== 4 || !plaque.classList.contains('ready')) return;
   const my = ++seq;
   haptic(16);
   plaque.classList.add('pressed');
-  if (reduceMotion) { if (viewer) viewer.setPosterHidden(SALON, true); goAsk(); return; }
+  if (reduceMotion) { goAsk(); return; }
   document.body.classList.add('leaving');                   // 설명·명판이 물러난다
   if (viewer) viewer.focusItem(SALON);                       // 뒤의 칼럼이 살롱 공고 쪽으로 돈다
   await sleep(380); if (my !== seq) return;
@@ -348,29 +429,44 @@ plaque.addEventListener('click', async () => {
   $('.paper-lb', pExpo).animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: 1500, easing: 'ease', fill: 'backwards' });
   // 칼럼의 살롱 공고 → 왼쪽 자리
   await sleep(420); if (my !== seq) return;
-  let src = viewer && viewer.projectRect(SALON);
-  const mr = mvEl.getBoundingClientRect();
-  const sn = rectOf($('.notice', pSalon));
-  if (src) src = { cx: mr.left + src.cx, cy: mr.top + src.cy, w: src.w };
-  else src = { cx: mr.left + mr.width / 2, cy: mr.top + mr.height * 0.45, w: sn.w * 0.5 };
   if (viewer) viewer.setPosterHidden(SALON, true);
-  const k = (src.w / sn.w).toFixed(3), tx = (src.cx - sn.cx).toFixed(1), ty = (src.cy - sn.cy).toFixed(1);
   pSalon.style.visibility = 'visible';
-  pSalon.animate([
-    { transform: `translate3d(${tx}px, ${ty}px, 0) scale(${k})`, filter: 'brightness(.5)', transformOrigin: '50% 0%' },
-    { transform: `translate3d(${tx}px, ${(+ty - 4).toFixed(1)}px, 30px) rotateX(32deg) scale(${(k * 1.05).toFixed(3)})`, filter: 'brightness(.62)', offset: 0.24, transformOrigin: '50% 0%' },   // 아래가 먼저 들린다
-    { transform: 'translate3d(0, -14px, 50px) rotateX(-8deg) rotateY(10deg) scale(1.03)', filter: 'brightness(1.06)', offset: 0.8, transformOrigin: '50% 30%' },
-    { transform: 'none', filter: 'brightness(1)', transformOrigin: '50% 40%' },
-  ], { duration: 1350, easing: 'cubic-bezier(.33,.1,.25,1)', fill: 'backwards' });
-  $('.paper-lb', pSalon).animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: 1100, easing: 'ease', fill: 'backwards' });
+  peel(pSalon, SALON);
   haptic(10);
   await sleep(1400); if (my !== seq || step !== 5) return;
   $$('.paper', papers).forEach((p) => p.classList.add('float'));
 });
+// 2 → 5: 칼럼 아래 명판 — 칼럼이 두 인쇄물(살롱 공고 · 그 아래 펼친 전단지) 쪽으로 돌고, 둘이 차례로 떼어져 온다
+dock.addEventListener('click', async () => {
+  if (step !== 2 || !found || !viewer || viewer.mode !== 'column') return;
+  const my = ++seq;
+  haptic(16);
+  dock.classList.add('pressed');
+  viewer.setInteractive(false); viewer.setMagnet(false);
+  if (reduceMotion) { viewer.snapTo(SALON); goAsk(); dock.classList.remove('pressed'); return; }
+  document.body.classList.add('leaving');
+  viewer.focusItem(SALON, 4.2);
+  await Promise.race([new Promise((r) => { focusWait = r; }), sleep(1300)]);
+  if (my !== seq) return;
+  goAsk(true);
+  dock.classList.remove('pressed');
+  pSalon.style.visibility = 'hidden'; pExpo.style.visibility = 'hidden';
+  requestAnimationFrame(() => {
+    if (my !== seq) return;
+    viewer.setPosterHidden(SALON, true); pSalon.style.visibility = 'visible'; peel(pSalon, SALON);
+    setTimeout(() => { if (my !== seq) return; viewer.setPosterHidden(EXPO_OPEN, true); pExpo.style.visibility = 'visible'; peel(pExpo, EXPO_OPEN); haptic(10); }, 260);
+  });
+  await sleep(1700); if (my !== seq || step !== 5) return;
+  $$('.paper', papers).forEach((p) => p.classList.add('float'));
+});
 function goAsk(flown = false) {
   seq += flown ? 0 : 1;
-  if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); viewer.setPosterHidden(EXPO, true); if (!flown) viewer.setPosterHidden(SALON, true); }
-  document.body.classList.remove('settled', 'leaving');
+  if (viewer) {                                             // 날아오는 길(flown)이면 칼럼 위 두 인쇄물은 떼어지는 순간 숨긴다(peel)
+    viewer.setInteractive(false); viewer.setMagnet(false); viewer.setPosterHidden(EXPO, true);
+    if (!flown) { viewer.setPosterHidden(EXPO_OPEN, true); viewer.setPosterHidden(SALON, true); }
+  }
+  document.body.classList.remove('settled', 'leaving', 'returning');
+  $('#closeBtn').hidden = true;
   setStep(5);
   document.body.classList.toggle('flown', flown);
   resetPapers();
@@ -379,6 +475,44 @@ function goAsk(flown = false) {
     $$('.paper', papers).forEach((p, i) => p.animate([{ opacity: 0, transform: 'translateY(14px) rotateX(-12deg)' }, { opacity: 1, transform: 'none' }], { duration: 600, delay: i * 120, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'backwards' }));
     setTimeout(() => { if (step === 5) $$('.paper', papers).forEach((p) => p.classList.add('float')); }, 900);
   }
+}
+// 5·6 → 2: 두 인쇄물이 칼럼의 제자리로 돌아가 붙는다(어두워지며 작아지고, 닿는 순간 3D 종이로 바뀐다). 어두운 판은 그동안 걷힌다
+async function papersBack() {
+  const my = ++seq;
+  if (viewer) viewer.snapTo(SALON);                         // 흐린 판 뒤에서 — 두 인쇄물이 보이는 쪽으로
+  const pairs = [[pSalon, SALON], [pExpo, EXPO_OPEN]];
+  const ghosts = pairs.map(([p, idx]) => {
+    const n = $('.notice', p), r = n.getBoundingClientRect();
+    const g = n.cloneNode(true); g.classList.add('col-ghost');
+    Object.assign(g.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px', opacity: getComputedStyle(p).opacity });
+    document.body.appendChild(g);
+    p.style.visibility = 'hidden';
+    return { g, r, idx };
+  });
+  document.body.classList.add('returning');
+  document.body.classList.remove('settled');
+  setStep(2); huntUI();
+  if (reduceMotion) { ghosts.forEach(({ g, idx }) => { g.remove(); if (viewer) viewer.setPosterHidden(idx, false); }); }
+  else {
+    await Promise.all(ghosts.map(({ g, r, idx }, i) => {
+      const t = rectOnScreen(idx);
+      if (!t) { g.remove(); return null; }
+      const tx = t.cx - (r.left + r.width / 2), ty = t.cy - (r.top + r.height / 2), k = t.w / r.width;
+      const a = g.animate([
+        { transform: 'none', filter: 'brightness(1)', opacity: +g.style.opacity || 1 },
+        { transform: `translate(${(tx * 0.35).toFixed(1)}px, ${(ty * 0.35 - 12).toFixed(1)}px) scale(${(1 + (k - 1) * 0.3).toFixed(3)}) rotate(${i ? 1.5 : -1.5}deg)`, filter: 'brightness(.9)', opacity: 1, offset: 0.35 },
+        { transform: `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${k.toFixed(3)})`, filter: 'brightness(.6)', opacity: 1, offset: 0.9 },
+        { transform: `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${k.toFixed(3)})`, filter: 'brightness(.6)', opacity: 0 },
+      ], { duration: 900, delay: i * 140, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'forwards' });
+      setTimeout(() => { if (viewer) viewer.setPosterHidden(idx, false); }, i * 140 + 700);
+      return a.finished.catch(() => {}).then(() => g.remove());
+    }));
+  }
+  if (viewer) { viewer.setPosterHidden(SALON, false); viewer.setPosterHidden(EXPO_OPEN, false); }
+  document.body.classList.remove('returning', 'flown');
+  if (my !== seq) return;
+  resetPapers();
+  if (viewer) { viewer.setHighlight(true); viewer.setInteractive(true); viewer.setMagnet(true); }
 }
 // 고르지 않은 포스터가 칼럼으로 돌아가 붙는 자리(화면 px)
 function columnPoint(side) {
@@ -462,21 +596,22 @@ $('#collect').addEventListener('click', async () => {
 });
 $('#restart').addEventListener('click', () => location.replace(location.pathname));
 $('#again').addEventListener('click', () => { if (step === 6) goAsk(false); });   // 다시 고르기 — 두 포스터가 다시 떠오른다
+$('#backCol6').addEventListener('click', () => { if (step === 6) papersBack(); });
 
-// ── 뒤로 — 어느 단계에서든 한 단계 뒤로: 결과 → 질문 → 펼친 전단지 → 칼럼 → 스캔 → 목록
+// ── 뒤로 — 어느 단계에서든 한 단계 뒤로: 결과 → 질문 → 칼럼 · 펼친 전단지 → 칼럼 · 살펴보기 → 칼럼 · 칼럼 → 스캔 → 목록
 $('#backBtn').addEventListener('click', () => {
   if (step === 1) { location.href = 'index.html'; return; }
-  if (step === 'rise' || step === 2) { toScan(); return; }
+  if (step === 'approach' || step === 2) { toScan(); return; }
   if (step === 3) { if (viewer) viewer.release(); return; }   // 'release' 이벤트가 2로 돌려 놓는다
   if (step === 4) { flyerBack(); return; }
-  if (step === 5) { showFlyer(false); return; }
+  if (step === 5) { if (!document.body.classList.contains('leaving')) papersBack(); return; }
   if (step === 6) { goAsk(false); return; }
 });
 
 // 검수용
 window.__c1 = {
-  get loaded() { return loaded; }, get step() { return step; }, viewer,
+  get loaded() { return loaded; }, get step() { return step; }, get found() { return found; }, viewer,
   scan, focus: (i) => viewer && viewer.focusItem(i), inspect: openPrint, openFlyer, project: (i) => viewer && viewer.projectRect(i), get stance() { return stance; },
-  EXPO, SALON,
+  EXPO, EXPO_OPEN, SALON, ITEMS,
 };
 if (new URLSearchParams(location.search).has('debug')) window.__mv = viewer;

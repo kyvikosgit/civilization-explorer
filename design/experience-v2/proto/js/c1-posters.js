@@ -2,6 +2,7 @@
 //   · 살롱 1874 공고: 관청 벽보 — 흰 종이, 굵은 목활자, 두 색 인쇄. 문구는 1874 살롱 도록 표제("des artistes vivants exposés au Palais des Champs-Élysées le 1er mai 1874")에서
 //   · 화가들의 전시 전단지: 세 단으로 접힌 노란 종이. 문구는 1874 첫 전시 도록 표지(Société anonyme coopérative des artistes peintres, sculpteurs, graveurs, etc.
 //     Première exposition · 35, boulevard des Capucines · du 15 avril au 15 mai · 10–6시, 8–10시 · 입장 1프랑)에서. 접힌 겉면(표지)은 따로
+//   · 샴의 만평 두 장: 그림(Commons, 퍼블릭 도메인)을 신문지 바탕에 얹고 원래 설명 문구를 조판(drawClipping)
 //   활자: Playfair Display 900/700(목활자 대용, 가로로 눌러 콘덴스) · Old Standard TT(19세기 본문 활자). 잉크는 종이에 곱하기로 얹고 군데군데 빠지게(활판 느낌)
 function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 
@@ -145,6 +146,37 @@ export function drawExpoCover() {
   text(k, '35, Boulevard des Capucines · 15 Avril 1874', cx, 302, 34, { fam: 'os', w: 400, it: true, maxW: 600 });
   pressInk(g, L, 5, 0.4);
   return c;
+}
+
+// 신문 만평 오려 붙인 종이 — 샴(Cham)의 목판 만평은 Commons 에 그림만 있어서(신문 쪽 스캔이 아니다) 신문지 바탕에 그림을 곱하기로 얹고
+//   머리(지면 이름)와 아래 설명 문구를 조판한다. 설명은 원래 그림 아래 실린 문구 그대로(Commons 파일 설명에 옮겨 적힌 것) — 지어낸 말 없음
+function wrapLines(g, s, maxW) {
+  const out = []; let line = '';
+  s.split(' ').forEach((w) => { const t = line ? line + ' ' + w : w; if (g.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; });
+  if (line) out.push(line);
+  return out;
+}
+export function drawClipping(img, { head, lead = '', caption = '', seed = 3 }) {
+  const w = 720, m = 40, iw = w - m * 2, ih = Math.round(iw * img.height / img.width);
+  const probe = document.createElement('canvas').getContext('2d');
+  probe.font = font(25, { fam: 'os', w: 400, it: true });
+  const lines = wrapLines(probe, caption, w - m * 2 - 10);
+  const top = 92, capY = top + ih + 30 + (lead ? 34 : 0);
+  const h = capY + lines.length * 33 + 26;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d');
+  paper(g, w, h, '#ECE4CF', '#DBD1B7', seed, false);
+  const L = inkLayer(w, h), k = L.getContext('2d'), INK = '#1c1915', cx = w / 2;
+  text(k, head, cx, 54, 22, { fam: 'os', w: 700, track: 5, maxW: iw });
+  rule(k, m, w - m, 70, 1.4, INK);
+  k.strokeStyle = INK; k.lineWidth = 1.6; k.strokeRect(m - 0.5, top - 0.5, iw + 1, ih + 1);
+  if (lead) text(k, lead, cx, top + ih + 40, 21, { fam: 'os', w: 700, track: 3, maxW: iw });
+  lines.forEach((ln, i) => text(k, ln, cx, capY + 18 + i * 33, 25, { fam: 'os', w: 400, it: true, maxW: iw }));
+  pressInk(g, L, seed + 2, 0.5);
+  g.save(); g.globalCompositeOperation = 'multiply'; g.globalAlpha = 0.95; g.drawImage(img, m, top, iw, ih); g.restore();
+  return c;
+}
+export function loadImage(src) {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
 }
 
 // 화면(DOM)용 그림 주소 — toBlob 은 인코딩을 메인 스레드 밖에서 한다

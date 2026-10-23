@@ -39,13 +39,14 @@
       <button class="icon-btn" id="backBtn" aria-label="뒤로"><i data-ic="back"></i></button>
       <div class="tb-title" id="tbTitle">시민사회</div>
       <span class="tb-right">
-        <button class="icon-btn" id="closeBtn" aria-label="전단지를 칼럼에 돌려놓기" hidden><i data-ic="close"></i></button>
+        <button class="icon-btn" id="closeBtn" aria-label="칼럼에 돌려놓기" hidden><i data-ic="close"></i></button>
         <span class="collect-ic" id="collectIc" aria-label="수집함"><i data-ic="box"></i><b id="collectN" hidden>1</b></span>
       </span>
     </div>
   </div>
 
-  <!-- 1 역할 + 스캔 — 칼럼 윤곽 점선(3D 모델 실측 프로파일), 점선을 누르면 데모로 진행 -->
+  <!-- 1 역할 + 스캔 — 칼럼은 처음부터 저녁 거리에 서 있다. 그 윤곽에 점선(3D 모델 실측 프로파일)이 겹치고, 점선을 누르면 데모로 진행
+       → 카메라가 가스등 거리를 걸어 칼럼 앞으로 다가간다(솟지 않는다) -->
   <div class="s s1">
     <div class="role-head">
       <div class="eyebrow">Colonne Morris · Avril 1874</div>
@@ -60,7 +61,13 @@
   <div class="s s2 s2-bottom">
     <div class="hunt">
       <p class="hunt-line" id="huntLine">칼럼을 돌려 보세요.<br>누군가 <em>접어서 꽂아 두고 간</em> 전단지가 있습니다</p>
-      <p class="hunt-sub" id="huntSub"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌리기 · 포스터를 누르면 떼어 읽어요</p>
+      <p class="hunt-sub" id="huntSub"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌리기 · 포스터와 만평을 누르면 떼어 읽어요</p>
+      <!-- 전단지를 찾은 뒤: 같은 놋쇠 명판이 칼럼 아래에 남는다 — 더 둘러보다가 준비되면 누른다 -->
+      <button class="plaque dock" id="toAsk2" aria-label="살롱 공고와 견주어 보기" tabindex="-1">
+        <span class="pl-fr">Salon <i>ou</i> Capucines ?</span>
+        <span class="pl-ko">살롱 공고와 견주어 보기</span>
+        <i class="pl-sh" aria-hidden="true"></i>
+      </button>
     </div>
   </div>
 
@@ -71,7 +78,8 @@
   </div>
 
   <!-- 4 접힌 전단지(칼럼에서 누르면 압정에서 빠져 가운데로 오며 세 단이 펼쳐진다) → 놋쇠 명판을 누르면 전단지가 오른쪽 자리로 물러나고 칼럼의 살롱 공고가 떼어져 왼쪽으로
-       → 5 이번 주말 어느 전시를 보러 갈까 → 6 오늘의 관람객(두 포스터 크기 = 오늘의 비율) -->
+       → 5 이번 주말 어느 전시를 보러 갈까 → 6 오늘의 관람객(두 포스터 크기 = 오늘의 비율)
+       언제든 칼럼으로 돌아갈 수 있다: 4 → 전단지는 펼친 채 제자리에 다시 꽂힌다 · 5·6 → 두 인쇄물이 칼럼의 제자리로 돌아간다 -->
   <div class="s unfold" id="unfold">
     <div class="unfold-dim"></div>
     <div class="unfold-body">
@@ -87,6 +95,7 @@
           <i class="pl-sh" aria-hidden="true"></i>
         </button>
       </div>
+      <button class="col-link" id="backCol4" data-on="4">칼럼 더 둘러보기</button>
 
       <!-- 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(둘 다 재현). 이번 주말 보러 갈 전시를 고른다 -->
       <div class="ask" id="ask" data-on="5">
@@ -114,7 +123,8 @@
         <div class="crowd-stamp" id="crowdStamp"></div>
       </div>
 
-      <div class="unfold-btns two" data-on="6"><button class="btn dark-line" id="again">다시 고르기</button><button class="btn white" id="collect">수집함에 저장</button><button class="btn dark-line" id="restart" hidden>처음으로</button></div>
+      <div class="unfold-btns two" data-on="6"><button class="btn dark-line" id="again">다시 고르기</button><button class="btn white" id="collect">수집함에 저장</button><button class="btn dark-line" id="restart" hidden>처음으로</button>
+        <button class="col-link" id="backCol6">칼럼 더 둘러보기</button></div>
     </div>
   </div>
 
