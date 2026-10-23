@@ -7,19 +7,22 @@
 .role h1 { font-size: 28px; line-height: 1.22; margin-top: 8px; }
 .role .rule { margin-top: 14px; }
 .role .lead { margin: 14px 0 0; }
-.crit { margin-top: 16px; border: 1px solid var(--hair); border-radius: 10px; background: var(--panel); }
-.crit summary { list-style: none; display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; font-weight: 700; font-size: 14px; cursor: pointer; }
+/* 심사 기준 — 접힌 한 줄(요약 + 펼치기). 펼치면 일곱 항목 */
+.crit { margin-top: 14px; }
+.crit summary { list-style: none; display: flex; align-items: baseline; gap: 10px; padding: 6px 0; font-size: 13.5px; line-height: 1.45; color: var(--dim); cursor: pointer; }
 .crit summary::-webkit-details-marker { display: none; }
-.crit summary i { display: grid; width: 18px; height: 18px; color: var(--dim); transition: transform .25s; }
-.crit[open] summary i { transform: rotate(180deg); }
-.crit ol { margin: 0; padding: 0 14px 12px 32px; display: grid; gap: 5px; font-size: 14.5px; line-height: 1.5; }
+.crit-sum { flex: 1; min-width: 0; }
+.crit-sum b { color: var(--ink); font-weight: 700; }
+.crit-more { flex: none; font-size: 12.5px; font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair-strong); }
+.crit[open] .crit-more { font-size: 0; }
+.crit[open] .crit-more::after { content: '접기'; font-size: 12.5px; }
+.crit ol { margin: 4px 0 0; padding: 0 0 4px 18px; display: grid; gap: 4px; font-size: 14px; line-height: 1.5; }
 .crit li small { color: var(--dim); margin-left: 4px; }
-.cands-cap { margin-top: 24px; font-family: var(--display); font-weight: 600; font-size: 13px; }
 /* 작은 주황 글씨는 흰 바탕에서 읽히는 짙은 주황(5.1:1) */
 .c0 .eyebrow { color: #B4501F; }
 
 /* 역할 화면의 후보작 띠 — 현장과 같은 한 줄, 번호판 위, 금박 액자. 눈높이(가운데 선)에 맞춰 정렬 */
-.cands { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; align-items: stretch; margin: 10px 0 20px; padding: 18px 10px 10px; border-radius: 8px;
+.cands { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; align-items: stretch; margin: 22px 0 20px; padding: 18px 10px 10px; border-radius: 8px;
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23000' stroke-opacity='.13' stroke-width='1.2'%3E%3Cpath d='M32 4c6 8 12 12 24 14-12 2-18 6-24 14-6-8-12-12-24-14 12-2 18-6 24-14z'/%3E%3Ccircle cx='32' cy='18' r='3'/%3E%3C/g%3E%3C/svg%3E") 0 0/64px 64px,
     linear-gradient(180deg, #7A3233, #5A2122); }
@@ -55,10 +58,6 @@
 .gest { position: absolute; left: 0; right: 0; bottom: calc(132px + var(--safe-b)); z-index: 6; display: flex; justify-content: center; pointer-events: none; transition: opacity .4s; }
 .gest .pill { font-size: 12.5px; font-weight: 500; min-height: 30px; background: rgba(20,8,8,.55); color: rgba(255,247,234,.9); }
 .gest.off { opacity: 0; }
-/* 확대 중에만: 같은 자리의 안내 한 줄 */
-.zoomtag { opacity: 0; transition: opacity .3s; }
-.zoomtag.on { opacity: 1; }
-.stage.zoomed .gest:not(.zoomtag) { opacity: 0; }
 
 /* 아래 독: 넘김 + 메달 버튼 */
 .dock { position: absolute; left: 0; right: 0; bottom: 0; z-index: 7; padding: 0 var(--pad) calc(14px + var(--safe-b)); display: grid; gap: 8px; transition: opacity .3s, transform .4s var(--ease-out); }
@@ -71,7 +70,7 @@
 .btn.award .m { width: 24px; height: 24px; display: block; }
 .btn.award .m svg { display: block; width: 100%; height: 100%; }
 .dock.busy { opacity: 0; pointer-events: none; }
-.stage.is-reveal .dock, .stage.is-reveal .q, .stage.is-reveal .gest, .stage.is-reveal .zoomtag { opacity: 0; pointer-events: none; }
+.stage.is-reveal .dock, .stage.is-reveal .q, .stage.is-reveal .gest { opacity: 0; pointer-events: none; }
 .stage.is-reveal .dock { transform: translateY(30px); }
 .stage.is-reveal .wall-top .idx { opacity: 0; }
 .stage.zoomed .q, .stage.zoomed .dock .nav { opacity: 0; }
@@ -150,5 +149,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal, .tag, .today, .rownum, .dock, .q, .gest, .pips i, .crit summary i { transition: none; }
+  .reveal, .tag, .today, .rownum, .dock, .q, .gest, .pips i { transition: none; }
 }

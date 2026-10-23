@@ -8,7 +8,7 @@ const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const OUTDOOR = 'img/c3-outdoor.jpg';   // 임시: 모네 〈아르장퇴유의 화가의 집〉 1873 (AIC · CC0), 6:5 로 자른 1200×1000
 const stage = $('#stage'), reveal = $('#reveal'), hint = $('#hint');
-const LABEL = { indoor: '실내 캔버스', outdoor: '야외 캔버스' };
+const LABEL = { indoor: '아틀리에에서 그린 그림', outdoor: '밖에서 그린 그림' };
 function setLabel(which) { $('#labelMain').textContent = LABEL[which]; }
 
 let W = 0, H = 0;                 // 작업 해상도 (6:5)
@@ -205,24 +205,24 @@ function finish() {
     document.querySelector('meta[name=theme-color]').content = '#FFFFFF';
   }, T_LIT);
   setTimeout(() => {
-    const easel = $('.easel'), y0 = easel.getBoundingClientRect().top;
+    // 레이아웃이 바뀌어도 캔버스는 제자리 — 가운데 맞춤 여백을 지금 값으로 고정한다
+    const easel = $('.easel'), hd = $('.room .role-hd'), gap = easel.getBoundingClientRect().top - hd.getBoundingClientRect().bottom;
     hint.hidden = true; $('#after').hidden = false;
     document.body.classList.add('done');
-    window.scrollBy(0, easel.getBoundingClientRect().top - y0);      // 레이아웃이 바뀌어도 캔버스는 제자리
-    const hold = $('#hold'); hold.hidden = false; hold.classList.add('in');
-    $('#roleSub').textContent = '같은 장면, 밖의 빛';
+    easel.style.marginTop = `${Math.max(6, gap)}px`;
+    const tip = $('#holdTip'); tip.hidden = false; tip.classList.add('in'); tip.addEventListener('animationend', () => tip.classList.remove('in'), { once: true });
+    $('#roleSub').textContent = '같은 장면을 밖의 빛으로 다시 칠했습니다';
     requestAnimationFrame(() => $('#after').classList.add('in'));
   }, T_AFTER);
 }
-// ── 누르고 있으면 실내 캔버스
+// ── 다 칠한 뒤: 캔버스를 누르고 있는 동안 아틀리에에서 그린 그림 (250ms 크로스페이드)
 {
-  const b = $('#hold');
-  const on = (e) => { e.preventDefault(); b.classList.add('on'); reveal.classList.add('hide'); setLabel('indoor'); b.setPointerCapture && b.setPointerCapture(e.pointerId); };
-  const off = () => { b.classList.remove('on'); reveal.classList.remove('hide'); setLabel('outdoor'); };
-  b.addEventListener('pointerdown', on);
-  b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
-  b.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); on(e); } });
-  b.addEventListener('keyup', off);
+  let held = false;
+  const on = (e) => { if (!document.body.classList.contains('done') || held) return; e.preventDefault(); held = true; stage.classList.add('held'); reveal.classList.add('hide'); setLabel('indoor'); try { stage.setPointerCapture(e.pointerId); } catch (_) { /* noop */ } };
+  const off = () => { if (!held) return; held = false; stage.classList.remove('held'); reveal.classList.remove('hide'); setLabel('outdoor'); };
+  stage.addEventListener('pointerdown', on);
+  stage.addEventListener('pointerup', off); stage.addEventListener('pointercancel', off); stage.addEventListener('lostpointercapture', off);
+  stage.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
 // ── 저장: 액자 + 야외 캔버스를 세로 카드 한 장으로
@@ -253,4 +253,4 @@ $('#save').addEventListener('click', async () => {
 
 init().catch((e) => { console.error(e); toast('캔버스 이미지를 불러오지 못했습니다.'); });
 // 검수용
-window.__c3 = { get done() { return done; }, get touched() { return touched; }, coverage: () => (outdoor ? coverage() : 0) };
+window.__c3 = { get done() { return done; }, get held() { return reveal.classList.contains('hide'); }, get touched() { return touched; }, coverage: () => (outdoor ? coverage() : 0) };

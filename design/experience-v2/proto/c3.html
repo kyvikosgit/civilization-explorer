@@ -14,29 +14,30 @@
 
 <div class="topbar">
   <a class="icon-btn" href="index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
-  <div class="tb-title">C3 · 화가의 아틀리에</div>
+  <div class="tb-title"></div>
   <span></span>
 </div>
 
 <main class="wrap room">
   <header class="role-hd rise" style="--i:0">
-    <div class="eyebrow">당신은</div>
-    <h1>튜브 물감을 들고<br>처음 밖으로 나온 화가입니다</h1>
+    <div class="eyebrow">C3 · 화가의 아틀리에</div>
+    <h1>밖의 빛</h1>
     <p class="sub" id="roleSub">같은 장면을 밖의 빛으로 다시 칠해 보세요</p>
   </header>
 
-  <!-- 캔버스 — 얇은 나무 액자 안 6:5. 굵은 붓(화면 폭의 약 1/4)이라 세 번이면 대부분 드러난다 -->
+  <!-- 캔버스 — 화면 폭 가득(양옆 16px), 얇은 나무 액자 안 6:5. 굵은 붓(화면 폭의 약 1/4)이라 세 번이면 대부분 드러난다.
+       다 칠한 뒤엔 캔버스 자체가 비교 단추: 누르고 있는 동안 아틀리에에서 그린 그림 -->
   <section class="easel rise" style="--i:1" aria-label="캔버스">
     <div class="frame" id="frame">
       <div class="canvas-wrap" id="stage">
         <img id="indoor" class="indoor" src="img/c3-indoor.jpg" alt="실내 캔버스(임시 이미지)" draggable="false">
         <canvas id="reveal" class="reveal" aria-label="손가락으로 쓸어 칠하기"></canvas>
+        <span class="hold-tip" id="holdTip" hidden>누르고 있으면 아틀리에에서 그린 그림</span>
       </div>
     </div>
-    <!-- 액자 아래 이름표 한 줄 — 왼쪽 이름 · 임시, 오른쪽(다 칠한 뒤) 누르고 있으면 실내 캔버스 -->
+    <!-- 액자 아래 이름표 한 줄 -->
     <div class="cap-row">
-      <p class="label" id="label"><span id="labelMain">실내 캔버스</span><i class="tmp">임시</i></p>
-      <button class="hold" id="hold" type="button" hidden>누르고 있으면 실내</button>
+      <p class="label" id="label"><span id="labelMain">아틀리에에서 그린 그림</span><i class="tmp">임시</i></p>
     </div>
   </section>
 
@@ -47,7 +48,7 @@
     <div class="actions">
       <button class="btn" id="save" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg>이 캔버스 저장</button>
     </div>
-    <p class="note placeholder-note">두 캔버스는 제작 전 임시 이미지입니다. 야외: 모네 〈아르장퇴유의 화가의 집〉 1873, 시카고 미술관(CC0). 실내: 같은 장면을 아틀리에에서 기억으로 다시 그린 재현으로, 삽화가가 새로 그립니다.</p>
+    <p class="note placeholder-note">두 캔버스는 제작 전 임시 이미지</p>
   </section>
 </main>
 

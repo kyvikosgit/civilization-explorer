@@ -6,7 +6,7 @@
 html { background: #0E0D0C; }
 body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .room .role-hd { padding-top: 10px; }
-.room .role-hd .sub { color: rgba(255,255,255,.62); }
+.room .role-hd .sub { margin-top: 6px; font-size: 13.5px; color: rgba(255,255,255,.62); }
 
 /* ── 〈인상, 해돋이〉 — 마지막 방의 한 점. 화면 폭 가득, 그림 비율 그대로(자르지 않는다).
    비추기(점선 액자) → 그림 → 그날 아침의 장면 → 다시 그림. 모든 단계가 같은 자리(.sun-stage)에서 일어난다 */
@@ -164,7 +164,7 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 body.c5 h1, body.c5 h2, body.c5 .tb-title, body.c5 .btn, body.c5 .cap-title, body.c5 .kept-txt b, body.c5 .now-line, body.c5 .styles button { letter-spacing: 0; }
 
 @media (max-height: 700px) {
-  .room .role-hd h1 { font-size: 21px; } .room .role-hd .sub { font-size: 14px; } .sun-wrap { margin-top: 8px; } .sun-below { min-height: 120px; padding-top: 10px; }
+  .sun-wrap { margin-top: 8px; } .sun-below { min-height: 120px; padding-top: 10px; }
   .wall-strip { gap: 20px; }
   .sky { height: 112px; } .now-line { font-size: 12.5px; } .styles button { height: 36px; }
   .stage { gap: 8px; } .caption { min-height: 56px; } .cap-title { font-size: 15.5px; }
