@@ -123,7 +123,7 @@ body[data-step="5"] .unfold-dim, body[data-step="6"] .unfold-dim { background: r
 /* 두 포스터(재현) — 캔버스 조판 그림(js/c1-posters.js)을 그대로. 화가들의 전단지는 펼친 주름이 남아 있다 */
 .notice { position: relative; display: block; background: #EDE6D4 center/100% 100% no-repeat; overflow: hidden; }
 .notice::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 90% at 30% 20%, rgba(255,250,235,.10), rgba(0,0,0,0) 60%, rgba(40,30,15,.14)); }
-.notice.expo::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+.notice.expo::before, .notice.salon::before { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
   background: linear-gradient(rgba(0,0,0,0) calc(33.33% - 4px), rgba(70,50,15,.16) calc(33.33% - 1px), rgba(255,250,230,.22) calc(33.33% + 1px), rgba(0,0,0,0) calc(33.33% + 5px), rgba(0,0,0,0) calc(66.66% - 4px), rgba(70,50,15,.16) calc(66.66% - 1px), rgba(255,250,230,.22) calc(66.66% + 1px), rgba(0,0,0,0) calc(66.66% + 5px)); }
 .paper-lb { display: grid; gap: 2px; white-space: nowrap; }
 .paper-lb b { font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -0.02em; }
@@ -285,7 +285,7 @@ body[data-step="5"] .unfold-dim { background: rgba(6,5,10,.55); }
 @keyframes sweepX { 0% { transform: translateX(-110%); opacity: 1; } 100% { transform: translateX(110%); opacity: 1; } }
 body[data-step="6"] .crowd-cols { margin-top: 12px; }
 .unfold-btns.two { grid-template-columns: 1fr 1.4fr; }
-.unfold-btns.two #restart:not([hidden]) { grid-column: 1 / -1; }
+/* 저장 뒤에는 [다시 고르기 | 처음으로] — 같은 줄, 같은 폭·높이(오른쪽이 채운 단추) */
 
 /* 누름 반응 */
 .c1 .btn, .c1 .icon-btn { position: relative; overflow: hidden; }
@@ -397,17 +397,12 @@ body.returning .crowd, body.returning .unfold-btns, body.returning .paper-lb { o
 }
 
 /* ═════ 5 고르기 두 번 — 누르면 들리고(바꿀 수 있다), '이 전시에 가기' 명판으로 정한다 ═════ */
-.paper.sel { transform: translateY(-10px) scale(1.06); z-index: 2; }
-.paper.sel > .notice { box-shadow: 0 0 0 1.5px #C9A45C, 0 0 0 4px rgba(201,164,92,.22), 0 0 34px rgba(255,200,120,.32), 0 22px 40px rgba(0,0,0,.65); }
-.paper.sel .paper-lb b { color: #F2C58C; }
-.paper.unsel { transform: translateY(4px) scale(.94); opacity: .58; filter: brightness(.75) saturate(.8); }
-.paper.sel, .paper.unsel { transition: transform .55s var(--ease-out), opacity .45s, filter .45s; }
-.go-row { margin-top: 4px; }
+.go-row { margin-top: 2px; }
 .plaque.go { min-width: 232px; padding: 10px 36px 11px; }
 .plaque.go .pl-fr { text-transform: none; letter-spacing: .06em; font-style: italic; font-size: 12px; }
 .plaque.go .pl-ko { font-size: 16px; }
 .plaque.go.ready .pl-sh { animation: plSh 1.1s cubic-bezier(.4,0,.2,1) .2s; }
-.papers.decided ~ .go-row .plaque.go, body[data-step="6"] .go-row { opacity: 0; pointer-events: none; }
+
 .crowd-col .where { display: block; margin-top: 2px; font-size: 11.5px; color: rgba(255,255,255,.55); white-space: nowrap; }
 /* 5·6 — 글은 그림자로 받친다 */
 .ask-q, .paper-lb, .crowd-head, .crowd-cols, .crowd-stamp { text-shadow: 0 1px 10px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6); }
@@ -416,6 +411,77 @@ body.returning .crowd, body.returning .unfold-btns, body.returning .paper-lb { o
   .plaque.go .pl-ko { font-size: 15px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .paper.sel, .paper.unsel { transition: none !important; }
   .plaque.go .pl-sh { animation: none !important; }
 }
+
+/* ═════ 종이 돌려 보기 — 끈 각도에 멈춘다. 빛 띠(--sh)와 그늘(--shade)이 각도를 따라 ═════ */
+.flyer:not(.folded) { transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.flyer.tilting, .tiltable.tilting { transition: none !important; }
+.flyer:not(.folded) .strip.t { transform: rotateX(-4deg); }      /* 접혔던 자국대로 아주 조금 굽어 있다 */
+.flyer:not(.folded) .strip.d { transform: rotateX(4deg); }
+.fsh { position: absolute; inset: 0; pointer-events: none; z-index: 2;
+  background: linear-gradient(rgba(40,28,10,var(--shade, 0)), rgba(40,28,10,var(--shade, 0))), linear-gradient(100deg, rgba(255,250,235,0) 34%, rgba(255,250,232,.42) 50%, rgba(255,250,235,0) 66%);
+  background-size: 100% 100%, 320% 100%; background-position: 0 0, calc(50% - var(--sh, 0) * 55%) 0; background-repeat: no-repeat; mix-blend-mode: soft-light; }
+.strip .f .fsh { background-size: 100% 300%, 320% 300%; }
+.flyer-wrap { touch-action: none; cursor: grab; }
+.f-hint { margin: -4px 0 0; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(246,238,220,.6); text-shadow: 0 1px 6px rgba(0,0,0,.8); flex: none; }
+.f-hint .drag { position: relative; width: 22px; height: 2px; border-radius: 1px; background: rgba(246,238,220,.28); }
+.f-hint .drag i { position: absolute; top: -2.5px; left: 0; width: 7px; height: 7px; border-radius: 50%; background: #F6EEDC; animation: dragDot 2.2s cubic-bezier(.45,0,.25,1) infinite; }
+.fly-hint { opacity: 0; transition: opacity .5s; }
+body[data-step="4"] .found-cap.show ~ .fly-hint { opacity: 1; transition-delay: .3s; }
+body.leaving .fly-hint, body.returning .fly-hint { opacity: 0 !important; }
+
+/* ═════ 5 자세히 보기 — 같은 장면에서 누른 포스터가 가운데로 크게, 다른 하나는 옆으로 물러나 어둡게 ═════ */
+.unfold-body { --fw2: min(214px, 26vh); }
+.focus { position: absolute; inset: calc(52px + var(--safe-t)) 0 calc(14px + var(--safe-b)); display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 10px;
+  padding: 0 var(--pad); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .35s, visibility 0s linear .35s; }
+.unfold-body.focusing .focus { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .3s, visibility 0s; }
+.unfold-body .ask, .unfold-body .papers { transition: opacity .35s; }
+.unfold-body.focusing .ask, .unfold-body.focusing .papers { opacity: 0; pointer-events: none; }
+.unfold-body.focusing .papers .paper { pointer-events: none; }
+.f-stage { perspective: 1000px; flex: none; filter: drop-shadow(0 22px 30px rgba(0,0,0,.6)); }
+.f-sheet { position: relative; width: var(--fw2); height: calc(var(--fw2) * 1.5); transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .6s var(--ease-out); touch-action: none; cursor: grab; pointer-events: auto; }
+.f-sheet .f-front { position: absolute; inset: 0; width: auto; height: auto; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(90,70,30,.22); }
+.f-sheet .f-back { position: absolute; inset: 0; transform: rotateY(180deg); backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #E6DABD; box-shadow: inset 0 0 30px rgba(80,60,20,.18); }
+.f-sheet .f-edge { position: absolute; top: 0; right: 0; width: 3px; height: 100%; background: linear-gradient(#DCCDA6, #C9B88C); transform-origin: 100% 50%; transform: rotateY(90deg); }
+.f-sheet .fsh { border-radius: 2px; }
+.f-side { position: absolute; top: calc(50% - var(--fw2) * 0.95); width: 66px; opacity: .5; filter: brightness(.7) saturate(.8); transition: opacity .3s, filter .3s; perspective: 600px; z-index: 1; }
+.f-side.left { left: -14px; } .f-side.right { right: -14px; }
+.f-side .notice { width: 66px; height: 99px; border-radius: 2px; box-shadow: 0 10px 18px rgba(0,0,0,.55); }
+.f-side.left .notice { transform: rotateY(32deg); } .f-side.right .notice { transform: rotateY(-32deg); }
+.f-side:active { opacity: .8; }
+.f-hint { justify-content: center; }
+.focus .f-hint { margin: 0; }
+.f-info { width: 100%; max-width: 340px; margin: 0; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; row-gap: 4px; padding: 12px 14px 13px; border-radius: 4px;
+  background: rgba(10,9,12,.62); box-shadow: inset 0 0 0 1px rgba(201,164,92,.28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); flex: none; }
+.f-info .fi-hd { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; padding-bottom: 6px; border-bottom: 1px solid rgba(201,164,92,.22); }
+.f-info .fi-hd b { font-family: var(--display); font-weight: 800; font-size: 16px; color: #F6EAD0; letter-spacing: -0.01em; }
+.f-info .fi-hd i { font-family: 'Old Standard TT', Georgia, serif; font-size: 12.5px; color: #D7B46C; }
+.f-info dt { font-size: 12px; line-height: 1.5; color: #D7B46C; white-space: nowrap; }
+.f-info dd { margin: 0; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,.9); }
+@media (max-height: 700px) {
+  .unfold-body { --fw2: min(160px, 24vh); }
+  .focus { gap: 7px; }
+  .f-info { padding: 9px 12px 10px; row-gap: 2px; }
+  .f-info dt { font-size: 11px; } .f-info dd { font-size: 12px; line-height: 1.42; }
+  .f-info .fi-hd b { font-size: 14.5px; }
+  .f-side { width: 54px; } .f-side .notice { width: 54px; height: 81px; }
+  .f-hint { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f-sheet, .focus, .unfold-body .ask, .unfold-body .papers, .fly-hint { transition: none !important; }
+  .f-hint .drag i { animation: none !important; }
+}
+
+/* ═════ 끝 — 모든 체험 공통 줄: [처음으로(선) | 수집함에 저장(채움)] 같은 높이, 저장 뒤 오른쪽은 제자리에서 흐리게 '수집함에 담았어요' ═════ */
+.unfold-btns .end-links { grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 4px; margin: 0; }
+.unfold-btns .end-links .col-link { grid-column: auto; margin: 0; }
+.unfold-btns .end-links span { color: rgba(246,238,220,.4); font-size: 13px; }
+.c1 .btn.white.done[disabled] { background: rgba(255,255,255,.16); color: rgba(255,255,255,.78); }
+.unfold-body .ask, .unfold-body .papers { transition-duration: .2s; }
+.f-side.left { left: -6px; } .f-side.right { right: -6px; }
+/* 질문 글은 등장 애니메이션(채움)이 투명도를 붙잡고 있어서 — 가릴 때는 visibility 로 */
+.unfold-body .ask { transition: opacity .2s, visibility 0s linear 0s; }
+.unfold-body.focusing .ask { visibility: hidden; transition: opacity .2s, visibility 0s linear .2s; }

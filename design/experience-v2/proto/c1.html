@@ -63,9 +63,9 @@
       <p class="hunt-line" id="huntLine">칼럼을 돌려 보세요.<br>이번 주말 열리는 <em>두 전시</em>의 안내문이 꽂혀 있습니다</p>
       <p class="hunt-sub" id="huntSub"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌리기 · 포스터와 만평을 누르면 떼어 읽어요</p>
       <!-- 안내문을 하나라도 찾은 뒤: 같은 놋쇠 명판이 칼럼 아래에 남는다 — 더 둘러보다가 준비되면 누른다 -->
-      <button class="plaque dock" id="toAsk2" aria-label="두 전시 견주어 보기" tabindex="-1">
+      <button class="plaque dock" id="toAsk2" aria-label="두 전시 나란히 보기" tabindex="-1">
         <span class="pl-fr">Salon <i>ou</i> Capucines ?</span>
-        <span class="pl-ko">두 전시 견주어 보기</span>
+        <span class="pl-ko">두 전시 나란히 보기</span>
         <i class="pl-sh" aria-hidden="true"></i>
       </button>
     </div>
@@ -85,13 +85,14 @@
     <div class="unfold-body">
       <div class="cap light found-cap" id="unfoldCap" data-on="4"></div>
       <div class="flyer-wrap" id="flyerWrap" data-on="4"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
+      <p class="f-hint fly-hint" data-on="4"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌려 보기 · 두 번 누르면 바로</p>
 
       <!-- 4 -->
       <p class="hist-dark intro" id="histIntro" data-on="4"></p>
       <div class="plaque-row" data-on="4">
-        <button class="plaque" id="toAsk" aria-label="두 전시 견주어 보기">
+        <button class="plaque" id="toAsk" aria-label="두 전시 나란히 보기">
           <span class="pl-fr">Salon <i>ou</i> Capucines ?</span>
-          <span class="pl-ko">두 전시 견주어 보기</span>
+          <span class="pl-ko">두 전시 나란히 보기</span>
           <i class="pl-sh" aria-hidden="true"></i>
         </button>
       </div>
@@ -116,13 +117,21 @@
           <span class="paper-lb"><b>독립 전시</b><small>카퓌신 대로 35번지 · 4월 15일</small></span>
         </button>
       </div>
-      <!-- 5 고르기는 두 번에: 포스터를 누르면 그 포스터가 들리고(다른 하나는 물러난다, 언제든 바꿀 수 있다) → 이 명판을 눌러야 정해진다 -->
-      <div class="plaque-row go-row" data-on="5">
-        <button class="plaque go" id="go" aria-label="이 전시에 가기" tabindex="-1">
-          <span class="pl-fr" id="goFr">Ce week-end</span>
-          <span class="pl-ko">이 전시에 가기</span>
-          <i class="pl-sh" aria-hidden="true"></i>
-        </button>
+      <!-- 5 고르기는 두 번에: 포스터를 누르면 그 포스터가 가운데로 크게 온다(끌어서 돌려 볼 수 있다) · 자세한 설명 · 다른 하나는 옆으로 물러나 어둡게(누르면 바꾼다)
+           → '이 전시에 가기' 명판을 눌러야 정해진다. 바깥이나 '둘 다 보기' → 나란히 -->
+      <div class="focus" id="focus" data-on="5">
+        <button class="f-side" id="fSide" aria-label="다른 전시 보기"><div class="notice" aria-hidden="true"></div></button>
+        <div class="f-stage"><div class="f-sheet tiltable" id="fSheet" aria-hidden="true"><div class="notice f-front"></div><i class="f-back"></i><i class="f-edge"></i><b class="fsh"></b></div></div>
+        <p class="f-hint"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌려 보기 · 두 번 누르면 바로</p>
+        <dl class="f-info" id="fInfo"></dl>
+        <div class="plaque-row go-row">
+          <button class="plaque go" id="go" aria-label="이 전시에 가기" tabindex="-1">
+            <span class="pl-fr" id="goFr">Ce week-end</span>
+            <span class="pl-ko">이 전시에 가기</span>
+            <i class="pl-sh" aria-hidden="true"></i>
+          </button>
+        </div>
+        <button class="col-link" id="bothBtn">둘 다 보기</button>
       </div>
 
       <!-- 6 오늘의 관람객 — 두 포스터 아래 숫자 -->
@@ -131,8 +140,9 @@
         <div class="crowd-stamp" id="crowdStamp"></div>
       </div>
 
-      <div class="unfold-btns two" data-on="6"><button class="btn dark-line" id="again">다시 고르기</button><button class="btn white" id="collect">수집함에 저장</button><button class="btn dark-line" id="restart" hidden>처음으로</button>
-        <button class="col-link" id="backCol6">칼럼 더 둘러보기</button></div>
+      <!-- 끝 — 모든 체험 공통: [처음으로 | 수집함에 저장] 한 줄(저장 뒤 오른쪽은 제자리에서 '수집함에 담았어요'로), 체험별 동작은 아래 조용한 글자 단추 -->
+      <div class="unfold-btns two" data-on="6"><button class="btn dark-line" id="restart">처음으로</button><button class="btn white" id="collect">수집함에 저장</button>
+        <p class="end-links"><button class="col-link" id="again">다시 고르기</button><span aria-hidden="true">·</span><button class="col-link" id="backCol6">칼럼 더 둘러보기</button></p></div>
     </div>
   </div>
 
