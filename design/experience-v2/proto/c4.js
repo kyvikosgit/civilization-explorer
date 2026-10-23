@@ -73,8 +73,9 @@ function salon(order, W, seed) {
     }
   }
   // 액자 양식: 금박(조각 몰딩 · 구슬 띠) · 흑단 나무에 금 턱 · 평평한 띠의 금박(카세타) · 타원 창. 두께도 조금씩 다르게
-  const CYC = ['', 'wood', 'ov', 'cas', '', 'wood', '', 'cas', 'ov', ''];   // 금박 4 · 흑단 2 · 카세타 2 · 타원 2 의 비율로 섞는다
-  items.forEach((it, i) => { it.shape = CYC[(i * 7 + (rnd() < 0.35 ? 1 : 0)) % CYC.length]; it.t = Math.round(it.m * (0.84 + rnd() * 0.16)); });
+  // 창 모양(s-) × 몰딩(p-) 12 가지 — 걸린 차례로 5칸씩 건너 고르니 이웃끼리 겹치지 않는다
+  const KINDS = ['p-orn', 's-ov', 'p-wood', 's-arch p-cas', 's-tondo', 'p-liner', 's-cut p-cas', 's-ov p-wood', 'p-cas', 's-arch', 's-tondo p-liner', 's-cut p-wood'];
+  items.forEach((it, i) => { it.shape = KINDS[(i * 5) % KINDS.length]; it.t = Math.round(it.m * (0.86 + rnd() * 0.14)); });
   return { items, H: y + 6 };
 }
 const isPh = new Set();      // 사진이 된 사람
