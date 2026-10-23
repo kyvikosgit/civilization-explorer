@@ -23,8 +23,6 @@ const $$ = (q) => Array.from(document.querySelectorAll(q));
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const stage = $('#ask'), hang = $('#hang'), qView = $('#qView');
 const thumb = (id, k) => `img/c4p/${id}-${k}.jpg`;
-// 명함판 대지 아래 금 글씨 — 기록에 있는 스튜디오만
-const STUDIO = { '나다르': 'Nadar', '에티엔 카르자': 'Ét. Carjat', '피에르 프티': 'Pierre Petit', '헤르만 비오브': 'H. Biow', 'A. 그레이너': 'A. Greiner' };
 const buzz = () => { if (navigator.vibrate) navigator.vibrate(8); };
 
 // ── 탭
@@ -43,7 +41,8 @@ function shuffle(a, rnd) { a = a.slice(); for (let i = a.length - 1; i > 0; i--)
 
 let PEOPLE = [], BYID = {};
 // ── 1. 살롱식 걸기(화면 가득). 줄마다 셋 · 큰 것 하나와 작은 것 둘(쌓기) · 둘 · 하나 를 섞고, 줄 안에서는 가운데 선에 맞춰 조금씩 어긋나게
-const hOf = (w) => { const m = Math.max(5, Math.round(w * 0.062)); return { h: Math.round((w - 2 * m) * 1.25 + 2 * m), m }; };
+// 액자 두께 m(폭의 약 9.5 %) — 창은 4:5
+const hOf = (w) => { const m = Math.max(9, Math.round(w * 0.095)); return { h: Math.round((w - 2 * m) * 1.25 + 2 * m), m }; };
 function salon(order, W, seed) {
   const rnd = rng(seed), P = 14, G = 12, U = W - 2 * P, items = [];
   let y = 18, i = 0, last = '';
@@ -73,16 +72,17 @@ function salon(order, W, seed) {
       const w = U * 0.56; put(order[i++], P + (U - w) / 2 + (rnd() - 0.5) * 30, y, w); y += hOf(w).h + G + 8;
     }
   }
-  items.forEach((it) => { const r = rnd(); it.shape = r < 0.24 ? 'ov' : r < 0.42 ? 'wood' : ''; });
+  // 액자 양식: 금박(조각 몰딩 · 구슬 띠) · 흑단 나무에 금 턱 · 평평한 띠의 금박(카세타) · 타원 창. 두께도 조금씩 다르게
+  const CYC = ['', 'wood', 'ov', 'cas', '', 'wood', '', 'cas', 'ov', ''];   // 금박 4 · 흑단 2 · 카세타 2 · 타원 2 의 비율로 섞는다
+  items.forEach((it, i) => { it.shape = CYC[(i * 7 + (rnd() < 0.35 ? 1 : 0)) % CYC.length]; it.t = Math.round(it.m * (0.84 + rnd() * 0.16)); });
   return { items, H: y + 6 };
 }
 const isPh = new Set();      // 사진이 된 사람
 function frameHTML(it, dy) {
-  const p = BYID[it.id], st = STUDIO[p.photo.by] || '', ph = isPh.has(p.id);
-  const cw = Math.min(it.w - 6, Math.round(it.h * 0.68));
-  return `<button class="fr ${it.shape}${ph ? ' ph' : ''}" type="button" data-id="${p.id}" style="left:${it.x}px;top:${it.y + dy}px;width:${it.w}px;height:${it.h}px;--m:${it.m}px;--cw:${cw}px" aria-label="${p.name} · ${ph ? '사진' : '그림'}">`
-    + `<span class="pt"><span class="win"><img src="${thumb(p.id, 'paint')}" alt="" draggable="false" decoding="async"></span></span>`
-    + `<span class="cv"><span class="cv-win"><img src="${thumb(p.id, 'photo')}" alt="" draggable="false" decoding="async"><i class="dev"></i></span><span class="cv-imp">${st}</span></span></button>`;
+  const p = BYID[it.id], ph = isPh.has(p.id);
+  // 액자 · 몰딩 · 창은 늘 그대로 — 안의 그림만 바뀐다(그림 ↔ 사진)
+  return `<button class="fr ${it.shape}${ph ? ' ph' : ''}${sel === p.id ? ' sel' : ''}" type="button" data-id="${p.id}" style="left:${it.x}px;top:${it.y + dy}px;width:${it.w}px;height:${it.h}px;--t:${it.t || it.m}px;--m:${it.m}px" aria-label="${p.name} · ${ph ? '사진' : '그림'}">`
+    + `<span class="sight"><span class="win"><img class="im paint" src="${thumb(p.id, 'paint')}" alt="" draggable="false" decoding="async"><img class="im photo" src="${thumb(p.id, 'photo')}" alt="" draggable="false" decoding="async"><i class="dev"></i><i class="vn"></i></span></span></button>`;
 }
 function ghosts(W, Hf, seed) {
   const rnd = rng(seed), out = [];
@@ -139,13 +139,45 @@ function setPerson(id, ph, d = 0) {
   if (isPh.has(id) === ph) return false;
   ph ? isPh.add(id) : isPh.delete(id);
   const name = BYID[id].name;
-  hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => { f.style.setProperty('--d', `${d}ms`); f.classList.toggle('ph', ph); f.setAttribute('aria-label', `${name} · ${ph ? '사진' : '그림'}`); });
+  hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => {
+    f.style.setProperty('--d', `${d}ms`); f.classList.toggle('ph', ph); f.setAttribute('aria-label', `${name} · ${ph ? '사진' : '그림'}`);
+    // 그림으로 돌아갈 때는 니스 빛이 창을 한 번 쓸고 간다(액자는 그대로)
+    f.classList.remove('back'); if (!ph && !REDUCED) { void f.offsetWidth; f.classList.add('back'); }
+  });
+  if (sel === id) caption(id);
   return true;
 }
 const hint = (on) => $('#wHint').classList.toggle('off', !on);
+
+// ── 누가 · 언제 — 마지막으로 누른 사람의 이름표(아래 '초상화 | 사진' 위). 지금 보이는 쪽을 먼저, 다른 쪽은 옅게
+//    사진 작자 · 연도는 c4-people.json 그대로 — 비어 있으면 '작자 미상' · '연도 미상', 다게레오타입은 그렇게 적는다
+let sel = null;
+function credit(p, k) {
+  const r = p[k] || {}, year = (r.year || '').trim() || '연도 미상';
+  if (k === 'paint') return { kind: '그림', who: (r.by || '').trim() || '화가 미상', year };
+  const dag = /다게레오타입/.test(`${r.where || ''} ${r.note || ''}`);
+  return { kind: dag ? '다게레오타입' : '사진', who: (r.by || '').trim() || '작자 미상', year };
+}
+function caption(id) {
+  const p = BYID[id], box = $('#wCap'); if (!p) return;
+  const now = isPh.has(id) ? 'photo' : 'paint', other = now === 'photo' ? 'paint' : 'photo';
+  const a = credit(p, now), b = credit(p, other);
+  $('#capName').textContent = p.name;
+  $('#capNow').innerHTML = `<em>${a.kind}</em> ${a.who}, ${a.year}`;
+  $('#capOther').textContent = `${b.kind} · ${b.who}, ${b.year}`;
+  box.dataset.k = now;
+  if (box.hidden) { box.hidden = false; void box.offsetWidth; }
+  box.classList.remove('swap'); void box.offsetWidth; box.classList.add('swap');
+}
+function select(id) {
+  sel = id;
+  hang.querySelectorAll('.fr.sel').forEach((f) => f.classList.remove('sel'));
+  hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => f.classList.add('sel'));
+  caption(id);
+}
 hang.addEventListener('click', (e) => {
   const f = e.target.closest('.fr'); if (!f) return;
-  setPerson(f.dataset.id, !isPh.has(f.dataset.id)); buzz(); hint(false);
+  setPerson(f.dataset.id, !isPh.has(f.dataset.id)); buzz(); hint(false); select(f.dataset.id);
   // 하나씩 눌러 모두 같은 쪽이 되면 아래 단추도 따라간다
   if (isPh.size === PEOPLE.length) segUI('photo'); else if (!isPh.size) segUI('paint');
 });

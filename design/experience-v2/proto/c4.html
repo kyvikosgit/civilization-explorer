@@ -53,6 +53,12 @@
       <p class="w-hint" id="wHint">누르면 사진으로 · 끌어서 둘러보기</p>
     </header>
     <div class="w-foot">
+      <!-- 누가 · 언제 — 마지막으로 누른 초상의 이름표(지금 보이는 쪽 먼저, 다른 쪽은 옅게) -->
+      <div class="w-cap" id="wCap" aria-live="polite" hidden>
+        <b class="cap-name" id="capName"></b>
+        <span class="cap-now" id="capNow"></span>
+        <span class="cap-other" id="capOther"></span>
+      </div>
       <div class="seg" id="seg" role="group" aria-label="벽 전체를 바꾸기">
         <i class="seg-thumb" aria-hidden="true"></i>
         <button type="button" data-m="paint" aria-pressed="true">초상화</button>
