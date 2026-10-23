@@ -7,7 +7,7 @@
 //     붓자국(붓결 마스크 문턱) · 빛 쓸림(밝아지는 픽셀부터, 부드러운 앞머리) · 번짐(젖은 캔버스에 피는 둥근 번짐) · 겹칠(색면 먼저, 세부는 약 400ms 뒤). 2D 폴백 있음.
 //   · 남기기: "내가 온 시간 15:40" 과 멈춘 때를 적은 한 장의 하루(연작을 왼쪽 첫 때 → 오른쪽 끝 때로 이어 붙인 띠) JPEG, 기기 안에만.
 //   그림은 img/c5/<motif>/<n>.jpg — 같은 구도의 작품을 크기·위치만 맞춰 자른 것(img/c5/align.py, 워핑 없음). 때 이름은 제목에 있는 말만. 출처 js/c5-sources.json.
-import { $, $$, icons, reduceMotion, haptic } from './js/proto-common.js';
+import { $, $$, icons, reduceMotion, haptic, toast, saveChoice } from './js/proto-common.js';
 
 icons();
 const IMG = 'img/c5/';
@@ -26,8 +26,8 @@ const Q = new URLSearchParams(location.search);          // 검수용: ?now=15:4
 //         앞머리가 지나가는 자리에서 그림의 붓결은 살짝 풀리고(흐림) 장면은 초점이 맺히듯 또렷해진다. 형태를 움직이는 변형은 없다(색조와 초점만).
 //   영상은 4:3 → 그림 비율로 가운데를 잘라(높이 맞춤 · cover) 그림과 같은 자리에 겹친다. 웹GL 이 없으면 CSS 페이드
 const SUN = {
-  ORDER: Q.get('order') === 'scene-paint' ? 'scene-paint' : 'paint-scene-paint',   // 'paint-scene-paint'(기본: 그림 → 장면 → 그림) | 'scene-paint'(장면 → 그림으로 끝)
-  REVEAL_MS: 900, HOLD_MS: 2200, DISSOLVE_S: 3.4, RATE: 0.85, END_DELAY_MS: 900, REPLAY_IN_S: 1.2,
+  ORDER: Q.get('order') === 'paint-scene-paint' ? 'paint-scene-paint' : 'scene-paint',   // 기본(10/23): 비추면 장면(영상)부터 → 끝에 그림으로 천천히. 'paint-scene-paint' 는 예전 순서
+  REVEAL_MS: 900, HOLD_MS: 2200, DISSOLVE_S: 3.4, DISSOLVE_OUT_S: 5.0, RATE: 0.85, END_DELAY_MS: 900, REPLAY_IN_S: 1.2,
 };
 const SCENE_VIDEO = 'video/sunrise-scene.mp4';                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
 const SCENE_READY = true;                                     // 실제 영상(10/23 팀원 제작, 752×560 · 10초 · H.264로 다시 인코딩). 못 불러오면 임시 영상으로
@@ -167,6 +167,12 @@ const sun = (() => {
           N2[y * S + x] += amp * ((a * (1 - tx) + b * tx) * (1 - ty) + (c2 * (1 - tx) + d * tx) * ty); } }
     }
     const K = new Float32Array(n); for (let i = 0; i < n; i++) K[i] = .8 * (1 - (L[i] - lo) / (hi - lo + 1e-6)) + .2 * N2[i];
+    // 가운데 작은 배 — 영상 속 배는 노를 저어 오른쪽으로 화면 폭의 약 3.5% 간다(그림의 배는 x 0.46).
+    //   두 배 자리와 물그림자를 한 덩어리로 묶어 함께 먼저 바뀌게 한다 → 배가 두 척으로 겹쳐 보이지 않는다
+    for (let y = 0; y < Hh; y++) for (let x = 0; x < S; x++) {
+      const dx = (x / S - 0.482) / 0.085, dy = (y / Hh - 0.755) / 0.075, d = Math.sqrt(dx * dx + dy * dy);
+      const w = d < 0.7 ? 1 : d > 1.15 ? 0 : 1 - (d - 0.7) / 0.45; if (w > 0) K[y * S + x] = K[y * S + x] * (1 - w) + 1.25 * w;
+    }
     const idx = Array.from({ length: n }, (_, i) => i).sort((a, b) => K[a] - K[b]);
     const out = new Uint8Array(n); idx.forEach((i, r) => { out[i] = Math.round(r / (n - 1) * 255); });
     // 순위 맵을 한 번 더 부드럽게(작게 줄였다 키우기) — 앞머리에 계단·잡티가 없게
@@ -206,16 +212,16 @@ const sun = (() => {
   const vidReady = () => new Promise((r) => { if (vid.readyState >= 2) r(); else { vid.addEventListener('loadeddata', r, { once: true }); setTimeout(r, 4000); } });
   function tick() {
     raf = 0; if (state !== 'play') return;
-    const rate = reduceMotion ? 1 : SUN.RATE, D = SUN.DISSOLVE_S * rate, vt = vid.currentTime, dur = isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 10;
+    const rate = reduceMotion ? 1 : SUN.RATE, D = SUN.DISSOLVE_S * rate, DO = SUN.DISSOLVE_OUT_S * rate, vt = vid.currentTime, dur = isFinite(vid.duration) && vid.duration > 0 ? vid.duration : 10;
     const sceneFirst = SUN.ORDER === 'scene-paint';
     const mIn = sceneFirst ? (replayed ? ez(vt / (SUN.REPLAY_IN_S * rate)) : 1) : ez(vt / D);
-    const outAt = Math.max(D + .5, dur - D - .12);
-    const mOut = 1 - ez((vt - outAt) / D);
+    const outAt = Math.max(D + .5, dur - DO - .12);   // 장면 → 그림은 천천히(영상 시간 약 4.3초 = 실제 5초)
+    const mOut = 1 - ez((vt - outAt) / DO);
     setMix(Math.min(mIn, mOut));
     stage.classList.toggle('scene', vt < outAt && (sceneFirst || vt > 0));   // 장면 쪽으로 가는 중 — "임시 영상" 표시 · 웹GL 없을 때의 CSS 페이드
     cap.classList.toggle('on', mix > .7 && vt < outAt - .3);
     draw();
-    if (vt >= outAt + D || vid.ended) { finish(); return; }
+    if (vt >= outAt + DO || vid.ended) { finish(); return; }
     raf = requestAnimationFrame(tick);
   }
   function play() {
@@ -253,6 +259,11 @@ const sun = (() => {
   function replay() { if (state !== 'end') return; replayed = true; haptic(6); vid.pause(); vid.currentTime = 0; start(); }
   document.getElementById('scan').addEventListener('click', scan);
   document.getElementById('sunReplay').addEventListener('click', replay);
+  // 끝 단추 공통: 처음으로(체험 목록) · 수집함에 저장 → 같은 자리에서 '수집함에 담았어요'
+  document.getElementById('sunSave').addEventListener('click', (e) => {
+    const b = e.currentTarget; if (b.disabled) return;
+    saveChoice('c5', { work: 'impression-sunrise' }); b.disabled = true; b.textContent = '수집함에 담았어요'; haptic(12); toast('수집함에 저장했습니다', 1600);
+  });
   return { scan, replay, get state() { return state; }, get mix() { return mix; }, get order() { return SUN.ORDER; }, get gl() { return !!g; }, get placeholder() { return placeholder; }, get vt() { return vid.currentTime; }, get src() { return vid.currentSrc; } };
 })();
 window.__c5sun = sun;

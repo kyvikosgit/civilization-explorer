@@ -60,7 +60,12 @@ body.c5 { --page-bg: #0E0D0C; background: #0E0D0C; color: #FFFFFF; }
 .sun-meta { margin: 6px 0 0; font-size: 13px; color: rgba(255,255,255,.5); }
 .sun-end.on .sun-acts { animation: fadeUp .9s .35s var(--ease-out) both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.sun-acts { display: flex; gap: 8px; margin-top: 16px; }
+.sun-acts { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; margin-top: 16px; }
+/* 끝 단추 공통 — [처음으로 | 수집함에 저장], 아래에 다시 보기(글자 링크) */
+.sun-acts .sun-btn { height: 48px; }
+.sun-btn[disabled] { background: rgba(255,255,255,.14); color: rgba(255,255,255,.8); }
+.sun-links { grid-column: 1 / -1; display: flex; justify-content: center; }
+.sun-link { background: none; border: 0; padding: 4px 8px; font: 600 14px/1.4 var(--body); color: rgba(255,255,255,.7); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,.3); cursor: pointer; }
 .sun-btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 16px; border-radius: 22px; background: #fff; color: #111; font-family: var(--body); font-weight: 700; font-size: 14.5px; transition: transform .12s, background .2s; }
 .sun-btn svg { width: 17px; height: 17px; }
 .sun-btn:active { transform: scale(.98); }
@@ -180,6 +185,3 @@ body.c5 h1, body.c5 h2, body.c5 .tb-title, body.c5 .btn, body.c5 .cap-title, bod
   .row .fr, .styles button, .sun::before, .sky text, .sky .tick, .keep { transition: none; }
 }
 
-/* 출구 링크 아래 처음으로(체험 목록) */
-.exit-link { flex-direction: column; align-items: center; gap: 0; }
-.exit-link .btn.home { height: 40px; font-size: 14px; color: rgba(255,255,255,.45); }

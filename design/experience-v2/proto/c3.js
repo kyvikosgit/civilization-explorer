@@ -3,6 +3,7 @@
 // 마스크 = 굵은 결(브리슬) 획(작업 해상도 200~270px ≈ 폰 화면 95~125px) + 가장자리의 부드러운 번짐. 임파스토 하이라이트는 soft-light 로 얹는다. 3~5번 쓸면 대부분 드러나고, 약 70% 에서 남은 곳이 번지며 채워진다.
 // 숫자·진행률은 화면에 없다. 모든 처리는 기기 안 캔버스.
 import { toast, loadImage, clamp } from '../../../booth/js/common.js';
+import { saveChoice } from './js/proto-common.js';
 
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -285,30 +286,12 @@ function finish() {
   stage.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 
-// ── 저장: 액자 + 야외 캔버스를 세로 카드 한 장으로
-$('#save')?.addEventListener('click', async () => {   // 저장 단추는 뺐다(10/23) — 끝에는 처음으로만
-  const CW = 1080, CH = 1350, c = makeCanvas(CW, CH), g = c.getContext('2d');
-  g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, CW, CH);
-  const fw = CW - 120, fh = fw / 1.2, fx = 60, fy = 150;
-  const wood = g.createLinearGradient(fx, fy, fx + fw, fy + fh);
-  wood.addColorStop(0, '#8A6238'); wood.addColorStop(0.4, '#5A3E27'); wood.addColorStop(1, '#2E1F13');
-  g.fillStyle = wood; g.fillRect(fx - 18, fy - 18, fw + 36, fh + 36);
-  g.drawImage(reveal, fx, fy, fw, fh);       // 화면 그대로 — 붓자국·임파스토·윤기까지
-  g.fillStyle = '#707070'; g.font = '600 24px Paperlogy, Freesentation, sans-serif'; g.fillText('MONET 100 · 화가의 아틀리에', 60, 100);
-  g.fillStyle = '#111111'; g.font = '800 44px Paperlogy, Freesentation, sans-serif';
-  g.fillText('밖의 빛으로 다시 칠했다', 60, fy + fh + 110);
-  g.fillStyle = '#A3A3A0'; g.font = '500 20px Freesentation, sans-serif';
-  g.fillText('임시 이미지 · 모네 〈아르장퇴유의 화가의 집〉 1873, 시카고 미술관', 60, CH - 60);
-  const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.92));
-  if (!blob) return toast('저장에 실패했습니다.');
-  const file = new File([blob], 'monet100_밖의빛으로.jpg', { type: 'image/jpeg' });
-  const touch = matchMedia('(pointer: coarse)').matches;
-  if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file] }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  toast('이미지를 저장했습니다.');
+// ── 끝 단추 공통: 처음으로(체험 목록) · 수집함에 저장(이미지 내려받기 아님) → 같은 자리에서 '수집함에 담았어요'
+$('#save').addEventListener('click', () => {
+  const b = $('#save'); if (b.disabled) return;
+  saveChoice('c3', { done: true, at: Date.now() });   // 기기 안에만 · 출구 화면이 읽는다
+  b.disabled = true; b.textContent = '수집함에 담았어요';
+  toast('수집함에 저장했습니다');
 });
 
 init().catch((e) => { console.error(e); toast('캔버스 이미지를 불러오지 못했습니다.'); });

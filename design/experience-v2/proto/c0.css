@@ -116,7 +116,7 @@
               radial-gradient(140% 90% at 50% 30%, rgba(0,0,0,0) 50%, rgba(0,0,0,.45) 100%); }
 .res-top { position: relative; z-index: 2; }
 .res-top .tb-title { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-style: italic; font-size: 15px; letter-spacing: .04em; color: rgba(246,222,154,.86); }
-.res-scroll { position: relative; z-index: 1; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding-bottom: calc(72px + var(--safe-b)); scrollbar-width: none; }
+.res-scroll { position: relative; z-index: 1; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding-bottom: calc(110px + var(--safe-b)); scrollbar-width: none; }
 .res-scroll::-webkit-scrollbar { display: none; }
 
 .res-hero { text-align: center; padding: 2px var(--pad) 0; }
@@ -258,3 +258,8 @@
 
 /* 메달은 액자의 모든 테(::before/::after · 금빛 쓸기)보다 위 */
 .medal-pin { z-index: 5; }
+
+/* 끝 단추 공통 — [처음으로 | 수집함에 저장], 아래에 이 체험만의 다시 하기(글자 링크) */
+.res-links { grid-column: 1 / -1; display: flex; justify-content: center; gap: 18px; }
+.res-link { background: none; border: 0; padding: 4px 8px; font: 600 14px/1.4 Freesentation, -apple-system, sans-serif; color: rgba(243,221,176,.72); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(243,221,176,.35); cursor: pointer; }
+.btn.res-save[disabled] { background: rgba(255,244,226,.08); color: rgba(243,221,176,.8); border: 1px solid rgba(226,181,101,.3); opacity: 1; }

@@ -815,7 +815,7 @@ function clearReveal() {
 let closing = false;
 async function again() {
   if (mode !== 'reveal' || closing) return;
-  closing = true;
+  closing = true; markSaved(false);
   if (res.classList.contains('on')) {
     await res.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(1.02)' }], { duration: reduceMotion ? 160 : 480, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {});
     screenOn('s3', false); res.classList.remove('in');
@@ -838,8 +838,15 @@ function frameScreenRect(f) {
   const a = b.min.clone().project(camera), c = b.max.clone().project(camera), sr = stage.getBoundingClientRect();
   return { x: sr.left + (a.x + 1) / 2 * W, y: sr.top + (1 - c.y) / 2 * H, w: (c.x - a.x) / 2 * W, h: (c.y - a.y) / 2 * H };
 }
+// 끝 단추 공통: 처음으로(체험 목록) · 수집함에 저장 → 저장하면 같은 자리에서 '수집함에 담았어요'
+const markSaved = (on) => { const b = $('#save'); b.disabled = on; b.textContent = on ? '수집함에 담았어요' : '수집함에 저장'; };
+$('#home').addEventListener('click', async () => {
+  await $('#s3').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduceMotion ? 120 : 380, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
+  location.href = 'index.html';
+});
 $('#save').addEventListener('click', async () => {
-  const me = chosen; if (!me) return;
+  const me = chosen; if (!me || $('#save').disabled) return;
+  markSaved(true);
   $('#cardImg').src = me.w.hd;
   $('#cardPos').innerHTML = `오늘 심사위원 <b>${TODAY[me.w.n]}%</b>가 같은 그림을 골랐습니다`;
   $('#cardTitle').textContent = `〈${me.w.title}〉`;

@@ -136,6 +136,7 @@ body.c3 .icon-btn:active { transform: scale(.9); }
   .canvas-wrap.ready { animation: none; }
 }
 
-/* 끝 — 처음으로(체험 목록)만. 저장은 뺐다 */
-.actions { grid-template-columns: 1fr; }
+/* 끝 단추 공통 — 처음으로(체험 목록) · 수집함에 저장 */
+.actions { grid-template-columns: 1fr 1.4fr; }
+.actions .btn[disabled] { background: rgba(255,255,255,.14); color: rgba(255,255,255,.8); }
 .actions .btn.home { text-decoration: none; }
