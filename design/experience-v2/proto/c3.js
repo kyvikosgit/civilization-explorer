@@ -225,7 +225,7 @@ function finish() {
   b.addEventListener('keyup', off);
 }
 
-// ── 저장: 액자 + 야외 캔버스 + 일기장 한 줄을 세로 카드 한 장으로
+// ── 저장: 액자 + 야외 캔버스를 세로 카드 한 장으로
 $('#save').addEventListener('click', async () => {
   const CW = 1080, CH = 1350, c = makeCanvas(CW, CH), g = c.getContext('2d');
   g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, CW, CH);
@@ -237,10 +237,6 @@ $('#save').addEventListener('click', async () => {
   g.fillStyle = '#707070'; g.font = '600 24px Paperlogy, Freesentation, sans-serif'; g.fillText('MONET 100 · 화가의 아틀리에', 60, 100);
   g.fillStyle = '#111111'; g.font = '800 44px Paperlogy, Freesentation, sans-serif';
   g.fillText('밖의 빛으로 다시 칠했다', 60, fy + fh + 110);
-  g.font = '600 30px Paperlogy, Freesentation, sans-serif';
-  g.fillText('“정오와 저녁의 햇빛은 같은 나무도', 60, fy + fh + 180); g.fillText('전혀 다른 색으로 만든다.”', 60, fy + fh + 224);
-  g.fillStyle = '#707070'; g.font = '500 22px Freesentation, sans-serif';
-  g.fillText('화가의 일기장', 60, fy + fh + 274);
   g.fillStyle = '#A3A3A0'; g.font = '500 20px Freesentation, sans-serif';
   g.fillText('임시 이미지 · 모네 〈아르장퇴유의 화가의 집〉 1873, 시카고 미술관', 60, CH - 60);
   const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.92));
