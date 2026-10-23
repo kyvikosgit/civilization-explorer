@@ -126,6 +126,12 @@ a{color:inherit}
 .foot .note{font-size:14px;color:var(--sub)}
 .foot .note small{font-size:13px;color:var(--meta)}
 .links{display:flex;flex-wrap:wrap;gap:10px}
+.cta{padding:40px 0 120px;text-align:center}
+.cta-btn{display:inline-flex;align-items:center;justify-content:center;gap:14px;width:min(100%,560px);height:84px;border-radius:99px;background:var(--point);color:#fff;font-family:var(--hd);font-weight:800;font-size:clamp(22px,2.6vw,28px);letter-spacing:-.01em;text-decoration:none;box-shadow:0 20px 50px -18px rgba(217,103,47,.7);transition:transform .2s,box-shadow .2s}
+.cta-btn svg{width:28px;height:28px}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 26px 60px -18px rgba(217,103,47,.85)}
+.cta p{margin-top:18px;font-size:15px;color:var(--sub)}
+@media (max-width:480px){.cta{padding:24px 0 80px}.cta-btn{height:72px}}
 .btn{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 22px;border-radius:99px;font-size:15px;font-weight:700;text-decoration:none;border:1px solid var(--line);color:var(--ink)}
 .btn.main{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .btn:hover{border-color:var(--sub)}
@@ -296,6 +302,14 @@ a{color:inherit}
 
 
 
+<!-- 프로토타입 확인 — 본문 맨 아래 큰 단추 -->
+<section class="cta">
+  <div class="wrap">
+    <a class="cta-btn" href="experience-v2/proto/index.html">프로토타입 확인<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <p>폰에서 열면 체험 여섯 곳과 출구를 직접 눌러 볼 수 있습니다.</p>
+  </div>
+</section>
+
 </main>
 
 <!-- 6 끝 -->
@@ -303,7 +317,6 @@ a{color:inherit}
   <div class="wrap">
     <p class="note">폰 안에서 동작 · 실시간 AI 없음 · 서버는 선택 수만 집계<br><small>화면과 문구 속 수치는 예시입니다.</small></p>
     <div class="links">
-      <a class="btn main" href="experience-v2/proto/index.html">직접 눌러 보기</a>
       <a class="btn" href="experience-v2-detail.html">자세한 기획안</a>
     </div>
   </div>
