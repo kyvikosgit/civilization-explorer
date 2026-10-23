@@ -58,8 +58,13 @@ if (which === 'c1') {
   await at(t0, [[900, 'rise1'], [1500, 'rise2'], [2200, 'rise3'], [3300, 'rise4']]);
   await page.waitForFunction(() => window.__c1.step === 2, null, { timeout: 30000 });
   await page.waitForTimeout(800 * SLOW); await shot('spin');
-  await tapEl('#toAskBar'); t0 = Date.now();
-  await at(t0, [[250, 'ask03'], [600, 'ask06'], [1000, 'ask10'], [1800, 'ask']]);
+  // 접힌 전단지 찾기 → 펼침 → 놋쇠 명판 → 질문
+  await page.evaluate(() => window.__c1.focus(window.__c1.EXPO)); await page.waitForTimeout(2200 * SLOW); await shot('flyer');
+  const fr = await page.evaluate(() => { const p = window.__c1.project(window.__c1.EXPO); const m = document.querySelector('#mv').getBoundingClientRect(); return { x: m.left + p.cx, y: m.top + p.cy }; });
+  await tap(fr.x, fr.y); t0 = Date.now();
+  await at(t0, [[300, 'pull03'], [900, 'pull09'], [3900, 'found']]);
+  await tapEl('#toAsk'); t0 = Date.now();
+  await at(t0, [[250, 'ask03'], [600, 'ask06'], [1000, 'ask10'], [3000, 'ask']]);
   await tapEl('.paper[data-k="viewer"]'); t0 = Date.now();
   await at(t0, [[300, 'pick03'], [800, 'pick08']]);
   await page.waitForFunction(() => window.__c1.step === 6, null, { timeout: 8000 }); t0 = Date.now();

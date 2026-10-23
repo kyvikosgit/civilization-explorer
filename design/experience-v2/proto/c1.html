@@ -21,19 +21,18 @@
 <body class="c1" data-step="1">
 
 <div id="stage" class="stage">
-  <!-- 거리(스캔 화면 바탕): 모네 〈카퓌신 대로〉 흐린 배경을 어둡게 -->
-  <!-- 해 질 녘 카퓌신 대로 — 같은 그림을 저녁빛으로. 가스등이 하나씩 켜지고, 흐린 행인들이 지나간다(빛과 움직임만, 소리 없음) -->
+  <!-- 해 질 녘 카퓌신 대로 — 같은 그림(모네가 1873년 이 대로를 그렸다, 사람들은 그림 속 붓자국 그대로)을 저녁빛으로.
+       가스등이 하나씩 켜지고, 멀리 마차 등불이 대로를 오간다. 실루엣 행인은 두지 않는다 -->
   <div class="street" id="street" aria-hidden="true">
     <div class="st-img"></div>
     <div class="st-sky"></div>
+    <div class="st-mist"></div>
     <div class="st-lamps" id="lamps"></div>
-    <div class="st-walk back" id="walkBack"></div>
+    <div class="st-cars" id="cars"></div>
     <div class="st-haze"></div>
   </div>
   <!-- 3D 모리스 칼럼 (js/morris-viewer-proto.js) -->
   <div id="mv" class="mv off"></div>
-  <!-- 앞을 지나가는 행인(초점 밖, 크게 흐림) — 칼럼 앞 -->
-  <div class="st-walk fore" id="walkFore" aria-hidden="true"></div>
 
   <div class="stage-top">
     <div class="topbar dark">
@@ -57,11 +56,12 @@
   <div id="pillWrap" class="pill-wrap"><span id="pill" class="pill">칼럼을 스캔하세요</span></div>
   <div class="s s1 s1-bottom"><p class="s-desc"><span>프로토타입 · 점선을 누르면 시작합니다</span></p></div>
 
-  <!-- 2 돌려보기 — 끌어서 돌리기(관성·자석), 전단지를 누르면 떠오른다. 질문으로 바로 가는 바는 처음부터 -->
+  <!-- 2 찾기 — 끌어서 칼럼을 돌린다. 어느 포스터든 누르면 떼어 읽는다. 찾을 것: 누군가 접어서 압정에 꽂아 두고 간 전단지(바람에 들리고 가스등에 윤이 난다) -->
   <div class="s s2 s2-bottom">
-    <p class="s-desc">전단지를 눌러 살펴보세요</p>
-    <div class="chips" id="chips" role="group" aria-label="전단지 6장"></div>
-    <div class="ask-bar"><button class="btn dark-line" id="toAskBar">질문으로</button></div>
+    <div class="hunt">
+      <p class="hunt-line" id="huntLine">칼럼을 돌려 보세요.<br>누군가 <em>접어서 꽂아 두고 간</em> 전단지가 있습니다</p>
+      <p class="hunt-sub" id="huntSub"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌리기 · 포스터를 누르면 떼어 읽어요</p>
+    </div>
   </div>
 
   <!-- 3 살펴보기 — 떠 있는 전단지, 캡션 (독립 전시 안내문은 여기를 거치지 않고 바로 4로 펼쳐진다) -->
@@ -70,16 +70,23 @@
     <p class="s-desc" id="s3Desc"><span>바깥을 누르면 칼럼으로 돌아갑니다</span></p>
   </div>
 
-  <!-- 4 안내문(칼럼에서 누르면 떼어져 가운데로 오며 세 단이 펼쳐진다) → 5 칼럼의 두 포스터 가운데 보러 갈 전시를 고른다 → 6 오늘의 관람객(두 포스터 크기 = 오늘의 비율) -->
+  <!-- 4 접힌 전단지(칼럼에서 누르면 압정에서 빠져 가운데로 오며 세 단이 펼쳐진다) → 놋쇠 명판을 누르면 전단지가 오른쪽 자리로 물러나고 칼럼의 살롱 공고가 떼어져 왼쪽으로
+       → 5 이번 주말 어느 전시를 보러 갈까 → 6 오늘의 관람객(두 포스터 크기 = 오늘의 비율) -->
   <div class="s unfold" id="unfold">
     <div class="unfold-dim"></div>
     <div class="unfold-body">
-      <div class="cap light" id="unfoldCap" data-on="4">카페 게르부아 안내문</div>
+      <div class="cap light found-cap" id="unfoldCap" data-on="4">Prospectus · 35, boulevard des Capucines</div>
       <div class="flyer-wrap" id="flyerWrap" data-on="4"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
 
       <!-- 4 -->
-      <p class="hist-dark intro" id="histIntro" data-on="4">살롱의 심사위원도 아카데미의 교수도 아닌 화가들이 모여, 살롱의 심사를 거치지 않는 전시를 엽니다.</p>
-      <div class="unfold-btns" data-on="4"><button class="btn point later" id="toAsk">어느 전시를 보러 갈까요?</button></div>
+      <p class="hist-dark intro" id="histIntro" data-on="4">살롱의 심사를 거치지 않고, <b>화가 서른 명이 직접 여는 전시</b>입니다.<br>사진가 나다르가 쓰던 작업실에서 4월 15일 문을 엽니다.</p>
+      <div class="plaque-row" data-on="4">
+        <button class="plaque" id="toAsk" aria-label="살롱 공고와 견주어 보기">
+          <span class="pl-fr">Salon <i>ou</i> Capucines ?</span>
+          <span class="pl-ko">살롱 공고와 견주어 보기</span>
+          <i class="pl-sh" aria-hidden="true"></i>
+        </button>
+      </div>
 
       <!-- 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(둘 다 재현). 이번 주말 보러 갈 전시를 고른다 -->
       <div class="ask" id="ask" data-on="5">
@@ -89,41 +96,20 @@
       <!-- 6 머리: 작은 캡 + 한 줄 -->
       <div class="crowd dark center crowd-head" data-on="6"><div class="crowd-cap">Aujourd'hui</div><div class="crowd-line">오늘 이 전시를 보러 간 관람객</div></div>
 
-      <!-- 5·6 공용: 칼럼 위의 두 포스터 (6 에서는 크기 그대로, 아래에 오늘의 관람객이 점으로 모인다) -->
+      <!-- 5·6 공용: 두 포스터(캔버스 조판 재현 — js/c1-posters.js). 6 에서는 오늘의 비율만큼 커지고 작아진다 -->
       <div class="papers" id="papers" data-on="5 6" role="radiogroup" aria-label="보러 갈 전시">
         <button class="paper salon" data-k="jury" role="radio" aria-checked="false" aria-label="살롱 1874 공고(재현) · 심사위원이 고른 전시">
-          <div class="notice" aria-hidden="true">
-            <div class="n-rep">République Française</div>
-            <div class="n-big">SALON<br>DE 1874</div>
-            <div class="n-rule"></div>
-            <div class="n-line">Exposition des ouvrages<br>des artistes vivants</div>
-            <div class="n-line em">Palais des Champs-Élysées</div>
-            <div class="n-rule"></div>
-            <div class="n-open">Ouverture<br>le 1<sup>er</sup> Mai</div>
-            <div class="n-foot">Ouvrages admis par le Jury</div>
-            <span class="n-tag">재현</span>
-          </div>
+          <div class="notice salon" aria-hidden="true"></div>
           <span class="paper-lb"><b>심사위원이 고른 전시</b><small>샹젤리제 궁 · 5월 1일</small></span>
         </button>
         <button class="paper expo" data-k="viewer" role="radio" aria-checked="false" aria-label="화가들의 전시 안내(재현) · 화가들이 직접 연 전시">
-          <div class="notice expo" aria-hidden="true">
-            <div class="n-rep">Société anonyme des artistes<br>peintres, sculpteurs, graveurs</div>
-            <div class="n-big">EXPO-<br>SITION</div>
-            <div class="n-rule"></div>
-            <div class="n-line em">35, boulevard<br>des Capucines</div>
-            <div class="n-line">du 15 avril au 15 mai</div>
-            <div class="n-rule"></div>
-            <div class="n-open">Ouverture<br>le 15 Avril</div>
-            <div class="n-foot">Entrée · 1 franc</div>
-            <span class="n-tag">재현</span>
-          </div>
+          <div class="notice expo" aria-hidden="true"></div>
           <span class="paper-lb"><b>화가들이 직접 연 전시</b><small>카퓌신 대로 35번지 · 4월 15일</small></span>
         </button>
       </div>
 
-      <!-- 6 오늘의 관람객 — 점 하나가 열 사람. 두 종이 아래로 모인다(js/crowd.js) -->
+      <!-- 6 오늘의 관람객 — 두 포스터 아래 숫자 -->
       <div class="crowd dark center" id="crowd" data-on="6">
-        <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
         <div class="crowd-cols" id="crowdCols" aria-live="polite"></div>
         <div class="crowd-stamp" id="crowdStamp"></div>
       </div>
