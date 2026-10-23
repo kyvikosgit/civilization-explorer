@@ -13,26 +13,21 @@
 <link rel="stylesheet" href="../ticket/fonts.css">
 <link rel="stylesheet" href="c4.css">
 <link rel="stylesheet" href="c4-fx.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/"
+} }
+</script>
 </head>
 <body class="page c4 intro-on">
 
-<!-- ── 들어가기(약 3.2초, 누르면 건너뜀): 밤의 붉은 나다르 사진관 정면(부스와 같은 구성) → "Nadar" 서명 간판이 한 글자씩 켜진다(가스등 · 네온의 따뜻한 빛)
-     → 마그네슘 섬광 → 섬광 속으로 카메라가 가운데 문을 지나 안으로 → 초상화 벽이 깊이에서 밀려 나온다 -->
+<!-- 3D(three.js) — 밤의 거리와 사진관 안을 같은 캔버스에 그린다(c4-3d.js). 위의 글 · 단추는 이 위에 얹힌다 -->
+<canvas class="gl" id="gl" aria-hidden="true"></canvas>
+
+<!-- ── 들어가기(약 4초, 누르면 건너뜀): 나다르가 찍은 35, boulevard des Capucines 정면(밤으로 옮김) · 안개 · 앞의 가스 가로등
+     → 실제 간판 자리의 서명 "Nadar"가 한 글자씩 켜진다 → 창이 켜짐 → 유리 스튜디오의 마그네슘 섬광 속으로 → 붉은 방, 휘장을 지나 초상 벽 앞으로 -->
 <div class="intro" id="intro" role="button" tabindex="0" aria-label="나다르 사진관 — 누르면 건너뜁니다">
-  <div class="in-cam" id="inCam">
-    <div class="in-sky" aria-hidden="true"></div>
-    <div class="in-fac" aria-hidden="true">
-      <div class="in-cornice"></div>
-      <div class="in-sign"><span class="neon" id="neon"><i>N</i><i>a</i><i>d</i><i>a</i><i>r</i></span></div>
-      <div class="in-plate"><b>NADAR</b><span>35, Boulevard<br>des Capucines</span></div>
-      <div class="in-words"><span>PHOTOGRAPHIE</span><span>PORTRAITS</span></div>
-      <div class="in-wins">
-        <i class="iw"><s></s></i><i class="iw mid"><s></s></i><i class="iw"><s></s></i>
-      </div>
-      <div class="in-base"><i></i><i></i></div>
-    </div>
-    <div class="in-street" aria-hidden="true"><i class="rf"></i></div>
-  </div>
   <canvas class="in-mist" id="inMist" aria-hidden="true"></canvas>
   <div class="in-flash" id="inFlash" aria-hidden="true"></div>
   <span class="in-skip" aria-hidden="true">누르면 건너뜁니다</span>
@@ -54,12 +49,10 @@
 
 <main class="stage screen" id="ask" data-screen="ask" data-view="wall">
 
-  <!-- ── 1. 사진관 벽: 24명의 초상화를 살롱식으로(화면 가득, 아주 느리게 위로). 액자를 누르면 그 사람이 사진이 되고, 아래 "초상화 | 사진"으로 벽 전체가 물결처럼 바뀐다 -->
+  <!-- ── 1. 사진관 벽(3D): 24명의 초상화가 살롱식으로. 카메라가 벽을 따라 천천히 흐르고, 끌면 둘러본다.
+       액자를 누르면 그 사람이 사진이 되고, 아래 "초상화 | 사진"으로 벽 전체가 물결처럼 바뀐다 -->
   <section class="view wall-view" id="wallView" aria-label="사진관 벽">
-    <div class="wall-bg" aria-hidden="true"></div>
-    <div class="layer far" aria-hidden="true"><div class="track" id="far"></div></div>
-    <div class="layer near"><div class="track" id="hang"></div></div>
-    <header class="w-head"><h1>나다르 사진관.<br>벽에는 초상화가 걸려 있습니다.</h1></header>
+    <header class="w-head"><h1>나다르 사진관.<br>벽에는 초상화가 걸려 있습니다.</h1><p class="w-hint" id="wHint">액자를 누르면 사진이 됩니다 · 끌어서 둘러보기</p></header>
     <div class="w-foot">
       <div class="seg" id="seg" role="group" aria-label="벽 전체를 바꾸기">
         <i class="seg-thumb" aria-hidden="true"></i>
@@ -70,10 +63,8 @@
     </div>
   </section>
 
-  <!-- ── 2. 질문: 뒤로 두 줄기(왼쪽 그림은 위로, 오른쪽 사진은 아래로, 흐리게) 위에 어두운 막. 반쪽을 누르면 그쪽이 화면을 채우고 오늘의 관람객이 올라온다 -->
+  <!-- ── 2. 질문: 3D 벽이 두 문처럼 열린 채(왼쪽 = 그림, 오른쪽 = 사진) 그 위에 질문과 두 답. 반쪽을 누르면 그 문이 화면을 채우고, 결과에서는 두 문이 닫히며 이음매가 오늘의 비율 자리로 -->
   <section class="view q-view" id="qView" aria-label="질문">
-    <div class="qs" data-k="paint" aria-hidden="true"><div class="qs-track" id="qsPaint"></div></div>
-    <div class="qs" data-k="photo" aria-hidden="true"><div class="qs-track" id="qsPhoto"></div></div>
     <div class="veil" aria-hidden="true"></div>
     <!-- 고른 뒤: 두 반쪽이 오늘의 비율대로 나뉘고, 그 위에 큰 숫자 -->
     <div class="sp-nums" id="spNums" aria-hidden="true">

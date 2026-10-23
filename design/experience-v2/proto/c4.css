@@ -1,7 +1,6 @@
-/* C4 나다르 사진관 — 두 화면.
-   1. 사진관 벽: 화면 가득 살롱식으로 건 초상화(금박 · 나무 · 타원 액자, 크기 제각각, 아주 느리게 위로).
-      누르면 제자리에서 명함판 사진이 된다(금박 액자 → 크림색 대지, 어둠에서 현상). 아래 "초상화 | 사진"과 "당신이라면?".
-   2. 질문: 흐릿한 두 줄기(그림 ↑ · 사진 ↓) 위 어두운 막, 반으로 나눈 두 답.
+/* C4 나다르 사진관 — 두 화면. 벽 · 문 · 거리는 3D(c4-3d.js, 화면 전체 캔버스 #gl), 여기는 그 위에 얹는 글 · 단추.
+   1. 사진관 벽: 역할 한 줄 · 안내 · 아래 "초상화 | 사진"과 "당신이라면?".
+   2. 질문: 열린 두 문 위 질문, 반으로 나눈 두 답, 비율 숫자, 오늘의 관람객.
    움직임은 transform · opacity 만. 자간은 쓰지 않는다 */
 html { background: #0F0E0D; }
 body.c4 { --page-bg: #0F0E0D; background: #0F0E0D; color: #FFFFFF;
@@ -20,53 +19,32 @@ body.c4, body.c4 * { letter-spacing: normal !important; }
 .stage[data-view="wall"] .q-view, .stage[data-view="q"] .wall-view { opacity: 0; visibility: hidden; pointer-events: none; }
 .stage[data-view="wall"] .wall-view, .stage[data-view="q"] .q-view { transition-delay: 0s; }
 
-/* ── 1. 사진관 벽 */
-.wall-view { opacity: 0; }
-.stage.ready .wall-view { opacity: 1; }
-.stage.ready[data-view="q"] .wall-view { opacity: 0; }
-.wall-bg { position: absolute; inset: 0; background: radial-gradient(120% 70% at 50% 38%, #43291F, #23150F 70%), #23150F; }
-.wall-bg::after { content: ''; position: absolute; inset: 0; opacity: .07; background-image: repeating-linear-gradient(90deg, rgba(255,230,190,.9) 0 1px, transparent 1px 16px); }
-.layer { position: absolute; inset: 0; }
-.track { position: absolute; left: 0; top: 0; width: 100%; will-change: transform; }
-.far { opacity: .2; }
-.ghost { position: absolute; border-radius: 2px; background: var(--gilt); }
-.ghost::after { content: ''; position: absolute; inset: 13%; background: #1A120D; }
+/* ── 3D 캔버스 — 화면 전체(상단 바 · 탭 뒤까지). 위아래 그늘 · 가장자리 어둠은 글 · 단추가 읽히도록 얹는 막 */
+.gl { position: fixed; z-index: 0; top: 0; bottom: 0; left: 0; right: 0; width: 100%; max-width: 480px; height: 100%; margin: 0 auto; display: block; touch-action: none; background: #0a0605; }
+.gl[hidden] { display: none; }
+body.c4 .topbar { background: transparent; }
+body.c4 .topbar, body.c4 .tabs, body.c4 .screen { position: relative; z-index: 2; }
+body.c4 .tabs { background: rgba(15,10,8,.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+body.c4::before { content: ''; position: fixed; z-index: 1; top: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; height: 170px; pointer-events: none;
+  background: linear-gradient(rgba(10,6,5,.86), rgba(10,6,5,.5) 55%, rgba(10,6,5,0)); }
+body.c4::after { content: ''; position: fixed; z-index: 1; inset: 0; max-width: 480px; margin: 0 auto; pointer-events: none;
+  background: radial-gradient(130% 80% at 50% 48%, rgba(0,0,0,0) 55%, rgba(0,0,0,.42) 100%); }
+body.c4.on-me::before, body.c4.on-me::after { display: none; }
+body.c4.intro-on::before, body.c4.intro-on::after { opacity: 0; }
+body.c4::before, body.c4::after { transition: opacity .8s ease .2s; }
+.stage { background: transparent; }
 
-/* 액자 하나 = 두 얼굴: .pt(금박 몰딩 → 판 → 그림) · .cv(명함판 대지 → 사진 창 → 스튜디오 금 글씨) */
-.fr { position: absolute; display: block; padding: 0; border: 0; background: none; cursor: pointer; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-.fr img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
-.fr .pt { position: absolute; inset: 0; background: var(--gilt); border-radius: 2px;
-  box-shadow: 0 10px 22px rgba(0,0,0,.6), 0 2px 4px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,236,180,.45), inset 0 0 0 3px rgba(60,40,12,.45), inset 0 0 0 4px rgba(255,230,160,.35);
-  transition: opacity .32s ease var(--d, 0ms), transform .5s var(--ease-out) var(--d, 0ms); }
-.fr.wood .pt { background: linear-gradient(135deg, #4A3322, #2A1C12 40%, #5A3E28 70%, #24170E); box-shadow: 0 10px 22px rgba(0,0,0,.6), inset 0 0 0 1px rgba(214,170,96,.55), inset 0 0 0 3px rgba(0,0,0,.35); }
-.fr .win { position: absolute; inset: var(--m, 7px); overflow: hidden; background: #120E0B; }
-.fr .win::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 2px 8px rgba(0,0,0,.6), inset 0 0 0 1px rgba(0,0,0,.6); pointer-events: none; }
-.fr.ov .win { background: radial-gradient(circle at 50% 40%, #3B2E22, #1E1712); }
-.fr.ov .win img { inset: 6% 8%; width: 84%; height: 88%; border-radius: 50%; box-shadow: 0 0 0 2px rgba(226,194,106,.85), 0 0 0 3px rgba(60,40,12,.6); }
-/* 명함판: 액자보다 좁은 세로 대지(약 2.5 : 4), 둥근 모서리, 위 · 옆은 좁게 아래는 넓게, 사진 테두리에 가는 금선 */
-.fr .cv { position: absolute; top: 0; bottom: 0; left: 50%; width: var(--cw); margin-left: calc(var(--cw) / -2); border-radius: 4px;
-  background: linear-gradient(170deg, #EFE4CB, #E0D1AF 70%, #D6C49E); box-shadow: 0 10px 22px rgba(0,0,0,.55), 0 1px 2px rgba(0,0,0,.4), inset 0 0 0 1px rgba(120,90,40,.25);
-  opacity: 0; transform: scale(.94); transition: opacity .28s ease var(--d, 0ms), transform .5s var(--ease-out) var(--d, 0ms); }
-.fr .cv-win { position: absolute; left: 7%; right: 7%; top: 6%; aspect-ratio: 4 / 5; overflow: hidden; background: #0B0806; box-shadow: 0 0 0 1px rgba(150,112,48,.8), 0 0 0 3px #E6D9BC, 0 0 0 3.6px rgba(150,112,48,.45); }
-.fr.ov .cv-win { border-radius: 50%; }
-.fr .cv-imp { position: absolute; left: 4%; right: 4%; bottom: 5%; text-align: center; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: max(8px, calc(var(--cw) * .082)); line-height: 1; color: #6E5226; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* 현상: 검은 판에서 그림자부터 → 호박빛 → 맑게 (0.8초) */
-.fr .dev { position: absolute; inset: 0; background: #0B0806; opacity: 0; pointer-events: none; }
-.fr .dev::after { content: ''; position: absolute; inset: 0; background: rgba(150,92,34,.55); opacity: 0; }
-.fr.ph .pt { opacity: 0; transform: scale(1.03); transition-delay: calc(var(--d, 0ms) + 60ms); }
-.fr.ph .cv { opacity: 1; transform: none; }
-.fr.ph .dev { animation: develop .8s cubic-bezier(.4,0,.6,1) var(--d, 0ms) both; }
-.fr.ph .dev::after { animation: amber .8s ease-out var(--d, 0ms) both; }
-@keyframes develop { 0% { opacity: 1; } 30% { opacity: .82; } 100% { opacity: 0; } }
-@keyframes amber { 0% { opacity: 0; } 45% { opacity: 1; } 100% { opacity: 0; } }
-.fr:active .pt, .fr:active .cv { filter: brightness(1.12); }
+/* ── 1. 사진관 벽 — 3D 위에 얹는 글 · 단추만 */
+.wall-view { opacity: 1; touch-action: none; -webkit-user-select: none; user-select: none; }
+.w-hint { margin: 8px 0 0; font-size: 13.5px; line-height: 1.3; color: rgba(255,226,190,.8); transition: opacity .6s ease; text-shadow: 0 1px 8px rgba(0,0,0,.8); }
+.w-hint.off { opacity: 0; }
 
 /* 위: 역할 한 줄 · 아래: 초상화|사진 + 당신이라면? (벽이 비치도록 그라데이션 막) */
-.w-head { position: absolute; z-index: 4; left: 0; right: 0; top: 0; padding: 14px var(--pad) 34px; pointer-events: none;
-  background: linear-gradient(rgba(15,14,13,.96), rgba(15,14,13,.88) 58%, rgba(15,14,13,0)); }
-.w-head h1 { font-size: 23px; line-height: 1.34; font-weight: 800; }
+.w-head { position: absolute; z-index: 4; left: 0; right: 0; top: 0; padding: 10px var(--pad) 30px; pointer-events: none;
+  background: linear-gradient(rgba(10,6,5,.55), rgba(10,6,5,0)); }
+.w-head h1 { font-size: 22px; line-height: 1.34; font-weight: 800; text-shadow: 0 2px 14px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.6); }
 .w-foot { position: absolute; z-index: 4; left: 0; right: 0; bottom: 0; display: grid; justify-items: center; gap: 12px; padding: 44px var(--pad) calc(16px + var(--safe-b)); pointer-events: none;
-  background: linear-gradient(rgba(15,14,13,0), rgba(15,14,13,.8) 38%, rgba(15,14,13,.95)); }
+  background: linear-gradient(rgba(10,6,5,0), rgba(10,6,5,.62) 45%, rgba(10,6,5,.85)); }
 .w-foot > * { pointer-events: auto; }
 .seg { position: relative; display: grid; grid-template-columns: 1fr 1fr; width: min(240px, 66%); height: 44px; padding: 3px; border-radius: 22px;
   background: rgba(20,16,12,.72); box-shadow: inset 0 0 0 1px rgba(217,184,106,.5), 0 6px 18px rgba(0,0,0,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
@@ -77,19 +55,9 @@ body.c4, body.c4 * { letter-spacing: normal !important; }
 .seg button[aria-pressed="true"] { color: #241A10; }
 .ask-btn { font-family: var(--display); font-weight: 800; font-size: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
 
-/* ── 2. 질문 */
-.q-view { background: #0F0E0D; }
-.qs { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; filter: blur(2.5px); opacity: .42;
-  transition: left .8s var(--ease-out), width .8s var(--ease-out), opacity .6s ease; }
-.qs[data-k="paint"] { left: 0; }
-.qs[data-k="photo"] { left: 50%; }
-.qs-track { position: absolute; top: 0; left: 50%; will-change: transform; }
-.qt { position: absolute; display: block; overflow: hidden; }
-.qt img { position: absolute; width: 100%; height: 100%; object-fit: cover; }
-.qt.paint { border: 4px solid #B08A3E; box-shadow: 0 6px 14px rgba(0,0,0,.6); }
-.qt.photo { background: #E3D6B9; border-radius: 3px; padding: 6% 7% 26%; box-shadow: 0 6px 14px rgba(0,0,0,.6); }
-.qt.photo img { position: static; display: block; aspect-ratio: 4 / 5; height: auto; }
-.veil { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(15,14,13,.9), rgba(15,14,13,.55) 32%, rgba(15,14,13,.5) 70%, rgba(15,14,13,.82)); }
+/* ── 2. 질문 — 3D 의 열린 두 문 위에 글 · 두 답 */
+.q-view { background: transparent; }
+.veil { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(10,6,5,.82), rgba(10,6,5,.35) 30%, rgba(10,6,5,.18) 55%, rgba(10,6,5,.55)); }
 .q-head { position: absolute; z-index: 3; left: 0; right: 0; top: 0; height: clamp(132px, 20dvh, 172px); text-align: center; pointer-events: none; }
 .q-ask, .q-mine { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 var(--pad) 6px; transition: opacity .45s ease, transform .55s var(--ease-out); }
 .q-head h1 { font-size: clamp(26px, 7.9vw, 34px); line-height: 1.26; font-weight: 800; }
@@ -102,7 +70,7 @@ body.c4, body.c4 * { letter-spacing: normal !important; }
   transition: left .8s var(--ease-out), width .8s var(--ease-out), opacity .45s ease; }
 .half[data-k="paint"] { left: 0; }
 .half[data-k="photo"] { left: 50%; }
-.half-in { display: grid; gap: 6px; justify-items: center; width: 100%; max-width: 168px; padding: 18px 8px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.42); background: rgba(15,14,13,.5);
+.half-in { display: grid; gap: 6px; justify-items: center; width: 100%; max-width: 168px; padding: 18px 8px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,.5); background: rgba(15,10,8,.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 10px 30px rgba(0,0,0,.5);
   transition: transform .15s, background .2s, opacity .35s; }
 .half[data-k="paint"] .half-in { border-color: rgba(217,184,106,.7); }
 .half b { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1.2; }
@@ -113,13 +81,10 @@ body.c4, body.c4 * { letter-spacing: normal !important; }
 .q-view[data-pick] .divider { opacity: 0; }
 .q-view[data-pick] .half { pointer-events: none; }
 .q-view[data-pick] .half-in { opacity: 0; }
-.q-view[data-pick="paint"] .half[data-k="paint"], .q-view[data-pick="paint"] .qs[data-k="paint"] { width: 100%; }
-.q-view[data-pick="photo"] .half[data-k="photo"], .q-view[data-pick="photo"] .qs[data-k="photo"] { left: 0; width: 100%; }
-.q-view[data-pick="paint"] .qs[data-k="photo"], .q-view[data-pick="photo"] .qs[data-k="paint"] { opacity: 0; }
+.q-view[data-pick="paint"] .half[data-k="paint"] { width: 100%; }
+.q-view[data-pick="photo"] .half[data-k="photo"] { left: 0; width: 100%; }
 .q-view[data-pick="paint"] .half[data-k="photo"] { left: 100%; opacity: 0; }
 .q-view[data-pick="photo"] .half[data-k="paint"] { left: -50%; opacity: 0; }
-.q-view[data-pick] .qs { opacity: .55; }
-.q-view[data-pick="paint"] .qs[data-k="photo"], .q-view[data-pick="photo"] .qs[data-k="paint"] { opacity: 0; }
 
 /* 오늘의 관람객 — 아래에서 올라온다. 단추는 늘 보인다 */
 .reveal { position: absolute; z-index: 8; left: 0; right: 0; bottom: 0; max-height: 68%; display: flex; flex-direction: column;
@@ -176,6 +141,6 @@ body.c4, body.c4 * { letter-spacing: normal !important; }
   .me-head { padding: 10px 0 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .view, .qs, .half, .half-in, .seg-thumb, .q-ask, .q-mine, .reveal, .fr .pt, .fr .cv { transition: none; }
-  .fr.ph .dev, .fr.ph .dev::after, .mine-card, .count b { animation: none; }
+  .view, .half, .half-in, .seg-thumb, .q-ask, .q-mine, .reveal { transition: none; }
+  .mine-card, .count b { animation: none; }
 }

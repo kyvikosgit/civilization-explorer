@@ -1,96 +1,34 @@
 /* C4 효과 — 들어가기(밤의 나다르 사진관 정면 → 서명 간판 → 마그네슘 섬광 → 안으로) · 벽이 두 문처럼 갈라지는 질문 · 고른 쪽의 섬광 / 니스 빛 · 비율대로 나뉜 두 반쪽과 큰 숫자.
    움직임은 transform · opacity 위주(60fps). prefers-reduced-motion: 크로스페이드만 */
 
-/* ── 들어가기 */
-.intro { position: fixed; inset: 0; z-index: 100; max-width: 480px; margin: 0 auto; overflow: hidden; background: #050407; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none;
-  --fw: min(88vw, 422px, 60dvh); font-size: calc(var(--fw) / 100); transition: opacity .75s ease; }
+/* ── 들어가기 — 장면은 3D 캔버스(#gl). 이 막에는 안개(2D) · 섬광 · 건너뛰기 글만 */
+.intro { position: fixed; inset: 0; z-index: 100; max-width: 480px; margin: 0 auto; overflow: hidden; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none; transition: opacity .75s ease; }
 .intro.out { opacity: 0; pointer-events: none; }
-.in-cam { position: absolute; inset: 0; will-change: transform; }
-.in-sky { position: absolute; inset: 0; background: radial-gradient(120% 60% at 50% 0%, #15121C, #07060A 70%); }
-.in-sky::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 40%; background: radial-gradient(60% 50% at 50% 0%, rgba(120,110,150,.10), transparent 70%); }
-
-/* 정면 — 부스와 같은 구성: 붉은 판벽 · 위 가운데 서명 간판 · 오른쪽 위 주소판 · PHOTOGRAPHIE / PORTRAITS 금 글씨 · 아치 창 셋(가운데는 문) */
-.in-fac { position: absolute; left: 50%; top: 50%; width: 100em; height: 150em; margin: -80em 0 0 -50em; border-radius: 1.2em 1.2em 0 0;
-  background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,0) 8%, rgba(0,0,0,0) 92%, rgba(0,0,0,.32)), linear-gradient(#5A1216, #4B0E12 55%, #3C0A0E);
-  box-shadow: 0 0 0 .5em #2B070A, 0 3em 8em rgba(0,0,0,.8); }
-.in-fac::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 32.6em, rgba(0,0,0,.22) 32.6em 33.4em); opacity: .7; }
-/* 간판 · 창의 빛이 판벽에 번진다 */
-.in-fac::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 1.4s ease;
-  background: radial-gradient(42em 26em at 50% 14em, rgba(255,70,100,.34), rgba(255,70,100,0) 70%), radial-gradient(70em 50em at 50% 92em, rgba(255,176,96,.26), rgba(255,176,96,0) 70%); mix-blend-mode: screen; }
-.in-fac.lit::after { opacity: 1; }
-.in-cornice { position: absolute; left: -3em; right: -3em; top: -3em; height: 5em; border-radius: .6em; background: linear-gradient(#6E1A1F, #3A0A0D); box-shadow: 0 1em 2em rgba(0,0,0,.5); }
-.in-sign { position: absolute; left: 25em; top: 5.5em; width: 50em; height: 19em; display: grid; place-items: center; border-radius: 9em 9em 1em 1em / 4em 4em 1em 1em;
-  background: radial-gradient(80% 90% at 50% 55%, #22080C, #120305); box-shadow: 0 0 0 1.1em #6A161C, 0 0 0 1.5em #2B070A, inset 0 .6em 1.6em rgba(0,0,0,.8); }
-.neon { font-family: 'Sacramento', 'Snell Roundhand', cursive; font-size: 15em; line-height: 1; white-space: nowrap; transform: translateY(.06em); }
-.neon i { font-style: normal; color: rgba(255,140,160,.16); text-shadow: 0 0 .02em rgba(255,150,170,.25); }
-.neon i.on { color: #FFE4E8; text-shadow: 0 0 .03em #fff, 0 0 .12em #FF6A84, 0 0 .3em #FF3A62, 0 0 .7em rgba(255,40,80,.75); animation: ign .6s steps(1, end) both; }
-@keyframes ign { 0% { opacity: .2; } 12% { opacity: 1; } 22% { opacity: .35; } 34% { opacity: 1; } 46% { opacity: .6; } 58%, 100% { opacity: 1; } }
-.in-plate { position: absolute; right: 3.2em; top: 7em; width: 19em; padding: 1.6em 0; display: grid; gap: .6em; justify-items: center; text-align: center; background: #160B08; box-shadow: 0 0 0 .5em #3A0C10, inset 0 0 0 .25em rgba(217,184,106,.5);
-  font-family: 'Old Standard TT', Georgia, serif; color: rgba(217,184,106,.45); transition: color 1.2s ease; }
-.in-plate b { font-weight: 700; font-size: 3.2em; line-height: 1; }
-.in-plate span { font-size: 2em; line-height: 1.15; }
-.in-words { position: absolute; left: 0; right: 0; top: 30em; display: flex; justify-content: space-between; padding: 0 7em; font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 1em; }
-.in-words span { font-size: 4.6em; color: rgba(217,184,106,.38); transition: color 1.2s ease, text-shadow 1.2s ease; }
-.in-fac.lit .in-words span, .in-fac.lit .in-plate { color: #E2C26A; text-shadow: 0 0 .4em rgba(255,190,110,.35); }
-/* 아치 창 — 안은 따뜻한 등불 · 액자 그림자 · 샹들리에 */
-.in-wins { position: absolute; left: 5em; right: 5em; top: 39em; bottom: 0; display: flex; justify-content: space-between; align-items: flex-start; }
-.iw { position: relative; display: block; width: 26em; height: 66em; border-radius: 13em 13em 0 0; overflow: hidden; box-shadow: 0 0 0 1.3em #3A0A0D, 0 0 0 1.8em #6A161C;
-  background: radial-gradient(60% 34% at 50% 26%, #FFE0A6, #E59A4A 45%, #6A3216 100%); }
-.iw.mid { width: 30em; height: 111em; border-radius: 15em 15em 0 0; margin-top: -2em; }
-.iw::before { content: ''; position: absolute; inset: 0; z-index: 2;
-  background: linear-gradient(90deg, transparent calc(50% - .45em), #2A0709 calc(50% - .45em) calc(50% + .45em), transparent calc(50% + .45em)),
-    repeating-linear-gradient(0deg, transparent 0 15em, #2A0709 15em 15.8em),
-    radial-gradient(circle at 50% 13em, transparent 11.6em, #2A0709 11.6em 12.4em, transparent 12.4em); }
-.iw.mid::before { background: linear-gradient(90deg, transparent calc(50% - .45em), #2A0709 calc(50% - .45em) calc(50% + .45em), transparent calc(50% + .45em)),
-    repeating-linear-gradient(0deg, transparent 0 19em, #2A0709 19em 19.8em), radial-gradient(circle at 50% 15em, transparent 13.4em, #2A0709 13.4em 14.2em, transparent 14.2em); }
-/* 안쪽 벽에 걸린 액자들(어둑한 사각) */
-.iw s { position: absolute; left: 8%; right: 8%; top: 30%; height: 44%; z-index: 1; opacity: .55;
-  background: linear-gradient(rgba(70,30,12,.9), rgba(70,30,12,.9)) 10% 8% / 26% 30% no-repeat, linear-gradient(rgba(70,30,12,.9), rgba(70,30,12,.9)) 80% 4% / 30% 36% no-repeat,
-    linear-gradient(rgba(70,30,12,.9), rgba(70,30,12,.9)) 18% 72% / 30% 34% no-repeat, linear-gradient(rgba(70,30,12,.9), rgba(70,30,12,.9)) 86% 78% / 24% 28% no-repeat; }
-.iw.mid s { top: 34%; height: 30%; }
-/* 꺼진 상태 — 어두운 막. 켜지면 걷힌다 */
-.iw::after { content: ''; position: absolute; inset: 0; z-index: 3; background: radial-gradient(70% 40% at 50% 28%, rgba(14,6,4,.72), rgba(8,3,2,.9)); transition: opacity .9s ease; }
-.in-wins.warm .iw::after { opacity: 0; }
-.in-wins.warm .iw:nth-child(1)::after { transition-delay: .12s; } .in-wins.warm .iw:nth-child(3)::after { transition-delay: .24s; }
-.in-base { position: absolute; left: 5em; right: 5em; bottom: 0; height: 37em; display: flex; justify-content: space-between; pointer-events: none; }
-.in-base i { width: 26em; margin-top: 8em; border: .8em solid #3A0A0D; box-shadow: inset 0 0 0 .5em #6A161C, inset 0 0 3em rgba(0,0,0,.5); background: #4A0D11; }
-/* 길 — 젖은 보도에 비친 창빛 */
-.in-street { position: absolute; left: 0; right: 0; top: calc(50% + 70em); bottom: 0; background: linear-gradient(#0E0B0C, #060506); }
-.in-street .rf { position: absolute; left: 50%; top: 0; width: 100em; margin-left: -50em; height: 60%; opacity: 0; transition: opacity 1.2s ease .2s;
-  background: radial-gradient(14em 30em at 50% 0, rgba(255,170,90,.32), transparent 70%), radial-gradient(11em 22em at 19% 0, rgba(255,170,90,.2), transparent 70%), radial-gradient(11em 22em at 81% 0, rgba(255,170,90,.2), transparent 70%), radial-gradient(22em 10em at 50% 0, rgba(255,70,100,.12), transparent 70%); filter: blur(.6em); }
-.in-wins.warm ~ * .rf, .intro.warm .rf { opacity: 1; }
+/* 장면을 받는 동안(느린 망) — 검은 화면 대신 한 줄 */
+.intro::after { content: '35, boulevard des Capucines'; position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 14px; color: rgba(255,226,190,.5); opacity: 0; animation: fadeIn 1s ease 1.2s both; pointer-events: none; }
+.intro.go::after { animation: none; opacity: 0; transition: opacity .3s; }
 /* 마그네슘 섬광 — 희고 아주 조금 푸르게 */
 .in-flash { position: absolute; inset: 0; z-index: 5; opacity: 0; pointer-events: none; background: radial-gradient(70% 55% at 50% 52%, #FFFFFF, #F4F6FF 55%, #E6EAF6); }
 .intro.flash .in-flash { animation: flash .95s cubic-bezier(.2,.7,.3,1) both; }
 @keyframes flash { 0% { opacity: 0; } 7% { opacity: 1; } 22% { opacity: .96; } 100% { opacity: 0; } }
-.intro.flash .in-cam { animation: push .95s cubic-bezier(.55,0,.8,.35) both; }
-@keyframes push { from { transform: scale(1.07); } to { transform: scale(5.2); opacity: .2; } }
-/* 다가가기 — 길 건너에서 정면 쪽으로 천천히(섬광 직전까지) */
-.intro.go .in-cam { animation: dolly 2.3s cubic-bezier(.35,0,.6,1) both; }
-@keyframes dolly { from { transform: scale(1); } to { transform: scale(1.07); } }
-/* 창빛이 가스등처럼 아주 조금 흔들린다 */
-.in-wins.warm .iw { animation: gas 2.6s ease-in-out infinite alternate; }
-.in-wins.warm .iw:nth-child(2) { animation-duration: 3.1s; } .in-wins.warm .iw:nth-child(3) { animation-duration: 2.2s; animation-delay: -.8s; }
-@keyframes gas { 0% { filter: brightness(1); } 40% { filter: brightness(.94); } 55% { filter: brightness(1.04); } 100% { filter: brightness(.97); } }
+.intro.flash-q .in-flash { animation: flashQ .5s ease-out both; }
+@keyframes flashQ { 0% { opacity: .9; } 100% { opacity: 0; } }
 /* 밤안개 — 길 위로 천천히 흘러간다 */
-.in-mist { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; pointer-events: none; opacity: .85; }
+.in-mist { position: absolute; inset: 0; z-index: 4; width: 100%; height: 100%; pointer-events: none; opacity: .7; }
 /* 마그네슘 연기 — 화면 위층, 섬광 뒤 흩어진다 */
 .smoke { position: fixed; inset: 0; z-index: 101; width: 100%; max-width: 480px; height: 100%; margin: 0 auto; pointer-events: none; }
-.in-skip { position: absolute; left: 0; right: 0; bottom: calc(22px + var(--safe-b)); z-index: 6; text-align: center; font-size: 12.5px; color: rgba(255,255,255,.38); opacity: 0; animation: fadeIn .8s ease 1s both; }
-.intro.flash .in-skip { opacity: 0; animation: none; }
+.in-skip { position: absolute; left: 0; right: 0; bottom: calc(22px + var(--safe-b)); z-index: 6; text-align: center; font-size: 12.5px; color: rgba(255,255,255,.45); opacity: 0; }
+.intro.go .in-skip { animation: fadeIn .8s ease 1s both; }
+.intro.flash .in-skip, .intro.flash-q .in-skip { opacity: 0; animation: none; }
 body.intro-on { overflow: hidden; }
 body.c4 .topbar, body.c4 .tabs { transition: opacity .7s ease .2s; }
 body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
 
-/* 벽이 깊이에서 밀려 나온다 */
-.wall-view .layer { transform-origin: 50% 46%; transition: transform 1.25s cubic-bezier(.16,.84,.24,1), opacity 1s ease; }
-.stage:not(.entered) .wall-view .layer.near { transform: scale(.72) translateY(3%); opacity: 0; }
-.stage:not(.entered) .wall-view .layer.far { transform: scale(.55); }
+/* 사진관에 들어선 뒤 글 · 단추가 차례로 */
 .wall-view .w-head, .wall-view .w-foot { transition: opacity .8s ease, transform .9s var(--ease-out); }
 .stage:not(.entered) .w-head { opacity: 0; transform: translateY(-10px); }
 .stage:not(.entered) .w-foot { opacity: 0; transform: translateY(14px); }
-.stage.entered .w-head { transition-delay: .55s; } .stage.entered .w-foot { transition-delay: .8s; }
+.stage.entered .w-head { transition-delay: 1.1s; } .stage.entered .w-foot { transition-delay: 1.4s; }
 
 /* 누름 — 모든 조작에 */
 .tab { transition: background .2s, color .2s, transform .12s; }
@@ -98,31 +36,14 @@ body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
 .tab:not(.on):active { background: rgba(255,255,255,.1); }
 .seg button { transition: color .3s, transform .12s; }
 .seg button:active { transform: scale(.94); }
-.fr { transition: transform .18s var(--ease-out); }
-.fr:active { transform: scale(.965); }
 .ask-btn:active { transform: scale(.97); }
 
-/* ── 두 문: 왼쪽은 그림, 오른쪽은 사진. 가운데 이음매에서 빛이 새고, 문이 양옆으로 밀려 난다 */
-.door { position: absolute; inset: 0; z-index: 12; overflow: hidden; pointer-events: none; will-change: transform; }
-.door.l { clip-path: inset(0 50% 0 0); }
-.door.r { clip-path: inset(0 0 0 50%); }
-.door-in { position: absolute; inset: 0; overflow: hidden; }
-.door-in .w-head, .door-in .w-foot { display: none; }
-.door::after { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 22px; margin-left: -11px; pointer-events: none; }
-.door.l::after { background: linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,.55) 48%, rgba(255,226,170,.55) 50%, rgba(0,0,0,0) 51%); }
-.door.r::after { background: linear-gradient(90deg, rgba(0,0,0,0) 49%, rgba(255,226,170,.55) 50%, rgba(0,0,0,.55) 52%, rgba(0,0,0,0)); }
-.seam { position: absolute; z-index: 13; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; pointer-events: none; transform: scaleY(0); opacity: 0;
-  background: linear-gradient(rgba(255,236,200,0), #FFF1D6 30%, #FFF1D6 70%, rgba(255,236,200,0)); box-shadow: 0 0 18px 6px rgba(255,206,140,.55), 0 0 60px 20px rgba(255,190,120,.25); }
-.seam.on { animation: seam 1.25s cubic-bezier(.3,.6,.3,1) both; }
-@keyframes seam { 0% { transform: scaleY(0); opacity: 0; } 22% { transform: scaleY(1); opacity: 1; } 55% { opacity: .75; transform: scaleY(1) scaleX(3); } 100% { transform: scaleY(1) scaleX(12); opacity: 0; } }
-
 /* 질문이 문 뒤에서 드러난다 */
-.q-view.q-in .qs { animation: qsIn 1.3s cubic-bezier(.2,.7,.2,1) .25s backwards; }
-@keyframes qsIn { from { opacity: 0; transform: scale(1.12); } }
-.q-view.q-in .q-ask { animation: qIn .95s var(--ease-out) .5s backwards; }
-.q-view.q-in .half[data-k="paint"] .half-in { animation: qIn .85s var(--ease-out) .72s backwards; }
-.q-view.q-in .half[data-k="photo"] .half-in { animation: qIn .85s var(--ease-out) .84s backwards; }
-.q-view.q-in .divider { animation: fadeIn 1s ease .9s backwards; }
+.q-view.q-in .veil { animation: fadeIn 1s ease .5s backwards; }
+.q-view.q-in .q-ask { animation: qIn .95s var(--ease-out) 1.1s backwards; }
+.q-view.q-in .half[data-k="paint"] .half-in { animation: qIn .85s var(--ease-out) 1.35s backwards; }
+.q-view.q-in .half[data-k="photo"] .half-in { animation: qIn .85s var(--ease-out) 1.47s backwards; }
+.q-view.q-in .divider { animation: fadeIn 1s ease 1.5s backwards; }
 @keyframes qIn { from { opacity: 0; transform: translateY(18px) scale(.97); } }
 
 /* ── 고른 쪽이 화면을 채운다: 사진 = 마그네슘 섬광, 그림 = 따뜻한 니스 빛 */
@@ -135,10 +56,6 @@ body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
 
 /* ── 오늘의 관람객: 두 반쪽이 비율대로(그림 44 : 사진 56) 나뉘고, 그 위에 큰 숫자. 점은 쓰지 않는다 */
 .q-view { --pa: 50%; --pp: 50%; }
-.q-view.split[data-pick] .qs[data-k="paint"] { left: 0; width: var(--pa); opacity: .36; }
-.q-view.split[data-pick] .qs[data-k="photo"] { left: var(--pa); width: var(--pp); opacity: .36; }
-.q-view.split[data-pick="paint"] .qs[data-k="paint"], .q-view.split[data-pick="photo"] .qs[data-k="photo"] { opacity: .62; }
-.q-view.split .qs { transition: left 1.1s cubic-bezier(.2,.8,.2,1), width 1.1s cubic-bezier(.2,.8,.2,1), opacity .8s ease; }
 .sp-nums { position: absolute; z-index: 2; left: 0; right: 0; top: clamp(132px, 20dvh, 172px); bottom: var(--sheetH, 250px); pointer-events: none; opacity: 0; transition: opacity .6s ease; }
 .q-view.split .sp-nums { opacity: 1; }
 .sp-cap { position: absolute; left: 0; right: 0; top: 4px; text-align: center; font-family: var(--display); font-weight: 600; font-size: 13px; color: var(--soft); }
@@ -164,11 +81,9 @@ body.c4.intro-on .topbar, body.c4.intro-on .tabs { opacity: 0; }
 .reveal .crowd-stamp { margin-top: 0; border-top: 0; padding-top: 0; text-align: center; }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro.flash .in-flash, .intro.flash .in-cam, .neon i.on, .seam.on, .flood.photo, .flood.paint, .flood.paint::after, .q-view.q-in .qs, .q-view.q-in .q-ask, .q-view.q-in .half-in, .q-view.swept .sn b, .q-view.swept .sp-sweep { animation: none !important; }
-  .wall-view .layer, .sn, .sp-seam, .q-view.split .qs { transition: opacity .4s ease !important; }
-  .stage:not(.entered) .wall-view .layer.near, .stage:not(.entered) .wall-view .layer.far, .stage:not(.entered) .w-head, .stage:not(.entered) .w-foot { transform: none; }
-  .door { display: none; }
-  .intro.go .in-cam, .in-wins.warm .iw { animation: none; }
+  .intro.flash .in-flash, .intro.flash-q .in-flash, .flood.photo, .flood.paint, .flood.paint::after, .q-view.q-in .veil, .q-view.q-in .q-ask, .q-view.q-in .half-in, .q-view.q-in .divider, .q-view.swept .sn b, .q-view.swept .sp-sweep { animation: none !important; }
+  .sn, .sp-seam { transition: opacity .4s ease !important; }
+  .stage:not(.entered) .w-head, .stage:not(.entered) .w-foot { transform: none; }
   .in-mist, .smoke { display: none; }
 }
 
