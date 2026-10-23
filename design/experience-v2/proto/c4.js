@@ -1,13 +1,13 @@
-// C4 나다르 사진관 — 질문이 주인공인 한 화면
-//   위: "사람을 남긴다면, 그림입니까 사진입니까?"
-//   아래 두 벽: 왼쪽은 24명의 초상화를 살롱식으로 빽빽이(크기 · 모양 제각각, 초당 10px 위로, 먼 층은 더 느리게),
-//              오른쪽은 같은 사람들의 명함판 사진 앨범(가죽 페이지에 2×2 창, 초당 9px 아래로).
-//   약 4초마다 두 벽에 함께 보이는 한 사람의 두 액자가 빛나고, 금선 두 줄이 가운데 이름표 "이름 · 그림 연도 / 사진 연도"로 이어진다.
-//   액자를 누르면 그 사람의 그림 | 사진을 나란히 크게(두 손가락으로 두 장의 같은 자리를 함께 확대).
-//   반쪽(아래 단추)을 고르면 그쪽이 화면을 채우고 → 오늘의 관람객 → 그때는 이랬다 → 카드 저장("나는 ○○으로 남긴다", 고른 쪽 24명).
+// C4 나다르 사진관 — 두 화면
+//   1. 사진관 벽: 24명의 초상화를 화면 가득 살롱식으로(크기 · 모양 제각각, 초당 9px 위로, 두 벌을 이어 끊김 없이 — 한 화면에 같은 사람은 하나).
+//      액자를 누르면 그 사람이 제자리에서 사진이 된다(금박 액자 → 명함판 대지, 어둠에서 0.8초 동안 현상). 다시 누르면 그림으로.
+//      아래 "초상화 | 사진"을 누르면 벽 전체가 누른 쪽에서부터 물결처럼(30ms 간격) 바뀐다. 바뀌는 동안에도 벽은 흐른다.
+//      "당신이라면?" → 2.
+//   2. 질문: 뒤로 흐릿한 두 줄기(왼쪽 그림은 위로, 오른쪽 사진은 아래로) 위에 어두운 막, 위에 "사람을 남긴다면, 그림입니까 사진입니까?".
+//      반쪽을 누르면 그쪽이 화면을 채우고 다른 쪽은 물러난다 → 오늘의 관람객 → 그때는 이랬다 → 카드 저장. 뒤로(‹) → 1.
 //   (+) 내 초상(선택): 전면 카메라 → 노출 4초 → 부스 프로토타입의 19세기 사진 파이프라인(booth/js/nadar.js) 재사용
 // 인물 · 출처: js/c4-people.json(위키미디어 공용 파일 페이지 · 라이선스) · 얼굴 틀: img/c4p/build.py
-// 움직임은 transform · opacity 만. 화면 밖 · 탭 숨김 · 시트가 열리면 멈춘다. 서버 없음, 업로드 없음.
+// 움직임은 transform · opacity 만. 보이지 않는 화면 · 탭 숨김이면 멈춘다. 서버 없음, 업로드 없음.
 import { loadImage, startCamera, stopCamera, cameraErrorText, toast } from '../../../booth/js/common.js';
 import { saveChoice } from './js/proto-common.js';
 import { createCrowd, dotsFor, split, packRect, scatter, targetsFor, stampLine } from './js/crowd.js';
@@ -16,11 +16,11 @@ import * as N from '../../../booth/js/nadar.js';
 const $ = (s) => document.querySelector(s);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const stage = $('#ask'), halves = $('#halves');
+const stage = $('#ask'), hang = $('#hang'), qView = $('#qView');
 const thumb = (id, k) => `img/c4p/${id}-${k}.jpg`;
-const large = (id, k) => `img/c4p/lg/${id}-${k}.jpg`;
-// 앨범 창 아래 금 글씨 — 기록에 있는 스튜디오만
+// 명함판 대지 아래 금 글씨 — 기록에 있는 스튜디오만
 const STUDIO = { '나다르': 'Nadar', '에티엔 카르자': 'Ét. Carjat', '피에르 프티': 'Pierre Petit', '헤르만 비오브': 'H. Biow', 'A. 그레이너': 'A. Greiner' };
+const buzz = () => { if (navigator.vibrate) navigator.vibrate(8); };
 
 // ── 탭
 $$('.tab').forEach((t) => t.addEventListener('click', () => {
@@ -30,214 +30,151 @@ $$('.tab').forEach((t) => t.addEventListener('click', () => {
   syncFlow();
   window.scrollTo(0, 0);
 }));
+// 뒤로: 질문 화면이면 벽으로, 벽(또는 내 초상)이면 목록으로
+$('#back').addEventListener('click', (e) => { if (!stage.hidden && view === 'q') { e.preventDefault(); showWall(); } });
 
 function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 function shuffle(a, rnd) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-const yr = (e) => e.year || '';
-const yearsLine = (p) => (p.paint.year && p.photo.year ? `${p.paint.year} / ${p.photo.year}` : p.paint.year ? `그림 ${p.paint.year}` : p.photo.year ? `사진 ${p.photo.year}` : '');
 
 let PEOPLE = [], BYID = {};
-// ── 왼쪽: 살롱식 걸기. 큰 것 하나 / 작은 것 둘(높이 엇갈리게)을 섞어 한 줄기 높이 H. 두 벌을 H 간격으로 이어 끊김 없이
+// ── 1. 살롱식 걸기(화면 가득). 줄마다 셋 · 큰 것 하나와 작은 것 둘(쌓기) · 둘 · 하나 를 섞고, 줄 안에서는 가운데 선에 맞춰 조금씩 어긋나게
+const hOf = (w) => { const m = Math.max(5, Math.round(w * 0.062)); return { h: Math.round((w - 2 * m) * 1.25 + 2 * m), m }; };
 function salon(order, W, seed) {
-  const rnd = rng(seed), items = [];
-  let y = 18, i = 0;
-  const hOf = (w) => { const m = Math.max(5, Math.round(w * 0.065)); return { h: Math.round((w - 2 * m) * 1.25 + 2 * m), m }; };
+  const rnd = rng(seed), P = 14, G = 12, U = W - 2 * P, items = [];
+  let y = 18, i = 0, last = '';
+  const put = (id, x, yy, w) => { const g = hOf(w); const it = { id, x: Math.round(x), y: Math.round(yy), w: Math.round(w), ...g }; items.push(it); return it; };
   while (i < order.length) {
-    if (order.length - i === 1 || rnd() < 0.36) {
-      const w = Math.round(W * (0.62 + rnd() * 0.14)), g = hOf(w), x = Math.round((W - w) / 2 + (rnd() - 0.5) * W * 0.14);
-      items.push({ id: order[i++], x, y, w, ...g }); y += g.h + 18 + Math.round(rnd() * 8);
-    } else {
-      const w1 = Math.round(W * (0.39 + rnd() * 0.07)), w2 = Math.round(W * (0.39 + rnd() * 0.07));
-      const g1 = hOf(w1), g2 = hOf(w2), y1 = y + Math.round(rnd() * 12), y2 = y + 10 + Math.round(rnd() * 22);
-      items.push({ id: order[i++], x: Math.round(W * 0.05), y: y1, w: w1, ...g1 });
-      items.push({ id: order[i++], x: Math.round(W * 0.95 - w2), y: y2, w: w2, ...g2 });
-      y = Math.max(y1 + g1.h, y2 + g2.h) + 16 + Math.round(rnd() * 8);
+    const left = order.length - i, r = rnd();
+    let t = left === 1 ? 'D' : left === 2 ? 'C' : r < 0.4 ? 'A' : r < 0.72 ? 'B' : 'C';
+    if (t === last && left > 3) t = t === 'A' ? 'B' : 'A';
+    last = t;
+    if (t === 'A') {          // 셋
+      let ws = [0, 1, 2].map(() => U * (0.27 + rnd() * 0.06)); const s = Math.min(1, (U - 2 * G) / ws.reduce((a, b) => a + b, 0)); ws = ws.map((w) => w * s);
+      const gap = (U - ws.reduce((a, b) => a + b, 0)) / 2, H = Math.max(...ws.map((w) => hOf(w).h));
+      let x = P; ws.forEach((w) => { put(order[i++], x, y + (H - hOf(w).h) / 2 + (rnd() - 0.5) * 12, w); x += w + gap; });
+      y += H + G + 4 + Math.round(rnd() * 10);
+    } else if (t === 'B') {   // 큰 것 하나 + 작은 것 둘 쌓기(좌우는 번갈아)
+      const b = (U - G) * (0.64 + rnd() * 0.04), s = U - b - G, bh = hOf(b).h, sh = hOf(s).h, T = 2 * sh + G, H = Math.max(bh, T), flip = rnd() < 0.5;
+      const bx = flip ? P + s + G : P, sx = flip ? P : P + b + G;
+      put(order[i++], bx, y + (H - bh) / 2, b);
+      put(order[i++], sx, y + (H - T) / 2, s); put(order[i++], sx, y + (H - T) / 2 + sh + G, s);
+      y += H + G + 6 + Math.round(rnd() * 10);
+    } else if (t === 'C') {   // 둘
+      let ws = [0, 1].map(() => U * (0.42 + rnd() * 0.08)); const s = Math.min(1, (U - G - 10) / (ws[0] + ws[1])); ws = ws.map((w) => w * s);
+      const gap = U - ws[0] - ws[1], H = Math.max(...ws.map((w) => hOf(w).h));
+      put(order[i++], P, y + (H - hOf(ws[0]).h) / 2 + (rnd() - 0.5) * 16, ws[0]); put(order[i++], P + ws[0] + gap, y + (H - hOf(ws[1]).h) / 2 + (rnd() - 0.5) * 16, ws[1]);
+      y += H + G + 6 + Math.round(rnd() * 10);
+    } else {                  // 하나
+      const w = U * 0.56; put(order[i++], P + (U - w) / 2 + (rnd() - 0.5) * 30, y, w); y += hOf(w).h + G + 8;
     }
   }
-  items.forEach((it) => { it.shape = rnd() < 0.3 ? 'ov' : rnd() < 0.22 ? 'wood' : ''; });
-  return { items, H: y };
+  items.forEach((it) => { const r = rnd(); it.shape = r < 0.24 ? 'ov' : r < 0.42 ? 'wood' : ''; });
+  return { items, H: y + 6 };
 }
-function paintHTML(it, dy) {
-  const p = BYID[it.id];
-  return `<button class="fr pf ${it.shape}" type="button" data-id="${p.id}" style="left:${it.x}px;top:${it.y + dy}px;width:${it.w}px;height:${it.h}px;--m:${it.m}px" aria-label="${p.name} · 그림"><i class="glw"></i><span class="body"><span class="win"><img src="${thumb(p.id, 'paint')}" alt="" draggable="false" decoding="async"></span></span></button>`;
-}
-// ── 오른쪽: 앨범. 페이지마다 2×2 창(같은 크기 · 같은 줄), 페이지 사이 틈. 창 모양은 아치가 기본, 가끔 타원 · 네모
-function album(order, W, seed) {
-  const rnd = rng(seed), pad = 16, gx = 14, cw = Math.floor((W - 12 - 2 * pad - gx) / 2), wh = Math.round(cw * 1.25), sh = 16, gy = 14;
-  const ph = pad + 2 * (wh + sh) + gy + pad - 4, gap = 16, pages = [], items = [];
-  let y = 14;
-  for (let i = 0; i < order.length; i += 4) {
-    pages.push({ y, h: ph });
-    for (let j = 0; j < 4 && i + j < order.length; j++) {
-      const r = Math.floor(j / 2), c = j % 2, s = rnd();
-      items.push({ id: order[i + j], x: 6 + pad + c * (cw + gx), y: y + pad + r * (wh + sh + gy), w: cw, h: wh + sh, shape: s < 0.18 ? 'ov' : s < 0.3 ? 'sq' : '' });
-    }
-    y += ph + gap;
-  }
-  return { items, pages, H: y };
-}
-function photoHTML(it, dy) {
-  const p = BYID[it.id], st = STUDIO[p.photo.by] || '';
-  return `<button class="fr cd ${it.shape}" type="button" data-id="${p.id}" style="left:${it.x}px;top:${it.y + dy}px;width:${it.w}px;height:${it.h}px" aria-label="${p.name} · 사진"><i class="glw"></i><span class="body"><span class="win"><img src="${thumb(p.id, 'photo')}" alt="" draggable="false" decoding="async"></span>${st ? `<span class="stamp">${st}</span>` : ''}</span></button>`;
+const isPh = new Set();      // 사진이 된 사람
+function frameHTML(it, dy) {
+  const p = BYID[it.id], st = STUDIO[p.photo.by] || '', ph = isPh.has(p.id);
+  const cw = Math.min(it.w - 6, Math.round(it.h * 0.68));
+  return `<button class="fr ${it.shape}${ph ? ' ph' : ''}" type="button" data-id="${p.id}" style="left:${it.x}px;top:${it.y + dy}px;width:${it.w}px;height:${it.h}px;--m:${it.m}px;--cw:${cw}px" aria-label="${p.name} · ${ph ? '사진' : '그림'}">`
+    + `<span class="pt"><span class="win"><img src="${thumb(p.id, 'paint')}" alt="" draggable="false" decoding="async"></span></span>`
+    + `<span class="cv"><span class="cv-win"><img src="${thumb(p.id, 'photo')}" alt="" draggable="false" decoding="async"><i class="dev"></i></span><span class="cv-imp">${st}</span></span></button>`;
 }
 function ghosts(W, Hf, seed) {
   const rnd = rng(seed), out = [];
-  for (let y = 30; y < Hf - 40;) { const w = Math.round(W * (0.2 + rnd() * 0.14)), h = Math.round(w * 1.25); out.push({ x: Math.round(rnd() * (W - w)), y, w, h }); y += h + 50 + Math.round(rnd() * 90); }
+  for (let y = 30; y < Hf - 40;) { const w = Math.round(W * (0.14 + rnd() * 0.1)), h = Math.round(w * 1.25); out.push({ x: Math.round(rnd() * (W - w)), y, w, h }); y += Math.round(h * 0.5) + 30 + Math.round(rnd() * 70); }
   const one = (dy) => out.map((g) => `<i class="ghost" style="left:${g.x}px;top:${g.y + dy}px;width:${g.w}px;height:${g.h}px"></i>`).join('');
   return one(0) + one(Hf);
 }
+// ── 2. 질문 뒤 두 줄기: 반쪽 폭에 두 칸 엇갈림(한 줄 간격 rs, 24장 = 12줄 → 주기 12·rs)
+function stream(k, Wh, seed) {
+  const rnd = rng(seed), order = shuffle(PEOPLE.map((p) => p.id), rnd), w = Math.round(Wh * 0.4), h = Math.round(w * (k === 'paint' ? 1.25 : 1.5)), rs = h + 30, H = 12 * rs;
+  const one = (dy) => order.map((id, i) => {
+    const c = i % 2, x = Math.round(c ? Wh * 0.53 : Wh * 0.07) + Math.round((rnd() - 0.5) * 8), y = Math.floor(i / 2) * rs + (c ? rs / 2 : 0) + dy;
+    return `<i class="qt ${k}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"><img src="${thumb(id, k)}" alt="" draggable="false" decoding="async"></i>`;
+  }).join('');
+  return { html: one(0) + one(H), H };
+}
 
-// ── 흐름(WAAPI): 그림은 위로 초당 10px, 사진은 아래로 초당 9px. 그림의 먼 층은 같은 주기에 더 짧은 길이 → 초당 약 6px(깊이). 시작은 천천히 붙는다
-let flows = [], sideAnims = { paint: [], photo: [] }, onScreen = true, sheetOpen = false;
+// ── 흐름(WAAPI). 벽은 위로 초당 9px(먼 층은 같은 주기 · 짧은 길이 → 초당 약 5px, 깊이). 질문의 그림 줄기는 위로, 사진 줄기는 아래로 초당 10px. 시작은 천천히 붙는다
+let view = 'wall', wallAnims = [], qAnims = [], LAYOUT = [];
+const up = (h) => [{ transform: 'translateY(0)' }, { transform: `translateY(${-h}px)` }], down = (h) => [{ transform: `translateY(${-h}px)` }, { transform: 'translateY(0)' }];
 function build() {
-  const W = Math.round($('#sidePaint').getBoundingClientRect().width);
+  const W = Math.round(stage.getBoundingClientRect().width);
   const order = shuffle(PEOPLE.map((p) => p.id), rng(11));
-  flows.forEach((a) => a.cancel()); flows = []; sideAnims = { paint: [], photo: [] };
-  // 그림
-  const S = salon(order, W, 3), near = $('#hangPaint'), far = $('#farPaint');
-  near.style.height = `${S.H * 2}px`; near.innerHTML = S.items.map((it) => paintHTML(it, 0)).join('') + S.items.map((it) => paintHTML(it, S.H)).join('');
-  const Hf = Math.round(S.H * 0.6); far.style.height = `${Hf * 2}px`; far.innerHTML = ghosts(W, Hf, 5);
-  // 사진 — 그림 벽의 거꾸로 순서: 서로 반대로 흐르니 같은 사람이 주기적으로 엇갈리며 두 벽에 함께 보인다
-  // 움직임 줄이기(정지 격자)에서는 같은 순서로 — 두 벽 위쪽에 같은 사람들이 함께 보여야 빛남이 생긴다
-  const A = album(REDUCED ? order : order.slice().reverse(), W, 7), hang = $('#hangPhoto');
-  hang.style.height = `${A.H * 2}px`;
-  const pg = (dy) => A.pages.map((g) => `<div class="pg" style="top:${g.y + dy}px;height:${g.h}px"></div>`).join('');
-  hang.innerHTML = pg(0) + pg(A.H) + A.items.map((it) => photoHTML(it, 0)).join('') + A.items.map((it) => photoHTML(it, A.H)).join('');
+  [...wallAnims, ...qAnims].forEach((a) => a.cancel()); wallAnims = []; qAnims = [];
+  const S = salon(order, W, 3), far = $('#far'); LAYOUT = S.items;
+  hang.style.height = `${S.H * 2}px`; hang.innerHTML = S.items.map((it) => frameHTML(it, 0)).join('') + S.items.map((it) => frameHTML(it, S.H)).join('');
+  const Hf = Math.round(S.H * 0.55); far.style.height = `${Hf * 2}px`; far.innerHTML = ghosts(W, Hf, 5);
+  const Wh = Math.round(W / 2), sp = stream('paint', Wh, 21), so = stream('photo', Wh, 23);
+  [['#qsPaint', sp], ['#qsPhoto', so]].forEach(([q, s]) => { const t = $(q); t.style.width = `${Wh}px`; t.style.marginLeft = `${-Wh / 2}px`; t.style.height = `${s.H * 2}px`; t.innerHTML = s.html; });
   if (REDUCED) { syncFlow(); return; }
-  const up = (h) => [{ transform: 'translateY(0)' }, { transform: `translateY(${-h}px)` }], down = (h) => [{ transform: `translateY(${-h}px)` }, { transform: 'translateY(0)' }];
-  const dP = (S.H / 10) * 1000, dA = (A.H / 9) * 1000;
-  const a1 = near.animate(up(S.H), { duration: dP, iterations: Infinity }), a2 = far.animate(up(Hf), { duration: dP, iterations: Infinity }), a3 = hang.animate(down(A.H), { duration: dA, iterations: Infinity });
-  a1.currentTime = a2.currentTime = dP * 0.1; a3.currentTime = dA * 0.42;
-  flows = [a1, a2, a3]; sideAnims = { paint: [a1, a2], photo: [a3] };
+  const dW = (S.H / 9) * 1000;
+  const a1 = hang.animate(up(S.H), { duration: dW, iterations: Infinity }), a2 = far.animate(up(Hf), { duration: dW, iterations: Infinity });
+  a1.currentTime = a2.currentTime = dW * 0.04;
+  const b1 = $('#qsPaint').animate(up(sp.H), { duration: (sp.H / 10) * 1000, iterations: Infinity }), b2 = $('#qsPhoto').animate(down(so.H), { duration: (so.H / 10) * 1000, iterations: Infinity });
+  b1.currentTime = 0.3 * b1.effect.getTiming().duration; b2.currentTime = 0.6 * b2.effect.getTiming().duration;
+  wallAnims = [a1, a2]; qAnims = [b1, b2];
   rampUp(); syncFlow();
 }
-let pickRate = 1, ramp = 1;
+let ramp = 1;
 function rampUp() {
   const t0 = performance.now();
-  const step = (now) => { const t = Math.min(1, (now - t0) / 1800); ramp = t * t * (3 - 2 * t); rate(); if (t < 1) requestAnimationFrame(step); };
+  const step = (now) => { const t = Math.min(1, (now - t0) / 1800); ramp = t * t * (3 - 2 * t); [...wallAnims, ...qAnims].forEach((a) => { const r = Math.max(0.0001, ramp); a.updatePlaybackRate ? a.updatePlaybackRate(r) : (a.playbackRate = r); }); if (t < 1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
-function rate() { flows.forEach((a) => { const mine = stance && sideAnims[stance].includes(a); const r = Math.max(0.0001, ramp * (mine ? pickRate : 1)); a.updatePlaybackRate ? a.updatePlaybackRate(r) : (a.playbackRate = r); }); }
-function running() { return onScreen && !sheetOpen && !stage.hidden && document.visibilityState === 'visible'; }
 function syncFlow() {
-  const run = running();
-  flows.forEach((a) => { if (run && a.playState !== 'running') a.play(); else if (!run && a.playState === 'running') a.pause(); });
-  if (run && !stance) startGlow(); else stopGlow();
+  const vis = !stage.hidden && document.visibilityState === 'visible';
+  const run = (list, on) => list.forEach((a) => { if (on && a.playState !== 'running') a.play(); else if (!on && a.playState === 'running') a.pause(); });
+  run(wallAnims, vis && view === 'wall'); run(qAnims, vis && view === 'q');
 }
-if ('IntersectionObserver' in window) new IntersectionObserver((es) => { onScreen = es[0].isIntersecting; syncFlow(); }).observe(halves);
 document.addEventListener('visibilitychange', syncFlow);
 
-// ── 같은 사람: 두 벽에 모두 온전히 보이는(아래 단추에 걸리지 않는) 사람 하나 → 두 액자 빛남 + 금선 두 줄 + 가운데 이름표
-let glowT = 0, glowOff = 0, wireRaf = 0, shown = [];
-function zone() { const r = halves.getBoundingClientRect(), f = $('.side-foot .pick').getBoundingClientRect(); return { top: r.top + 8, bottom: f.top - 10, r }; }
-function inZone(el, z) { const b = el.getBoundingClientRect(); return b.top >= z.top && b.bottom <= z.bottom ? b : null; }
-function placeWires(pa, pb) {
-  const r = halves.getBoundingClientRect(), s = $('#same').getBoundingClientRect();
-  const a = pa.getBoundingClientRect(), b = pb.getBoundingClientRect();
-  const line = (el, x1, y1, x2, y2) => { const dx = x2 - x1, dy = y2 - y1; el.style.width = `${Math.max(0, Math.hypot(dx, dy)).toFixed(1)}px`; el.style.transform = `translate(${(x1 - r.left).toFixed(1)}px, ${(y1 - r.top).toFixed(1)}px) rotate(${Math.atan2(dy, dx)}rad)`; };
-  line($('#wireA'), a.right - 2, a.top + a.height / 2, s.left, s.top + s.height / 2);
-  line($('#wireB'), b.left + 2, b.top + b.height / 2, s.right, s.top + s.height / 2);
-  // 오른쪽 선은 사진 → 이름표 방향이라 그라데이션을 뒤집는다
-  $('#wireB').style.transformOrigin = '0 50%';
-}
-function glowOnce() {
-  const z = zone();
-  const vis = (q) => { const m = new Map(); $$(`${q} .fr`).forEach((f) => { const b = inZone(f, z); if (b && !m.has(f.dataset.id)) m.set(f.dataset.id, { f, b }); }); return m; };
-  const a = vis('#hangPaint'), b = vis('#hangPhoto');
-  const both = [...a.keys()].filter((id) => b.has(id));
-  if (!both.length) return false;
-  both.sort((x, y) => shown.indexOf(x) - shown.indexOf(y));
-  const id = both[0], pa = a.get(id), pb = b.get(id), p = BYID[id];
-  shown = shown.filter((x) => x !== id).concat(id);
-  [pa.f, pb.f].forEach((f) => { f.classList.remove('lit'); void f.offsetWidth; f.classList.add('lit'); setTimeout(() => f.classList.remove('lit'), 3200); });
-  const y = ((pa.b.top + pa.b.bottom) / 2 + (pb.b.top + pb.b.bottom) / 2) / 2 - z.r.top;
-  const same = $('#same');
-  $('#sameName').textContent = p.name; $('#sameYears').textContent = yearsLine(p); $('#sameYears').hidden = !yearsLine(p);
-  same.style.setProperty('--y', `${Math.max(46, Math.min(z.bottom - z.r.top - 40, y)).toFixed(0)}px`);
-  same.classList.add('on'); halves.classList.add('glowing');
-  cancelAnimationFrame(wireRaf);
-  const follow = () => { placeWires(pa.f, pb.f); wireRaf = requestAnimationFrame(follow); };
-  requestAnimationFrame(() => { follow(); $('#wireA').classList.add('on'); $('#wireB').classList.add('on'); });
-  clearTimeout(glowOff); glowOff = setTimeout(endGlow, 2900);
+// ── 그림 ↔ 사진: 한 사람(두 벌 함께). d = 시작 지연(ms)
+function setPerson(id, ph, d = 0) {
+  if (isPh.has(id) === ph) return false;
+  ph ? isPh.add(id) : isPh.delete(id);
+  const name = BYID[id].name;
+  hang.querySelectorAll(`.fr[data-id="${id}"]`).forEach((f) => { f.style.setProperty('--d', `${d}ms`); f.classList.toggle('ph', ph); f.setAttribute('aria-label', `${name} · ${ph ? '사진' : '그림'}`); });
   return true;
 }
-function endGlow() { $('#same').classList.remove('on'); halves.classList.remove('glowing'); $$('.wire').forEach((w) => w.classList.remove('on')); setTimeout(() => cancelAnimationFrame(wireRaf), 700); }
-function startGlow() { if (glowT) return; glowT = setTimeout(function tick() { glowT = setTimeout(tick, glowOnce() ? 4200 : 600); }, 1400); }
-function stopGlow() { clearTimeout(glowT); glowT = 0; }
+hang.addEventListener('click', (e) => {
+  const f = e.target.closest('.fr'); if (!f) return;
+  setPerson(f.dataset.id, !isPh.has(f.dataset.id)); buzz();
+  // 하나씩 눌러 모두 같은 쪽이 되면 아래 단추도 따라간다
+  if (isPh.size === PEOPLE.length) segUI('photo'); else if (!isPh.size) segUI('paint');
+});
+// 벽 전체: 누른 쪽(초상화 = 왼쪽, 사진 = 오른쪽)에서부터 가로 위치 순서로 30ms 간격 물결
+let mode = 'paint';
+function segUI(m) { mode = m; $('#seg').dataset.m = m; $$('#seg button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.m === m)); }
+function setMode(m) {
+  segUI(m);
+  const ph = m === 'photo', order = LAYOUT.slice().sort((a, b) => (a.x + a.w / 2) - (b.x + b.w / 2) || a.y - b.y);
+  if (ph) order.reverse();
+  let n = 0; order.forEach((it, i) => { if (setPerson(it.id, ph, REDUCED ? 0 : i * 30)) n++; });
+  if (n) buzz();
+}
+$$('#seg button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.m)));
 
-// ── 나란히 크게: 그림 | 사진. 큰 판은 이때 받는다. 두 손가락으로 벌리면 두 장의 같은 자리가 함께 커지고, 한 손가락으로 옮기고, 두 번 누르면 원래대로
-const sheet = $('#pairSheet'), dim = $('#pairDim'), pair = $('#psPair');
-const cap = (lab, e) => `<i>${lab}</i><b>${e.by || '<span class="un">작자 미상</span>'}${e.year ? ` · ${e.year}` : ''}</b>${e.where ? `<span>${e.where}</span>` : ''}`;
-function openPair(id) {
-  const p = BYID[id];
-  $('#psName').textContent = p.name;
-  ['paint', 'photo'].forEach((k) => {
-    const img = $(k === 'paint' ? '#psPaint' : '#psPhoto');
-    img.src = thumb(id, k); img.alt = `${p.name} · ${k === 'paint' ? '그림' : '사진'}`;
-    const im = new Image(); im.onload = () => { if ($('#psName').textContent === p.name) img.src = im.src; }; im.src = large(id, k);
-  });
-  $('#psPaintCap').innerHTML = cap('그림', p.paint); $('#psPhotoCap').innerHTML = cap('사진', p.photo);
-  setZoom(1, 0, 0);
-  sheet.classList.add('open'); dim.classList.add('open'); sheet.setAttribute('aria-hidden', 'false');
-  sheetOpen = true; syncFlow();
-}
-function closePair() { sheet.classList.remove('open'); dim.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); sheetOpen = false; syncFlow(); }
-$('#psClose').addEventListener('click', closePair); dim.addEventListener('click', closePair);
-let Z = { s: 1, tx: 0, ty: 0 };
-const winBox = () => $('#psPaint').parentElement.getBoundingClientRect();
-function setZoom(s, tx, ty) {
-  const w = winBox(); s = Math.max(1, Math.min(4, s));
-  tx = Math.min(0, Math.max(w.width * (1 - s), tx)); ty = Math.min(0, Math.max(w.height * (1 - s), ty));
-  Z = { s, tx, ty };
-  const t = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${s.toFixed(3)})`;
-  $('#psPaint').style.transform = t; $('#psPhoto').style.transform = t;
-}
-// 손가락 자리를 "그 손가락이 놓인 창" 기준 좌표로 바꾼다 → 두 창에 같은 변환
-function local(x, y) {
-  const a = $('#psPaint').parentElement.getBoundingClientRect(), b = $('#psPhoto').parentElement.getBoundingClientRect();
-  const r = x < (a.right + b.left) / 2 ? a : b; return { x: x - r.left, y: y - r.top };
-}
-const pts = new Map(); let g0 = null, lastTap = 0;
-function gesture() { const a = [...pts.values()].map((p) => local(p.x, p.y)); const c = { x: a.reduce((s, p) => s + p.x, 0) / a.length, y: a.reduce((s, p) => s + p.y, 0) / a.length };
-  const raw = [...pts.values()]; c.d = raw.length > 1 ? Math.hypot(raw[0].x - raw[1].x, raw[0].y - raw[1].y) : 0; return c; }
-function begin() { if (!pts.size) { g0 = null; return; } const c = gesture(); g0 = { ...c, s: Z.s, u: (c.x - Z.tx) / Z.s, v: (c.y - Z.ty) / Z.s }; }
-pair.addEventListener('pointerdown', (e) => {
-  try { pair.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
-  pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); begin();
-  if (pts.size === 1) { const now = performance.now(); if (now - lastTap < 300) { setZoom(1, 0, 0); begin(); } lastTap = now; }
-});
-pair.addEventListener('pointermove', (e) => {
-  if (!pts.has(e.pointerId) || !g0) return;
-  pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  const c = gesture(), s = pts.size > 1 && g0.d ? g0.s * (c.d / g0.d) : g0.s;
-  if (pts.size === 1 && g0.s <= 1) return;
-  setZoom(s, c.x - g0.u * s, c.y - g0.v * s);
-});
-['pointerup', 'pointercancel'].forEach((t) => pair.addEventListener(t, (e) => { pts.delete(e.pointerId); begin(); }));
+// ── 화면 전환
+function showQ() { pick(null); view = 'q'; stage.dataset.view = 'q'; syncFlow(); }
+function showWall() { pick(null); view = 'wall'; stage.dataset.view = 'wall'; syncFlow(); }
+$('#toQ').addEventListener('click', showQ);
 
 // ── 고르기
 const STANCES = { paint: { label: '그림', full: '그림으로', pct: 44 }, photo: { label: '사진', full: '사진으로', pct: 56 } };   // 예시 수치
 const VISITORS = '1,712';
-let stance = null;
+let stance = null, revealT = 0;
 function pick(k) {
-  stance = k;
-  if (k) stage.dataset.pick = k; else delete stage.dataset.pick;
+  stance = k; clearTimeout(revealT);
+  if (k) qView.dataset.pick = k; else delete qView.dataset.pick;
   $('#reveal').classList.remove('on');
-  pickRate = k ? 2.6 : 1; rate();
-  endGlow(); $$('.fr.lit').forEach((f) => f.classList.remove('lit'));
-  syncFlow();
   if (!k) return;
   $('#mineHead').textContent = `${STANCES[k].full} 남긴다.`;
   $('#mineSubHead').textContent = k === 'paint' ? '화가가 보고 그린 대로' : '렌즈 앞에 앉은 그대로';
-  if (navigator.vibrate) navigator.vibrate(10);
-  setTimeout(reveal, REDUCED ? 0 : 700);
+  buzz();
+  revealT = setTimeout(reveal, REDUCED ? 0 : 750);
 }
-$$('.pick').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); if (!stance) pick(b.dataset.k); }));
-halves.addEventListener('click', (e) => {
-  if (stance) return;
-  const f = e.target.closest('.fr'); if (f) return openPair(f.dataset.id);
-  const s = e.target.closest('.side'); if (s) pick(s.dataset.k);
-});
+$$('.half').forEach((b) => b.addEventListener('click', () => { if (!stance) pick(b.dataset.k); }));
 
 // ── 오늘의 관람객: 점(하나 = 열 사람)이 흩어졌다가 그림 · 사진 두 기둥 아래로 모인다. 내 점은 주황, 맨 마지막
 const KEYS = ['paint', 'photo'];
@@ -327,7 +264,7 @@ $('#saveStance').addEventListener('click', async () => {
   await Promise.all(PEOPLE.flatMap((p) => ['paint', 'photo'].map((k) => loadImg(thumb(p.id, k)))));
   build();
   requestAnimationFrame(() => stage.classList.add('ready'));
-  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => { if (!stance) build(); }, 200); });
+  let t, lastW = innerWidth; window.addEventListener('resize', () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(t); t = setTimeout(build, 200); });
 })();
 
 // ── 내 초상
@@ -441,6 +378,6 @@ $('#saveMe').addEventListener('click', async () => {
 meState('idle');
 void loadImage;
 // 검수용
-window.__c4 = { get stance() { return stance; }, get crowd() { return crowd; }, get sheet() { return sheetOpen; }, get people() { return PEOPLE.length; },
-  get flowing() { return flows.some((a) => a.playState === 'running'); }, get lit() { return $$('.fr.lit').length; }, get card() { return !!lastCard; }, get zoom() { return Z.s; },
-  cardURL: () => lastCard && lastCard.toDataURL('image/jpeg', 0.85), pick, openPair, glowOnce };
+window.__c4 = { get stance() { return stance; }, get crowd() { return crowd; }, get people() { return PEOPLE.length; }, get view() { return view; }, get mode() { return mode; },
+  get photos() { return isPh.size; }, get flowing() { return wallAnims.some((a) => a.playState === 'running'); }, get qFlowing() { return qAnims.some((a) => a.playState === 'running'); },
+  get card() { return !!lastCard; }, cardURL: () => lastCard && lastCard.toDataURL('image/jpeg', 0.85), pick, setMode };

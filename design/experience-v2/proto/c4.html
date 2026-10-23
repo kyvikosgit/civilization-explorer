@@ -14,70 +14,65 @@
 <body class="page c4">
 
 <div class="topbar">
-  <a class="icon-btn" href="index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <a class="icon-btn" id="back" href="index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
   <div class="tb-title">C4 · 나다르 사진관</div>
   <span></span>
 </div>
 
 <nav class="tabs" role="tablist" aria-label="화면">
-  <button class="tab on" role="tab" aria-selected="true" data-tab="ask" type="button">질문</button>
+  <button class="tab on" role="tab" aria-selected="true" data-tab="ask" type="button">사진관</button>
   <button class="tab" role="tab" aria-selected="false" data-tab="me" type="button">내 초상</button>
 </nav>
 
-<!-- ── 한 화면: 위에 질문, 아래 두 벽(왼쪽 그림 · 오른쪽 사진). 가끔 같은 사람의 두 액자가 함께 빛난다. 반쪽을 고르면 그쪽이 화면을 채우고 오늘의 관람객이 올라온다 -->
-<main class="stage screen" id="ask" data-screen="ask">
-  <header class="q-head" id="qHead">
-    <div class="q-ask">
-      <h1>사람을 남긴다면,<br>그림입니까 사진입니까?</h1>
-      <p>1874년 4월, 이 사진관이 화가들의 첫 전시장이 되었다</p>
-    </div>
-    <div class="q-mine" aria-live="polite"><h1 id="mineHead"></h1><p id="mineSubHead"></p></div>
-  </header>
+<main class="stage screen" id="ask" data-screen="ask" data-view="wall">
 
-  <section class="halves" id="halves" aria-label="그림과 사진">
-    <div class="side" data-k="paint" id="sidePaint">
-      <div class="wall" aria-hidden="true"></div>
-      <div class="layer far" aria-hidden="true"><div class="track" id="farPaint"></div></div>
-      <div class="layer near"><div class="track" id="hangPaint"></div></div>
-      <div class="side-foot"><button class="pick" data-k="paint" type="button"><b>그림으로</b><small>화가가 보고 그린 대로</small></button></div>
+  <!-- ── 1. 사진관 벽: 24명의 초상화를 살롱식으로(화면 가득, 아주 느리게 위로). 액자를 누르면 그 사람이 사진이 되고, 아래 "초상화 | 사진"으로 벽 전체가 물결처럼 바뀐다 -->
+  <section class="view wall-view" id="wallView" aria-label="사진관 벽">
+    <div class="wall-bg" aria-hidden="true"></div>
+    <div class="layer far" aria-hidden="true"><div class="track" id="far"></div></div>
+    <div class="layer near"><div class="track" id="hang"></div></div>
+    <header class="w-head"><h1>나다르 사진관.<br>벽에는 초상화가 걸려 있습니다.</h1></header>
+    <div class="w-foot">
+      <div class="seg" id="seg" role="group" aria-label="벽 전체를 바꾸기">
+        <i class="seg-thumb" aria-hidden="true"></i>
+        <button type="button" data-m="paint" aria-pressed="true">초상화</button>
+        <button type="button" data-m="photo" aria-pressed="false">사진</button>
+      </div>
+      <button class="btn white ask-btn" id="toQ" type="button">당신이라면?</button>
     </div>
-    <div class="side" data-k="photo" id="sidePhoto">
-      <div class="wall" aria-hidden="true"></div>
-      <div class="layer far" aria-hidden="true"><div class="track" id="farPhoto"></div></div>
-      <div class="layer near"><div class="track" id="hangPhoto"></div></div>
-      <div class="side-foot"><button class="pick" data-k="photo" type="button"><b>사진으로</b><small>렌즈 앞에 앉은 그대로</small></button></div>
-    </div>
-    <div class="divider" aria-hidden="true"></div>
-    <i class="wire" id="wireA" aria-hidden="true"></i><i class="wire" id="wireB" aria-hidden="true"></i>
-    <div class="same" id="same" aria-live="polite"><b id="sameName"></b><small id="sameYears"></small></div>
   </section>
 
-  <!-- 오늘의 관람객(점 하나 = 열 사람, 내 점은 주황) · 그때는 이랬다 · 저장. 단추 줄은 늘 아래에 -->
-  <section class="reveal crowd dark center" id="reveal" aria-live="polite">
-    <div class="rv-scroll" id="rvScroll">
-      <div class="crowd-cap">오늘의 관람객</div>
-      <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
-      <div class="crowd-cols" id="crowdCols"></div>
-      <div class="crowd-stamp" id="crowdStamp"></div>
-      <div class="mine-card" id="mineCard" hidden><img id="mineImg" alt="저장한 카드"><div><b id="mineLabel"></b><small>수집함에 담았습니다</small></div></div>
-      <div class="hist-dark"><b>그때는 이랬다</b>
-        <p>1874년 4월, 나다르는 이 사진관을 화가들에게 전시장으로 내주었다.<small>Wikipedia · Nadar · BnF · Les Nadar · 무상 여부는 자료가 엇갈린다(Rewald 1973 / Wikipedia FR)</small></p>
-      </div>
+  <!-- ── 2. 질문: 뒤로 두 줄기(왼쪽 그림은 위로, 오른쪽 사진은 아래로, 흐리게) 위에 어두운 막. 반쪽을 누르면 그쪽이 화면을 채우고 오늘의 관람객이 올라온다 -->
+  <section class="view q-view" id="qView" aria-label="질문">
+    <div class="qs" data-k="paint" aria-hidden="true"><div class="qs-track" id="qsPaint"></div></div>
+    <div class="qs" data-k="photo" aria-hidden="true"><div class="qs-track" id="qsPhoto"></div></div>
+    <div class="veil" aria-hidden="true"></div>
+    <div class="halves" id="halves">
+      <button class="half" data-k="paint" type="button"><span class="half-in"><b>그림으로</b><small>화가가 보고 그린 대로</small></span></button>
+      <button class="half" data-k="photo" type="button"><span class="half-in"><b>사진으로</b><small>렌즈 앞에 앉은 그대로</small></span></button>
+      <i class="divider" aria-hidden="true"></i>
     </div>
-    <div class="rv-actions"><button class="btn white" id="saveStance" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg><span id="saveLab">카드 저장</span></button><button class="btn dark-line" id="again" type="button">다시 고르기</button></div>
+    <header class="q-head">
+      <div class="q-ask"><h1>사람을 남긴다면,<br>그림입니까 사진입니까?</h1></div>
+      <div class="q-mine" aria-live="polite"><h1 id="mineHead"></h1><p id="mineSubHead"></p></div>
+    </header>
+
+    <!-- 오늘의 관람객(점 하나 = 열 사람, 내 점은 주황) · 그때는 이랬다 · 저장. 단추 줄은 늘 아래에 -->
+    <section class="reveal crowd dark center" id="reveal" aria-live="polite">
+      <div class="rv-scroll" id="rvScroll">
+        <div class="crowd-cap">오늘의 관람객</div>
+        <div class="crowd-stage" id="crowdStage"><canvas id="crowdCv" aria-hidden="true"></canvas></div>
+        <div class="crowd-cols" id="crowdCols"></div>
+        <div class="crowd-stamp" id="crowdStamp"></div>
+        <div class="mine-card" id="mineCard" hidden><img id="mineImg" alt="저장한 카드"><div><b id="mineLabel"></b><small>수집함에 담았습니다</small></div></div>
+        <div class="hist-dark"><b>그때는 이랬다</b>
+          <p>1874년 4월, 나다르는 이 사진관을 화가들에게 전시장으로 내주었다.<small>Wikipedia · Nadar · BnF · Les Nadar · 무상 여부는 자료가 엇갈린다(Rewald 1973 / Wikipedia FR)</small></p>
+        </div>
+      </div>
+      <div class="rv-actions"><button class="btn white" id="saveStance" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 19h14"/></svg><span id="saveLab">카드 저장</span></button><button class="btn dark-line" id="again" type="button">다시 고르기</button></div>
+    </section>
   </section>
 </main>
-
-<!-- 액자를 누르면: 그 사람의 그림 | 사진을 나란히 크게. 두 손가락으로 벌리면 두 장의 같은 자리가 함께 커진다(두 번 누르면 원래대로) -->
-<div class="sheet-dim" id="pairDim"></div>
-<section class="sheet pair-sheet" id="pairSheet" aria-label="같은 사람의 그림과 사진" aria-hidden="true">
-  <div class="grip"></div>
-  <div class="ps-head"><h3 id="psName"></h3><button class="icon-btn ps-x" id="psClose" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <div class="ps-pair" id="psPair">
-    <figure data-k="paint"><div class="ps-img"><img id="psPaint" alt="" draggable="false"></div><figcaption id="psPaintCap"></figcaption></figure>
-    <figure data-k="photo"><div class="ps-img"><img id="psPhoto" alt="" draggable="false"></div><figcaption id="psPhotoCap"></figcaption></figure>
-  </div>
-</section>
 
 <!-- ── 내 초상: 전면 카메라 → 노출 4초 → 기기 안에서 19세기 사진 → 카르트 드 비지트 틀 -->
 <main class="wrap screen" id="me" data-screen="me" hidden>
