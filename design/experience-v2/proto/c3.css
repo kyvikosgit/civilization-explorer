@@ -87,3 +87,107 @@ body.done .canvas-wrap { cursor: pointer; }
   .after.in > * { animation: none; }
   .hold-tip.in { animation: none; }
 }
+
+/* ───────── 아틀리에 장면 (들어가기 · 완성 · 누르고 비교) ───────── */
+.studio { position: fixed; top: 0; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; z-index: 0; pointer-events: none; overflow: hidden; }
+body.c3 > .topbar, body.c3 > main { position: relative; z-index: 1; }
+body.c3:not(.lit) .topbar { background: transparent; }
+.studio > * { position: absolute; }
+.studio .wall { inset: 0; background: radial-gradient(70% 45% at 72% 34%, #2B2219, #1A1511 60%, #100D0B); transition: opacity 1.4s; }
+.studio .floor { left: -30%; right: -30%; top: 66%; bottom: -20%; transform-origin: 50% 0; transform: perspective(260px) rotateX(48deg);
+  background: repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 2px, transparent 2px 58px), linear-gradient(180deg, #2A1E14, #3A2919 60%, #46311D); transition: opacity 1.4s; }
+.studio .floor::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #100D0B, rgba(16,13,11,0) 30%); }
+/* 왼쪽 벽의 창 — 덧문 두 짝(나무), 열리면 바깥 햇빛 */
+.studio .win { left: -46px; top: 15%; width: 112px; height: 42%; perspective: 500px; transition: opacity 1.4s; }
+.win .sky { position: absolute; inset: 6px; background: linear-gradient(180deg, #FFF6E2, #FFE8C2 55%, #F6D9A8); box-shadow: 0 0 40px 10px rgba(255,226,170,.0); transition: box-shadow 1.2s; }
+.win::after { content: ''; position: absolute; inset: 0; border: 6px solid #2E2117; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05); background: linear-gradient(#2E2117, #2E2117) 50% 0 / 4px 100% no-repeat, linear-gradient(#2E2117, #2E2117) 0 50% / 100% 4px no-repeat; }
+.win .sh { position: absolute; top: 0; bottom: 0; width: 50%; z-index: 1; background: repeating-linear-gradient(180deg, #3A2A1C 0 9px, #2A1E14 9px 11px); box-shadow: inset 0 0 0 2px #22180F; transition: transform 1s cubic-bezier(.5,0,.2,1); }
+.win .sh.l { left: 0; transform-origin: 0 50%; } .win .sh.r { right: 0; transform-origin: 100% 50%; }
+body.s-win .win .sh.l { transform: rotateY(-108deg); } body.s-win .win .sh.r { transform: rotateY(108deg); }
+body.s-win .win .sky { box-shadow: 0 0 60px 18px rgba(255,226,170,.35); }
+/* 햇빛 — 창에서 바닥을 가로질러 이젤까지 쏟아진다(점에서 넓게 펼쳐짐) */
+.studio .beam { inset: 0; mix-blend-mode: screen; opacity: 0;
+  background: linear-gradient(118deg, rgba(255,238,200,.55) 8%, rgba(255,228,180,.26) 45%, rgba(255,220,170,.08) 80%);
+  clip-path: polygon(66px 16%, 66px 56%, 66px 56%, 66px 16%);
+  transition: clip-path 1s cubic-bezier(.3,.6,.2,1), opacity .5s; }
+body.s-beam .studio .beam { opacity: 1; clip-path: polygon(66px 16%, 66px 56%, 62% 100%, 100% 64%); }
+.studio .patch { left: 18%; right: -10%; top: 78%; height: 18%; opacity: 0; mix-blend-mode: screen; transform: skewX(-32deg);
+  background: radial-gradient(60% 60% at 45% 50%, rgba(255,232,190,.42), rgba(255,226,180,0)); transition: opacity 1s .55s; }
+body.s-beam .studio .patch { opacity: 1; }
+/* 기름등 — 오른쪽 위, 따뜻한 빛 웅덩이가 깜빡인다(--fl 은 스크립트가 흔든다) */
+.studio .lampglow { right: -30%; top: 6%; width: 110%; height: 70%; opacity: 0; mix-blend-mode: screen;
+  background: radial-gradient(50% 50% at 62% 40%, rgba(255,170,80,.30), rgba(255,150,60,.10) 45%, rgba(255,140,50,0) 75%); transition: opacity 1.2s; }
+body.s-lamp .studio .lampglow { opacity: var(--fl, 1); transition: opacity .12s; }
+.studio .dust { inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.5s .3s; }
+body.s-lamp .studio .dust { opacity: 1; }
+/* 완성: 햇빛이 방을 채운다(따뜻하게 차올랐다가 흰 방으로 가라앉음) */
+.studio .flood { inset: 0; opacity: 0; background: radial-gradient(130% 90% at 0% 30%, #FFF3D8, #FFE2B0 45%, #F7CF94); transition: opacity .8s cubic-bezier(.3,.6,.3,1); }
+body.flooding .studio .flood { opacity: .94; }
+body.lit .studio .flood { opacity: 0; transition: opacity 1.8s ease .1s; }
+body.lit .studio .wall, body.lit .studio .floor, body.lit .studio .win, body.lit .studio .beam, body.lit .studio .patch, body.lit .studio .lampglow, body.lit .studio .dust { opacity: 0 !important; transition: opacity 1.2s; }
+/* 누르고 비교: 방이 다시 등불의 방으로 — 호박빛으로 어두워지고 캔버스 위에 등불 빛 */
+.studio .dusk { inset: 0; opacity: 0; background: radial-gradient(80% 60% at 70% 38%, #4A3220, #24170D 70%); transition: opacity .6s cubic-bezier(.4,0,.2,1); }
+body.held .studio .dusk { opacity: 1; }
+body.c3.held { color: #fff; transition: color .6s; }
+body.c3.lit.held .label, body.c3.lit.held .room .role-hd .sub { color: rgba(255,255,255,.75); }
+body.c3.held .placeholder-note { color: rgba(255,255,255,.4); }
+
+/* 등장 단계 — 장면이 차례로 드러난다 */
+.st { transition: opacity .9s ease, transform 1s cubic-bezier(.2,.8,.2,1); }
+body.intro .st { opacity: 0; }
+body.intro .st-easel { transform: scale(.985); filter: brightness(.25); }
+body.intro.s-lamp .st-easel { opacity: 1; transform: none; filter: brightness(.82); transition: opacity 1.3s ease, transform 1.6s cubic-bezier(.2,.8,.2,1), filter 1.6s ease; }
+body.intro.s-beam .st-easel { filter: none; }
+body.intro .st-head { transform: translateY(8px); }
+body.intro.s-head .st-head { opacity: 1; transform: none; }
+body.intro.s-ready .st-hint { opacity: 1; }
+body.intro.s-ready .hint.off { opacity: 0; }
+/* 이젤 다리와 받침 — 캔버스 뒤 */
+.legs { position: absolute; left: 0; right: 0; top: 70%; height: 260px; z-index: -1; pointer-events: none; transition: opacity 1.2s; }
+.legs i { position: absolute; top: 0; width: 9px; height: 100%; border-radius: 2px; background: linear-gradient(90deg, #4A3522, #6B4E31 40%, #2E2014); box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+.legs i:nth-child(1) { left: 18%; transform-origin: 50% 0; transform: rotate(9deg); }
+.legs i:nth-child(2) { right: 18%; transform-origin: 50% 0; transform: rotate(-9deg); }
+.legs i:nth-child(3) { left: 50%; margin-left: -4px; height: 86%; opacity: .7; }
+.legs b { position: absolute; left: 6%; right: 6%; top: calc(30% - 2px); height: 10px; border-radius: 2px; background: linear-gradient(180deg, #7A5838, #3A2918); box-shadow: 0 4px 10px rgba(0,0,0,.4); }
+body.done .legs { opacity: .0; }
+/* 완성: 캔버스가 이젤에서 살짝 떠오른다 */
+.frame { transition: box-shadow 1.6s, transform 1.4s cubic-bezier(.2,.8,.2,1); }
+body.flooding .frame, body.lit .frame { transform: translateY(-6px) scale(1.012); }
+body.flooding .frame { box-shadow: 0 30px 60px rgba(90,50,10,.45), inset 0 0 0 1px rgba(255,255,255,.12), inset 0 0 0 2px rgba(0,0,0,.25); }
+/* 캔버스 위 빛: 등불의 호박빛(어두운 방 · 누르는 동안) / 창쪽 햇빛 테두리(덧문이 열린 뒤) */
+.canvas-wrap .lamp-tint, .canvas-wrap .day-edge { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.canvas-wrap .lamp-tint { mix-blend-mode: soft-light; background: radial-gradient(90% 80% at 80% 20%, rgba(255,170,70,.55), rgba(120,60,10,.35)); opacity: 0; transition: opacity .6s; }
+body:not(.lit) .canvas-wrap .lamp-tint { opacity: calc(var(--fl, 1) * .55); transition: opacity .12s; }
+body.lit.held .canvas-wrap .lamp-tint { opacity: 1; }
+.canvas-wrap .day-edge { mix-blend-mode: screen; background: linear-gradient(100deg, rgba(255,236,200,.38), rgba(255,236,200,0) 38%); opacity: 0; transition: opacity 1.2s .4s; }
+body.s-beam:not(.lit) .canvas-wrap .day-edge { opacity: 1; }
+body.held .canvas-wrap .day-edge { opacity: 0; transition: opacity .4s; }
+.canvas-wrap.ready { animation: readyPulse 1.6s ease-out 1; }
+@keyframes readyPulse { 0% { box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), 0 0 0 0 rgba(255,226,170,.0); } 30% { box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), 0 0 0 6px rgba(255,226,170,.35); } 100% { box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), 0 0 0 14px rgba(255,226,170,0); } }
+/* 누르고 비교: 햇빛 그림이 창 쪽(왼쪽)으로 빛처럼 물러나고, 놓으면 다시 쓸고 들어온다 — 크로스페이드 아님 */
+.reveal { transition: -webkit-mask-position .65s cubic-bezier(.45,0,.2,1), mask-position .65s cubic-bezier(.45,0,.2,1);
+  -webkit-mask-image: linear-gradient(100deg, #000 42%, rgba(0,0,0,.5) 47%, transparent 54%); mask-image: linear-gradient(100deg, #000 42%, rgba(0,0,0,.5) 47%, transparent 54%);
+  -webkit-mask-size: 280% 100%; mask-size: 280% 100%; -webkit-mask-position: 0% 0; mask-position: 0% 0; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
+.reveal.hide { opacity: 1; -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+/* 누름 반응 */
+body.c3 .btn:active { transform: scale(.97); }
+body.c3 .icon-btn { transition: opacity .12s, transform .12s; }
+body.c3 .icon-btn:active { transform: scale(.9); }
+.canvas-wrap { transition: transform .15s; }
+body.done .canvas-wrap:active { transform: scale(.992); }
+@media (prefers-reduced-motion: reduce) {
+  .studio *, .st, .frame, .reveal, .canvas-wrap .lamp-tint, .canvas-wrap .day-edge { transition: opacity .3s !important; }
+  .reveal { -webkit-mask-image: none; mask-image: none; }
+  .reveal.hide { opacity: 0; }
+  body.intro .st-easel, body.intro .st-head { transform: none; filter: none; }
+  body.flooding .frame, body.lit .frame { transform: none; }
+  .canvas-wrap.ready { animation: none; }
+}
+
+/* 처음엔 깜깜한 방: 등이 켜지면 방이 어슴푸레(등불만), 덧문이 열리면 햇빛 */
+.studio .dark { inset: 0; background: #0B0907; opacity: 1; transition: opacity 1.4s ease; }
+.studio .flood, .studio .dusk { z-index: 2; }
+body.s-lamp .studio .dark { opacity: .45; }
+body.s-beam .studio .dark { opacity: .12; transition-duration: 1.2s; }
+body.lit .studio .dark { opacity: 0; }
+body.c3.held .topbar { background: transparent; transition: background .6s; }

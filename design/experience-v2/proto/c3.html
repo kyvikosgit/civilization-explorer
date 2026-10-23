@@ -10,7 +10,22 @@
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="c3.css">
 </head>
-<body class="page c3">
+<body class="page c3 intro">
+
+<!-- 아틀리에 장면: 어두운 방 · 기름등 불빛(깜빡임) · 공기 중 먼지 · 이젤. 잠시 뒤 왼쪽 창의 덧문이 열리고 햇빛이 바닥을 가로질러 이젤까지 — 그게 칠하기 시작 신호.
+     다 칠하면 햇빛이 방을 채운다. 완성 뒤 누르고 있으면 다시 등불의 방 -->
+<div class="studio" id="studio" aria-hidden="true">
+  <div class="wall"></div>
+  <div class="floor"></div>
+  <div class="win"><div class="sky"></div><i class="sh l"></i><i class="sh r"></i></div>
+  <div class="beam"></div>
+  <div class="patch"></div>
+  <div class="lampglow"></div>
+  <div class="dark"></div>
+  <canvas class="dust" id="dust"></canvas>
+  <div class="flood"></div>
+  <div class="dusk"></div>
+</div>
 
 <div class="topbar">
   <a class="icon-btn" href="index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
@@ -19,7 +34,7 @@
 </div>
 
 <main class="wrap room">
-  <header class="role-hd rise" style="--i:0">
+  <header class="role-hd st st-head">
     <div class="eyebrow">C3 · 화가의 아틀리에</div>
     <h1>밖의 빛</h1>
     <p class="sub" id="roleSub">같은 장면을 밖의 빛으로 다시 칠해 보세요</p>
@@ -27,11 +42,13 @@
 
   <!-- 캔버스 — 화면 폭 가득(양옆 16px), 얇은 나무 액자 안 6:5. 굵은 붓(화면 폭의 약 1/4)이라 세 번이면 대부분 드러난다.
        다 칠한 뒤엔 캔버스 자체가 비교 단추: 누르고 있는 동안 아틀리에에서 그린 그림 -->
-  <section class="easel rise" style="--i:1" aria-label="캔버스">
+  <section class="easel st st-easel" aria-label="캔버스">
+    <div class="legs" aria-hidden="true"><i></i><i></i><i></i><b></b></div>
     <div class="frame" id="frame">
       <div class="canvas-wrap" id="stage">
         <img id="indoor" class="indoor" src="img/c3-indoor.jpg" alt="실내 캔버스(임시 이미지)" draggable="false">
         <canvas id="reveal" class="reveal" aria-label="손가락으로 쓸어 칠하기"></canvas>
+        <span class="lamp-tint" aria-hidden="true"></span><span class="day-edge" aria-hidden="true"></span>
         <span class="hold-tip" id="holdTip" hidden>누르고 있으면 아틀리에에서 그린 그림</span>
       </div>
     </div>
@@ -41,7 +58,7 @@
     </div>
   </section>
 
-  <p class="hint rise" id="hint" style="--i:2">손가락으로 쓸어 보세요</p>
+  <p class="hint st st-hint" id="hint">손가락으로 쓸어 보세요</p>
 
   <!-- 다 칠한 뒤에만 -->
   <section class="after" id="after" hidden>

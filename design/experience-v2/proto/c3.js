@@ -13,9 +13,20 @@ function setLabel(which) { $('#labelMain').textContent = LABEL[which]; }
 
 let W = 0, H = 0;                 // 작업 해상도 (6:5)
 let outdoor = null;               // 6:5 로 자른 야외 캔버스
-let mask, mctx, gloss, gctx, rctx;
+let mask, mctx, gloss, gctx, rctx, wet, wctx, spec, sctx;
 let painting = false, last = null, lastT = 0, dabs = 0, done = false, touched = false;
 let probe, pctx;
+let wetAmt = 0, glintAt = null, dryRaf = 0;
+// 물감이 마른다: 손을 떼면 1.5초쯤에 걸쳐 젖은 윤기가 사라진다(결의 두께는 남는다)
+function dryLoop() {
+  cancelAnimationFrame(dryRaf);
+  const tick = () => {
+    wctx.globalCompositeOperation = 'destination-out'; wctx.fillStyle = 'rgba(0,0,0,.03)'; wctx.fillRect(0, 0, W, H); wctx.globalCompositeOperation = 'source-over';
+    wetAmt *= painting ? 1 : 0.965; if (!painting) render();
+    if (wetAmt > 0.02 && !done) dryRaf = requestAnimationFrame(tick); else if (!painting) { wctx.clearRect(0, 0, W, H); wetAmt = 0; render(); }
+  };
+  dryRaf = requestAnimationFrame(tick);
+}
 
 function makeCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 
@@ -32,6 +43,8 @@ async function init() {
   reveal.width = W; reveal.height = H; rctx = reveal.getContext('2d');
   mask = makeCanvas(W, H); mctx = mask.getContext('2d');
   gloss = makeCanvas(W, H); gctx = gloss.getContext('2d');
+  wet = makeCanvas(W, H); wctx = wet.getContext('2d');      // 갓 칠한 물감의 젖은 윤기(시간이 지나면 마른다)
+  spec = makeCanvas(W, H); sctx = spec.getContext('2d');   // 손가락 근처에서 빛을 받는 반짝임
   probe = makeCanvas(48, 40); pctx = probe.getContext('2d', { willReadFrequently: true });
   render();
 }
@@ -73,12 +86,24 @@ function dab(x, y, dir, step) {
   mctx.drawImage(HALO, -L - hr * 0.3, -hr, (L + hr * 0.3) * 2, hr * 2);
   // 결(브리슬)
   mctx.lineCap = 'round';
-  S.bristles.forEach((b) => {
+  // 빛은 왼쪽 위 창에서 — 결 하나하나의 빛 받는 쪽(밝은 선)과 그늘 쪽(어두운 선)이 임파스토 두께를 만든다
+  const lightSide = (-Math.sin(dir) * -0.7 + Math.cos(dir) * -0.7) > 0 ? 1 : -1;
+  wctx.save(); wctx.translate(cx, cy); wctx.rotate(dir); wctx.lineCap = 'round'; wctx.strokeStyle = '#fff';
+  gctx.save(); gctx.translate(cx, cy); gctx.rotate(dir); gctx.lineCap = 'round';
+  S.bristles.forEach((b, i) => {
     mctx.globalAlpha = S.a * b.a * k;
     mctx.strokeStyle = '#fff'; mctx.lineWidth = b.lw * (0.7 + 0.6 * k);
-    const oy = b.o * w;
-    mctx.beginPath(); mctx.moveTo(-L, oy + (Math.random() - 0.5) * 2); mctx.lineTo(L * 0.6, oy + (Math.random() - 0.5) * 2); mctx.stroke();
+    const oy = b.o * w, j1 = (Math.random() - 0.5) * 2, j2 = (Math.random() - 0.5) * 2;
+    mctx.beginPath(); mctx.moveTo(-L, oy + j1); mctx.lineTo(L * 0.6, oy + j2); mctx.stroke();
+    if (i % 3 === 0) {
+      wctx.globalAlpha = 0.4 * b.a * k; wctx.lineWidth = b.lw * 0.7;
+      wctx.beginPath(); wctx.moveTo(-L, oy + j1); wctx.lineTo(L * 0.6, oy + j2); wctx.stroke();
+      gctx.globalAlpha = 0.34 * b.a * k; gctx.lineWidth = 1.2;
+      gctx.strokeStyle = 'rgba(255,246,222,.8)'; gctx.beginPath(); gctx.moveTo(-L, oy + j1 + lightSide * b.lw * 0.5); gctx.lineTo(L * 0.6, oy + j2 + lightSide * b.lw * 0.5); gctx.stroke();
+      gctx.strokeStyle = 'rgba(30,18,8,.55)'; gctx.beginPath(); gctx.moveTo(-L, oy + j1 - lightSide * b.lw * 0.5); gctx.lineTo(L * 0.6, oy + j2 - lightSide * b.lw * 0.5); gctx.stroke();
+    }
   });
+  wctx.restore(); gctx.restore();
   // 결 사이를 메우는 옅은 바탕(획 가운데만)
   mctx.globalAlpha = 0.36 * S.a * k;
   mctx.fillStyle = '#fff';
@@ -102,6 +127,19 @@ function render(extra) {
   rctx.globalAlpha = done ? 0.45 : 1;        // 완성 뒤엔 붓자국 결만 희미하게 남긴다
   rctx.drawImage(gloss, 0, 0);
   rctx.globalAlpha = 1;
+  if (!done && wetAmt > 0.01) {
+    // 젖은 물감: 결을 따라 윤기(soft-light) + 손가락 근처에서 빛을 받아 반짝임(screen)
+    rctx.globalCompositeOperation = 'soft-light'; rctx.drawImage(wet, 0, 0);
+    rctx.globalCompositeOperation = 'screen'; rctx.globalAlpha = 0.1; rctx.drawImage(wet, 0, 0); rctx.globalAlpha = 1;
+    if (glintAt) {
+      sctx.globalCompositeOperation = 'source-over'; sctx.clearRect(0, 0, W, H); sctx.drawImage(wet, 0, 0);
+      sctx.globalCompositeOperation = 'source-in';
+      const g = sctx.createRadialGradient(glintAt.x - 30, glintAt.y - 30, 0, glintAt.x - 30, glintAt.y - 30, 150);
+      g.addColorStop(0, 'rgba(255,250,235,.95)'); g.addColorStop(1, 'rgba(255,250,235,0)');
+      sctx.fillStyle = g; sctx.fillRect(0, 0, W, H);
+      rctx.globalCompositeOperation = 'screen'; rctx.globalAlpha = 0.38 * Math.min(1, wetAmt * 1.5); rctx.drawImage(spec, 0, 0); rctx.globalAlpha = 1;
+    }
+  }
   rctx.globalCompositeOperation = 'destination-in';
   rctx.drawImage(mask, 0, 0);
   rctx.globalCompositeOperation = 'source-over';
@@ -152,8 +190,8 @@ function onMove(e) {
     dab(last.x + dx * t, last.y + dy * t, dir + (Math.random() - 0.5) * 0.2, step);
     dabs++;
   }
-  last = p; lastT = now;
-  render();
+  last = p; lastT = now; wetAmt = 1; glintAt = p;
+  render(); dryLoop();
   if (dabs % 6 === 0 && coverage() >= 0.7) complete(p);
 }
 function onUp() { if (painting && !done && outdoor && coverage() >= 0.7) complete(last); painting = false; last = null; stroke = null; }   // 손을 뗄 때도 확인
@@ -200,6 +238,8 @@ function finish() {
   setTimeout(() => { setLabel('outdoor'); label.style.opacity = ''; }, 260);
   // 다 칠한 캔버스를 어두운 방에서 잠시 본 뒤, 방이 천천히 밝아진다(1.6초). 그다음 아래 글이 차례로
   const T_LIT = REDUCED ? 0 : 900, T_AFTER = REDUCED ? 0 : 1700;
+  // 햇빛이 방을 채운다: 따뜻한 빛이 창 쪽에서 차오르고(0.8초) 캔버스가 이젤에서 살짝 떠오른 뒤, 흰 방으로 가라앉는다
+  setTimeout(() => document.body.classList.add('flooding'), REDUCED ? 0 : T_LIT - 500);
   setTimeout(() => {
     document.body.classList.add('lit'); document.documentElement.classList.add('lit');
     document.querySelector('meta[name=theme-color]').content = '#FFFFFF';
@@ -218,8 +258,8 @@ function finish() {
 // ── 다 칠한 뒤: 캔버스를 누르고 있는 동안 아틀리에에서 그린 그림 (250ms 크로스페이드)
 {
   let held = false;
-  const on = (e) => { if (!document.body.classList.contains('done') || held) return; e.preventDefault(); held = true; stage.classList.add('held'); reveal.classList.add('hide'); setLabel('indoor'); try { stage.setPointerCapture(e.pointerId); } catch (_) { /* noop */ } };
-  const off = () => { if (!held) return; held = false; stage.classList.remove('held'); reveal.classList.remove('hide'); setLabel('outdoor'); };
+  const on = (e) => { if (!document.body.classList.contains('done') || held) return; e.preventDefault(); held = true; stage.classList.add('held'); reveal.classList.add('hide'); document.body.classList.add('held'); setLabel('indoor'); try { stage.setPointerCapture(e.pointerId); } catch (_) { /* noop */ } };
+  const off = () => { if (!held) return; held = false; stage.classList.remove('held'); reveal.classList.remove('hide'); document.body.classList.remove('held'); setLabel('outdoor'); };
   stage.addEventListener('pointerdown', on);
   stage.addEventListener('pointerup', off); stage.addEventListener('pointercancel', off); stage.addEventListener('lostpointercapture', off);
   stage.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -252,5 +292,54 @@ $('#save').addEventListener('click', async () => {
 });
 
 init().catch((e) => { console.error(e); toast('캔버스 이미지를 불러오지 못했습니다.'); });
+
+// ── 들어가기(약 3.2초, 누르면 끝 장면으로): 어둠 → 기름등이 켜지며 이젤 위 실내 캔버스 → 제목 → 왼쪽 창 덧문이 열리고 → 햇빛이 바닥을 가로질러 이젤까지 → "쓸어 보세요"
+const B = document.body, STEPS = [['s-lamp', 350], ['s-head', 950], ['s-win', 1550], ['s-beam', 2000], ['s-ready', 2850]];
+let introTimers = [], introOn = true;
+function introEnd() {
+  if (!introOn) return; introOn = false; introTimers.forEach(clearTimeout);
+  STEPS.forEach(([c]) => B.classList.add(c));
+  stage.classList.add('ready'); setTimeout(() => stage.classList.remove('ready'), 1700);
+}
+if (REDUCED) { introEnd(); } else {
+  STEPS.forEach(([c, t]) => introTimers.push(setTimeout(() => { B.classList.add(c); if (c === 's-ready') introEnd(); }, t)));
+}
+// 장면을 누르면 끝으로(캔버스를 누른 것이면 그대로 칠하기 시작)
+addEventListener('pointerdown', (e) => { if (introOn && !e.target.closest('a')) introEnd(); }, true);
+
+// ── 기름등 깜빡임 + 공기 중 먼지(햇빛 줄기 안에서는 반짝인다)
+{
+  const dust = $('#dust'), dctx = dust.getContext('2d');
+  let DW = 0, DH = 0; const P = [];
+  const size = () => { const r = dust.getBoundingClientRect(); DW = r.width; DH = r.height; dust.width = Math.round(DW); dust.height = Math.round(DH); };
+  size(); addEventListener('resize', size);
+  for (let i = 0; i < 70; i++) P.push({ x: Math.random(), y: Math.random(), r: 0.5 + Math.random() * 1.4, vx: (Math.random() - 0.5) * 0.006, vy: (Math.random() - 0.3) * 0.004, ph: Math.random() * 6.28 });
+  // 햇빛 줄기 다각형(.beam 의 clip-path 와 같은 자리)
+  const inBeam = (x, y) => {
+    const pts = [[66, 0.16 * DH], [66, 0.56 * DH], [0.62 * DW, DH], [DW, 0.64 * DH]];
+    let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c;
+  };
+  let fl = 1, flT = 1, last = performance.now();
+  const tick = (now) => {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    // 등불: 목표 밝기를 가끔 바꾸고 부드럽게 따라간다(불꽃의 흔들림)
+    if (Math.random() < 0.08) flT = 0.78 + Math.random() * 0.22;
+    fl += (flT - fl) * Math.min(1, dt * 14);
+    B.style.setProperty('--fl', fl.toFixed(3));
+    const beam = B.classList.contains('s-beam') && !B.classList.contains('lit');
+    dctx.clearRect(0, 0, DW, DH);
+    P.forEach((p) => {
+      p.x += p.vx * dt + Math.sin(now / 2400 + p.ph) * 0.0004; p.y += p.vy * dt;
+      if (p.x < -0.02) p.x = 1.02; if (p.x > 1.02) p.x = -0.02; if (p.y < -0.02) p.y = 1.02; if (p.y > 1.02) p.y = -0.02;
+      const x = p.x * DW, y = p.y * DH, lit = beam && inBeam(x, y);
+      const tw = 0.6 + 0.4 * Math.sin(now / 600 + p.ph * 3);
+      dctx.globalAlpha = lit ? 0.85 * tw : 0.16 * tw * fl;
+      dctx.fillStyle = lit ? '#FFF4DC' : '#FFC88A';
+      dctx.beginPath(); dctx.arc(x, y, lit ? p.r * 1.25 : p.r, 0, 6.2832); dctx.fill();
+    });
+    if (!REDUCED) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 // 검수용
-window.__c3 = { get done() { return done; }, get held() { return reveal.classList.contains('hide'); }, get touched() { return touched; }, coverage: () => (outdoor ? coverage() : 0) };
+window.__c3 = { introEnd, get intro() { return introOn; }, get done() { return done; }, get held() { return reveal.classList.contains('hide'); }, get touched() { return touched; }, coverage: () => (outdoor ? coverage() : 0) };

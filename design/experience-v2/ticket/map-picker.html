@@ -146,8 +146,8 @@
   </header>
   <!-- 행선지 사진 카드 — 고른 역 옆에 붙는다(지도를 밀면 같이 움직인다). 사진은 위키미디어 공용 자유 이용 사진, 크레딧은 카드 아래 -->
   <button class="place-card" id="placeCard" type="button" hidden aria-label="표 끊기">
-    <span class="pc-img"><img id="pcImg" alt="" draggable="false"></span>
-    <span class="pc-t"><b id="pcName"></b><em id="pcCredit"></em></span>
+    <span class="pc-face"><span class="pc-img"><img id="pcImg" alt="" draggable="false"></span>
+    <span class="pc-t"><b id="pcName"></b><em id="pcCredit"></em></span></span>
   </button>
   <div class="quiz-bottom">
     <!-- 아래 판: 처음엔 안내 한 줄, 고르면 행선지 + "표 끊기". 확인 시트는 "표 끊기"를 눌렀을 때만 -->
@@ -164,25 +164,39 @@
 
 <!-- 0 들어가기 — 지도 전에 그때의 역과 내 자리를 먼저. 부스 상단 바 그대로. 문장은 상세 페이지(experience-v2-detail.html C2)에 있는 사실만 -->
 <section class="intro" id="intro" aria-label="생라자르역">
+  <!-- 들어가기 장면: 모네 〈생라자르역〉(1877) 안에서 시작한다. 그림 위에 증기(입자) · 유리 지붕으로 드는 빛줄기 · 기관차 앞등 · 출발 안내판(글자판이 넘어가며 행선지 다섯).
+       그림 자체는 변형하지 않는다(색·빛 층만 얹음). 끝나면 "행선지 고르기" → 카메라가 안내판으로 다가가고, 안내판 글자판이 화면 가득 펼쳐졌다 넘어가며 지도가 드러난다 -->
+  <div class="cam" id="cam">
+    <div class="scene" id="scene">
+      <img class="scene-img" id="sceneImg" src="img/lazare-1877.jpg" alt="클로드 모네 〈생라자르역〉, 1877. 유리 지붕 아래 증기를 뿜는 기관차" draggable="false">
+      <div class="shafts" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <canvas class="steam" id="steamCv" aria-hidden="true"></canvas>
+      <div class="lamp" aria-hidden="true"><i></i></div>
+      <div class="scene-dark" aria-hidden="true"></div>
+    </div>
+    <div class="board" id="board" role="img" aria-label="출발 안내판: 르아브르 · 루앙 · 베르농 · 아르장퇴유 · 레지프">
+      <div class="bd-head"><span>Départs</span><span>Chemins de fer de l’Ouest</span></div>
+      <div class="bd-rows" id="bdRows"></div>
+    </div>
+  </div>
+  <div class="scene-shade" aria-hidden="true"></div>
   <header class="quiz-bar intro-bar">
     <a class="icon-btn" id="introBack" href="../proto/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
     <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
     <span class="quiz-count"></span>
   </header>
-  <div class="intro-body">
-    <figure class="intro-fig">
-      <img src="../../../booth/assets/clue/monet_gare_saint_lazare_1877.jpg" alt="클로드 모네 〈생라자르역〉, 1877. 유리 지붕 아래 증기를 뿜는 기관차" draggable="false">
-      <figcaption>클로드 모네 〈생라자르역〉 1877 · 오르세 미술관 · 퍼블릭 도메인</figcaption>
-    </figure>
-    <div class="eyebrow">Gare Saint-Lazare · 1870년대</div>
+  <div class="intro-copy">
+    <p class="intro-credit ln">클로드 모네 〈생라자르역〉 1877 · 오르세 미술관 · 퍼블릭 도메인</p>
+    <div class="eyebrow ln">Gare Saint-Lazare · 1870년대</div>
     <ul class="intro-lines">
-      <li>생라자르역은 노르망디로 가는 서부철도의 파리 출발역이었습니다.</li>
-      <li>파리–루앙(1843), 루앙–르아브르(1847) 철길이 열려, 파리 사람들은 하루 만에 바닷가에 닿을 수 있게 되었습니다.</li>
-      <li>아르장퇴유에 살던 모네도 이 역으로 파리를 오갔습니다.</li>
+      <li class="ln">생라자르역은 노르망디로 가는 서부철도의 파리 출발역이었습니다.</li>
+      <li class="ln">파리–루앙(1843), 루앙–르아브르(1847) 철길이 열려, 파리 사람들은 하루 만에 바닷가에 닿을 수 있게 되었습니다.</li>
+      <li class="ln">아르장퇴유에 살던 모네도 이 역으로 파리를 오갔습니다.</li>
     </ul>
-    <p class="intro-role">당신은 생라자르역 매표창 앞에 선<br>파리 시민입니다.</p>
+    <p class="intro-role ln">당신은 생라자르역 매표창 앞에 선<br>파리 시민입니다.</p>
+    <div class="intro-go ln"><button class="btn" id="introGo" type="button">행선지 고르기</button></div>
   </div>
-  <div class="intro-go"><button class="btn" id="introGo" type="button">행선지 고르기</button></div>
+  <div class="flaps" id="flaps" aria-hidden="true"></div>
 </section>
 
 <!-- 현장 단서 — 부스 소품(벽면 그림 · 신문 · 시간표 · 엽서)을 앱에서 다시 보기. booth/js/c2.js CLUES 그대로 -->
@@ -207,6 +221,7 @@
 
 <!-- 2 발권 이후: 한 장의 스크롤 캔버스 (표 → 거리·소요·운임 → 이야기 → 오늘의 관람객) -->
 <div class="dim" id="dim"></div>
+<canvas class="puff" id="puffCv" aria-hidden="true"></canvas>
 <div class="flow" id="flow" hidden>
   <div class="flow-in" id="flowIn">
     <header class="hero" id="hero">
@@ -237,7 +252,7 @@
         <div class="pair" id="pair">
           <figure class="pf place"><div class="img"><img id="pairPhoto" alt="" draggable="false"></div><figcaption><b id="pairPlace"></b><p id="pairPlaceT"></p><small id="pairPlaceCr"></small></figcaption></figure>
           <div class="pair-k"><i></i>이 자리에서 그린 그림<i></i></div>
-          <figure class="pf paint"><div class="img"><img id="pairPaint" alt="" draggable="false"></div><figcaption><b id="pairTitle"></b><p id="pairPaintT"></p><small id="pairMeta"></small></figcaption></figure>
+          <figure class="pf paint"><div class="img"><img id="pairPaint" alt="" draggable="false"><canvas class="dissolve" id="pairDis" aria-hidden="true"></canvas></div><figcaption><b id="pairTitle"></b><p id="pairPaintT"></p><small id="pairMeta"></small></figcaption></figure>
         </div>
       </section>
       <!-- 엽서 — 앞면: 대표 그림 전면 + 당대풍 우표 + 둥근 소인(행선지 · 모네의 해) + 그림 위에 직접 적는 한 줄(≤60자, 1904년 전 프랑스 엽서처럼 글은 그림 면에).
@@ -380,7 +395,7 @@ function sheet(e, { onDismiss = null, swipe = false } = {}) {
 const clueSheet = sheet($('#clueSheet')), confirmSheet = sheet($('#confirmSheet'), { swipe: true, onDismiss: () => resetPick() });
 $('#openClues').addEventListener('click', () => clueSheet.open());
 
-let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null;
+let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null, fxG, glintG, glintTrail, glintRaf = 0;
 const view = { s: 1, tx: 0, ty: 0, min: 0.1, max: 200 };
 let picked = null, busy = false;
 const proj = (lon, lat) => { const merc = (a) => (Math.log(Math.tan(Math.PI / 4 + (a * Math.PI) / 360)) * 180) / Math.PI; const P = M.projection; return [(lon - P.lon0) * P.k, (merc(P.lat1) - merc(lat)) * P.k]; };
@@ -416,6 +431,12 @@ async function initMap() {
   routeCore = el('path', { fill: 'none', stroke: '#F06A28', 'stroke-width': 4.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, routeG);
   routeLine = el('path', { fill: 'none', stroke: '#FFF1DC', 'stroke-width': 2.2, 'stroke-linecap': 'round', 'stroke-dasharray': '1 7', 'vector-effect': 'non-scaling-stroke' }, routeG);
   el('rect', { width: '100%', height: '100%', fill: 'url(#vig)', 'pointer-events': 'none' }, svg);
+  // 노선 위를 달리는 열차 빛(화면 좌표 — 확대해도 크기가 같다) + 누른 자리의 물결
+  fxG = el('g', { 'pointer-events': 'none' }, svg);
+  glintTrail = el('path', { fill: 'none', stroke: '#FFF0D6', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0 }, fxG);
+  glintG = el('g', { opacity: 0 }, fxG);
+  el('circle', { r: 18, fill: '#FFB060', 'fill-opacity': 0.7, filter: 'url(#glow)' }, glintG);
+  el('circle', { r: 5, fill: '#FFFBF0', stroke: '#FF9B4A', 'stroke-width': 1.4 }, glintG);
   pinG = el('g', { 'pointer-events': 'none', opacity: 0 }, svg);
   pinG.innerHTML = `<g class="pin-in"><path d="M0 0C-3-9-12-14-12-24a12 12 0 0 1 24 0C12-14 3-9 0 0z" fill="#E0482A" stroke="#fff" stroke-width="2"/><circle cy="-24" r="4.5" fill="#fff"/></g>`;
   labels = el('g', { 'pointer-events': 'none' }, svg);     // 이름표는 핀 위에 — 고른 역 이름이 가려지지 않게
@@ -541,12 +562,52 @@ function drawRoute(dest) {
   [routeGlow, routeCore, routeLine].forEach((p) => p.setAttribute('d', d));
   const Lw = routeCore.getTotalLength() * view.s + 6;
   stopRouteAnims();
-  // 노선은 누르는 즉시 보이고(짧게 그어짐), 핀은 그 끝에 바로 내려앉는다 — 인위적 지연 없음
-  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; if (!RM) p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: 420, easing: 'cubic-bezier(.2,.7,.2,1)' }); });
+  // 노선은 누르는 즉시 그어지기 시작하고(0.9초), 그 끝을 열차 빛이 달려간다. 다 그어지면 점선(선로)이 떠오르고, 빛은 몇 초마다 다시 파리에서 출발한다
+  const DRAW = RM ? 0 : 900;
+  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; if (!RM) p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: DRAW, easing: 'cubic-bezier(.45,.05,.25,1)' }); });
+  if (!RM) routeLine.animate([{ opacity: 0 }, { opacity: 0, offset: 0.7 }, { opacity: 1 }], { duration: DRAW + 300 });
   pinAt = null; updatePin();   // 핀은 쓰지 않는다 — 고른 역은 커진 주황 점 · 영역 테두리 · 노선 끝으로 보인다
+  runGlint(DRAW);
+}
+// 열차 빛: 노선 길이를 따라 머리(빛 한 점) + 꼬리(뒤로 40px)
+const easeDraw = (k) => { // 노선 그리기와 같은 곡선(cubic-bezier(.45,.05,.25,1))을 근사
+  const bz = (t, a, b) => 3 * a * t * (1 - t) * (1 - t) + 3 * b * t * t * (1 - t) + t * t * t;
+  let lo = 0, hi = 1; for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (bz(m, 0.45, 0.25) < k) lo = m; else hi = m; } return bz((lo + hi) / 2, 0.05, 1);
+};
+function runGlint(DRAW) {
+  cancelAnimationFrame(glintRaf);
+  if (RM) { glintG.setAttribute('opacity', 0); glintTrail.setAttribute('opacity', 0); return; }
+  const L = routeCore.getTotalLength(), t0 = performance.now(), RUN = 1700, GAP = 2600;
+  const place = (k, a) => {
+    const at = (len) => { const p = routeCore.getPointAtLength(clamp(len, 0, L)); return toScreen([p.x, p.y]); };
+    const [x, y] = at(k * L); glintG.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`); glintG.setAttribute('opacity', a.toFixed(2));
+    const back = 64 / view.s; let d = '';
+    for (let i = 0; i <= 8; i++) { const [px, py] = at(k * L - (back * i) / 8); d += `${i ? 'L' : 'M'}${px.toFixed(1)},${py.toFixed(1)}`; }
+    glintTrail.setAttribute('d', d); glintTrail.setAttribute('opacity', (a * 0.75).toFixed(2));
+  };
+  const tick = (now) => {
+    const t = now - t0;
+    if (t < DRAW) place(easeDraw(t / DRAW), Math.min(1, t / 120));
+    else if (t < DRAW + 380) place(1, 1 - (t - DRAW) / 380);                       // 도착 — 끝에서 스러진다
+    else {
+      const c = (t - DRAW - 380) % (RUN + GAP);
+      if (c < RUN) { const k = c / RUN, e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; place(e, Math.min(1, k * 8, (1 - k) * 8) * 0.85); }
+      else { glintG.setAttribute('opacity', 0); glintTrail.setAttribute('opacity', 0); }
+    }
+    glintRaf = requestAnimationFrame(tick);
+  };
+  glintRaf = requestAnimationFrame(tick);
+}
+function stopGlint() { cancelAnimationFrame(glintRaf); if (glintG) { glintG.setAttribute('opacity', 0); glintTrail.setAttribute('opacity', 0); } }
+// 누른 자리의 물결(역을 누르면 그 점에서 둥글게 번진다)
+function ripple(id) {
+  if (RM || !fxG) return; const s = DEST.find((d) => d.id === id); if (!s) return;
+  const [x, y] = toScreen(proj(...s.ll));
+  const c = el('circle', { cx: x, cy: y, r: 9, fill: 'none', stroke: '#E0662C', 'stroke-width': 2.4, style: 'transform-box: fill-box; transform-origin: center' }, fxG);
+  c.animate([{ transform: 'scale(1)', opacity: 0.9 }, { transform: 'scale(3.6)', opacity: 0 }], { duration: 620, easing: 'cubic-bezier(.2,.7,.2,1)' }).onfinish = () => c.remove();
 }
 function stopRouteAnims() { [routeGlow, routeCore, routeLine, pinG.querySelector('.pin-in')].forEach((p) => p.getAnimations().forEach((a) => a.cancel())); }
-function clearRoute() { stopRouteAnims(); [routeGlow, routeCore, routeLine].forEach((p) => { p.setAttribute('d', ''); p.style.strokeDasharray = ''; }); pinAt = null; updatePin(); }
+function clearRoute() { stopRouteAnims(); stopGlint(); [routeGlow, routeCore, routeLine].forEach((p) => { p.setAttribute('d', ''); p.style.strokeDasharray = ''; }); pinAt = null; updatePin(); }
 function updatePin() { if (!pinAt) { pinG.setAttribute('opacity', 0); return; } const [x, y] = toScreen(pinAt); pinG.setAttribute('transform', `translate(${x} ${y})`); pinG.setAttribute('opacity', 1); }
 
 // ── 사진 카드: 고른 역 옆에 붙어 지도와 함께 움직인다. 오른쪽이 좁으면 왼쪽, 아래가 좁으면 위로
@@ -593,8 +654,17 @@ function pick(id) {
   if (picked && picked.id === id) { resetPick(); return; }
   const next = DEST.find((s) => s.id === id); if (!next) return;
   picked = next;
-  markChips(); drawLabels(); drawRoute(picked); placeCard(picked); setPanel(picked);
+  markChips(); drawLabels(); drawRoute(picked); placeCard(picked); setPanel(picked); ripple(id);
 }
+// 들어가기 장면에서 넘어올 때: 지도가 가까이에서 시작해 파리 → 노르망디 해안으로 물러난다(글자판이 넘어가는 동안)
+window.mapEnter = (phase) => {
+  if (!svg || RM) return;
+  if (phase === 'prep') {
+    fitStage(false);
+    const box = $('#mapBox').getBoundingClientRect(), k = 1.9, cx = box.width / 2, cy = box.height * 0.46;
+    view.tx = cx - (cx - view.tx) * k; view.ty = cy - (cy - view.ty) * k; view.s *= k; applyView();
+  } else fitStage(true);
+};
 // 처음 상태로: 고른 곳 없음 · 노선 없음 · 사진 카드 없음 · 칩 해제 · 아래 판은 안내 한 줄
 function resetPick() {
   picked = null;
@@ -678,6 +748,7 @@ initMap();
 <script type="module">
 // ── 발권 이후 한 장의 캔버스: 3D 표(끌어서 회전·관성·광택·그림자·두 번 탭 뒤집기) → 스크롤하며 상단에 고정 → 이야기 컷(패럴랙스·등장) → 오늘의 관람객(작은 지도 위 점)
 import { createCrowd, dotsFor, split, packPoly, packDisc, discRadius, scatter, targetsFor, stampLine } from '../proto/js/crowd.js';
+import { createSteam, brushDissolve, coverDraw } from './fx.js';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const TK = {"argenteuil": {"to": "ARGENTEUIL", "via": "", "prix": null}, "vernon": {"to": "VERNON", "via": "", "prix": null}, "rouen": {"to": "ROUEN", "via": "rive droite", "prix": null}, "lesifs": {"to": "LES IFS", "via": "par Beuzeville", "prix": null}, "lehavre": {"to": "LE HAVRE", "via": "par Rouen", "prix": "21<sup>f</sup>05"}};
 const NARR = {
@@ -864,6 +935,51 @@ function startCrowd() {
   setTimeout(() => { crowd.move(targetsFor(crowd, groups, ids.indexOf(me)), { duration: 1300, stagger: 400, onDone: () => { $$('#todayNums .crowd-num').forEach((el) => el.classList.add('show')); $('#today').classList.add('settled'); } }); }, RM ? 0 : 300);
 }
 
+// 표가 바닥에 닿는 순간 밑에서 김이 확 밀려 나와 번진다(지도 위 · 표 뒤)
+let puff = null;
+function steamPuff() {
+  const cv = $('#puffCv'); cv.classList.add('on');
+  if (!puff) puff = createSteam(cv, { res: 0.5, tints: ['244,244,248', '230,232,242', '255,248,236'] }); else puff.resize();
+  const [x, y] = centreXY();
+  puff.burst(x, y + 6, 34, { w: TW * 0.92, h: TH * 0.7, speed: 240, size: [60, 120], life: [1.1, 2.0], alpha: 1 });
+  puff.burst(x, y + TH * 0.42, 12, { speed: 90, size: [100, 170], life: [1.4, 2.3], alpha: 0.8 });
+  setTimeout(() => cv.classList.remove('on'), 2300);
+}
+// ── 그림이 되는 순간: 그림 자리에 먼저 그 장소의 사진이 있고, 화면에 들어오면 굵은 붓질이 지나가며 모네의 그림으로 칠해진다(약 1.8초)
+let dis = null, disImgs = null, disToken = 0;
+const disIO = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting && disImgs) { disIO.unobserve(x.target); runDissolve(); } }), { root: flow, threshold: 0.55 });
+async function prepDissolve(photo, paint) {
+  const tk = ++disToken, cv = $('#pairDis'); if (dis) dis.cancel(); dis = null; disImgs = null; disIO.unobserve($('.pf.paint'));
+  cv.classList.remove('done'); cv.hidden = RM;
+  if (RM) return;
+  const [a, b] = await Promise.all([loadImage(photo), loadImage(paint)]).catch(() => [null, null]);
+  try { await $('#pairPaint').decode(); } catch (e) { /* noop */ }
+  if (tk !== disToken || !a || !b) { cv.hidden = true; return; }
+  const box = cv.parentElement, dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(box.clientWidth * dpr); cv.height = Math.round(box.clientHeight * dpr);
+  coverDraw(cv.getContext('2d'), a, cv.width, cv.height);
+  disImgs = [a, b]; disIO.observe($('.pf.paint'));
+}
+function runDissolve() {
+  const cv = $('#pairDis'), [a, b] = disImgs;
+  dis = brushDissolve(cv, a, b, { duration: 1900, onDone: () => cv.classList.add('done') });
+}
+// ── 엽서가 들어온다: 뒷면이 보이게 떠 있다가 돌아 앞면 → 우표가 "쿵" 붙고, 한 박자 뒤 소인이 찍힌다
+let arrived = false;
+const pcIO = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { pcIO.unobserve(x.target); arrive(); } }), { root: flow, threshold: 0.5 });
+function prepArrive() { arrived = false; ['pre', 'await'].forEach((c) => $('#postcard').classList.toggle(c, !RM)); $('#postcard').classList.remove('thud', 'mark'); pcIO.observe($('#pcWrap')); }
+function arrive() {
+  if (arrived || RM) return; arrived = true;
+  const pc = $('#pc3d'), sec = $('#postcard');
+  sec.classList.remove('pre');
+  pc.animate([
+    { transform: 'translateY(26px) rotateX(10deg) rotateY(-180deg) scale(.9)', easing: 'cubic-bezier(.3,.7,.3,1)' },
+    { transform: 'translateY(-6px) rotateX(0deg) rotateY(-8deg) scale(1.02)', offset: 0.75, easing: 'cubic-bezier(.4,0,.4,1)' },
+    { transform: 'none' },
+  ], { duration: 1050 });
+  setTimeout(() => { sec.classList.add('thud'); pc.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(3px) scale(.995)' }, { transform: 'translate(-1px,-1px)' }, { transform: 'none' }], { duration: 220, easing: 'ease-out' }); }, 1000);
+  setTimeout(() => sec.classList.add('mark'), 1280);
+}
 // ── 발권: 지도가 어두워지고 창구 슬롯에서 표가 밀려 나온 뒤 날인이 찍힌다
 function issue() {
   const p = window.getPicked(); if (!p) return; cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
@@ -879,7 +995,8 @@ function issue() {
   $('#pairPhoto').src = pl.img; $('#pairPhoto').alt = pl.name; $('#pairPlace').textContent = `${pl.name} · 지금`; $('#pairPlaceT').textContent = n.place; $('#pairPlaceCr').textContent = `사진 ${pl.credit} · Wikimedia Commons`;
   $('#pairPaint').src = n.paint.img; $('#pairPaint').alt = n.paint.cap; $('#pairTitle').textContent = `〈${n.paint.cap}〉`; $('#pairPaintT').textContent = n.paint.t; $('#pairMeta').textContent = n.paint.meta;
   $('#pair').classList.remove('in'); io.observe($('#pair'));
-  setupPostcard(p, n, no);
+  prepDissolve(pl.img, n.paint.img);
+  setupPostcard(p, n, no); prepArrive();
   // 오늘의 관람객 — 작은 지도 + 점. 내 곳만 크게, 나머지는 작은 숫자로
   //   내 비율(큰 숫자)과 이름표는 한 기준선. 나머지 네 곳은 2열 표(이름 왼쪽 · 비율 오른쪽, 고정폭 숫자)
   $('#todayFig').innerHTML = `<b class="rv-big">${PCT[p.id]}<i>%</i></b><span class="rv-lab">${p.ko} · 나<small>같은 곳을 고른 관람객</small></span>`;
@@ -917,7 +1034,7 @@ function issue() {
       { opacity: 0.55, transform: 'translate(0px, 14px) scale(.94)' },
     ], { duration: CREATE + 160 });
   }
-  at(IMPACT, () => { if (!RM) [flowIn, $('#s1')].forEach((n) => { n.classList.remove('shake'); void n.offsetWidth; n.classList.add('shake'); }); });
+  at(IMPACT, () => { if (!RM) { [flowIn, $('#s1')].forEach((n) => { n.classList.remove('shake'); void n.offsetWidth; n.classList.add('shake'); }); steamPuff(); } });
   at(IMPACT + 260, () => [flowIn, $('#s1')].forEach((n) => n.classList.remove('shake')));
   at(STAMP, () => { wrap.classList.add('stamped'); $('#tak').classList.add('on'); });
   at(DOCK_AT, () => { flow.classList.remove('issuing'); hero.classList.remove('issuing'); setTicket('docked'); });
@@ -1099,15 +1216,155 @@ $('#save').addEventListener('click', () => {
 });
 window.flow = { issue, leave, R, layout, get crowd() { return crowd; } };
 </script>
-<script>
-// 0 들어가기 ↔ 1 지도: 지도 화면은 밑에서 그대로 그려 두고(레이아웃 유지) 들어가기 판만 덮었다 걷는다
-(function () {
-  const intro = document.getElementById('intro');
-  const show = (on) => { intro.classList.toggle('off', !on); intro.setAttribute('aria-hidden', on ? 'false' : 'true'); intro.inert = !on; };
-  document.getElementById('introGo').addEventListener('click', () => show(false));
-  document.getElementById('mapBack').addEventListener('click', () => show(true));
-  window.intro = { show };
-})();
+<script type="module">
+// 0 들어가기 ↔ 1 지도: 지도 화면은 밑에서 그대로 그려 두고(레이아웃 유지) 들어가기 장면만 덮었다 걷는다
+//   들어가기(약 3.6초, 아무 데나 누르면 끝 장면으로): 어둠 → 그림 속 기관차에서 카메라가 물러나며 밝아짐 · 증기 · 빛줄기 · 앞등 → 안내판이 내려오고 글자판이 넘어간다 → 문장이 한 줄씩
+//   행선지 고르기(약 1.1초): 글이 내려가고 카메라가 안내판으로 → 안내판 글자판이 화면 가득 → 글자판이 가운데부터 넘어가며 지도가 다가온다
+import { createSteam } from './fx.js';
+const $ = (s) => document.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const intro = $('#intro'), cam = $('#cam'), scene = $('#scene'), board = $('#board'), flaps = $('#flaps');
+const IMG_AR = 1600 / 1189;               // 그림 비율
+const LOCO = [0.479, 0.77];               // 그림 속 가운데 기관차(비율 좌표)
+const DEST = ['LE HAVRE', 'ROUEN', 'VERNON', 'ARGENTEUIL', 'LES IFS'];
+const COLS = 10, ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let steam = null, playing = false, timers = [];
+const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+
+// ── 그림 자리: 기관차가 화면 47% 높이에 오도록, 그림은 위쪽 3/4 을 채우고 아래는 어둠(글 자리)
+function frameScene() {
+  const W = intro.clientWidth, H = intro.clientHeight;
+  const Hd = Math.max(H * 0.74, W / IMG_AR + 40), Wd = Hd * IMG_AR;
+  const left = Math.min(0, Math.max(W - Wd, W * 0.5 - LOCO[0] * Wd)), top = Math.min(0, H * 0.47 - LOCO[1] * Hd);
+  Object.assign(scene.style, { width: `${Wd}px`, height: `${Hd}px`, left: `${left}px`, top: `${top}px`, transformOrigin: `${LOCO[0] * 100}% ${LOCO[1] * 100}%` });
+  if (steam) steam.resize();
+}
+
+// ── 글자판(스플릿 플랩): 칸마다 위·아래 반쪽 + 넘어가는 반쪽 둘
+function cellHTML(ch) { const c = ch === ' ' ? '&nbsp;' : ch; return `<span class="fl"><span class="h t"><b>${c}</b></span><span class="h b"><b>${c}</b></span><span class="h ft"><b>${c}</b></span><span class="h fb"><b>${c}</b></span></span>`; }
+function buildBoard() {
+  $('#bdRows').innerHTML = DEST.map((d) => `<div class="bd-row">${[...d.padEnd(COLS)].map(() => cellHTML(' ')).join('')}</div>`).join('');
+}
+function setCell(cell, from, to, dur = 64) {
+  const [t, b, ft, fb] = cell.children, put = (n, c) => { n.firstChild.innerHTML = c === ' ' ? '&nbsp;' : c; };
+  put(t, to); put(b, from); put(ft, from); put(fb, to);
+  if (RM) { put(b, to); return; }
+  ft.animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-90deg)' }], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+  const a = fb.animate([{ transform: 'rotateX(90deg)' }, { transform: 'rotateX(0deg)' }], { duration: dur, delay: dur, easing: 'ease-out', fill: 'backwards' });
+  a.onfinish = () => { put(b, to); put(ft, to); };
+}
+function flipBoard(final = false) {
+  const rows = [...document.querySelectorAll('#bdRows .bd-row')];
+  rows.forEach((row, r) => {
+    const target = DEST[r].padEnd(COLS);
+    [...row.children].forEach((cell, c) => {
+      const to = target[c];
+      if (final || RM) { setCell(cell, to, to); return; }
+      // 앞 칸부터, 위 줄부터 자리를 잡는다. 칸마다 무작위 글자 몇 장을 넘긴 뒤 멈춘다
+      const n = 3 + Math.round(c * 0.9 + r * 1.1 + Math.random() * 3);
+      let prev = ' ';
+      for (let i = 0; i < n; i++) {
+        const ch = i === n - 1 ? to : (to === ' ' && i > n - 3 ? ' ' : ABC[(Math.random() * 26) | 0]);
+        const p = prev; prev = ch;
+        at(i * 82 + r * 70, () => setCell(cell, p, ch));
+      }
+    });
+  });
+}
+
+// ── 들어가기
+function play() {
+  timers.forEach(clearTimeout); timers = [];
+  frameScene(); buildBoard();
+  intro.classList.remove('going', 'gone', 'played'); intro.classList.add('enter');
+  if (!steam) {
+    steam = createSteam($('#steamCv'), { res: 0.5, tints: ['214,220,240', '196,204,232', '232,228,238'] });   // 그림 속 김처럼 푸르스름한 흰빛
+    const W = scene.clientWidth, H = scene.clientHeight;
+    // 가운데 기관차 굴뚝 → 유리 지붕 쪽으로 (왼쪽 위로 흐르는 그림 속 푸른 김을 따라)
+    steam.emitter({ x: W * 0.478, y: H * 0.69, rate: 8, vy: [26, 50], vx: 10, wind: -9, size: [16, 34], grow: [30, 58], alpha: [0.14, 0.3], life: [4.5, 7.5], jx: 5 });
+    // 왼쪽 큰 기관차 위
+    steam.emitter({ x: W * 0.26, y: H * 0.6, rate: 2.6, vy: [16, 34], vx: 12, wind: 4, size: [30, 60], grow: [20, 40], alpha: [0.08, 0.18], life: [4, 7], jx: 20 });
+    // 선로 위 낮게 깔린 김
+    steam.emitter({ x: W * 0.56, y: H * 0.8, rate: 1.6, vy: [4, 12], vx: 22, wind: 6, size: [40, 70], grow: [14, 24], alpha: [0.05, 0.11], life: [4, 6], jx: 60 });
+    steam.prewarm(5);                                    // 첫 프레임부터 김이 피어 있게(동작 줄이기에서는 멈춘 김 한 장)
+  }
+  if (RM) { finish(); return; }
+  steam.start();
+  playing = true;
+  // 카메라: 기관차 앞에서 시작해 물러난다(1.3 → 1, 3.6초), 어둠이 걷힌다
+  scene.animate([{ transform: 'scale(1.32)' }, { transform: 'scale(1)' }], { duration: 3600, easing: 'cubic-bezier(.25,.6,.2,1)', fill: 'both' });
+  at(60, () => intro.classList.add('s-light'));          // 어둠이 걷히고 빛줄기
+  at(700, () => intro.classList.add('s-lamp'));          // 앞등
+  at(950, () => intro.classList.add('s-board'));         // 안내판이 내려온다
+  at(1150, () => flipBoard());                           // 글자판
+  const lines = [...intro.querySelectorAll('.intro-copy .ln')];
+  lines.forEach((n, i) => at(1300 + i * 380, () => n.classList.add('in')));
+  at(1300 + lines.length * 380 + 200, () => { playing = false; intro.classList.add('played'); });
+}
+// 누르면 끝 장면으로
+function finish() {
+  timers.forEach(clearTimeout); timers = []; playing = false;
+  scene.getAnimations().forEach((a) => a.finish());
+  intro.classList.add('s-light', 's-lamp', 's-board', 'played');
+  intro.querySelectorAll('.intro-copy .ln').forEach((n) => n.classList.add('in'));
+  flipBoard(true);
+}
+intro.addEventListener('pointerdown', (e) => { if (playing && !e.target.closest('a, button')) finish(); });
+
+// ── 행선지 고르기: 안내판으로 다가가 글자판이 화면 가득 펼쳐졌다 넘어가며 지도
+function go() {
+  if (playing) finish();
+  window.mapEnter && window.mapEnter('prep');
+  if (RM) { intro.classList.add('gone'); hideIntro(true); window.mapEnter && window.mapEnter('go'); return; }
+  intro.classList.add('going');
+  const W = intro.clientWidth, H = intro.clientHeight, br = board.getBoundingClientRect(), ir = intro.getBoundingClientRect();
+  const bx = br.left - ir.left + br.width / 2, by = br.top - ir.top + br.height / 2, k = 2.7;
+  cam.style.transformOrigin = `${bx}px ${by}px`;
+  cam.animate([{ transform: 'none' }, { transform: `translate(${W / 2 - bx}px, ${H / 2 - by}px) scale(${k})` }], { duration: 820, easing: 'cubic-bezier(.7,0,.25,1)', fill: 'forwards' });
+  scene.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, delay: 300, easing: 'ease-in', fill: 'forwards' });
+  // 화면 가득한 글자판 — 안내판이 펼쳐진 것처럼(같은 색·같은 경첩선)
+  const cw = Math.ceil(W / 6), ch = Math.round(cw * 1.32), cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
+  flaps.style.gridTemplateColumns = `repeat(${cols}, ${cw}px)`; flaps.style.gridAutoRows = `${ch}px`;
+  const word = 'LEHAVREROUENVERNONARGENTEUILLESIFS';
+  flaps.innerHTML = Array.from({ length: cols * rows }, (_, i) => `<i><b>${word[i % word.length]}</b></i>`).join('');
+  const tiles = [...flaps.children];
+  setTimeout(() => {
+    flaps.classList.add('on');
+    flaps.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
+  }, 470);
+  setTimeout(() => {
+    intro.classList.add('gone');                         // 바탕이 투명해진다 — 글자판 뒤는 이미 지도
+    cam.style.visibility = 'hidden';
+    window.mapEnter && window.mapEnter('go');
+    tiles.forEach((t, i) => {
+      const c = i % cols, r = Math.floor(i / cols), x = (c + 0.5) * cw, y = (r + 0.5) * ch;
+      const d = Math.hypot(x - W / 2, y - H / 2) / Math.hypot(W / 2, H / 2);
+      t.animate([{ transform: 'perspective(500px) rotateX(0deg)', opacity: 1 }, { transform: 'perspective(500px) rotateX(-86deg)', opacity: 1, offset: 0.8 }, { transform: 'perspective(500px) rotateX(-92deg)', opacity: 0 }],
+        { duration: 340, delay: d * 300, easing: 'cubic-bezier(.5,0,.75,.4)', fill: 'both' });
+    });
+  }, 640);
+  setTimeout(() => hideIntro(false), 640 + 300 + 360);
+}
+function hideIntro(instant) {
+  intro.classList.add('off'); intro.setAttribute('aria-hidden', 'true'); intro.inert = true;
+  if (steam) steam.stop();
+  flaps.classList.remove('on'); flaps.getAnimations().forEach((a) => a.cancel()); flaps.innerHTML = '';
+  void instant;
+}
+// 지도에서 뒤로: 장면이 다시 밝아진다(처음부터 다시 틀지 않는다)
+function backToIntro() {
+  cam.getAnimations().forEach((a) => a.cancel()); scene.getAnimations().forEach((a) => a.cancel());
+  cam.style.visibility = ''; cam.style.transform = '';
+  intro.classList.remove('going', 'gone', 'off'); intro.setAttribute('aria-hidden', 'false'); intro.inert = false;
+  if (!RM) { intro.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' }); steam && steam.start(); }
+  finish();
+}
+$('#introGo').addEventListener('click', go);
+$('#mapBack').addEventListener('click', backToIntro);
+window.addEventListener('resize', () => { if (!intro.classList.contains('off')) frameScene(); });
+const img = $('#sceneImg');
+if (img.complete) play(); else { img.addEventListener('load', play, { once: true }); img.addEventListener('error', play, { once: true }); }
+window.intro = { show: (on) => (on ? backToIntro() : go()), finish, get playing() { return playing; } };
 </script>
 </body>
 </html>
