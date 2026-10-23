@@ -430,13 +430,20 @@ function skipIntro() { if (mode === 'intro') speed = 4; }
 function step(dt, now) {
   let busy = !!g;
   if (mode === 'intro') busy = stepIntro(dt, now) || busy;
-  // 회전: 손을 떼면 넘치거나 튕기지 않고 정면으로 돌아온다(임계 감쇠)
+  // 회전 — 앞으로 나온 그림은 자유롭게 돌려 본다(손을 떼면 관성으로 조금 더 돌다 그 자리에 멈춘다, 정면으로 끌려가지 않는다).
+  //   벽으로 돌아갈 때 · 메달을 줄 때 · 두 번 탭에만 정면으로(넘치지 않게)
   if (!g || g.type !== 'one' || g.mode !== 'rotate') {
-    const K = 40, C = 2 * Math.sqrt(K);
-    [yaw, yawV] = spring(yaw, yawV, 0, K, C, dt); [pitch, pitchV] = spring(pitch, pitchV, 0, K, C, dt);
-    if (Math.abs(yaw) > LIM) { yaw = Math.sign(yaw) * LIM; yawV = 0; }
-    if (Math.abs(pitch) > LIM) { pitch = Math.sign(pitch) * LIM; pitchV = 0; }
-    if (Math.abs(yaw) + Math.abs(pitch) + Math.abs(yawV) + Math.abs(pitchV) > 0.0006) busy = true; else { yaw = pitch = yawV = pitchV = 0; }
+    if (mode === 'focus' && !homing) {
+      const fr = Math.exp(-dt * 3.2);
+      yaw += yawV * dt; pitch += pitchV * dt; yawV *= fr; pitchV *= fr;
+      if (Math.abs(pitch) > PLIM) { pitch = Math.sign(pitch) * PLIM; pitchV = 0; }
+      if (Math.abs(yaw) > YLIM) { yaw = Math.sign(yaw) * YLIM; yawV = 0; }
+      if (Math.abs(yawV) + Math.abs(pitchV) > 0.002) busy = true; else yawV = pitchV = 0;
+    } else {
+      const K = 40, C = 2 * Math.sqrt(K);
+      [yaw, yawV] = spring(yaw, yawV, 0, K, C, dt); [pitch, pitchV] = spring(pitch, pitchV, 0, K, C, dt);
+      if (Math.abs(yaw) + Math.abs(pitch) + Math.abs(yawV) + Math.abs(pitchV) > 0.0006) busy = true; else { yaw = pitch = yawV = pitchV = 0; homing = false; }
+    }
   }
   // 확대·이동
   if (!g || g.type !== 'pinch') {
@@ -537,12 +544,14 @@ function stepMedal(now) {
 const pointers = new Map();
 let g = null, lastTap = { t: 0, x: 0, y: 0 }, pressT = 0;
 const ptOf = (e) => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
-const KPX = LIM / 110;
+const KPX = LIM / 110, KYAW = Math.PI / 420, YLIM = 60 * Math.PI / 180, PLIM = 35 * Math.PI / 180;   // 좌우 60° · 위아래 35°까지(뒷면은 보이지 않게), 그 안에서는 놓은 자리에 멈춘다
+let homing = false;
 const ray = new T.Raycaster();
 function hitFrame(p, list) {
   ray.setFromCamera(new T.Vector2((p.x / W) * 2 - 1, -(p.y / H) * 2 + 1), camera);
   let best = null;
-  list.forEach((f) => { const h = ray.intersectObject(f.g, true)[0]; if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
+  // 보이는 액자·그림만(뒤의 금빛 후광 판 · 숨긴 판은 빼고) — 그래야 그림 바깥 빈 곳을 누르면 벽으로 돌아간다
+  list.forEach((f) => { const h = ray.intersectObject(f.g, true).find((x) => x.object.visible && x.object !== f.glow && !(x.object.material && x.object.material.transparent && x.object.material.opacity === 0)); if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
   return best ? best.f : null;
 }
 function wppF() { const f = frames[fi]; return 2 * (cam.z - (f.fp ? f.fp.z : f.g.position.z)) * TAN / H; }   // 그림 면에서 1px 가 몇 m
@@ -597,8 +606,9 @@ cv.addEventListener('pointermove', (e) => {
   g.samples.push({ t: now, x: p.x, y: p.y }); while (g.samples.length > 2 && now - g.samples[0].t > 100) g.samples.shift();
   if (g.mode === 'pan') { const wpp = wppF(); panX += (p.x - g.lx) * wpp; panY -= (p.y - g.ly) * wpp; clampPan(); }
   else if (g.moved) {
-    yaw = LIM * Math.tanh((g.yaw0 + dx * KPX) / LIM);
-    pitch = LIM * Math.tanh((g.pitch0 + dy * KPX) / LIM);
+    homing = false;
+    yaw = clamp(g.yaw0 + dx * KYAW, -YLIM, YLIM);
+    pitch = clamp(g.pitch0 + dy * KYAW * 0.6, -PLIM, PLIM);
     specXT = clamp((p.x / W - 0.5) * 5, -3, 3);
   }
   g.lx = p.x; g.ly = p.y;
@@ -626,13 +636,16 @@ function endPointer(e) {
   if (a.consumed) { kick(); return; }
   const now = performance.now();
   if (!a.moved && now - a.t0 < 500 && e.type === 'pointerup') {
-    if (a.t0 - lastTap.t < 450 && Math.hypot(a.x0 - lastTap.x, a.y0 - lastTap.y) < 40) { resetView(); lastTap.t = 0; kick(); return; }
+    if (a.t0 - lastTap.t < 450 && Math.hypot(a.x0 - lastTap.x, a.y0 - lastTap.y) < 40) { resetView(); homing = true; lastTap.t = 0; kick(); return; }
     lastTap = { t: now, x: a.x0, y: a.y0 };
     // 그림 바깥을 누르면 벽으로(확대 중에는 아님)
     if (zoom <= 1.04 && !hitFrame({ x: a.x0, y: a.y0 }, [frames[fi]])) { setTimeout(() => { if (lastTap.t === now && mode === 'focus') toWall(); }, 260); }
     kick(); return;
   }
-  yawV = pitchV = 0;   // 손을 떼면 튕기지 않고 그 자리에서 부드럽게 정면으로
+  if (a.mode === 'rotate' && a.moved && !reduceMotion) {   // 던지면 관성으로 조금 더 돈다(되돌아오지 않는다)
+    const s0 = a.samples[0], s1 = a.samples[a.samples.length - 1], dtm = Math.max(16, s1.t - s0.t);
+    yawV = clamp((s1.x - s0.x) / dtm * 1000 * KYAW, -9, 9); pitchV = clamp((s1.y - s0.y) / dtm * 1000 * KYAW * 0.6, -4, 4);
+  } else { yawV = pitchV = 0; }
   kick();
 }
 cv.addEventListener('pointerup', endPointer);
@@ -654,6 +667,7 @@ function toWall() {
   dimT = 0; kick();
   $('#wallTitle').textContent = '';
 }
+$('#otherBtn').addEventListener('click', () => { if (mode === 'focus') toWall(); });
 $('#back2').addEventListener('click', () => { if (mode === 'focus') toWall(); else if (mode === 'reveal') again(); });
 
 // ── 메달 → 확인
