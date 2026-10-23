@@ -50,7 +50,8 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   } else {
     scene.add(new T.HemisphereLight(0xffffff, 0xcfcac0, 0.9));
   }
-  scene.add(new T.HemisphereLight(0xdfeef2, 0x8f8a80, 0.25));
+  const hemi = new T.HemisphereLight(0xdfeef2, 0x8f8a80, 0.25); scene.add(hemi);
+  let clearA = 1, overheadMax = 2.4;   // [proto · C1 움직임] setAmbience — 배경을 비우고(뒤의 DOM 거리가 보이게) 해 질 녘 빛으로
   const key = new T.DirectionalLight(0xfff0dc, 1.5);
   key.position.set(2.6, 6.5, 4.2);
   key.target.position.set(0, 1.6, 0);
@@ -598,7 +599,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     column.remove(p.mesh);
     p.glow.visible = false; p.lift = 0; p.mesh.scale.set(1, 1, 1);
     p.front.emissiveIntensity = 0;
-    renderer.setClearColor(0xffffff, 1);
+    renderer.setClearColor(0xffffff, clearA);
     renderer.render(scene, camera);
     snap.width = renderer.domElement.width; snap.height = renderer.domElement.height;
     snap.getContext('2d').drawImage(renderer.domElement, 0, 0);
@@ -669,7 +670,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     insp = null; mode = 'column';
     // 깜빡임 방지 — 정지 이미지를 내리기 전에 같은 프레임에서 살아 있는 칼럼을 먼저 그린다
     column.rotation.y = rot; placeCamera(); parallax();
-    renderer.setClearColor(0xffffff, 1);
+    renderer.setClearColor(0xffffff, clearA);
     renderer.render(scene, camera);
     snap.style.transition = 'none';
     snap.style.display = 'none';
@@ -830,7 +831,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
         column.position.y = -TOTAL_H * 1.02 * (1 - e) + over;
         riseState.spin *= Math.pow(0.25, dt);
         rot += riseState.spin * dt;
-        overhead.intensity = 2.4 * e;
+        overhead.intensity = overheadMax * e;
         if (riseState.contact) riseState.contact.material.opacity = e;
         animating = true;
         if (t >= 1) {
@@ -924,6 +925,18 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
     inspect, release, reset, resize, focusItem, setInspectMap,
     rise, project, flutterPosters,                                 // [proto]
     setMagnet(on) { magnet = on; centeredIdx = -1; },              // [proto]
+    setFlutter(a) { riseState.flutter = a; dirty = true; },        // [proto · C1 움직임] 솟는 동안 종이가 바람에 펄럭인다(호스트가 세기를 준다)
+    setAmbience(o) {                                               // [proto · C1 움직임] 해 질 녘: 투명 배경 · 따뜻한 조명 · 어두운 안개
+      if ('transparent' in o) { clearA = o.transparent ? 0 : 1; backdropMesh.visible = !o.transparent; renderer.setClearColor(0xffffff, clearA); }
+      if (o.key != null) key.intensity = o.key; if (o.keyColor != null) key.color.set(o.keyColor);
+      if (o.fill != null) fill.intensity = o.fill; if (o.fillColor != null) fill.color.set(o.fillColor);
+      if (o.hemi != null) hemi.intensity = o.hemi;
+      if (o.exposure != null) renderer.toneMappingExposure = o.exposure;
+      if (o.fog != null) scene.fog.color.set(o.fog);
+      if (o.overhead != null) { overheadMax = o.overhead; if (riseState.done) overhead.intensity = o.overhead; }
+      if (o.overheadColor != null) overhead.color.set(o.overheadColor);
+      dirty = true;
+    },
     get rot() { return rot; }, get risen() { return riseState.done; }, get riseT() { return riseState.t; },
     setIdle(on) { idle = on; dirty = true; },
     get debugMap() { const p = insp && insp.p; return p ? { type: p.front.map && p.front.map.constructor.name, video: !!(p.front.map && p.front.map.isVideoTexture), alpha: !!p.front.alphaMap } : null; },

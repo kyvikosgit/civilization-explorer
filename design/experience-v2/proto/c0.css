@@ -144,3 +144,61 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal, .rplate, .rpct, .dock, .q, .gest, .pips i { transition: none; }
 }
+
+/* ═════ 움직임 ═════ */
+/* 입장 덮개 — 살롱 전시실(three.js). 처음엔 검정, 문틈의 빛부터 */
+.intro { position: fixed; inset: 0; z-index: 200; max-width: 480px; margin: 0 auto; background: #0b0403; overflow: hidden; touch-action: none; }
+.intro canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .5s ease; }
+.intro.run canvas { opacity: 1; }
+.intro-skip { position: absolute; left: 0; right: 0; bottom: calc(22px + var(--safe-b)); text-align: center; font-size: 12px; font-weight: 500; color: rgba(255,240,220,.5); letter-spacing: .02em; opacity: 0; animation: introSkip .6s ease 1s forwards; pointer-events: none; }
+@keyframes introSkip { to { opacity: 1; } }
+
+/* 역할 화면 — 입장 동안 숨겨 두었다가, 벽이 자리를 잡으면 차례로. 문장은 한 글자씩 */
+.intro-pending #s1 .topbar, .intro-pending .role > :not(.cands), .intro-pending #s1 .btns { opacity: 0; }
+.intro-pending .role h1 .ch { opacity: 0; }
+.role-in #s1 .topbar { animation: fadeUp .6s var(--ease-out) both; }
+.role-in .role .eyebrow { animation: fadeUp .6s var(--ease-out) .05s both; }
+.role-in .role h1 .ch { display: inline-block; animation: typeIn .32s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(120ms + var(--k) * 46ms); }
+.role-in .role .rule { transform-origin: left; animation: ruleIn .7s cubic-bezier(.6,0,.2,1) .7s both; }
+.role-in .role .lead { animation: fadeUp .6s var(--ease-out) .85s both; }
+.role-in .role .crit { animation: fadeUp .6s var(--ease-out) .95s both; }
+.role-in #s1 .btns { animation: fadeUp .6s var(--ease-out) 1.05s both; }
+@keyframes typeIn { from { opacity: 0; transform: translateY(.18em); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes ruleIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* 화면 겹치기 전환 — 뒤에 있는 화면은 그대로 두고 앞 화면을 움직인다 */
+.c0 .scr.on, .scr.morph { animation: none; }
+#s2 { z-index: 2; } #s4 { z-index: 3; }
+.stage .vign, .stage .wall-top, .stage .q, .stage .gest, .stage .dock { transition: opacity .45s ease, transform .45s var(--ease-out); }
+.stage.entering .vign, .stage.entering .wall-top, .stage.entering .q, .stage.entering .gest, .stage.entering .dock { opacity: 0; }
+.stage.entering .dock { transform: translateY(24px); }
+.fly-ghost { position: fixed; z-index: 120; margin: 0; pointer-events: none; transform-origin: 0 0; object-fit: cover; }
+
+/* 결과 패널 — 올라오며 안의 글이 차례로 */
+.rpct b { font-weight: inherit; }
+.reveal > * { transition: opacity .5s ease, transform .6s var(--ease-out); }
+.reveal:not(.on) > * { opacity: 0; transform: translateY(12px); }
+.reveal.on > :nth-child(2) { transition-delay: .12s; } .reveal.on > :nth-child(3) { transition-delay: .18s; }
+.reveal.on > :nth-child(4) { transition-delay: .3s; } .reveal.on > :nth-child(5) { transition-delay: .38s; }
+.reveal.on > :nth-child(6) { transition-delay: .44s; } .reveal.on > :nth-child(7) { transition-delay: .52s; }
+
+/* 누름 반응 — 줄어들고(:active), 빛이 한 번 쓸고 지나간다(.shine) */
+.c0 .btn, .c0 .icon-btn, .c0 .cands button .cf, .c0 .crit summary { position: relative; overflow: hidden; }
+.c0 .btn { transition: transform .22s cubic-bezier(.3,1.5,.4,1), opacity .15s, background .2s; }
+.c0 .btn:active { transform: scale(.965); opacity: 1; }
+.c0 .icon-btn { transition: transform .22s cubic-bezier(.3,1.5,.4,1), opacity .15s; }
+.c0 .icon-btn:active { transform: scale(.86); opacity: .7; }
+.c0 .cands button:active { transform: scale(.95); }
+.c0 .btn::after, .c0 .cands button .cf::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.42) 48%, rgba(255,255,255,.1) 56%, transparent 70%); transform: translateX(-130%); }
+.c0 .btn.white::after, .c0 .btn.line::after { background: linear-gradient(105deg, transparent 30%, rgba(217,160,80,.28) 48%, transparent 70%); }
+.c0 .btn.shine::after, .c0 .cands button.shine .cf::after { animation: shine .62s cubic-bezier(.3,0,.2,1); }
+@keyframes shine { from { transform: translateX(-130%); } to { transform: translateX(130%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro { display: none; }
+  .role-in #s1 .topbar, .role-in .role > *, .role-in .role h1 .ch, .role-in #s1 .btns { animation: none !important; }
+  .reveal > * { transition: opacity .3s; transform: none !important; }
+  .c0 .btn::after, .c0 .cands button .cf::after { display: none; }
+}
+.intro::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(130% 80% at 50% 55%, rgba(0,0,0,0) 50%, rgba(8,2,2,.55) 100%); }

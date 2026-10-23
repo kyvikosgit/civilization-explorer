@@ -16,7 +16,7 @@
 } }
 </script>
 </head>
-<body class="c0">
+<body class="c0 intro-pending">
 
 <!-- 1 역할 — 기획서 문장 한 줄로 그 시대의 자리에 선다 -->
 <section class="scr on" id="s1">
@@ -93,6 +93,9 @@
   <h3 id="cfTitle">이 그림에 올해의 메달을 줄까요?</h3>
   <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">메달 주기</button></div>
 </div>
+
+<!-- 입장 — 살롱 전시실로 걸어 들어간다(c0-intro.js). 누르면 빨리 감기 -->
+<div class="intro" id="intro" aria-hidden="true"><canvas></canvas><div class="intro-skip">누르면 건너뜁니다</div></div>
 
 <script type="module" src="c0.js"></script>
 </body>

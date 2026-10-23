@@ -5,7 +5,8 @@
 //   three.js 0.147 (부스 모리스 칼럼 뷰어와 같은 CDN·버전). 텍스처 ≤1400px, 픽셀 비율 ≤2, 움직임이 없으면 그리지 않는다.
 import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-import { $, $$, icons, sheet, toast, sleep, reduceMotion, showScreen, haptic, saveChoice } from './js/proto-common.js';
+import { $, $$, icons, sheet, toast, sleep, reduceMotion, haptic, saveChoice } from './js/proto-common.js';
+import { playIntro } from './c0-intro.js';
 
 const WORKS = [
   { n: 1, src: '../works/c0-cambyses.jpg',   hd: 'img/c0-cambyses.jpg',   w: 960,  h: 695,  title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '' },
@@ -68,6 +69,23 @@ function hangSalon() {
 }
 new ResizeObserver(hangSalon).observe($('#candStrip'));
 
+// 역할 문장은 한 글자씩 타이핑된다 — 글자마다 span(자리는 처음부터 잡혀 있어 줄바꿈이 흔들리지 않는다)
+(() => {
+  const h1 = $('.role h1'); let k = 0;
+  h1.innerHTML = h1.innerHTML.split(/(<br>)/).map((part) => (part === '<br>' ? part : [...part].map((ch) => (ch === ' ' ? ' ' : `<span class="ch" style="--k:${k++}">${ch}</span>`)).join(''))).join('');
+})();
+// 화면 사이 전환 — 한 장씩 갈아 끼우지 않고, 두 장을 겹쳐 둔 채 움직인 뒤 뒤의 것을 내린다
+function screenOn(id, on) { const el = $('#' + id); el.classList.toggle('on', on); return el; }
+function roleIn() {   // 역할 화면의 글·단추가 차례로(문장은 타이핑)
+  document.body.classList.remove('intro-pending', 'role-in'); void document.body.offsetWidth; document.body.classList.add('role-in');
+}
+// 누름 반응 — 단추를 누르면 빛이 한 번 쓸고 지나간다(크기 줄어듦은 CSS :active)
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('.btn, .icon-btn, .cands button, .crit summary'); if (!b || reduceMotion) return;
+  b.classList.remove('shine'); void b.offsetWidth; b.classList.add('shine');
+}, { passive: true });
+document.addEventListener('animationend', (e) => { if (e.animationName === 'shine') e.target.classList.remove('shine'); });
+
 $('#cardMedal').innerHTML = medalSVG('k');
 $('#awardMedal').innerHTML = medalSVG('a', false);
 
@@ -122,6 +140,23 @@ wall.position.z = -2.6; scene.add(wall);
 const poolTex = canvasTex(256, 256, (c, w, h) => { const gr = c.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); gr.addColorStop(0, 'rgba(255,200,150,.42)'); gr.addColorStop(0.5, 'rgba(255,190,140,.16)'); gr.addColorStop(1, 'rgba(255,190,140,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
 const pool = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: poolTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
 pool.position.z = -2.55; scene.add(pool);
+// 결과 줄을 쓸고 지나가는 빛 — 세로로 긴 부드러운 빛줄기(액자 앞, 더하기 혼합)
+const barTex = canvasTex(128, 256, (c, w, h) => {
+  const gx = c.createLinearGradient(0, 0, w, 0); gx.addColorStop(0, 'rgba(255,236,200,0)'); gx.addColorStop(0.5, 'rgba(255,240,214,1)'); gx.addColorStop(1, 'rgba(255,236,200,0)');
+  c.fillStyle = gx; c.fillRect(0, 0, w, h);
+  c.globalCompositeOperation = 'destination-in'; const gy = c.createLinearGradient(0, 0, 0, h); gy.addColorStop(0, 'rgba(0,0,0,0)'); gy.addColorStop(0.3, 'rgba(0,0,0,1)'); gy.addColorStop(0.7, 'rgba(0,0,0,1)'); gy.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = gy; c.fillRect(0, 0, w, h);
+});
+const bar = new T.Mesh(new T.PlaneGeometry(1, 1), new T.MeshBasicMaterial({ map: barTex, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: T.AdditiveBlending, toneMapped: false }));
+bar.rotation.z = -0.18; bar.renderOrder = 20; bar.visible = false; scene.add(bar);
+// 메달이 닿는 순간의 반짝임 — 네 갈래 별빛 + 둥근 번짐
+const starTex = canvasTex(256, 256, (c, w) => {
+  c.translate(w / 2, w / 2);
+  const rg = c.createRadialGradient(0, 0, 0, 0, 0, w / 2); rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(0.08, 'rgba(255,244,210,.9)'); rg.addColorStop(0.3, 'rgba(255,214,130,.18)'); rg.addColorStop(1, 'rgba(255,200,120,0)');
+  c.fillStyle = rg; c.fillRect(-w / 2, -w / 2, w, w);
+  for (const a of [0, Math.PI / 2]) { c.save(); c.rotate(a); const lg = c.createLinearGradient(-w / 2, 0, w / 2, 0); lg.addColorStop(0, 'rgba(255,240,200,0)'); lg.addColorStop(0.5, 'rgba(255,255,255,1)'); lg.addColorStop(1, 'rgba(255,240,200,0)'); c.fillStyle = lg; c.beginPath(); c.moveTo(-w / 2, 0); c.lineTo(0, -3.5); c.lineTo(w / 2, 0); c.lineTo(0, 3.5); c.closePath(); c.fill(); c.restore(); }
+});
+const glint = new T.Sprite(new T.SpriteMaterial({ map: starTex, transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: T.AdditiveBlending, toneMapped: false }));
+glint.renderOrder = 30; glint.visible = false; scene.add(glint);
 
 // 금박 액자 — 캔버스 가장자리에서 바깥으로: 안쪽 턱(sight edge) · 오목 몰딩(cove) · 구슬 줄 · 바깥 테두리(rim) · 뒤판
 const M = 0.07;                      // 몰딩 폭 (그림 긴 변 = 1) — 얇게: 그림이 화면을 채우도록
@@ -214,7 +249,6 @@ function titleTex(f) {
     c.fillStyle = 'rgba(46,31,5,.82)'; fit(t2, 500, Math.round(H2 * 0.19)); c.fillText(t2, W2 / 2, H2 * 0.72);
   });
 }
-const TP = { f: null, t0: 0 };              // 이름판이 번호판 자리에서 옆으로 펼쳐진다
 
 // 메달 — 원반 + 앞면 그림(월계관·SALON 1873). 고른 액자의 아래 테두리에 내려앉는다
 const medal = new T.Group();
@@ -241,14 +275,22 @@ let yaw = 0, pitch = 0, yawV = 0, pitchV = 0;
 let zoom = 1, zoomT = 1, panX = 0, panY = 0, panXT = 0, panYT = 0;
 let mode = 'pick';                         // pick | placed | reveal
 let chosen = null;
-let rv = 0, rvT = 0, rvFrom = 0, rvT0 = 0; // 결과 모드로의 전환(액자들이 한 줄로)
-const RV_MS = 800;
+let rv = 0, rvT = 0, rvFrom = 0, rvT0 = 0; // 결과 모드로의 전환(카메라가 물러나며 액자들이 한 줄로)
+let RV_MS = 1100;
+let sh = 0, shT = 0, shFrom = 0, shT0 = 0; // 한 줄의 액자가 같은 크기 → 오늘의 비율만큼(빛이 쓸고 지나가며)
+let SH_MS = 1100;
+let ent = 1, entT = 1, entFrom = 1, entT0 = 0; // 역할 화면의 벽 → 뷰어(벽에 걸린 다섯 점이 그대로 날아와 회전목마로)
+const ENT_MS = 1150;
+const thumbs = [];                          // 역할 화면 벽의 액자 자리(월드)
+const THUD = { t0: -1e9 };                  // 메달이 내려앉는 순간의 울림
+const FLIP = { f: null, t0: 0, back: false }; // 번호판 → 이름판 뒤집기
 let glintT0 = -1e9, specX = 1.6, specXT = 1.6;
 const X = [0, 0, 0, 0, 0];                 // 회전목마의 액자 중심(월드 x)
 const LIM = 35 * Math.PI / 180;
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const eio = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const eo = (t) => 1 - Math.pow(1 - t, 3);
 
 function layout() {
   const r = stage.getBoundingClientRect();
@@ -273,22 +315,39 @@ const Xat = (p) => { const i0 = clamp(Math.floor(p), 0, 3), t = p - i0; return l
 
 // 결과: 다섯 액자가 아래 테두리를 한 줄에 맞춰 선다. 크기는 오늘의 비율만큼 조금씩(가장 적은 그림 ≈ 가장 많은 그림의 0.77배 — 넓이로 약 0.6배).
 // 액자 아래 번호판, 그 아래 비율. 덩어리 전체를 상단 바와 패널 사이의 가운데에
-let row = null;
+let row = null, rowA = null, rowB = null;
 const PLATE_GAP = 20, PLATE_H = 17, PCT_GAP = 9, PCT_H = 20, MEDAL_PX = 26;
-function rowLayout() {
+// k: 액자마다 크기 배율. A = 모두 같은 크기(카메라가 막 물러난 순간), B = 오늘의 비율
+function computeRow(k) {
   const areaB = H - $('#reveal').offsetHeight, top0 = $('.wall-top').getBoundingClientRect().bottom - stage.getBoundingClientRect().top;
-  const PAD = 14, GAP = 8, max = Math.max(...Object.values(TODAY)), under = PLATE_GAP + PLATE_H + PCT_GAP + PCT_H;
-  const k = frames.map((f) => 0.72 + 0.28 * TODAY[f.w.n] / max);
+  const PAD = 14, GAP = 8, under = PLATE_GAP + PLATE_H + PCT_GAP + PCT_H;
   let S = (W - PAD * 2 - GAP * 4) / frames.reduce((a, f, i) => a + f.ow * k[i], 0);                  // 그림 긴 변 1 = S px
   S = Math.min(S, (areaB - top0 - 48 - under) / Math.max(...frames.map((f, i) => f.oh * k[i])));
   const ws = frames.map((f, i) => f.ow * k[i] * S), hs = frames.map((f, i) => f.oh * k[i] * S), maxFh = Math.max(...hs);
   const baseY = Math.round(top0 + (areaB - top0 - maxFh - under) / 2 + maxFh);
   let x = (W - ws.reduce((a, b) => a + b, 0) - GAP * 4) / 2;
-  row = { baseY, plateY: baseY + PLATE_GAP, pctY: baseY + PLATE_GAP + PLATE_H + PCT_GAP, items: [], poolY: -((baseY - maxFh / 2) - H / 2) * wpp };
+  const r = { baseY, plateY: baseY + PLATE_GAP, pctY: baseY + PLATE_GAP + PLATE_H + PCT_GAP, items: [], poolY: -((baseY - maxFh / 2) - H / 2) * wpp, fr: [], x0: x, x1: W - x };
   frames.forEach((f, i) => {
     const cx = x + ws[i] / 2, px = k[i] * S; x += ws[i] + GAP;
-    row.items.push({ x: cx });
-    f.row = { x: (cx - W / 2) * wpp, y: -((baseY - hs[i] / 2) - H / 2) * wpp, s: px * wpp, medalUp: MEDAL_PX / (2 * MR * px) };
+    r.items.push({ x: cx });
+    r.fr.push({ x: (cx - W / 2) * wpp, y: -((baseY - hs[i] / 2) - H / 2) * wpp, s: px * wpp, px, medalUp: MEDAL_PX / (2 * MR * px) });
+  });
+  return r;
+}
+function rowLayout() {
+  const max = Math.max(...Object.values(TODAY));
+  rowA = computeRow(frames.map(() => 0.86));
+  rowB = computeRow(frames.map((f) => 0.72 + 0.28 * TODAY[f.w.n] / max));
+  mixRow();
+}
+// 두 줄 사이를 sh 로 섞는다 — 액자·번호판·비율 숫자·주황 선 두께가 같이 움직인다
+function mixRow() {
+  if (!rowA) return;
+  const e = eio(sh), L = (a, b) => lerp(a, b, e);
+  row = { baseY: L(rowA.baseY, rowB.baseY), plateY: L(rowA.plateY, rowB.plateY), pctY: L(rowA.pctY, rowB.pctY), poolY: L(rowA.poolY, rowB.poolY), items: rowA.items.map((it, i) => ({ x: L(it.x, rowB.items[i].x) })), x0: L(rowA.x0, rowB.x0), x1: L(rowA.x1, rowB.x1) };
+  frames.forEach((f, i) => {
+    const a = rowA.fr[i], b = rowB.fr[i], px = L(a.px, b.px);
+    f.row = { x: L(a.x, b.x), y: L(a.y, b.y), s: L(a.s, b.s), medalUp: MEDAL_PX / (2 * MR * px) };
     setOutline(f, 2 / px);
   });
 }
@@ -301,29 +360,42 @@ function dim(f, k) {
   f.paint.color.setScalar(k); f.plateFace.color.setScalar(k);
 }
 
-function apply() {
+function apply(now = performance.now()) {
   const par = reduceMotion ? 0 : 1, t = eio(rv), Xp = Xat(pos);
+  if (rowA && mode === 'reveal' || rv > 0) mixRow();
+  // 메달이 내려앉은 울림 — 액자가 살짝 눌렸다 돌아오고, 화면이 아주 조금 흔들린다
+  const tk = (now - THUD.t0) / 520, thud = tk > 0 && tk < 1 ? Math.sin(tk * Math.PI * 2.5) * Math.exp(-tk * 4.2) : 0;
   frames.forEach((f, i) => {
     const d = i - pos, ad = Math.min(Math.abs(d), 1.6), act = Math.max(0, 1 - Math.abs(d));
     const cx = X[i] - Xp, cy = cyW + 0.11 * f.sC, cz = -ad * par, ry = -clamp(d, -1, 1) * 0.42 * par;
     const r = f.row || { x: cx, y: cy, s: f.sC };
-    f.g.visible = t > 0.01 || Math.abs(d) < 2.2;
-    f.g.position.set(lerp(cx, r.x, t), lerp(cy, r.y, t), lerp(cz, 0, t));
-    f.g.rotation.set(lerp(pitch * act, 0, t), lerp(ry + yaw * act, 0, t), 0);
-    f.g.scale.setScalar(lerp(f.sC, r.s, t));
-    dim(f, lerp(1 - 0.6 * Math.min(Math.abs(d), 1), 1, t));
+    let px = lerp(cx, r.x, t), py = lerp(cy, r.y, t), pz = lerp(cz, 0, t), rx = lerp(pitch * act, 0, t), ryy = lerp(ry + yaw * act, 0, t), s = lerp(f.sC, r.s, t), dk = lerp(1 - 0.6 * Math.min(Math.abs(d), 1), 1, t);
+    // 역할 화면 벽 → 뷰어: 벽에 걸린 자리에서 날아온다. 고른 그림은 조금 늦게, 벽에서 떨어지듯 앞으로 솟았다가 자리로
+    if (ent < 1 && thumbs[i]) {
+      const th = thumbs[i], dl = i === idx ? 0.14 : 0.03 * Math.abs(i - idx), e = eio(clamp((ent - dl) / (1 - 0.18), 0, 1));
+      px = lerp(th.x, px, e); py = lerp(th.y, py, e); s = lerp(th.s, s, e); rx = lerp(0, rx, e); ryy = lerp(0, ryy, e) + (i === idx ? Math.sin(e * Math.PI) * -0.18 : 0); dk = lerp(1, dk, e);
+      pz = lerp(0, pz, e) + (i === idx ? Math.sin(e * Math.PI) * 0.9 : 0);
+    }
+    f.g.visible = t > 0.01 || ent < 1 || Math.abs(d) < 2.2;
+    f.g.position.set(px, py, pz); f.g.rotation.set(rx, ryy, 0); f.g.scale.setScalar(s);
+    if (thud && f === MED.f) { f.g.position.z -= 0.05 * thud * s; f.g.rotation.x += 0.025 * thud; }
+    dim(f, dk);
     f.plate.visible = t < 0.5 && !f.tpOn; f.titlePlate.visible = t < 0.5 && f.tpOn;
     f.glow.material.opacity = f.glowV * 0.75 * (1 - t);                       // 결과 줄에서는 금빛 후광 대신 주황 선 하나
     f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5 * (1 - t));
     f.olMat.opacity = f.olV; f.ol.visible = f.olV > 0.01;
   });
+  // 벽 — 뒤로 물러나면(결과) 무늬가 작아지고, 역할 화면에서 들어올 때는 작은 무늬에서 커진다(카메라가 벽으로 다가간다)
   wall.position.set(-Xp * 0.22 * par * (1 - t), cyW, -2.6);
-  pool.material.opacity = 1 - t * 0.45; if (row) pool.position.y = lerp(cyW, row.poolY, t);   // 빛 웅덩이도 액자 줄 뒤로
+  wall.scale.setScalar(lerp(1, 0.6, t) * lerp(0.2, 1, eio(ent)));
+  pool.material.opacity = (1 - t * 0.45) * eio(ent); if (row) pool.position.y = lerp(cyW, row.poolY, t);   // 빛 웅덩이도 액자 줄 뒤로
+  pool.scale.set(visW * 1.5 * lerp(1, 0.75, t), visH * 0.62 * lerp(1, 0.7, t), 1);
   // 메달은 고른 액자에 붙은 채 줄로 따라간다 — 액자가 작아져도 메달은 화면에서 약 26px 로 남는다
-  if (MED.f) { medal.visible = MED.dir !== 0; medal.scale.setScalar(MED.sc * lerp(1, MED.f.row ? MED.f.row.medalUp : 1, t)); faceMat.envMapIntensity = lerp(1, 0.25, t); faceMat.metalness = lerp(0.55, 0.3, t); faceMat.color.setRGB(1, lerp(1, 0.8, t), lerp(1, 0.5, t)); }   // 작아진 메달이 흰 원반으로 날리지 않게 금빛을 조금 짙게
-  camera.zoom = zoom; camera.position.set(panX, panY, D); camera.updateProjectionMatrix();
-  spec.position.x = specX;
+  if (MED.f && MED.dir !== 2) { medal.visible = MED.dir !== 0; medal.scale.setScalar(MED.sc * (1 + 0.14 * Math.max(0, thud)) * lerp(1, MED.f.row ? MED.f.row.medalUp : 1, t)); faceMat.envMapIntensity = lerp(1, 0.25, t); faceMat.metalness = lerp(0.55, 0.3, t); faceMat.color.setRGB(1, lerp(1, 0.8, t), lerp(1, 0.5, t)); }   // 작아진 메달이 흰 원반으로 날리지 않게 금빛을 조금 짙게
+  camera.zoom = zoom; camera.position.set(panX, panY + 0.012 * thud, D); camera.updateProjectionMatrix();
+  if (MED.dir !== 2) spec.position.x = specX;
   stage.classList.toggle('zoomed', zoom > 1.04 && mode === 'pick');
+  if (mode === 'reveal' && row && rv > 0.98) placeTags();
 }
 
 // ── 렌더 루프 — 움직이는 것이 있을 때만
@@ -367,17 +439,69 @@ function step(dt, now) {
   else { const e = 1 - Math.exp(-dt * 8); specX += (specXT - specX) * e; if (Math.abs(specX - specXT) > 0.004) busy = true; }
   // 메달
   if (MED.dir) busy = stepMedal(now) || busy;
-  // 이름판 펼치기
-  if (TP.f) { const p = clamp((now - TP.t0) / (reduceMotion ? 1 : 520), 0, 1), e = 1 - Math.pow(1 - p, 3); TP.f.titlePlate.scale.set(lerp(0.3, 1, e), lerp(0.5, 1, e), 1); if (p < 1) busy = true; else TP.f = null; }
-  // 결과 전환
+  // 번호판이 뒤집히며 이름판으로 — 앞 220ms 는 번호판이 옆으로 눕고, 이어서 이름판이 반대편에서 일어서며 넓어진다
+  if (FLIP.f) {
+    const f = FLIP.f, k = reduceMotion ? 1 : (now - FLIP.t0) / 720;
+    if (k < 0.3) { f.tpOn = false; f.plate.rotation.x = eio(clamp(k / 0.3, 0, 1)) * Math.PI / 2; }
+    else {
+      const p = clamp((k - 0.3) / 0.7, 0, 1), back = 1 + 2.2 * Math.pow(p - 1, 3) + 1.2 * Math.pow(p - 1, 2);   // 조금 넘쳤다 돌아오는 끝
+      f.tpOn = true; f.plate.rotation.x = 0; f.titlePlate.rotation.x = -Math.PI / 2 * (1 - back); f.titlePlate.scale.set(lerp(0.32, 1, eo(p)), 1, 1);
+    }
+    if (k < 1) busy = true; else { f.titlePlate.rotation.x = 0; f.titlePlate.scale.set(1, 1, 1); FLIP.f = null; }
+  }
+  if (now - THUD.t0 < 560) busy = true;
+  if (glint.visible) {
+    const k = (now - THUD.t0) / 640;
+    if (k >= 1) { glint.visible = false; glint.material.opacity = 0; spec.intensity = 0.9; }
+    else { const s = Math.sin(clamp(k, 0, 1) * Math.PI); glint.material.opacity = s; glint.material.rotation = k * 0.9; glint.scale.setScalar((0.08 + 0.34 * s) * (MED.f ? MED.f.sC : 1)); spec.intensity = 0.9 + 2.4 * s; busy = true; }
+  }
+  // 역할 화면 벽 ↔ 뷰어
+  if (ent !== entT) { const p = clamp((now - entT0) / (reduceMotion ? 1 : ENT_MS), 0, 1); ent = lerp(entFrom, entT, p); if (p >= 1) ent = entT; busy = true; }
+  // 결과 전환(카메라가 물러난다) · 비율만큼 커지고 작아지기 + 빛 쓸기 + 숫자 세기
   if (rv !== rvT) { const p = clamp((now - rvT0) / (reduceMotion ? 1 : RV_MS), 0, 1); rv = lerp(rvFrom, rvT, p); if (p >= 1) rv = rvT; busy = true; }
+  if (sh !== shT) {
+    const p = clamp((now - shT0) / (reduceMotion ? 1 : SH_MS), 0, 1); sh = lerp(shFrom, shT, p); if (p >= 1) sh = shT; busy = true;
+    if (shT === 1 && row) {
+      const bx = lerp((row.x0 - 40 - W / 2) * wpp, (row.x1 + 40 - W / 2) * wpp, eio(p)), by = rowB ? -((rowB.baseY - 60) - H / 2) * wpp : cyW;
+      const fh = rowB ? Math.max(...rowB.fr.map((r, i) => frames[i].oh * r.s)) : 0.6;
+      bar.visible = !reduceMotion; bar.position.set(bx, rowB ? rowB.fr[0].y + (frames[0].oh * rowB.fr[0].s) / 2 - fh / 2 : by, 0.3); bar.scale.set(0.22, fh * 1.7, 1); bar.material.opacity = Math.sin(p * Math.PI) * 0.4;
+      specX = bx * 1.4; spec.intensity = 0.9 + 0.7 * Math.sin(p * Math.PI);
+      tagEls.forEach((tg, i) => { tg.num.textContent = Math.round(TODAY[frames[i].w.n] * eo(p)); });
+    }
+    if (p >= 1) { bar.visible = false; spec.intensity = 0.9; specX = specXT; }
+  }
   return busy;
 }
 
+const _v = new T.Vector3(), _w = new T.Vector3();
+function screenToWorld(x, y, z) {   // 화면 점(px) → 깊이 z 평면 위의 월드 점
+  _v.set((x / W) * 2 - 1, -(y / H) * 2 + 1, 0.5).unproject(camera).sub(camera.position).normalize();
+  return camera.position.clone().addScaledVector(_v, (z - camera.position.z) / _v.z);
+}
 function stepMedal(now) {
   const f = MED.f; if (!f) return false;
   const yEnd = -(f.ph / 2 + M * 0.55), zEnd = 0.088;
+  if (MED.dir === 2) {
+    // 날아오기 — 누른 단추 자리(화면 앞쪽)에서 포물선을 그리며 돌다가, 마지막에 앞면이 정면으로 오며 아래 테두리에 앉는다
+    const F = MED.fly, p = clamp((now - F.t0) / (reduceMotion ? 1 : 980), 0, 1), e = p < 1 ? 1 - Math.pow(1 - p, 2.4) : 1;
+    _w.copy(F.a).multiplyScalar((1 - e) * (1 - e)).addScaledVector(F.c, 2 * e * (1 - e)).addScaledVector(F.b, e * e);
+    medal.position.copy(_w);
+    medal.rotation.set(lerp(0.5, 0, e), (1 - eo(p)) * Math.PI * 5, lerp(-0.4, -0.12, e));
+    medal.scale.setScalar(lerp(F.s0, f.sC, eo(p)));
+    spec.position.set(_w.x + 0.6, _w.y + 0.5, _w.z + 1.6);   // 도는 동안 앞면·테두리에 빛이 번쩍인다
+    medalAlpha(Math.min(1, p * 5));
+    if (p >= 1) {
+      f.g.attach(medal); medal.position.set(0, yEnd, zEnd); medal.rotation.set(0, 0, -0.12); medal.scale.setScalar(1);
+      MED.dir = 1; MED.done = true; MED.t0 = -1e9; MED.sc = 1;
+      spec.position.set(specX, 1.4, 3.2);
+      THUD.t0 = now; haptic([18, 30, 12]);
+      glint.visible = !reduceMotion; f.g.localToWorld(glint.position.set(-MR * 0.45, yEnd + MR * 0.5, zEnd + 0.05));
+      F.done();
+    }
+    return true;
+  }
   if (MED.dir > 0) {
+    if (MED.done) return false;
     const p = clamp((now - MED.t0) / (reduceMotion ? 1 : 820), 0, 1);
     // 위에서 천천히 내려와 아래 테두리에 앉는다 — 돌거나 튀지 않게, 마지막에 반 바퀴 덜 돈 면이 정면으로
     const e = 1 - Math.pow(1 - p, 3);
@@ -517,80 +641,108 @@ $('#prev').addEventListener('click', () => go(idx - 1));
 $('#next').addEventListener('click', () => go(idx + 1));
 
 // ── 메달 → 확인
+//   "이 그림에 메달" → 그 액자에 금빛 후광 + 반사광이 한 번 쓸고 → 확인 시트
+//   "메달 주기" → 메달이 단추 자리에서 날아와 돌다가 아래 테두리에 앉는다(반짝임 · 울림) → 번호판이 뒤집혀 제목 · 화가 · 연도
 const confirm = sheet($('#confirm'));
 async function placeMedal() {
   if (mode !== 'pick') return;
   mode = 'placed'; chosen = frames[idx];
   hideGest(); dock.classList.add('busy');
   resetView(); posT = idx;
-  chosen.glowT = 1;
-  if (MED.f && MED.f !== chosen) MED.f.g.remove(medal);
-  chosen.g.add(medal); medal.visible = true; MED.f = chosen; MED.dir = 1; MED.t0 = performance.now() + (reduceMotion ? 0 : 160);
-  haptic(24); kick();
+  chosen.glowT = 1; if (!reduceMotion) glintT0 = performance.now();
+  haptic(14); kick();
   $('#cfTitle').textContent = `${chosen.w.n}번에 올해의 메달을 줄까요?`;
-  await sleep(reduceMotion ? 150 : 1050);
+  await sleep(reduceMotion ? 100 : 420);
   if (mode === 'placed') confirm.open();
 }
 function unplace() {
   confirm.close();
   if (mode !== 'placed') return;
-  chosen.glowT = 0; MED.dir = -1; MED.t0 = performance.now();
+  chosen.glowT = 0;
   chosen = null; mode = 'pick'; dock.classList.remove('busy');
   kick();
+}
+function flyMedal(fromEl) {
+  return new Promise((done) => {
+    const f = chosen;
+    if (MED.f && MED.f !== f && medal.parent) medal.parent.remove(medal);
+    if (medal.parent) medal.parent.remove(medal);
+    scene.add(medal); medal.visible = true; medalAlpha(0);
+    f.g.updateMatrixWorld(true);
+    const r = fromEl.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    const a = screenToWorld(r.left + r.width / 2 - sr.left, r.top + r.height / 2 - sr.top, 2.4);
+    const b = f.g.localToWorld(new T.Vector3(0, -(f.ph / 2 + M * 0.55), 0.088));
+    const c = a.clone().lerp(b, 0.5); c.y = Math.max(a.y, b.y) + 0.9; c.z = 1.6;
+    MED.f = f; MED.dir = 2; MED.done = false; MED.fly = { a, b, c, t0: performance.now(), s0: f.sC * 0.55, done };
+    kick();
+  });
 }
 award.addEventListener('click', placeMedal);
 $('#cfBack').addEventListener('click', unplace);
 $$('.sheet-dim').forEach((d) => d.addEventListener('click', () => { if (mode === 'placed') unplace(); }));
-$('#cfOk').addEventListener('click', () => { confirm.close(); reveal(); });
+$('#cfOk').addEventListener('click', () => { if (mode === 'placed') reveal($('#cfOk')); });
 
-// ── 3 오늘의 심사위원단: 다섯 액자가 한 줄로 물러나며 오늘의 비율만큼 크기가 달라진다(0.8초) → 번호판·비율이 나타나고 → 패널이 올라온다
-//   내 그림만 표시: 그림 안쪽의 가는 주황 선 + 아래 테두리의 메달. 가장 많이 고른 그림은 크기 말고는 따로 표시하지 않는다
+// ── 3 오늘의 심사위원단
+//   이름판을 읽을 틈(1.1초) → 카메라가 물러나며 다섯 액자가 같은 크기로 한 줄에(1.1초) → 빛이 줄을 쓸고 지나가는 동안 오늘의 비율만큼 커지고 작아지며 숫자가 센다(1.1초)
+//   → 내 그림에 주황 선 → 패널이 올라온다. 내 그림만 표시: 그림 안쪽의 가는 주황 선 + 아래 테두리의 메달
 const tagEls = frames.map((f) => {
   const plate = document.createElement('div'); plate.className = 'rplate'; plate.textContent = f.w.n; tagsEl.appendChild(plate);
-  const pct = document.createElement('div'); pct.className = 'rpct'; pct.innerHTML = `${TODAY[f.w.n]}<i>%</i>`; tagsEl.appendChild(pct);
-  return { plate, pct };
+  const pct = document.createElement('div'); pct.className = 'rpct'; pct.innerHTML = `<b>${TODAY[f.w.n]}</b><i>%</i>`; tagsEl.appendChild(pct);
+  return { plate, pct, num: pct.querySelector('b') };
 });
 function placeTags() {
+  if (!row) return;
   frames.forEach((f, i) => {
     const x = row.items[i].x.toFixed(1), t = tagEls[i];
-    t.plate.style.transform = `translate(${x}px, ${row.plateY}px) translateX(-50%)`;
-    t.pct.style.transform = `translate(${x}px, ${row.pctY}px) translateX(-50%)`;
+    t.plate.style.transform = `translate(${x}px, ${row.plateY.toFixed(1)}px) translateX(-50%)`;
+    t.pct.style.transform = `translate(${x}px, ${row.pctY.toFixed(1)}px) translateX(-50%)`;
   });
 }
-function setRv(target) { rvFrom = rv; rvT = target; rvT0 = performance.now(); kick(); }
+function setRv(target, ms = 1100) { RV_MS = ms; rvFrom = rv; rvT = target; rvT0 = performance.now(); kick(); }
+function setSh(target, ms = 1100) { SH_MS = ms; shFrom = sh; shT = target; shT0 = performance.now(); kick(); }
 let revSeq = 0;
 function showTitle(f) {
   if (!f.tpFace.map) { f.tpFace.map = titleTex(f); f.tpFace.needsUpdate = true; }
-  f.tpOn = true; f.titlePlate.scale.set(0.3, 0.5, 1); TP.f = f; TP.t0 = performance.now(); kick();
+  FLIP.f = f; FLIP.t0 = performance.now(); f.titlePlate.scale.set(0.32, 1, 1); f.titlePlate.rotation.x = -Math.PI / 2; kick();
 }
-function hideTitles() { frames.forEach((f) => { f.tpOn = false; }); TP.f = null; kick(); }
-async function reveal() {
+function hideTitles() { frames.forEach((f) => { f.tpOn = false; f.plate.rotation.x = 0; f.titlePlate.rotation.x = 0; }); FLIP.f = null; kick(); }
+function countUp(el, to, ms) {
+  if (reduceMotion) { el.textContent = to; return; }
+  const t0 = performance.now(); const tick2 = (now) => { const p = clamp((now - t0) / ms, 0, 1); el.textContent = Math.round(to * eo(p)); if (p < 1) requestAnimationFrame(tick2); }; requestAnimationFrame(tick2);
+}
+async function reveal(fromEl) {
   mode = 'reveal';
   const me = chosen, top = WORKS.find((w) => w.n === TOP), seq = ++revSeq;
+  confirm.close();
   stage.classList.add('is-reveal');
-  // 메달을 준 뒤 — 고르는 동안 숨겨 둔 제목 · 화가 · 연도가 번호판 자리에. 잠시(1.2초) 그대로 둔 뒤 오늘의 심사위원단으로
-  if (document.fonts) await Promise.race([document.fonts.load('700 40px Freesentation', '가'), sleep(400)]).catch(() => {});
-  showTitle(me); haptic(12);
-  await sleep(reduceMotion ? 1200 : 520 + 1200);
+  if (document.fonts) await Promise.race([document.fonts.load('700 40px Freesentation', '가'), sleep(300)]).catch(() => {});
+  if (!me.tpFace.map) { me.tpFace.map = titleTex(me); me.tpFace.needsUpdate = true; }
+  await flyMedal(fromEl);
+  if (seq !== revSeq) return;
+  await sleep(reduceMotion ? 0 : 240);
+  showTitle(me); haptic(10);
+  await sleep(reduceMotion ? 1200 : 720 + 1100);
   if (seq !== revSeq || mode !== 'reveal') return;
   $('#wallTitle').textContent = '오늘의 심사위원단';
   $('#revTitle').textContent = `〈${me.w.title}〉`;
   $('#revMeta').textContent = `${me.w.artist} · ${me.w.year}`;
-  $('#revLine').innerHTML = `오늘 심사위원 <em>${TODAY[me.w.n]}%</em>가 같은 그림을 골랐습니다.`;
+  $('#revLine').innerHTML = `오늘 심사위원 <em><b>0</b>%</em>가 같은 그림을 골랐습니다.`;
   $('#revTop').textContent = me.w.n === TOP ? '오늘 가장 많은 심사위원이 고른 그림입니다.' : `가장 많이 고른 그림은 ${top.n}번 〈${top.title}〉 · ${TODAY[top.n]}%`;
   $('#revStamp').textContent = stampLine(JURY);
-  tagEls.forEach((t, i) => t.pct.classList.toggle('me', frames[i] === me));
+  tagEls.forEach((t, i) => { t.pct.classList.toggle('me', frames[i] === me); t.num.textContent = '0'; });
   zoomT = 1; panXT = 0; panYT = 0;
-  await sleep(reduceMotion ? 50 : 380);
-  if (seq !== revSeq) return;
-  rowLayout(); placeTags(); setRv(1);
-  await sleep(reduceMotion ? 0 : RV_MS + 80);
+  sh = shT = 0; rowLayout(); placeTags(); setRv(1, 1100);
+  await sleep(reduceMotion ? 0 : 1100 + 60);
   if (seq !== revSeq) return;
   tagEls.forEach((t) => { t.plate.classList.add('show'); t.pct.classList.add('show'); });
+  setSh(1, 1150);
+  await sleep(reduceMotion ? 0 : 1150);
+  if (seq !== revSeq) return;
   me.olT = 1; kick();
-  await sleep(reduceMotion ? 0 : 520);
+  await sleep(reduceMotion ? 0 : 380);
   if (seq !== revSeq) return;
   $('#reveal').classList.add('on'); haptic(10);
+  countUp($('#revLine b'), TODAY[me.w.n], 900);
 }
 function clearReveal() {
   revSeq++; hideTitles();
@@ -599,16 +751,25 @@ function clearReveal() {
   frames.forEach((f) => { f.olT = 0; });
   $('#wallTitle').textContent = '';
 }
-$('#again').addEventListener('click', () => {
+// 다시 고르기 — 카메라가 되감긴다: 비율 → 같은 크기 → 회전목마. 메달은 위로 떠서 사라지고 번호판이 돌아온다
+$('#again').addEventListener('click', async () => {
+  const was = chosen;
   clearReveal();
-  if (chosen) { chosen.glowT = 0; MED.dir = -1; MED.t0 = performance.now(); }
-  chosen = null; mode = 'pick'; dock.classList.remove('busy');
-  setRv(0);
+  if (was) { was.glowT = 0; MED.dir = -1; MED.t0 = performance.now(); }
+  chosen = null; mode = 'rewind';
+  setSh(0, 600); setRv(0, 1000);
+  await sleep(reduceMotion ? 0 : 900);
+  mode = 'pick'; dock.classList.remove('busy'); kick();
 });
 
-// ── 4 카드
-$('#save').addEventListener('click', () => {
-  const me = chosen;
+// ── 4 카드 — 고른 그림이 액자에서 카드 속 액자로 옮겨 앉는다
+function frameScreenRect(f) {
+  const b = new T.Box3().setFromObject(f.g.children.find((m) => m.material === f.paint) || f.g);
+  const a = b.min.clone().project(camera), c = b.max.clone().project(camera), sr = stage.getBoundingClientRect();
+  return { x: sr.left + (a.x + 1) / 2 * W, y: sr.top + (1 - c.y) / 2 * H, w: (c.x - a.x) / 2 * W, h: (c.y - a.y) / 2 * H };
+}
+$('#save').addEventListener('click', async () => {
+  const me = chosen; if (!me) return;
   $('#cardImg').src = me.w.src;
   $('#cardPos').innerHTML = `오늘 심사위원 <b>${TODAY[me.w.n]}%</b>가 같은 그림을 골랐습니다`;
   $('#cardNo').textContent = `후보작 ${me.w.n}번`;
@@ -616,33 +777,127 @@ $('#save').addEventListener('click', () => {
   $('#cardMeta').textContent = [me.w.artist, me.w.year, me.w.coll].filter(Boolean).join(' · ');
   $('#cardShown').textContent = me.w.shown; $('#cardShown').hidden = !me.w.shown;
   saveChoice('c0', { n: me.w.n, title: me.w.title, pct: TODAY[me.w.n] });   // 기기 안에만 · 출구 화면(exit.html)이 읽는다
-  showScreen('s4');
-  toast('수집함에 저장했습니다', 1600);
+  const r0 = frameScreenRect(me);
+  const s4 = $('#s4'); s4.classList.add('morph'); screenOn('s4', true);
+  try { await $('#cardImg').decode(); } catch (e) { /* noop */ }
+  const r1 = $('#cardImg').getBoundingClientRect();
+  if (reduceMotion) { s4.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300 }); await sleep(300); screenOn('s2', false); s4.classList.remove('morph'); toast('수집함에 저장했습니다', 1600); return; }
+  const ghost = document.createElement('img'); ghost.src = me.w.src; ghost.className = 'fly-ghost';
+  Object.assign(ghost.style, { left: r1.left + 'px', top: r1.top + 'px', width: r1.width + 'px', height: r1.height + 'px' });
+  document.body.appendChild(ghost); $('#cardFrame').style.opacity = '0';
+  const sx = r0.w / r1.width, sy = r0.h / r1.height, dx = r0.x - r1.left, dy = r0.y - r1.top;
+  s4.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 520, easing: 'ease', fill: 'backwards', delay: 120 });
+  $('.card', s4).animate([{ transform: 'translateY(40px) scale(.94)' }, { transform: 'none' }], { duration: 900, easing: 'cubic-bezier(.2,.8,.2,1)', delay: 120, fill: 'backwards' });
+  const a = ghost.animate([
+    { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, boxShadow: '0 30px 60px rgba(0,0,0,.6)' },
+    { transform: `translate(${dx * 0.4}px, ${dy * 0.4 - 30}px) scale(${lerp(sx, 1, 0.6)}, ${lerp(sy, 1, 0.6)}) rotate(-2deg)`, offset: 0.55 },
+    { transform: 'none', boxShadow: '0 4px 8px rgba(0,0,0,.3)' },
+  ], { duration: 980, easing: 'cubic-bezier(.45,0,.2,1)' });
+  await a.finished.catch(() => {});
+  $('#cardFrame').style.opacity = ''; ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, fill: 'forwards' }).finished.then(() => ghost.remove());
+  $('#cardFrame').animate([{ transform: 'scale(1.06)', opacity: 0 }, { opacity: 1, offset: 0.4 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.3,1.5,.4,1)' });
+  $('#cardMedal').animate([{ transform: 'translateY(-26px) rotate(-30deg) scale(1.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560, easing: 'cubic-bezier(.3,1.4,.4,1)' });
+  screenOn('s2', false); s4.classList.remove('morph');
+  haptic(16); toast('수집함에 저장했습니다', 1600);
 });
 
 // ── 화면 흐름
-function enterViewer(i = 0) {
-  showScreen('s2');
+//   역할 화면 → 뷰어: 역할 화면의 벽(.cands)이 화면 전체로 열리고(오려 낸 사각형이 넓어진다) 벽의 다섯 액자가 그대로 날아와 회전목마가 된다. 글자는 뒤로 물러난다
+function measureThumbs() {
+  const sr = stage.getBoundingClientRect();
+  $$('#candStrip button').forEach((b, k) => {
+    const r = b.querySelector('.cf').getBoundingClientRect(), f = frames[k];
+    thumbs[k] = { x: (r.left + r.width / 2 - sr.left - W / 2) * wpp, y: -(r.top + r.height / 2 - sr.top - H / 2) * wpp, s: (r.width * wpp) / f.ow };
+  });
+}
+const boxClip = () => { const r = $('#candStrip').getBoundingClientRect(); return `inset(${r.top.toFixed(0)}px ${(innerWidth - r.right).toFixed(0)}px ${(innerHeight - r.bottom).toFixed(0)}px ${r.left.toFixed(0)}px round 8px)`; };
+let flowBusy = false;
+async function enterViewer(i = 0) {
+  if (flowBusy) return; flowBusy = true;
+  const s1 = $('#s1'), s2 = $('#s2');
+  const fromRole = s1.classList.contains('on');
+  const clip = fromRole ? boxClip() : null;
+  s2.classList.add('morph'); screenOn('s2', true);
   confirm.close(); clearReveal();
   frames.forEach((f) => { f.glowT = f.glowV = 0; f.olT = f.olV = 0; });
-  if (MED.f) { MED.f.g.remove(medal); MED.f = null; } medal.visible = false; MED.dir = 0; MED.sc = 1;
+  if (medal.parent) medal.parent.remove(medal); MED.f = null; medal.visible = false; MED.dir = 0; MED.sc = 1; MED.done = false;
   mode = 'pick'; chosen = null; dock.classList.remove('busy'); gest.classList.toggle('off', gestSeen);
-  rv = rvT = 0; zoom = zoomT = 1; panX = panY = panXT = panYT = 0; yaw = pitch = yawV = pitchV = 0;
-  idx = clamp(i, 0, 4); posT = idx; updateIdx();
+  rv = rvT = 0; sh = shT = 0; zoom = zoomT = 1; panX = panY = panXT = panYT = 0; yaw = pitch = yawV = pitchV = 0;
+  idx = clamp(i, 0, 4); posT = pos = idx; posV = 0; updateIdx();
   layout();
-  // 들어올 때: 오른쪽에서 미끄러져 들어오며 금박 위로 빛이 한 번 지나간다
-  if (!reduceMotion) { pos = idx + 0.7; posV = 0; yaw = -0.35; glintT0 = performance.now() + 200; } else pos = idx;
-  kick();
+  if (fromRole && !reduceMotion) {
+    measureThumbs();
+    ent = entFrom = 0; entT = 1; entT0 = performance.now() + 60; glintT0 = performance.now() + ENT_MS - 250;
+    stage.classList.add('entering');
+    apply(); renderer.render(scene, camera);
+    s2.animate([{ clipPath: clip }, { clipPath: 'inset(0px 0px 0px 0px round 0px)' }], { duration: 980, easing: 'cubic-bezier(.65,0,.25,1)' });
+    s1.animate([{ transform: 'none', opacity: 1, filter: 'blur(0px)' }, { transform: 'scale(1.06)', opacity: 0.2, filter: 'blur(3px)' }], { duration: 900, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
+    kick();
+    setTimeout(() => stage.classList.remove('entering'), 620);
+    await sleep(1000);
+    s1.getAnimations().forEach((a) => a.cancel());
+  } else {
+    ent = entT = 1;
+    if (!reduceMotion) { pos = idx + 0.7; yaw = -0.35; glintT0 = performance.now() + 200; }
+    s2.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 360, easing: 'ease' });
+    kick(); await sleep(360);
+  }
+  screenOn('s1', false); s2.classList.remove('morph');
+  flowBusy = false;
+}
+async function leaveViewer() {          // 뷰어 → 역할 화면: 거꾸로 — 액자들이 벽의 자리로 돌아가고 사각형이 오므라든다
+  if (flowBusy) return; flowBusy = true;
+  confirm.close();
+  const s1 = $('#s1'), s2 = $('#s2');
+  screenOn('s1', true); s2.classList.add('morph');
+  if (reduceMotion) { s2.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300 }); await sleep(300); }
+  else {
+    clearReveal(); if (medal.parent) { medal.parent.remove(medal); MED.f = null; MED.dir = 0; }
+    rv = rvT = 0; sh = shT = 0; frames.forEach((f) => { f.glowT = 0; });
+    zoomT = 1; panXT = panYT = 0; resetView();
+    hangSalon(); measureThumbs();
+    entFrom = ent = 1; entT = 0; entT0 = performance.now(); stage.classList.add('entering'); kick();
+    s2.animate([{ clipPath: 'inset(0px 0px 0px 0px round 0px)' }, { clipPath: boxClip() }], { duration: 980, easing: 'cubic-bezier(.65,0,.25,1)', fill: 'forwards' });
+    s1.animate([{ transform: 'scale(1.06)', opacity: 0.2, filter: 'blur(3px)' }, { transform: 'none', opacity: 1, filter: 'blur(0px)' }], { duration: 900, easing: 'cubic-bezier(.5,0,.3,1)' });
+    await sleep(1000);
+  }
+  screenOn('s2', false); s2.classList.remove('morph', 'entering'); stage.classList.remove('entering');
+  s2.getAnimations().forEach((a) => a.cancel());
+  ent = entT = 1; mode = 'pick'; chosen = null;
+  flowBusy = false;
 }
 $('#enter').addEventListener('click', () => enterViewer(0));
-$('#back2').addEventListener('click', () => { confirm.close(); showScreen('s1'); });
-$('#back4').addEventListener('click', () => showScreen('s2'));
-$('#restart').addEventListener('click', () => showScreen('s1'));
+$('#back2').addEventListener('click', leaveViewer);
+// 카드 → 뷰어(결과): 카드가 내려가며 사라지고 뒤의 결과 화면이 그대로
+$('#back4').addEventListener('click', async () => {
+  const s4 = $('#s4'); screenOn('s2', true); kick();
+  await s4.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(30px)' }], { duration: reduceMotion ? 200 : 460, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {});
+  screenOn('s4', false);
+});
+// 처음으로 — 카드가 물러나며 역할 화면이 다시 차례로
+$('#restart').addEventListener('click', async () => {
+  const s4 = $('#s4'); screenOn('s1', true); roleIn();
+  await s4.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.96)' }], { duration: reduceMotion ? 200 : 520, easing: 'cubic-bezier(.4,0,.2,1)' }).finished.catch(() => {});
+  screenOn('s4', false); screenOn('s2', false);
+});
 window.addEventListener('resize', () => {
   if (!$('#s2').classList.contains('on')) return;
   layout();
   if (mode === 'reveal' && row) placeTags();
 });
+
+// ── 입장
+const introEl = $('#intro');
+(async function boot() {
+  const imgs = $$('#candStrip img');
+  await Promise.race([Promise.all(imgs.map((im) => im.decode().catch(() => {}))), sleep(2500)]);
+  if (document.fonts) await Promise.race([document.fonts.ready, sleep(800)]);
+  hangSalon();
+  if (reduceMotion || new URLSearchParams(location.search).has('nointro')) { introEl.remove(); roleIn(); return; }
+  const box = $('#candStrip').getBoundingClientRect();
+  const cands = $$('#candStrip button').map((b, i) => ({ src: WORKS[i].src, n: WORKS[i].n, cf: b.querySelector('.cf').getBoundingClientRect(), img: b.querySelector('img').getBoundingClientRect(), plate: b.querySelector('b').getBoundingClientRect() }));
+  await playIntro(introEl, { x: box.left, y: box.top, w: box.width, h: box.height }, cands, roleIn);
+})();
 
 // 검수용
 window.__c0 = {
@@ -650,5 +905,5 @@ window.__c0 = {
   plateRect() { const f = chosen || frames[idx]; const b = new T.Box3().setFromObject(f.tpOn ? f.titlePlate : f.plate); const a = b.min.clone().project(camera), c = b.max.clone().project(camera); return { x: (a.x + 1) / 2 * W, y: (1 - c.y) / 2 * H, w: (c.x - a.x) / 2 * W, h: (c.y - a.y) / 2 * H }; },
   canvasFrac() { const f = frames[idx]; return f.pw * f.sC / (W * wpp); },
   get rv() { return rv; }, get row() { return row; },
-  go, place: placeMedal, reveal, enterViewer,
+  go, place: placeMedal, reveal, enterViewer, get ent() { return ent; }, get sh() { return sh; }, get medDir() { return MED.dir; },
 };
