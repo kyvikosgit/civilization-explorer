@@ -9,41 +9,40 @@
 @import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
 @import url('https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css');
 :root{--ink:#111111;--body:#3D3D3A;--sub:#6B6B68;--meta:#9A9A96;--line:#E5E4E0;--line-strong:#CFCFCA;--fill:#F5F5F3;--bg:#FFFFFF;
-  --cream:#F7EFE2;--ok:#2F6B3F;--ok-bg:#E8F1EA;--warn:#8A5A00;--warn-bg:#FBF1DC;--bad:#9B2C2C;--bad-bg:#F8E6E6;
+  --cream:#F3ECDD;--ok:#2F6B3F;--ok-bg:#E8F1EA;--warn:#8A5A00;--warn-bg:#FBF1DC;--bad:#9B2C2C;--bad-bg:#F8E6E6;
   --display:Paperlogy,Freesentation,-apple-system,sans-serif;--text:Freesentation,-apple-system,sans-serif;--max:1080px;--gut:32px}
 @media (max-width:860px){:root{--gut:16px}}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--fill);color:var(--ink);font-family:var(--text);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
-a{color:inherit;text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:2px}
+a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line-strong)}
 .wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gut)}
 .top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--ink)}
 .top .wrap{display:flex;align-items:center;gap:20px;height:52px}
 .top-title{font-family:var(--display);font-weight:800;font-size:16px;white-space:nowrap}
 .top nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
-.top nav a{display:inline-flex;align-items:center;height:30px;padding:0 12px;border:1px solid var(--line-strong);font-size:13px;font-weight:700;white-space:nowrap;background:var(--bg);text-decoration:none}
+.top nav a{display:inline-flex;align-items:center;height:30px;padding:0 12px;border:1px solid var(--line-strong);font-size:13px;font-weight:700;white-space:nowrap;background:var(--bg)}
 @media (max-width:600px){.top-title{display:none}}
-header{padding:44px 0 4px}
-.kicker{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--sub)}
+header.intro{padding:44px 0 4px}
+.kicker{font-size:12.5px;font-weight:700;color:var(--sub)}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.6vw,38px);line-height:1.25;margin-top:6px}
 .lead{margin-top:10px;color:var(--body);max-width:680px}
 section{padding:44px 0 4px}
 h2{font-family:var(--display);font-weight:800;font-size:23px;line-height:1.3}
-.note{margin-top:6px;font-size:13.5px;color:var(--sub);max-width:760px}
+.note{margin-top:6px;font-size:13.5px;color:var(--sub);max-width:780px}
 /* 기준 */
 .rules{margin-top:14px;display:grid;gap:8px;list-style:none;counter-reset:r}
 .rules li{counter-increment:r;background:var(--bg);border:1px solid var(--line);padding:12px 14px 12px 46px;position:relative;font-weight:600}
-.rules li::before{content:counter(r);position:absolute;left:14px;top:12px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--cream);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.out{margin-top:10px;font-size:13px;color:var(--meta)}
+.rules li::before{content:counter(r);position:absolute;left:14px;top:12px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
 /* 레퍼런스 */
 .takeaways{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media (max-width:860px){.takeaways{grid-template-columns:1fr}}
-.tk{background:var(--ink);color:var(--cream);padding:14px 16px}
+.tk{background:var(--ink);color:var(--bg);padding:14px 16px}
 .tk b{display:block;font-family:var(--display);font-size:15px;font-weight:800;margin-bottom:4px}
-.tk span{font-size:13.5px;opacity:.85}
-.reftable{margin-top:14px;background:var(--bg);border:1px solid var(--line)}
+.tk span{font-size:13.5px;opacity:.82}
+.reftable{margin-top:12px;background:var(--bg);border:1px solid var(--line)}
 .rg{padding:14px 16px;border-top:1px solid var(--line)}
 .rg:first-child{border-top:0}
-.rg h3{font-size:13px;font-weight:800;letter-spacing:.04em;color:var(--sub);margin-bottom:8px}
+.rg h3{font-size:13px;font-weight:800;color:var(--sub);margin-bottom:8px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line);padding:4px 9px;font-size:13.5px;background:var(--fill)}
 .chip b{font-weight:800}
@@ -52,337 +51,246 @@ h2{font-family:var(--display);font-weight:800;font-size:23px;line-height:1.3}
 .src{margin-top:10px;font-size:12px;color:var(--meta)}
 .src a{color:var(--sub)}
 /* 후보 카드 */
-.cards{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media (max-width:960px){.cards{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:620px){.cards{grid-template-columns:1fr}}
+.cards{margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (max-width:720px){.cards{grid-template-columns:1fr}}
 .card{background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column}
 .card.pick{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-.mark{background:var(--ink);color:var(--cream);padding:22px 16px 16px;position:relative}
-.mark b{font-family:var(--display);font-weight:800;font-size:38px;line-height:1;display:block}
-.mark i{font-style:normal;font-size:11.5px;letter-spacing:.14em;opacity:.7;display:block;margin-top:8px}
-.rank{position:absolute;top:12px;right:12px;font-size:11.5px;font-weight:800;background:var(--cream);color:var(--ink);padding:2px 8px}
+.mark{background:var(--ink);color:var(--bg);padding:20px 16px 16px;position:relative;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.mark b{font-family:var(--display);font-weight:800;font-size:36px;line-height:1}
+.mark .ko{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.2;opacity:.85}
+.mark .say{width:100%;font-size:12.5px;opacity:.6}
+.rank{position:absolute;top:12px;right:12px;font-size:11.5px;font-weight:800;background:var(--bg);color:var(--ink);padding:2px 8px}
 .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
 .row{font-size:14px;color:var(--body)}
-.row .lb{display:block;font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--meta);margin-bottom:1px}
+.row .lb{display:block;font-size:11.5px;font-weight:800;color:var(--meta);margin-bottom:1px}
 .checks{margin-top:auto;border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px}
-.ck{display:grid;grid-template-columns:64px 1fr;gap:8px;font-size:13px;align-items:start}
+.ck{display:grid;grid-template-columns:72px 1fr;gap:8px;font-size:13px;align-items:start}
 .ck>span:first-child{font-weight:700;color:var(--sub)}
 .st{font-style:normal;display:inline-block;font-size:11.5px;font-weight:800;padding:1px 6px;margin-right:4px;vertical-align:1px}
 .ok{background:var(--ok-bg);color:var(--ok)}
 .warn{background:var(--warn-bg);color:var(--warn)}
 .bad{background:var(--bad-bg);color:var(--bad)}
 .wk{font-size:13px;color:var(--sub);background:var(--fill);padding:8px 10px}
-/* 탈락 */
+/* 홈 화면 */
+.homes{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:720px){.homes{grid-template-columns:1fr}}
+.screen{border-radius:28px;padding:26px 18px 22px;position:relative;overflow:hidden}
+.screen.light{background:linear-gradient(160deg,#ECEAE4,#D9D6CE)}
+.screen.dark{background:linear-gradient(160deg,#3A3934,#1C1B19)}
+.screen .cap{font-size:12px;font-weight:700;margin-bottom:16px}
+.screen.light .cap{color:#55544F}
+.screen.dark .cap{color:#BDBAB2}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 8px;justify-items:center}
+.app{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;min-width:0}
+.ic{width:62px;height:62px;border-radius:15px;background:radial-gradient(120% 120% at 25% 15%,#3E3A35 0%,#1A1715 55%,#121010 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.ic span{font-family:var(--display);font-weight:800;color:var(--cream);line-height:1;white-space:nowrap}
+.ic.ghost{background:rgba(255,255,255,.35);box-shadow:none}
+.screen.dark .ic.ghost{background:rgba(255,255,255,.10)}
+.lbl{font-size:11.5px;line-height:1.2;max-width:76px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.screen.light .lbl{color:#1A1A1A}
+.screen.dark .lbl{color:#F2F2F2}
+@media (max-width:380px){.ic{width:54px;height:54px;border-radius:13px}.grid{gap:16px 4px}}
+/* 뺀 후보 */
 .drop{margin-top:14px;background:var(--bg);border:1px solid var(--line)}
-.dr{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:9px 16px;border-top:1px solid var(--line);font-size:13.5px}
+.dr{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:9px 16px;border-top:1px solid var(--line);font-size:13.5px}
 .dr:first-child{border-top:0}
 .dr b{font-weight:800}
 .dr span{color:var(--body)}
+@media (max-width:520px){.dr{grid-template-columns:1fr;gap:2px}}
 footer{padding:40px 0 48px;font-size:12px;color:var(--meta)}
 </style>
 </head>
 <body>
-<div class="top"><div class="wrap"><span class="top-title">이름 후보 보드</span><nav><a href="#rules">기준</a><a href="#refs">레퍼런스</a><a href="#cands">후보</a><a href="#drop">탈락</a></nav></div></div>
+<div class="top"><div class="wrap"><span class="top-title">이름 후보 보드</span><nav><a href="#rules">기준</a><a href="#refs">레퍼런스</a><a href="#cands">후보 10</a><a href="#home">홈 화면</a><a href="#drop">뺀 후보</a></nav></div></div>
 
 <main class="wrap">
-<header>
-  <p class="kicker">EXHIBITION COMPANION · 현재 이름 ‘문명탐험가’ · 2026-10-26 새로 조사</p>
-  <h1>같은 그림 앞, 저마다의 선택<br>이 앱의 새 이름</h1>
-  <p class="lead">방마다 정답 없는 선택을 하나 하고, 바로 오늘 관람객들이 어떻게 골랐는지 본다. 출구에서 고른 것들이 ‘나의 길’이 되고, 티켓·엽서·초상 카드를 모은다. 티켓·오디오 도슨트·작품 안내도 이 앱 하나로 한다.</p>
+<header class="intro">
+  <p class="kicker">EXHIBITION COMPANION · 현재 이름 ‘문명탐험가’ · 2026-10-26 조사</p>
+  <h1>전시 앱의 새 이름<br>후보 10개</h1>
+  <p class="lead">티켓·오디오 도슨트·작품 안내를 하고, 방마다 정답 없는 선택 하나와 오늘 관람객의 선택 비율을 보여 주고, 고른 것이 길이 되고 기념품이 모이는 앱. 첫 전시는 MONET 100, 다음 전시에도 그대로 쓸 이름입니다. 이번에는 우리말 이름을 빼고 영어·프랑스어·라틴계 단어와 조어로만 찾았습니다.</p>
 </header>
 
 <section id="rules">
   <h2>기준</h2>
   <ol class="rules">
-    <li>2~3음절. “○○ 앱 깔아”가 바로 나오고 홈 화면에서 잘리지 않는다.</li>
-    <li>모네·인상주의·그림에 묶이지 않는다. 다음 전시가 역사여도 맞는다.</li>
-    <li>이유는 소리·길이·검색·선례로만 말한다. 뜻을 갖다 붙이지 않는다.</li>
+    <li>실제 영어·프랑스어·라틴계 단어나 2~3음절 조어. 한글 표기가 하나로 정해지고 소리 내 읽기 쉽다.</li>
+    <li>어떤 전시에도 맞는다. 그림·모네·특정 기능 하나에 묶이지 않는다.</li>
+    <li>이유는 단어의 뜻 그대로, 소리, 길이, 선례로만 말한다. 상징을 갖다 붙이지 않는다.</li>
   </ol>
-  <p class="out">이전 라운드 이름(씬·온씬·보러·나들·또봄·귀띔·캡션·곁·이젤·오프닝·레이어·모먼트 등)은 전부 다시 쓰지 않았고, 눈길과 비슷한 ‘시선’도 뺐습니다.</p>
 </section>
 
 <section id="refs">
-  <h2>레퍼런스 · 잘된 앱 이름은 이렇게 생겼다</h2>
-  <p class="note">앱 이름은 2026-10-26 앱스토어 검색(iTunes Search API)에 실제로 등록된 이름 그대로입니다. 괄호 안은 음절 수나 형태입니다.</p>
+  <h2>레퍼런스</h2>
+  <p class="note">앱 이름은 2026-10-26 앱스토어(iTunes Search API)에 등록된 그대로입니다. 이름의 유래는 출처가 있는 것만 적었습니다.</p>
 
   <div class="takeaways">
-    <div class="tk"><b>자주 쓰는 앱은 2음절로 줄어든다</b><span>당근마켓→당근, 마켓컬리→컬리, 리디북스→리디, 야놀자→NOL. 모두 ‘마켓·북스’ 같은 범주어를 뗐다.</span></div>
-    <div class="tk"><b>전시 앱은 대부분 ‘Art’나 기관명</b><span>Smartify, Artsy, DailyArt, ARTLENS, ○○미술관 전시안내. 일상어 이름은 이 분야에 거의 없다.</span></div>
-    <div class="tk"><b>선택·참여 앱은 짧은 일상 표현</b><span>Either, BeReal, 할말없어요, 여기어때. 고르는 행동이나 말투를 그대로 이름으로 쓴다.</span></div>
+    <div class="tk"><b>실제 영어 단어를 그대로</b><span>Toss, Fever, Triple, Melon, Zigzag. 뜻은 평범하고, 짧아서 브랜드가 된다. 한글로도 그대로 적는다(토스·트리플).</span></div>
+    <div class="tk"><b>철자를 살짝 비튼 영어</b><span>KREAM, Wavve, Artsy, Smartify. 읽는 소리는 일상어, 철자로 상표·검색을 확보한다.</span></div>
+    <div class="tk"><b>문화 앱은 외국어 한 단어도 흔하다</b><span>Fever, Magnus, Ostrovok(러시아어 ‘섬’), Tiqets. 한국 사용자에겐 뜻보다 소리와 생김새로 기억된다.</span></div>
   </div>
 
   <div class="reftable">
     <div class="rg">
-      <h3>한국 인기 앱</h3>
+      <h3>전시·미술·티켓 앱 (해외)</h3>
       <div class="chips">
-        <span class="chip"><b>토스</b><i>2 · 영어 동사 한글 표기</i></span>
-        <span class="chip"><b>당근</b><i>2 · 우리말 명사</i></span>
-        <span class="chip"><b>컬리</b><i>2 · 범주어 뗌</i></span>
-        <span class="chip"><b>리디</b><i>2 · 범주어 뗌</i></span>
-        <span class="chip"><b>숨고</b><i>2 · 줄임말</i></span>
-        <span class="chip"><b>직방 · 다방</b><i>2 · 한자어</i></span>
-        <span class="chip"><b>똑닥</b><i>2 · 의성어</i></span>
-        <span class="chip"><b>NOL</b><i>1 · ‘놀다’ 어간, 영문 표기</i></span>
-        <span class="chip"><b>무신사</b><i>3 · 줄임말</i></span>
-        <span class="chip"><b>야놀자</b><i>3 · 권유 문장</i></span>
-        <span class="chip"><b>트리플</b><i>3 · 영어 단어</i></span>
-        <span class="chip"><b>여기어때</b><i>4 · 질문 문장</i></span>
-        <span class="chip"><b>오늘의집</b><i>4 · ○의○</i></span>
-        <span class="chip"><b>밀리의서재</b><i>5 · ○의○</i></span>
-        <span class="chip"><b>캐치테이블</b><i>5 · 영어 구절</i></span>
-        <span class="chip"><b>마이리얼트립</b><i>6 · 영어 구절</i></span>
-        <span class="chip"><b>CLASS101</b><i>영어 + 숫자</i></span>
+        <span class="chip"><b>Smartify</b><i>smart + -ify 합성 · 평가 9.5천</i></span>
+        <span class="chip"><b>Artsy</b><i>art + -sy · 회사명 Art.sy</i></span>
+        <span class="chip"><b>Connects</b><i>Bloomberg Connects의 스토어 이름 ‘Connects: Arts+Culture’</i></span>
+        <span class="chip"><b>DailyArt</b><i>daily + art · 평가 3.7만</i></span>
+        <span class="chip"><b>Magnus</b><i>창업자 이름(라틴어 ‘큰’)</i></span>
+        <span class="chip"><b>Cuseum</b><i>기관용 B2B, 스토어엔 바코드 앱만</i></span>
+        <span class="chip"><b>MusA</b><i>밀라노대 접근성 앱, 라틴어 Musa</i></span>
+        <span class="chip"><b>Tiqets</b><i>tickets 철자 비틈 · 평가 3.6만</i></span>
+        <span class="chip"><b>Fever</b><i>영어 한 단어 · 평가 7.4만</i></span>
+        <span class="chip"><b>Ostrovok</b><i>러시아어 ‘섬’, 호텔 예약</i></span>
+        <span class="chip"><b>Letterboxd</b><i>letterbox + d, 영화 기록</i></span>
       </div>
-      <p>대부분 2~3음절이고 한글로 적는다. 영어 단어도 한글 표기(토스·트리플)로 쓰는 경우가 많다. 길면 사람들이 줄여 부른다(배달의민족→배민).</p>
-      <p class="src">출처: 앱스토어 KR 각 앱 페이지(<a href="https://apps.apple.com/kr/app/id839333328">토스</a>, <a href="https://apps.apple.com/kr/app/id1018769995">당근</a>, <a href="https://apps.apple.com/kr/app/id1080244833">컬리</a>, <a href="https://apps.apple.com/kr/app/id338813698">리디</a>, <a href="https://apps.apple.com/kr/app/id436731843">NOL</a>, <a href="https://apps.apple.com/kr/app/id1008236892">오늘의집</a>, <a href="https://apps.apple.com/kr/app/id1213788923">밀리의서재</a>, <a href="https://apps.apple.com/kr/app/id1485193566">캐치테이블</a>, <a href="https://apps.apple.com/kr/app/id884043462">여기어때</a>) · 이름 변경: <a href="https://byline.network/2023/08/%eb%8b%b9%ea%b7%bc%eb%a7%88%ec%bc%93-%eb%8b%b9%ea%b7%bc%ec%9c%bc%eb%a1%9c-%ec%84%9c%eb%b9%84%ec%8a%a4%eb%aa%85-%eb%b3%80%ea%b2%bd/">당근(바이라인 2023.08)</a>, <a href="https://byline.network/2022/11/03_982661/">컬리(바이라인 2022.11)</a>, <a href="https://www.webtoonguide.com/ko/board/news-column/16622">리디(웹툰가이드 2022.03)</a>, <a href="https://byline.network/2025/03/07_2918273">NOL(바이라인 2025.03)</a></p>
+      <p>미술 쪽은 ‘art’를 넣은 합성어가 많고, 예약·이벤트 쪽은 짧은 실제 단어(Fever)나 철자를 비튼 단어(Tiqets)가 많다. 라틴어·외국어 한 단어(Magnus, MusA, Ostrovok)도 문제없이 쓰인다.</p>
+      <p class="src">출처: 앱스토어 US(<a href="https://apps.apple.com/us/app/id1102736524">Smartify</a>, <a href="https://apps.apple.com/us/app/id703796080">Artsy</a>, <a href="https://apps.apple.com/us/app/id1476456847">Connects</a>, <a href="https://apps.apple.com/us/app/id547982045">DailyArt</a>, <a href="https://apps.apple.com/us/app/id1061967005">Magnus</a>, <a href="https://apps.apple.com/us/app/id6762161577">Cuseum</a>, <a href="https://apps.apple.com/us/app/id1212818451">Tiqets</a>, <a href="https://apps.apple.com/us/app/id497702817">Fever</a>, <a href="https://apps.apple.com/us/app/id564204730">Ostrovok</a>, <a href="https://apps.apple.com/us/app/id1054271011">Letterboxd</a>) · <a href="https://www.finestresullarte.info/en/news/musa-the-new-app-to-make-art-usable-for-all-through-augmented-reality">MusA(Finestre sull'Arte)</a> · <a href="https://venturebeat.com/business/with-25m-travel-site-ostrovok-emerges-as-leader-in-russian-market">Ostrovok 뜻(VentureBeat)</a></p>
     </div>
 
     <div class="rg">
-      <h3>전시·미술관 앱 (해외)</h3>
+      <h3>한국에서 영어·조어 이름으로 성공한 앱</h3>
       <div class="chips">
-        <span class="chip"><b>Smartify</b><i>smart+-ify 합성</i></span>
-        <span class="chip"><b>Connects: Arts+Culture</b><i>Bloomberg Connects의 현재 스토어 이름</i></span>
-        <span class="chip"><b>Google Arts &amp; Culture</b><i>회사명+분야</i></span>
-        <span class="chip"><b>Artsy</b><i>art+-sy</i></span>
-        <span class="chip"><b>DailyArt</b><i>daily+art</i></span>
-        <span class="chip"><b>ARTLENS</b><i>클리블랜드 미술관</i></span>
-        <span class="chip"><b>Magnus</b><i>사람 이름, 작품 시세 앱</i></span>
-        <span class="chip"><b>Rijksmuseum</b><i>기관명</i></span>
-        <span class="chip"><b>Tiqets · Fever</b><i>예매 앱, 짧은 영어 한 단어</i></span>
+        <span class="chip"><b>토스</b><i>Toss · 영어 단어</i></span>
+        <span class="chip"><b>트리플</b><i>Triple · 영어 단어</i></span>
+        <span class="chip"><b>멜론</b><i>Melon · 영어 단어</i></span>
+        <span class="chip"><b>지그재그</b><i>ZIGZAG · 영어 단어</i></span>
+        <span class="chip"><b>캐치테이블</b><i>catch + table</i></span>
+        <span class="chip"><b>크림</b><i>KREAM · cream 철자 비틈</i></span>
+        <span class="chip"><b>웨이브</b><i>Wavve · wave 철자 비틈</i></span>
+        <span class="chip"><b>에이블리</b><i>ABLY · 조어</i></span>
+        <span class="chip"><b>왓챠</b><i>WATCHA · 조어</i></span>
+        <span class="chip"><b>클룩</b><i>Klook · ‘Keep Looking’ 줄임</i></span>
+        <span class="chip"><b>무신사</b><i>‘무진장 신발 사진이 많은 곳’ 줄임</i></span>
+        <span class="chip"><b>번개장터</b><i>앱 표기는 그대로, 부를 땐 ‘번장’</i></span>
+        <span class="chip"><b>NOL</b><i>야놀자·인터파크 통합 이름(2025)</i></span>
+        <span class="chip"><b>인터파크</b><i>inter + park</i></span>
       </div>
-      <p>‘Art’가 들어간 합성어나 기관명이 대부분. Cuseum은 기관용 B2B라 스토어엔 바코드 스캐너만 있고, Musa는 스토어에서 확인되지 않음.</p>
-      <p class="src">출처: 앱스토어 US(<a href="https://apps.apple.com/us/app/id1102736524">Smartify</a>, <a href="https://apps.apple.com/us/app/id1476456847">Connects</a>, <a href="https://apps.apple.com/us/app/id1050970557">Google Arts &amp; Culture</a>, <a href="https://apps.apple.com/us/app/id703796080">Artsy</a>, <a href="https://apps.apple.com/us/app/id547982045">DailyArt</a>, <a href="https://apps.apple.com/us/app/id580839935">ARTLENS</a>, <a href="https://apps.apple.com/us/app/id1061967005">Magnus</a>, <a href="https://apps.apple.com/us/app/id497702817">Fever</a>)</p>
-    </div>
-
-    <div class="rg">
-      <h3>전시·티켓 앱 (국내)</h3>
-      <div class="chips">
-        <span class="chip"><b>큐피커</b><i>티켓부터 오디오 가이드까지, 같은 영역</i></span>
-        <span class="chip"><b>국립중앙박물관 전시안내</b><i>기관명+기능</i></span>
-        <span class="chip"><b>국립현대미술관 전시안내</b><i>기관명+기능</i></span>
-        <span class="chip"><b>서울시립미술관 전시 도슨팅</b><i>기관명+기능</i></span>
-        <span class="chip"><b>NOL 티켓 · 티켓링크 · 멜론 티켓 · 예스24 티켓</b><i>브랜드+티켓</i></span>
-      </div>
-      <p>국내도 기관명이나 ‘○○ 티켓’ 같은 설명형이 대부분이라, 일상어 한 단어 이름이면 그것만으로 눈에 띈다.</p>
-      <p class="src">출처: 앱스토어 KR(<a href="https://apps.apple.com/kr/app/id1469376668">큐피커</a>, <a href="https://apps.apple.com/kr/app/id6478134880">국립중앙박물관</a>, <a href="https://apps.apple.com/kr/app/id1350753069">국립현대미술관</a>, <a href="https://apps.apple.com/kr/app/id440487844">NOL 티켓</a>, <a href="https://apps.apple.com/kr/app/id1021825736">티켓링크</a>)</p>
-    </div>
-
-    <div class="rg">
-      <h3>선택·참여·비교 앱</h3>
-      <div class="chips">
-        <span class="chip"><b>Either</b><i>“둘 중 하나” · 선택 게임, 평가 5.9만 건</i></span>
-        <span class="chip"><b>BeReal</b><i>짧은 문장</i></span>
-        <span class="chip"><b>Kahoot!</b><i>소리 먼저 만든 말</i></span>
-        <span class="chip"><b>Poll Everywhere</b><i>기능 설명형</i></span>
-        <span class="chip"><b>Letterboxd · 왓챠피디아</b><i>평점 비교, 합성어</i></span>
-        <span class="chip"><b>할말없어요</b><i>밸런스게임 앱, 말투 그대로</i></span>
-        <span class="chip"><b>오베이</b><i>설문 앱</i></span>
-      </div>
-      <p>고르는 행동을 가리키는 한 단어(Either)나 말투 그대로인 문장(할말없어요)이 많다.</p>
-      <p class="src">출처: 앱스토어(<a href="https://apps.apple.com/us/app/id1437917909">Either</a>, <a href="https://apps.apple.com/us/app/id1459645446">BeReal</a>, <a href="https://apps.apple.com/us/app/id1131203560">Kahoot!</a>, <a href="https://apps.apple.com/us/app/id1054271011">Letterboxd</a>, <a href="https://apps.apple.com/kr/app/id644185507">왓챠피디아</a>, <a href="https://apps.apple.com/kr/app/id6449715593">할말없어요</a>)</p>
+      <p>한국 앱도 영어 단어나 조어가 흔하고, 홈 화면 라벨은 대부분 한글(토스·크림·멜론)이다. 2~4음절이 대부분이고, 영문 로고와 한글 라벨을 같이 쓴다.</p>
+      <p class="src">출처: 앱스토어 KR(<a href="https://apps.apple.com/kr/app/id839333328">토스</a>, <a href="https://apps.apple.com/kr/app/id1225499481">트리플</a>, <a href="https://apps.apple.com/kr/app/id415597317">멜론</a>, <a href="https://apps.apple.com/kr/app/id976131101">지그재그</a>, <a href="https://apps.apple.com/kr/app/id1485193566">캐치테이블</a>, <a href="https://apps.apple.com/kr/app/id1490580239">KREAM</a>, <a href="https://apps.apple.com/kr/app/id987782077">Wavve</a>, <a href="https://apps.apple.com/kr/app/id1084960428">에이블리</a>, <a href="https://apps.apple.com/kr/app/id1096493180">왓챠</a>, <a href="https://apps.apple.com/kr/app/id961850126">클룩</a>, <a href="https://apps.apple.com/kr/app/id1003139529">무신사</a>, <a href="https://apps.apple.com/kr/app/id395672275">번개장터</a>, <a href="https://apps.apple.com/kr/app/id436731843">NOL</a>) · 유래: <a href="https://campaignasia.com/article/klook-co-founder-shares-his-brand-building-recipe/455680">Klook(Campaign Asia)</a>, <a href="https://www.wikitree.co.kr/articles/1108299">무신사(위키트리)</a>, <a href="https://byline.network/2025/03/07_2918273">NOL(바이라인 2025.03)</a></p>
     </div>
   </div>
 </section>
 
 <section id="cands">
-  <h2>후보 9개</h2>
-  <p class="note">52개를 검사해 9개를 남겼습니다(검사 기준일 2026-10-26). 앱스토어는 한국 스토어, 구글플레이는 한국 검색 결과에서 이름이 같거나 거의 같은 앱만 셌습니다. 상표는 KIPRIS 문자 검색 상위 90건 중 같은 표기만 봤고, 9류(앱)·41류(전시·교육)·42류(소프트웨어)를 따로 표시했습니다. 비슷한 상표인지는 변리사 판단이 필요합니다. 인스타그램 계정은 로그인 없이는 조회되지 않아 미확인입니다.</p>
-
+  <h2>후보 10</h2>
+  <p class="note">69개를 같은 방식으로 검사해 10개를 남겼고, 그중 3개를 추천합니다(검사 2026-10-26). 앱스토어는 한국·미국 스토어(iTunes Search API), 구글플레이는 한국 검색 결과에서 영문·한글 이름이 같은 앱을 셌습니다. 상표는 KIPRIS 문자 검색 상위 90건에서 영문·한글 표기가 같은 것만 보고, 9류(앱)·41류(전시·교육)·42류(소프트웨어)를 따로 표시했습니다. 비슷한 상표인지는 변리사 판단이 필요합니다. 도메인은 whois로 등록 여부만 봤습니다.</p>
   <div class="cards">
-
     <article class="card pick">
-      <div class="mark"><span class="rank">추천 1</span><b>저마다</b><i>JEOMADA</i></div>
+      <div class="mark"><span class="rank">추천 1</span><b>Mostra</b><span class="ko">모스트라</span><span class="say">4음절. 첫 음절에 힘이 실리고 ‘라’로 가볍게 끝난다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>3음절, 받침이 없어 부드럽게 이어진다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>컨셉 문장 “같은 그림 앞, 저마다의 선택”에 이미 있는 말이라 따로 설명할 게 없다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>당근처럼 우리말 일상어를 그대로 씀. 3음절은 무신사·야놀자와 같은 길이.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st ok">없음</i>같은 이름 앱 없음</span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>상표</span><span><i class="st ok">9·41·42류 없음</i>‘저마다’ 43류(음식점) 등록 1건, ‘저마다꽃’ 41류 출원 1건</span></div>
-          <div class="ck"><span>도메인</span><span><i class="st warn">일부</i>jeomada.kr·.co.kr 비어 있음. .com은 2026-08 남이 등록(빈 페이지)</span></div>
-        </div>
-        <p class="wk">약점: 흔한 부사라 검색하면 문장이 섞여 나온다. 로마자 JEOMADA는 낯설다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>이탈리아어로 ‘전시’. 다음 전시가 그림이든 역사든 그대로 맞고, 베네치아 비엔날레가 영화제를 ‘Mostra’라고 부르듯 실제 문화 행사 이름으로 쓰는 말이다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>Ostrovok · 외국어 단어를 원어 그대로 쓴 예약 앱</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">없음</i>‘Mostra de Cinema de São Paulo’ 같은 영화제 앱만</span></div><div class="ck"><span>상표</span><span><i class="st ok">9·41·42류 없음</i>MOSTRA 25류(의류) 소멸 1건, ‘모스트라이즈’ 35류 등 다른 이름만</span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr·.co.kr 비어 있음. .com은 판매 매물</span></div></div>
+        <p class="wk">약점: 후보 중 가장 긴 4음절. 처음 보는 사람은 영어 ‘most’로 읽을 수 있다.</p>
       </div>
     </article>
-
     <article class="card pick">
-      <div class="mark"><span class="rank">추천 2</span><b>갈래</b><i>GALLAE</i></div>
+      <div class="mark"><span class="rank">추천 2</span><b>Admit</b><span class="ko">어드밋</span><span class="say">3음절. 짧고 또렷하게 ‘밋’에서 닫힌다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>2음절, 받침 ㄹ로 가볍다. “전시 갈래?”라는 말과 소리가 같다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>‘나뉜 가닥’이라는 원래 뜻이 방마다 길이 나뉘는 구조와 그대로 같다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>당근·리디 같은 2음절 우리말. 말 거는 소리는 야놀자 쪽.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st ok">같은 이름 없음</i>‘단양갈래’ ‘갈래말래’ 등 9개에 들어감</span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">같은 이름 없음</i>여행 앱 6개에 들어감</span></div>
-          <div class="ck"><span>상표</span><span><i class="st warn">주의</i>‘갈래요’ 9류 등록(개인), ‘갈래길’ 41류 등록. ‘갈래’ 자체는 거절·소멸만</span></div>
-          <div class="ck"><span>도메인</span><span><i class="st warn">일부</i>gallae.kr 비어 있음. .com(미국 단체, 2001)·.co.kr 등록됨</span></div>
-        </div>
-        <p class="wk">약점: 9류 ‘갈래요’와 비슷하다고 볼 수 있다. 여행·축제 앱에 ‘갈래’가 흔하다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>입장권에 찍히는 바로 그 단어(ADMIT ONE). 표를 여는 앱이라는 게 설명 없이 읽힌다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>토스(Toss) · 영어 동사 한 단어를 한글 표기로 부름</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st warn">같은 이름 1개</i>‘Admit: AI College+Career Coach’(평가 0, 유학 입시)</span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st warn">같은 이름 1개</i>‘ADMIT’</span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">큰 앱 없음</i>‘Admitted’ 같은 입시 앱이 여럿</span></div><div class="ck"><span>상표</span><span><i class="st ok">없음</i>‘admitto’ 16·41류 포기 2건뿐</span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr 비어 있음. .com 등록, .co.kr은 쇼핑몰 ‘애드밋’이 사용 중</span></div></div>
+        <p class="wk">약점: 해외에서는 대학 합격(admitted) 쪽 앱이 많다. 한글 표기가 어드밋/애드밋으로 갈릴 수 있다.</p>
       </div>
     </article>
-
     <article class="card pick">
-      <div class="mark"><span class="rank">추천 3</span><b>너라면</b><i>NEORAMYEON</i></div>
+      <div class="mark"><span class="rank">추천 3</span><b>Visto</b><span class="ko">비스토</span><span class="say">3음절. 받침 없이 굴러간다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>3음절, 말을 건네는 질문형. 끝이 열려 있다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>방마다 던지는 질문이 그대로 이름이다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>여기어때 같은 질문형 이름.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>상표</span><span><i class="st ok">살아 있는 것 없음</i>라면 상품 출원 3건, 모두 거절</span></div>
-          <div class="ck"><span>도메인</span><span><i class="st ok">모두 비어 있음</i>.com·.kr·.co.kr</span></div>
-        </div>
-        <p class="wk">약점: 반말이고, ‘너 라면’(라면) 말장난으로 읽힌다. 질문형이라 가볍게 보일 수 있다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>이탈리아·스페인어로 ‘본’. 관람 앱 이름으로 무리가 없고, 세 음절이라 홈 화면에서 잘리지 않는다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>Fever · 짧은 실제 단어 하나로 된 이벤트·티켓 앱</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st warn">같은 이름 5개</i>‘Visto: 드라마·영화 시청 기록’ 등, 모두 평가 0</span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st warn">같은 이름 3개</i>소형 앱</span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">큰 앱 없음</i>같은 이름 6개, 평가 0~2</span></div><div class="ck"><span>상표</span><span><i class="st ok">9·41·42류 없음</i>VISTO 11·12류(조명·차량) 등록, ‘비스토어’ 35류는 다른 이름</span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr·.co.kr 비어 있음. .com은 기업 보유</span></div></div>
+        <p class="wk">약점: 포르투갈어·이탈리아어에서는 ‘비자’라는 뜻도 있다. 이름이 같은 소형 앱이 많아 검색에서 섞인다.</p>
       </div>
     </article>
-
     <article class="card">
-      <div class="mark"><b>입장</b><i>IPJANG</i></div>
+      <div class="mark"><b>Carnet</b><span class="ko">카르네</span><span class="say">3음절. 받침이 없고, 끝의 t는 소리 내지 않는다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>2음절 한자어, 단단하고 짧다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>‘입장권’의 입장과 ‘내 입장’의 입장. 사전에 둘 다 있는 뜻이라 티켓과 선택을 한 단어가 덮는다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>직방·다방 같은 2음절 한자어.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st ok">같은 이름 없음</i>‘슝 - 티켓 입장 플랫폼’ 등 7개에 들어감</span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">같은 이름 없음</i></span></div>
-          <div class="ck"><span>상표</span><span><i class="st warn">살아 있는 것 없음</i>소멸·포기만. 다만 티켓 서비스에 일반명사라 등록이 어려울 수 있음(추정)</span></div>
-          <div class="ck"><span>도메인</span><span><i class="st warn">일부</i>ipjang.kr 비어 있음. .com 등록, .co.kr 사용 중</span></div>
-        </div>
-        <p class="wk">약점: 앱 안의 ‘QR 입장’ 버튼과 이름이 겹친다. 홈 화면에서 기능 버튼처럼 보이고 검색에서 묻힌다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>프랑스어로 ‘수첩’, 또 여러 장 묶어 파는 표(파리 지하철 carnet). 표와 모은 것을 넣어 두는 앱과 같은 물건이다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>Tiqets · 표를 가리키는 말을 이름으로 쓴 관람 예약 앱</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st ok">소형 1개</i>‘CARNET’(평가 0)</span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st ok">다른 분야 1개</i>자동차 앱 ‘CarNet’</span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">큰 앱 없음</i></span></div><div class="ck"><span>상표</span><span><i class="st ok">9·41·42류 없음</i>Carnet 24류(직물) 등록, ‘카르네브’ 35류는 다른 이름</span></div><div class="ck"><span>도메인</span><span><i class="st bad">모두 등록됨</i>.com·.kr·.co.kr</span></div></div>
+        <p class="wk">약점: ‘카넷’으로 읽는 사람이 있다. 검색하면 통관 서류 ATA Carnet이 섞이고, 도메인을 새로 잡기 어렵다.</p>
       </div>
     </article>
-
     <article class="card">
-      <div class="mark"><b>어느쪽</b><i>EONEUJJOK</i></div>
+      <div class="mark"><b>Exibo</b><span class="ko">엑시보</span><span class="say">3음절. 앞은 단단하고 ‘보’로 둥글게 끝난다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>3음절, 된소리 ‘쪽’으로 또렷하게 끝난다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>둘 중 하나를 고를 때 실제로 하는 말이다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>영어권 선택 앱 Either, 국내 질문형 여기어때.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st warn">비슷한 앱</i>‘어느 쪽이 더 오래됐을까? 미술 퀴즈’ 등 4개</span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>상표</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>도메인</span><span><i class="st ok">모두 비어 있음</i></span></div>
-        </div>
-        <p class="wk">약점: 길 묻는 말처럼 들린다. ‘어느 쪽’ 띄어쓰기가 헷갈리고 로마자가 길다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>exhibit에서 딴 조어. 뜻을 설명할 게 없고, 이번에 본 이름 중 스토어·상표·도메인이 가장 깨끗하다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>KREAM·Wavve · 익숙한 단어를 비틀어 상표를 확보한 조어</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>상표</span><span><i class="st ok">9·41·42류 없음</i>‘엑시보’ 28류(장난감) 출원 1건뿐</span></div><div class="ck"><span>도메인</span><span><i class="st ok">거의 비어 있음</i>.kr·.co.kr 비어 있음. .com은 등록됐지만 사이트 없음</span></div></div>
+        <p class="wk">약점: 조어라 처음엔 아무 뜻도 없다. ‘엑시’ 소리가 조금 딱딱하다.</p>
       </div>
     </article>
-
     <article class="card">
-      <div class="mark"><b>물음</b><i>MUREUM</i></div>
+      <div class="mark"><b>Stanza</b><span class="ko">스탄자</span><span class="say">3음절. 가운데 ‘탄’에 힘이 실린다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>2음절, 받침 ㅁ으로 차분하게 닫힌다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>방마다 정답 없는 질문 하나. 그 말 그대로다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>당근 같은 2음절 우리말 명사.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st warn">비슷한 앱</i>‘오늘의 물음’, 명상 앱 ‘물:음 MUREUM’</span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st warn">비슷한 앱</i>‘물음일기’, ‘물:음 MUREUM’</span></div>
-          <div class="ck"><span>상표</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>도메인</span><span><i class="st bad">충돌</i>mureum.com에서 설문 플랫폼 ‘물음’ 운영 중(2026-04 등록). .kr·.co.kr은 비어 있음</span></div>
-        </div>
-        <p class="wk">약점: 같은 이름의 설문 서비스가 있다. 질문·응답이라는 성격까지 겹친다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>이탈리아어로 ‘방’. 이 앱은 전시실 단위로 움직인다(방마다 질문 하나, 방마다 해설).</div>
+        <div class="row"><span class="lb">닮은 선례</span>Magnus · 라틴계 단어 하나로 된 미술 앱</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st warn">같은 분야 1개</i>‘Stanza: 여행 오디오 가이드’(평가 0) 외 2개</span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st warn">같은 분야 1개</i>같은 오디오 가이드 앱</span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">큰 앱 없음</i></span></div><div class="ck"><span>상표</span><span><i class="st ok">9·41·42류 없음</i>살아 있는 것은 25류(의류) 1건</span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr·.co.kr 비어 있음. .com은 판매 매물</span></div></div>
+        <p class="wk">약점: 작지만 같은 분야(오디오 가이드) 앱이 이미 같은 이름을 쓴다. 영어로는 ‘시의 연’이라는 뜻이다.</p>
       </div>
     </article>
-
     <article class="card">
-      <div class="mark"><b>각자</b><i>GAKJA</i></div>
+      <div class="mark"><b>Visita</b><span class="ko">비지타</span><span class="say">3음절. 받침 없이 이어진다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>2음절, 짧고 단단하다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>같은 그림 앞에서 각자 다르게 고른다. 설명 없이 통하는 말이다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>직방·다방 같은 2음절 한자어.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st ok">같은 이름 없음</i>‘각자읽기모임’ 등 4개에 들어감</span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">같은 이름 없음</i>‘각자미식’</span></div>
-          <div class="ck"><span>상표</span><span><i class="st ok">9·41·42류 없음</i>‘각자집’ 43류만</span></div>
-          <div class="ck"><span>도메인</span><span><i class="st bad">모두 등록됨</i>gakja.com은 더치페이 정산 앱</span></div>
-        </div>
-        <p class="wk">약점: 소리가 차갑고 ‘각자도생’, ‘각자 내기(더치페이)’가 먼저 떠오른다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>이탈리아·스페인어로 ‘방문’. 관람 그 자체를 가리키는 평범한 말이다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>트리플(Triple) · 평범한 외래어 한 단어</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st ok">소형 1개</i>‘Visita’(평가 0), 브라질 지역 관광 앱</span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st ok">소형 1개</i></span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>상표</span><span><i class="st ok">없음</i>‘비지타임’ 식품류 소멸만</span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr·.co.kr 비어 있음. .com 등록</span></div></div>
+        <p class="wk">약점: 검색하면 각국 관광 사이트(visita…)가 섞인다. 뜻이 평범해 기억에 덜 남는다.</p>
       </div>
     </article>
-
     <article class="card">
-      <div class="mark"><b>선택지</b><i>SEONTAEKJI</i></div>
+      <div class="mark"><b>Kurato</b><span class="ko">쿠라토</span><span class="say">3음절. 받침 없음.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>3음절, 또박또박 읽힌다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>앱에서 하는 일을 그대로 말한다. 오해할 여지가 없다.</div>
-        <div class="row"><span class="lb">닮은 선례</span>오늘의집·캐치테이블처럼 기능을 말하는 이름.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>상표</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>도메인</span><span><i class="st ok">모두 비어 있음</i></span></div>
-        </div>
-        <p class="wk">약점: 설명형이라 밋밋하고 시험 문제처럼 들린다. 티켓·도슨트 기능은 안 보인다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>curator에서 딴 조어. 작품을 골라 보여 주는 앱이라는 게 소리로 바로 온다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>Smartify · 기존 단어를 다듬어 만든 조어</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st ok">소형 1개</i>‘Kurato’(평가 0)</span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st warn">같은 이름 1개</i>‘Kurato: Movie, TV & Book Picks’(평가 24)</span></div><div class="ck"><span>상표</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr·.co.kr 비어 있음. kurato.com은 사용 중</span></div></div>
+        <p class="wk">약점: 미국에 같은 이름의 콘텐츠 추천 앱과 사이트가 있다. 이탈리아어 curato는 ‘본당 신부’라는 뜻이다.</p>
       </div>
     </article>
-
     <article class="card">
-      <div class="mark"><b>골똘</b><i>GOLTTOL</i></div>
+      <div class="mark"><b>Galeo</b><span class="ko">갈레오</span><span class="say">3음절. 받침은 ‘갈’ 하나, 끝이 열려 있다.</span></div>
       <div class="body">
-        <div class="row"><span class="lb">소리</span>2음절, 된소리 ‘똘’이 귀엽고 한 번 들으면 남는다.</div>
-        <div class="row"><span class="lb">맞는 이유</span>정답 없는 질문 앞에서 잠깐 생각하게 되는 앱이라 그 모습을 가리키는 말.</div>
-        <div class="row"><span class="lb">닮은 선례</span>똑닥 같은 의태어·의성어 이름.</div>
-        <div class="checks">
-          <div class="ck"><span>앱스토어</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>구글플레이</span><span><i class="st ok">없음</i></span></div>
-          <div class="ck"><span>상표</span><span><i class="st ok">살아 있는 것 없음</i>포기·거절·소멸만</span></div>
-          <div class="ck"><span>도메인</span><span><i class="st ok">모두 비어 있음</i></span></div>
-        </div>
-        <p class="wk">약점: 혼자 생각하는 말이라 ‘남들 선택 보기’는 안 담긴다. 귀여운 쪽으로 기운다.</p>
+        <div class="row"><span class="lb">왜 맞나</span>gallery·galleria에서 딴 조어. 전시 공간 쪽 말이라는 게 소리로 전해진다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>Artsy · art를 줄여 만든 조어</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st ok">소형 1개</i>‘Galeo’</span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st ok">없음</i></span></div><div class="ck"><span>상표</span><span><i class="st warn">비슷한 상표</i>GALEON 9·35·42류 등록(한 글자 차이). GALEO는 5·7류만</span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr 비어 있음. .com·.co.kr 등록</span></div></div>
+        <p class="wk">약점: GALEON과 비슷하다는 판단이 나올 수 있다. 미술관 쪽으로 기울어 역사 전시엔 덜 맞는다.</p>
       </div>
     </article>
+    <article class="card">
+      <div class="mark"><b>Odeon</b><span class="ko">오데온</span><span class="say">3음절. 모음으로 열고 ‘온’으로 닫힌다.</span></div>
+      <div class="body">
+        <div class="row"><span class="lb">왜 맞나</span>고대 그리스·로마의 공연장 이름이고, 지금도 유럽에서 극장·공연장 이름으로 쓴다.</div>
+        <div class="row"><span class="lb">닮은 선례</span>멜론(Melon) · 흔한 단어 하나를 한글 표기로 정착</div>
+        <div class="checks"><div class="ck"><span>앱스토어 KR</span><span><i class="st bad">같은 이름 1개</i>영국 영화관 체인 ‘ODEON’ 앱이 한국 스토어에도 있음</span></div><div class="ck"><span>구글플레이 KR</span><span><i class="st bad">같은 이름 1개</i>같은 ODEON 앱</span></div><div class="ck"><span>앱스토어 해외</span><span><i class="st bad">큰 충돌</i>ODEON(영국) 평가 5.4만</span></div><div class="ck"><span>상표</span><span><i class="st ok">한국엔 없음</i>ODEON 영문 상표는 소멸·포기만</span></div><div class="ck"><span>도메인</span><span><i class="st warn">일부</i>.kr·.co.kr 비어 있음. .com 등록</span></div></div>
+        <p class="wk">약점: 영국·유럽에서는 대형 영화관 체인 이름이다. 해외 진출을 생각하면 쓰기 어렵다.</p>
+      </div>
+    </article>  </div>
+  <p class="src" style="margin-top:12px">뜻 출처: <a href="https://www.labiennale.org/it/cinema/2023/80-mostra">Mostra(베네치아 비엔날레)</a> · 앱 이름은 각 스토어 검색 결과 그대로입니다.</p>
+</section>
 
-  </div>
+<section id="home">
+  <h2>홈 화면 미리보기 · 추천 3 + 다음 2</h2>
+  <p class="note">현재 앱 아이콘의 색(먹색 바탕·크림 글자)만 빌린 자리표시입니다. 로고 시안이 아니라 이름이 홈 화면에서 어떻게 읽히는지 보는 용도입니다. 다섯 개 모두 아이콘 아래에서 잘리지 않습니다.</p>
+  <div class="homes">
+<div class="screen light"><p class="cap">한글 라벨 · 밝은 배경화면</p><div class="grid"><div class="app"><div class="ic"><span style="font-size:13px">Mostra</span></div><span class="lbl">모스트라</span></div><div class="app"><div class="ic"><span style="font-size:14px">Admit</span></div><span class="lbl">어드밋</span></div><div class="app"><div class="ic"><span style="font-size:14px">Visto</span></div><span class="lbl">비스토</span></div><div class="app"><div class="ic"><span style="font-size:13px">Carnet</span></div><span class="lbl">카르네</span></div><div class="app"><div class="ic"><span style="font-size:14px">Exibo</span></div><span class="lbl">엑시보</span></div><div class="app"><div class="ic ghost"></div><span class="lbl">&nbsp;</span></div><div class="app"><div class="ic ghost"></div><span class="lbl">&nbsp;</span></div><div class="app"><div class="ic ghost"></div><span class="lbl">&nbsp;</span></div></div></div>
+<div class="screen dark"><p class="cap">영문 라벨 · 어두운 배경화면</p><div class="grid"><div class="app"><div class="ic"><span style="font-size:13px">Mostra</span></div><span class="lbl">Mostra</span></div><div class="app"><div class="ic"><span style="font-size:14px">Admit</span></div><span class="lbl">Admit</span></div><div class="app"><div class="ic"><span style="font-size:14px">Visto</span></div><span class="lbl">Visto</span></div><div class="app"><div class="ic"><span style="font-size:13px">Carnet</span></div><span class="lbl">Carnet</span></div><div class="app"><div class="ic"><span style="font-size:14px">Exibo</span></div><span class="lbl">Exibo</span></div><div class="app"><div class="ic ghost"></div><span class="lbl">&nbsp;</span></div><div class="app"><div class="ic ghost"></div><span class="lbl">&nbsp;</span></div><div class="app"><div class="ic ghost"></div><span class="lbl">&nbsp;</span></div></div></div>  </div>
 </section>
 
 <section id="drop">
-  <h2>탈락시킨 후보와 이유</h2>
-  <p class="note">같은 방식으로 검사한 나머지 43개와, 검사 전에 뺀 말 하나입니다.</p>
+  <h2>뺀 후보</h2>
+  <p class="note">검사한 69개 중 나머지 59개입니다. 이유가 같은 것끼리 묶었습니다.</p>
   <div class="drop">
-    <div class="dr"><b>나라면</b><span>같은 표기 상표가 9류(앱)에 등록돼 있음</span></div>
-    <div class="dr"><b>간직</b><span>같은 표기 상표가 9류에 등록돼 있음</span></div>
-    <div class="dr"><b>갈피</b><span>같은 이름 앱 7개 이상, 상표 9·41·42류 등록</span></div>
-    <div class="dr"><b>발자취</b><span>같은 이름 기록 앱 다수, 상표 9류 등록</span></div>
-    <div class="dr"><b>문답</b><span>상표 9류 등록</span></div>
-    <div class="dr"><b>이쪽</b><span>같은 이름의 커뮤니티 앱, 상표 9·42류 등록</span></div>
-    <div class="dr"><b>갸웃</b><span>‘갸웃이’ 9·41·42류 출원 중</span></div>
-    <div class="dr"><b>기로</b><span>41류 출원 중, ‘기로에 서다’라 무겁다</span></div>
-    <div class="dr"><b>결</b><span>같은 이름 앱 4개 이상, 상표 42류 출원 중</span></div>
-    <div class="dr"><b>사이</b><span>같은 이름 앱 다수(관계·연애 앱)</span></div>
-    <div class="dr"><b>시선</b><span>눈길과 같은 결이고 같은 이름 앱 다수</span></div>
-    <div class="dr"><b>모아 · 마디</b><span>같은 이름 앱과 상표가 많다</span></div>
-    <div class="dr"><b>흔적 · 여정</b><span>같은 이름의 여행·기록 앱 있음</span></div>
-    <div class="dr"><b>그때</b><span>구글플레이에 같은 이름 앱, 레트로 카메라 앱이 많다</span></div>
-    <div class="dr"><b>한표</b><span>같은 이름의 여론 앱 ‘한표 - 민심’, 선거 느낌</span></div>
-    <div class="dr"><b>끄덕</b><span>같은 이름 앱 ‘끄덕: 말빨전쟁’</span></div>
-    <div class="dr"><b>한끗</b><span>같은 이름의 뷰티 앱</span></div>
-    <div class="dr"><b>골라 · 나도</b><span>같은 이름 앱 있음(카드 추천, 준비물 공유)</span></div>
-    <div class="dr"><b>보기</b><span>같은 이름 앱 있음, ‘예시’라는 뜻과 섞임</span></div>
-    <div class="dr"><b>걸음</b><span>만보기 앱 수십 개에 묻힘</span></div>
-    <div class="dr"><b>취향</b><span>같은 이름 앱, 흔한 유행어</span></div>
-    <div class="dr"><b>선택</b><span>상표 41·42류 등록 다수(MBC 선거 방송 포함)</span></div>
-    <div class="dr"><b>고름</b><span>‘상처의 고름’이 먼저 떠오름</span></div>
-    <div class="dr"><b>자취</b><span>‘혼자 사는 자취’가 먼저 떠오름</span></div>
-    <div class="dr"><b>너나</b><span>‘너나 잘하세요’가 떠오름, 상표 다수</span></div>
-    <div class="dr"><b>택일</b><span>결혼 날짜를 잡는다는 뜻이 먼저</span></div>
-    <div class="dr"><b>다들 · 여럿</b><span>이름으로 부르면 어색함</span></div>
-    <div class="dr"><b>다름 · 관점</b><span>추상적이고 딱딱함, ‘다름’은 상표 다수</span></div>
-    <div class="dr"><b>글쎄</b><span>머뭇거리는 말이라 부정적, 같은 이름 앱 있음</span></div>
-    <div class="dr"><b>가늠 · 가름</b><span>소리가 비슷해 헷갈리고, ‘가늠’은 러닝 앱 있음</span></div>
-    <div class="dr"><b>갈림길</b><span>무겁고 같은 이름 앱 있음</span></div>
-    <div class="dr"><b>제각각</b><span>어수선하다는 느낌</span></div>
-    <div class="dr"><b>십인십색</b><span>4음절 사자성어라 예스러움</span></div>
-    <div class="dr"><b>물음표</b><span>필라테스·카페 상호로 흔하고 가벼움</span></div>
-    <div class="dr"><b>넌어때</b><span>‘여기어때’를 흉내 낸 소리</span></div>
-    <div class="dr"><b>도장</b><span>태권도장·전자도장이 먼저, 범위가 좁음</span></div>
-    <div class="dr"><b>이더(Either)</b><span>이더리움이 먼저 떠오르고, 영어권에 같은 이름의 선택 게임이 있음</span></div>
-    <div class="dr"><b>견줌</b><span>체험 문구에서 이미 쓰지 않기로 한 말</span></div>
+    <div class="dr"><b>상표가 이미 있음</b><span>Tableau(세일즈포스 9·41·42류), Verso(41·42류), Curio·큐리오(41·42류), Arto(라인문화재단 41·42류), Artis(41류), Avec(41·42류), Mezzo(9·41류), Halo(마이크로소프트 9·41·42류), Aura(9·42류), Nuance·뉘앙스(41류), Agora(41류), Opus·오푸스(41·42류 출원), Tessera(9·42류), Ars·아르스(41류), Atrium·아트리움(42류), Atlo(42류 출원)</span></div>
+    <div class="dr"><b>같은 분야 앱이 있음</b><span>Museo(미술 스캔·관람 앱 2개), Arteo(AI 미술 작품 인식 앱), Optio(결정 도우미 앱), Paseo(오디오 투어 앱), Allee·알레(국내 등산 앱)</span></div>
+    <div class="dr"><b>같은 이름 앱이 많거나 큼</b><span>Folio(지갑 앱 등 14개, 국내 ‘폴리오’ 앱), Musa(생리 주기 앱 평가 1.2만), Modo(평가 6만 앱), Plura(데이팅 앱 평가 2천), Prism, Lumo, Lume, Alter, Aside, Souvenir, Vitrine, Vidi, Tutti, Viva, Arvo, Passo, Stub, Encore(하이트진로 상표도 있음), Ensemble(앙상블스타즈), Duo(결혼정보 ‘듀오’ 상표)</span></div>
+    <div class="dr"><b>뜻이 너무 넓어 검색에 묻힘</b><span>Visit, Via, Vue, Bis, Atelier, Salon(국내에선 미용실·룸살롱이 먼저)</span></div>
+    <div class="dr"><b>한글로 읽을 때 걸림</b><span>Ambo(암보험), Musey(가수 뮤지), Vizi(비지), Choix(슈아, 읽기 어려움), Parcours(파쿠르로 읽힘), Passage(파사주/패시지로 갈림), Recto, Varia, Sala, Aperto(4음절), Musee(‘뮤제’ 35·43류 등록), Entree(식당 코스 이름)</span></div>
   </div>
 </section>
 </main>
 
-<footer class="wrap">제작 KYVIKOS · 내부 검토용 보드(검색 노출 안 함) · 검사 2026-10-26: 앱스토어 KR(iTunes Search API), 구글플레이 KR 검색, KIPRIS 상표 문자 검색, whois(.com·.kr·.co.kr)</footer>
+<footer class="wrap">제작 KYVIKOS · 내부 검토용 보드(검색 노출 안 함) · 검사 2026-10-26: 앱스토어 KR·US(iTunes Search API), 구글플레이 KR 검색, KIPRIS 상표 문자 검색, whois(.com·.kr·.co.kr)</footer>
 </body>
 </html>
