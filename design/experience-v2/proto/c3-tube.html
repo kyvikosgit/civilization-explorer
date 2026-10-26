@@ -34,10 +34,22 @@
     <p class="sub">눈앞의 빛을 그 순간 그대로 담고 싶었던 화가에게, 야외로 나설 용기를 준 것은 무엇이었을까요?</p>
   </header>
 
-  <!-- 방 안의 물건 아홉 가지 — 실물 사진. 연 물건에는 작은 점 -->
-  <section class="objs" id="objs" aria-label="방 안의 물건"></section>
-  <p class="foot-hint" id="footHint">물건에 폰을 대면 이야기가 열립니다</p>
+  <!-- 방 안의 소품 아홉 가지 — 처음엔 '?'. 소품에 폰을 대면 드러난다(실물 사진) -->
+  <div class="found-row"><span>방 안의 소품</span><b id="found">0 / 9</b></div>
+  <section class="objs" id="objs" aria-label="방 안의 소품"></section>
+  <p class="foot-hint" id="footHint"><span class="t-scan">소품에 폰을 대면 드러납니다</span><span class="t-tap">소품을 눌러 열어 보세요</span></p>
 </main>
+
+<!-- 소품 스캔 — NFC 를 읽을 수 있는 기기(앱 · Android 크롬)에서만 -->
+<div class="scan-bar"><button class="btn white" id="scanBtn" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8.5 7.5a6.5 6.5 0 010 9M12 5a10 10 0 010 14M15.5 2.8a13 13 0 010 18.4"/><circle cx="5" cy="12" r="1.3" fill="currentColor"/></svg>소품 스캔</button></div>
+<div class="sheet-o scan-o" id="scanO" hidden role="dialog" aria-modal="true" aria-label="소품 스캔">
+  <div class="scan-in">
+    <div class="rings" aria-hidden="true"><i></i><i></i><i></i><span class="dot"></span></div>
+    <p class="st">소품에 폰을 대세요</p>
+    <p class="ss">폰 뒷면을 소품 가까이 1–2초</p>
+    <button class="btn dark-line" id="scanCancel" type="button">취소</button>
+  </div>
+</div>
 
 <!-- 물건 카드 — 가운데로 크게 -->
 <div class="sheet-o" id="detail" hidden role="dialog" aria-modal="true" aria-labelledby="dName">

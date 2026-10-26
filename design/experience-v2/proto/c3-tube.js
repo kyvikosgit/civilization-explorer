@@ -51,19 +51,42 @@ const STATS = { tube: 46, pochade: 22, bladder: 9, stool: 6, canvas: 5, lamp: 5,
 let CREDIT = {};
 
 const SEEN_KEY = 'm100_c3tube_seen';
+if (new URLSearchParams(location.search).has('reset')) { try { localStorage.removeItem(SEEN_KEY); } catch (e) { /* noop */ } }
 const seen = new Set((() => { try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch (e) { return []; } })());
 function markSeen(id) { seen.add(id); try { localStorage.setItem(SEEN_KEY, JSON.stringify([...seen])); } catch (e) { /* noop */ } paintSeen(); }
 
-// ── 물건 아홉 칸
+// NFC 를 읽을 수 있나: 앱(문명탐험가 — 네이티브 스캔을 웹뷰에 알려 준다) 또는 Android 크롬(Web NFC)
+const APP = window.__m100app || null;                 // 앱이 문서 시작 전에 넣는다: { nfc: true|false }
+const CAN_SCAN = !!(APP ? APP.nfc : 'NDEFReader' in window);
+
+// ── 소품 아홉 칸 — 처음엔 전부 '?'. 소품에 폰을 대면(스캔) 그 칸이 드러나고 카드가 열린다. 한 번 드러난 칸은 다시 눌러 볼 수 있다.
+//    NFC 가 없는 기기(아이폰 사파리 · 컴퓨터)는 '?' 를 눌러도 드러난다 — 시연용
 const grid = $('#objs');
 grid.innerHTML = OBJ.map((o, i) => `
   <button class="ob${o.hint ? ' hint' : ''}" type="button" data-id="${o.id}" style="--i:${i}">
-    <span class="ph${src(o.id) ? '' : ' none'}">${src(o.id) ? `<img src="${src(o.id)}" alt="" loading="eager">` : '<em>사진 준비 중</em>'}</span>
-    <span class="nm">${o.name}</span>
+    <span class="ph${src(o.id) ? '' : ' none'}">${src(o.id) ? `<img src="${src(o.id)}" alt="" loading="eager">` : '<em>사진 준비 중</em>'}<b class="q" aria-hidden="true">?</b></span>
+    <span class="nm"><span class="nm-on">${o.name}</span><span class="nm-off">찾지 못한 소품</span></span>
   </button>`).join('');
-grid.addEventListener('click', (e) => { const b = e.target.closest('.ob'); if (b) open(b.dataset.id); });
-function paintSeen() { grid.querySelectorAll('.ob').forEach((b) => b.classList.toggle('seen', seen.has(b.dataset.id))); }
+grid.addEventListener('click', (e) => {
+  const b = e.target.closest('.ob'); if (!b) return;
+  const id = b.dataset.id;
+  if (seen.has(id) || !CAN_SCAN) { reveal(id); return; }
+  toast('방에서 소품을 찾아 폰을 대 보세요');
+});
+function paintSeen() {
+  grid.querySelectorAll('.ob').forEach((b) => { b.classList.toggle('seen', seen.has(b.dataset.id)); });
+  $('#found').textContent = `${seen.size} / ${OBJ.length}`;
+}
 paintSeen();
+// 드러내기: '?' 가 사라지며 사진이 떠오르고(0.7초), 이어서 카드
+function reveal(id) {
+  if (!BY[id]) return;
+  const b = grid.querySelector(`.ob[data-id="${id}"]`);
+  const fresh = !seen.has(id);
+  markSeen(id);
+  if (fresh && b && !REDUCED) { b.classList.add('pop'); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); setTimeout(() => { b.classList.remove('pop'); open(id); }, 750); }
+  else open(id);
+}
 
 // ── 카드 열기 · 닫기 (가운데로 크게. 빈 곳을 누르거나 × 로 닫는다)
 const detail = $('#detail'), diary = $('#diary');
@@ -71,7 +94,6 @@ let cur = null;
 function open(id, from) {
   const o = BY[id]; if (!o) return;
   closeAll(true);
-  markSeen(id);
   if (o.hint) { show(diary); return; }
   cur = id;
   const img = $('#dImg'), u = src(id); img.parentNode.classList.toggle('none', !u); if (u) img.src = u; else img.removeAttribute('src');
@@ -129,30 +151,51 @@ $('#save').addEventListener('click', () => {
   toast('〈튜브물감〉을 수집함에 저장했습니다');
 });
 
-// ── NFC: 태그로 열린 경우(?o=물건) 그 카드부터
+// ── NFC: 태그로 열린 경우(?o=물건 — 아이폰 알림 · 다른 기기) 그 칸을 드러낸다
 const q = new URLSearchParams(location.search).get('o');
-if (q && BY[q]) { document.body.classList.add('no-intro'); setTimeout(() => open(q, 'nfc'), REDUCED ? 0 : 450); }
+if (q && BY[q]) { document.body.classList.add('no-intro'); setTimeout(() => reveal(q), REDUCED ? 0 : 450); }
 
-// Android 크롬: 페이지 안에서 태그를 바로 읽는다 — 첫 터치 뒤에 켠다(권한 요청은 사용자 동작이 있어야 한다)
-if ('NDEFReader' in window) {
-  const start = async () => {
-    try {
-      const r = new window.NDEFReader();
-      await r.scan();
-      $('#nfcDot').hidden = false;
-      r.addEventListener('reading', ({ message }) => {
-        for (const rec of message.records) {
-          if (rec.recordType !== 'url' && rec.recordType !== 'absolute-url') continue;
-          const url = new TextDecoder().decode(rec.data);
-          const id = tagToObject(url);
-          if (id) { open(id, 'nfc'); return; }
-          if (/^https?:/.test(url)) { location.href = url; return; }
-        }
-      });
-    } catch (e) { /* 권한 거부 · 꺼짐 — 주소로 열리는 방식은 그대로 */ }
-  };
-  addEventListener('pointerdown', start, { once: true });
+// ── 스캔: [소품 스캔] → "소품에 폰을 대세요" → 읽으면 그 칸이 드러난다
+//    앱: 네이티브 NFC(아이폰은 시스템 창이 함께 뜬다) — postMessage {type:'nfc'} → 앱이 window.__m100nfc(url | null) 로 돌려준다
+//    Android 크롬: Web NFC — 페이지를 떠나지 않고 읽는다
+const scanBtn = $('#scanBtn'), scanO = $('#scanO');
+let scanning = false, ndefAbort = null;
+if (CAN_SCAN) { document.body.classList.add('can-scan'); scanBtn.hidden = false; }
+scanBtn.addEventListener('click', startScan);
+$('#scanCancel').addEventListener('click', () => stopScan(true));
+async function startScan() {
+  if (scanning) return;
+  scanning = true; closeAll(true); show(scanO);
+  if (APP) { window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'nfc' })); return; }
+  try {
+    ndefAbort = new AbortController();
+    const r = new window.NDEFReader();
+    r.addEventListener('reading', ({ message }) => {
+      for (const rec of message.records) {
+        if (rec.recordType !== 'url' && rec.recordType !== 'absolute-url') continue;
+        onTag(new TextDecoder().decode(rec.data)); return;
+      }
+      onTag(null);
+    }, { once: true });
+    r.addEventListener('readingerror', () => onTag(null), { once: true });
+    await r.scan({ signal: ndefAbort.signal });
+  } catch (e) { stopScan(); toast('NFC 를 켤 수 없습니다. 설정에서 NFC 를 켜 주세요'); }
 }
+function stopScan(cancelled) {
+  if (!scanning) return;
+  scanning = false; hide(scanO); document.body.classList.remove('modal');
+  try { ndefAbort && ndefAbort.abort(); } catch (e) { /* noop */ } ndefAbort = null;
+  if (cancelled && APP) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'nfc-cancel' }));
+}
+function onTag(url) {
+  stopScan();
+  if (url === null || url === undefined) return;                 // 취소 · 시간 초과
+  const id = tagToObject(url);
+  if (id) { reveal(id); return; }
+  toast('이 방의 소품 태그가 아닙니다');
+}
+window.__m100nfc = (url) => { if (scanning) onTag(url); };        // 앱이 부른다
+
 // 태그 주소 → 물건: …/n/?t=bladder 또는 …/c3-tube.html?o=bladder
 function tagToObject(url) {
   try { const u = new URL(url, location.href); const k = u.searchParams.get('o') || u.searchParams.get('t'); return k && BY[k] ? k : null; } catch (e) { return null; }

@@ -120,3 +120,43 @@ body.no-intro .ob { animation: none; }
   .room-bg .lamp, .ob, .ob.hint:not(.seen) .ph { animation: none; }
   .sheet-o, .sheet-o .card, .sheet-o .paper, .res, .res-in > *, .bars .bf { transition: none; }
 }
+
+/* 찾은 소품 수 */
+.found-row { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 10px; font-size: 12.5px; color: rgba(255,255,255,.55); }
+.found-row b { font-weight: 600; color: rgba(255,255,255,.85); font-variant-numeric: tabular-nums; }
+/* 아직 찾지 못한 소품 — 사진·이름을 감추고 '?' 하나 */
+.ob .q { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 34px; color: rgba(255,236,205,.5);
+  background: radial-gradient(70% 70% at 50% 45%, #241D16, #15110D); transition: opacity .7s ease; }
+.ob .ph img, .ob .ph em { transition: opacity .7s ease, transform .9s var(--ease-out); }
+.ob:not(.seen) .ph img, .ob:not(.seen) .ph em { opacity: 0; transform: scale(1.04); }
+.ob.seen .q { opacity: 0; pointer-events: none; }
+.ob .nm-off { display: none; color: rgba(255,255,255,.4); font-weight: 500; }
+.ob:not(.seen) .nm-on { display: none; }
+.ob:not(.seen) .nm-off { display: inline; }
+.ob.seen .ph::before { display: none; }
+/* 막 드러난 칸: 등불빛 테두리가 한 번 번졌다 사라진다 */
+.ob.pop .ph { box-shadow: 0 0 0 1px rgba(255,214,150,.8) inset, 0 0 26px rgba(255,190,110,.45), 0 8px 22px rgba(0,0,0,.35); }
+/* 일기장 힌트 빛은 드러난 뒤에는 없다(찾기 전엔 다른 칸과 똑같이 '?') */
+.ob.hint:not(.seen) .ph { animation: none; box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset, 0 8px 22px rgba(0,0,0,.35); }
+.foot-hint .t-scan { display: none; }
+body.can-scan .foot-hint .t-scan { display: inline; }
+body.can-scan .foot-hint .t-tap { display: none; }
+
+/* 소품 스캔 단추 — 아래에 붙어 있다 */
+.scan-bar { position: sticky; bottom: 0; z-index: 2; padding: 14px 20px calc(16px + var(--safe-b)); background: linear-gradient(180deg, rgba(8,6,4,0), rgba(8,6,4,.85) 40%); }
+.scan-bar:has(#scanBtn[hidden]) { display: none; }
+.scan-bar .btn { gap: 10px; }
+.scan-bar svg { width: 22px; height: 22px; }
+body.can-scan .wrap { padding-bottom: 8px; }
+/* 스캔 중 */
+.scan-o .scan-in { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; width: 100%; max-width: 320px; transform: translateY(8px); transition: transform .34s var(--ease-out); }
+.scan-o.in .scan-in { transform: none; }
+.rings { position: relative; width: 150px; height: 150px; margin-bottom: 22px; }
+.rings i { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(255,226,180,.55); opacity: 0; animation: ring 2.4s ease-out infinite; }
+.rings i:nth-child(2) { animation-delay: .8s; } .rings i:nth-child(3) { animation-delay: 1.6s; }
+.rings .dot { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: rgba(255,226,180,.9); box-shadow: 0 0 18px rgba(255,200,130,.8); }
+@keyframes ring { 0% { transform: scale(.25); opacity: .9; } 100% { transform: scale(1); opacity: 0; } }
+.scan-o .st { margin: 0; font-family: var(--display); font-weight: 800; font-size: 20px; }
+.scan-o .ss { margin: 0 0 22px; font-size: 13.5px; color: rgba(255,255,255,.6); }
+.scan-o .btn { width: 160px; }
+@media (prefers-reduced-motion: reduce) { .rings i { animation: none; opacity: .4; } .rings i:nth-child(2) { transform: scale(.6); } .rings i:nth-child(3) { transform: scale(.3); } }
