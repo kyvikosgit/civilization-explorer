@@ -1,0 +1,8 @@
+{
+  "redirects": [
+    { "source": "/:path*", "has": [{ "type": "host", "value": "www.monet100.com" }], "destination": "https://monet100.com/:path*", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/", "has": [{ "type": "host", "value": "monet100.com" }], "destination": "/monet100-web/index.html" }
+  ]
+}
