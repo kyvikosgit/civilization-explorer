@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B0907">
+<title>MONET 100</title>
+<style>html,body{margin:0;height:100%;background:#0B0907;color:#fff;font-family:-apple-system,system-ui,sans-serif}p{position:fixed;inset:auto 0 45%;text-align:center;font-size:14px;opacity:.5}</style>
+<script>
+// NFC 태그 → 체험 화면. 태그에는 짧은 주소(…/n/?t=키)만 쓰고, 어디로 갈지는 여기서 정한다 — 태그를 다시 쓰지 않고 연결을 바꿀 수 있다.
+// 키 목록·태그 쓰기는 n/write.html
+(function () {
+  var P = '/design/experience-v2/proto/';
+  var MAP = {
+    // 방 입구
+    list: P + 'index.html', c0: P + 'c0.html', c1: P + 'c1.html', c2: '/design/experience-v2/ticket/map-picker.html',
+    c3: P + 'c3-tube.html', paint: P + 'c3.html', c4: P + 'c4.html', c5: P + 'c5.html', exit: P + 'exit.html'
+  };
+  // 아틀리에 물건 아홉 가지 → 그 물건 카드
+  ['diary', 'bladder', 'easel', 'canvas', 'mortar', 'lamp', 'pochade', 'tube', 'stool'].forEach(function (k) { MAP[k] = P + 'c3-tube.html?o=' + k; });
+  var k = new URLSearchParams(location.search).get('t') || '';
+  location.replace(MAP[k] || MAP.list);
+})();
+</script>
+</head>
+<body><p>여는 중…</p></body>
+</html>

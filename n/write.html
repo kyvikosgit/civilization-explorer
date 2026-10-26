@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>NFC 태그 쓰기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<style>
+:root{--ink:#111;--sub:#6B6B68;--line:#E5E4E0;--fill:#F5F5F3;--ok:#2E7D4F}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Freesentation,-apple-system,sans-serif;color:var(--ink);background:#fff;line-height:1.55;word-break:keep-all}
+.wrap{max-width:640px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:24px;font-weight:800}
+.lead{margin-top:8px;color:var(--sub);font-size:14.5px}
+h2{margin-top:30px;font-size:15px;font-weight:700}
+.how{margin-top:10px;padding:14px 16px;background:var(--fill);border-radius:8px;font-size:14px}
+.how ol{padding-left:18px}.how li{margin:3px 0}
+.how b{font-weight:700}
+.env{margin-top:10px;font-size:13px;color:var(--sub)}
+.env.ok{color:var(--ok)}
+.list{margin-top:10px;border-top:2px solid var(--ink)}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.row .nm{font-weight:700;font-size:15px}
+.row .url{grid-column:1;font-size:12px;color:var(--sub);font-family:ui-monospace,Menlo,monospace;word-break:break-all}
+.row .bt{grid-column:2;grid-row:1/3;display:flex;gap:6px}
+button{font:inherit;font-size:13px;font-weight:600;border:1px solid #CFCFCB;background:#fff;border-radius:6px;padding:8px 10px;cursor:pointer;color:var(--ink)}
+button.w{background:var(--ink);color:#fff;border-color:var(--ink)}
+button:disabled{opacity:.35}
+.row.done .nm::after{content:' · 썼음';color:var(--ok);font-weight:600;font-size:13px}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#111;color:#fff;padding:9px 14px;border-radius:18px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.foot{margin-top:24px;font-size:12.5px;color:var(--sub)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>NFC 태그 쓰기</h1>
+  <p class="lead">태그 하나에 주소 하나. 폰을 태그에 대면 그 주소의 체험 화면이 열립니다. 주소는 짧게 두고, 어디로 열릴지는 사이트에서 바꿉니다.</p>
+
+  <h2>아이폰으로 쓰기</h2>
+  <div class="how"><ol>
+    <li>앱스토어에서 <b>NFC Tools</b>(wakdev) 설치</li>
+    <li>아래 목록에서 <b>복사</b></li>
+    <li>NFC Tools → <b>쓰기</b> → <b>레코드 추가</b> → <b>URL/URI</b> → 붙여넣기 → 확인</li>
+    <li><b>쓰기</b>를 누르고 폰 윗부분을 태그에 댄다</li>
+  </ol></div>
+
+  <h2>안드로이드(크롬)로 쓰기</h2>
+  <div class="how">이 페이지를 크롬에서 열고 <b>태그에 쓰기</b>를 누른 뒤 폰 뒷면을 태그에 댑니다.</div>
+  <p class="env" id="env"></p>
+
+  <div class="list" id="list"></div>
+
+  <h2>읽기</h2>
+  <div class="how">아이폰(XS 이후)은 화면이 켜져 있으면 앱 없이 태그를 읽습니다. 화면 위에 뜨는 알림을 누르면 열립니다. 안드로이드는 NFC가 켜져 있으면 바로 열립니다.<br>
+    NTAG213·215·216 태그를 쓰세요. MIFARE Classic(교통카드·출입카드류)은 아이폰이 읽지 못합니다.</div>
+  <p class="foot">주소 연결은 /n/index.html 에서 관리합니다.</p>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var BASE = location.origin + '/n/?t=';
+var TAGS = [
+  ['c3', 'C3 아틀리에 입구 · 튜브물감'],
+  ['diary', '화가의 일기장'], ['bladder', '돼지 방광 물감'], ['easel', '대형 이젤'], ['canvas', '실내 캔버스'],
+  ['mortar', '안료 병과 절구'], ['lamp', '오일램프'], ['pochade', '휴대용 이젤'], ['tube', '튜브물감 상자'], ['stool', '접이식 의자'],
+  ['paint', 'C3 밖의 빛으로 칠하기'],
+  ['c0', 'C0 아카데미 살롱'], ['c1', 'C1 시민사회'], ['c2', 'C2 산업혁명'], ['c4', 'C4 나다르 사진관'], ['c5', 'C5 인상, 해돋이'], ['exit', '출구 · 나의 길'], ['list', '체험 목록']
+];
+var canWrite = 'NDEFReader' in window;
+var env = document.getElementById('env');
+env.textContent = canWrite ? '이 브라우저는 태그에 바로 쓸 수 있습니다.' : '이 브라우저는 태그에 직접 쓸 수 없습니다. 아이폰은 NFC Tools 로 쓰세요.';
+if (canWrite) env.classList.add('ok');
+var list = document.getElementById('list');
+list.innerHTML = TAGS.map(function (t) {
+  return '<div class="row" data-k="' + t[0] + '"><span class="nm">' + t[1] + '</span><span class="url">' + BASE + t[0] + '</span>' +
+    '<span class="bt"><button class="c" type="button">복사</button><button class="w" type="button"' + (canWrite ? '' : ' disabled') + '>태그에 쓰기</button></span></div>';
+}).join('');
+var toastEl = document.getElementById('toast'), tt;
+function toast(m) { toastEl.textContent = m; toastEl.classList.add('on'); clearTimeout(tt); tt = setTimeout(function () { toastEl.classList.remove('on'); }, 2200); }
+list.addEventListener('click', async function (e) {
+  var row = e.target.closest('.row'); if (!row) return;
+  var url = BASE + row.dataset.k;
+  if (e.target.classList.contains('c')) {
+    try { await navigator.clipboard.writeText(url); toast('복사했습니다'); } catch (_) { prompt('주소', url); }
+  }
+  if (e.target.classList.contains('w') && canWrite) {
+    try {
+      toast('폰 뒷면을 태그에 대세요');
+      await new NDEFReader().write({ records: [{ recordType: 'url', data: url }] });
+      row.classList.add('done'); toast('썼습니다 · ' + row.querySelector('.nm').textContent);
+    } catch (err) { toast('쓰지 못했습니다: ' + (err && err.message || err)); }
+  }
+});
+</script>
+</body>
+</html>
