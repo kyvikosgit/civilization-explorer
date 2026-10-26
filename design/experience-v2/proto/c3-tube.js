@@ -12,8 +12,8 @@ import { toast, saveChoice } from './js/proto-common.js';
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const IMG = 'img/c3obj/';
-// 물건 → 사진 파일(튜브물감 상자 = 브레이트너의 물감 상자). 돼지 방광은 쓸 수 있는 실물 사진이 아직 없다 → 이름만
-const PHOTO = { tube: 'tubebox', bladder: null };
+// 물건 → 사진 파일(튜브물감 상자 = 브레이트너의 물감 상자). 돼지 방광 = 기획서(260928) 소품 이미지
+const PHOTO = { tube: 'tubebox' };
 const src = (id) => (PHOTO[id] === null ? '' : `${IMG}${PHOTO[id] || id}.jpg`);
 
 // where: 기획서의 배치(아틀리에 안 6 · 야외 자리 3). why: 고른 뒤 한 줄(기획서의 물건별 문장)
