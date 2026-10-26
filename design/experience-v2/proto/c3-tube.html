@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0B0907">
+<title>C3 · 화가를 밖으로 이끈 것</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="c3-tube.css">
+<link rel="preload" as="image" href="img/c3env/studio.jpg">
+</head>
+<body class="page tube">
+
+<!-- C3 화가의 아틀리에 · 튜브물감 (기획서 4층 C-3) — 기존 C3(밖의 빛으로 칠하기)는 그대로 두고, 그 앞에 오는 오브제 체험.
+     방 안의 물건 아홉 가지(아틀리에 6 · 야외 3)를 둘러보고, 일기장을 힌트로 "화가를 밖으로 이끈 것"을 하나 고른다 → 오늘 관람객의 선택 → 금속 튜브물감 → 밖으로 나가 칠하기(c3.html).
+     실물 오브제에는 NFC 태그 — 폰을 대면 이 페이지가 그 물건 카드로 열린다(?o=물건). Android 크롬은 페이지 안에서 바로 읽는다(Web NFC). -->
+<div class="room-bg" aria-hidden="true"><div class="ph"></div><div class="lamp"></div><div class="shade"></div></div>
+
+<div class="topbar">
+  <a class="icon-btn" href="index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="tb-title"></div>
+  <span class="tb-right"><span class="nfc-dot" id="nfcDot" hidden title="NFC 태그 읽는 중"></span></span>
+</div>
+
+<main class="wrap">
+  <header class="q-hd">
+    <div class="eyebrow">C3 · 화가의 아틀리에</div>
+    <h1>화가를 밖으로<br>이끈 것</h1>
+    <p class="sub">눈앞의 빛을 그 순간 그대로 담고 싶었던 화가에게, 야외로 나설 용기를 준 것은 무엇이었을까요?</p>
+  </header>
+
+  <!-- 방 안의 물건 아홉 가지 — 실물 사진. 연 물건에는 작은 점 -->
+  <section class="objs" id="objs" aria-label="방 안의 물건"></section>
+  <p class="foot-hint" id="footHint">물건에 폰을 대면 이야기가 열립니다</p>
+</main>
+
+<!-- 물건 카드 — 가운데로 크게 -->
+<div class="sheet-o" id="detail" hidden role="dialog" aria-modal="true" aria-labelledby="dName">
+  <div class="card">
+    <button class="x" id="dClose" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <div class="ph-wrap"><img id="dImg" alt=""></div>
+    <div class="txt">
+      <p class="where" id="dWhere"></p>
+      <h2 id="dName"></h2>
+      <p class="desc" id="dDesc"></p>
+      <p class="credit" id="dCredit"></p>
+    </div>
+    <button class="btn white pick" id="dPick" type="button">이것이 화가를 밖으로 이끌었다</button>
+  </div>
+</div>
+
+<!-- 일기장 — 힌트 -->
+<div class="sheet-o diary" id="diary" hidden role="dialog" aria-modal="true" aria-label="화가의 일기">
+  <div class="paper">
+    <button class="x" id="yClose" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <p class="date">18○○년, 겨울</p>
+    <p>어제 아틀리에에서 그린 풍경화를 다시 봤다. 뭔가 죽어 있다. 지난여름의 스케치를 기억에 기대어 겨울 내내 방 안에서 칠했으니 당연하다.</p>
+    <p>눈앞의 풍경을 그 자리에서 그렸다면 색이 살았을 텐데. 하지만 돼지 방광 물감을 들고 밖으로 나가는 건 무리다. 툭하면 터지고, 금세 굳는다.</p>
+    <p>화방 주인 말로는, 요즘은 물감을 금속 튜브에 담아 판다고 한다. 새지도 않고 가볍다니, 다음엔 꼭 사 봐야겠다.</p>
+    <p class="note">기획서의 일기를 바탕으로 다시 쓴 글</p>
+  </div>
+</div>
+
+<!-- 고른 뒤 -->
+<section class="res" id="res" hidden aria-live="polite">
+  <div class="res-in">
+    <p class="eyebrow">오늘 관람객의 선택</p>
+    <h2 class="res-h" id="resH"></h2>
+    <p class="res-why" id="resWhy"></p>
+    <ol class="bars" id="bars"></ol>
+    <p class="ex">수치는 예시</p>
+
+    <div class="ans">
+      <div class="ans-ph"><img id="ansImg" alt="금속 튜브물감 상자"></div>
+      <p class="eyebrow">1841</p>
+      <h2>화가를 밖으로 이끈 것은<br>금속 튜브물감이었습니다</h2>
+      <p>그 전까지 물감은 돼지 방광에 담아 두었습니다. 툭하면 터지고 금세 굳어, 들고 나가기 어려웠습니다.</p>
+      <p>1841년, 런던에 살던 미국 화가 존 고프 랜드가 짜서 쓰는 주석 튜브로 특허를 냈습니다. 새지 않고 가벼운 튜브 덕분에 화가는 물감을 상자에 넣고 밖으로 나갈 수 있었습니다.</p>
+      <p>이제 기억이 아니라, 눈앞의 빛을 그 자리에서 그렸습니다.</p>
+      <blockquote>
+        <p>“튜브 물감이 없었다면 세잔도, 모네도, 피사로도, 인상주의도 없었을 것이다.”</p>
+        <cite>오귀스트 르누아르 · 아들 장 르누아르의 회고 『나의 아버지 르누아르』(1962)에서</cite>
+      </blockquote>
+    </div>
+
+    <a class="btn white go" href="c3.html">튜브물감을 들고 밖으로</a>
+    <div class="actions">
+      <a class="btn dark-line home" href="index.html">처음으로</a><button class="btn" id="save" type="button">수집함에 저장</button>
+    </div>
+    <button class="again" id="again" type="button">다시 고르기</button>
+  </div>
+</section>
+
+<script type="module" src="c3-tube.js"></script>
+</body>
+</html>
