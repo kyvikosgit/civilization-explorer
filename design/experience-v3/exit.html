@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<title>기념품 받기 · MONET 100</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="v3.css">
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="index.html" aria-label="체험 목록으로"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="t">4F · 출구</div>
+</div>
+<main class="page" id="page"></main>
+<script type="module">
+// 출구 — 다섯 가지를 모두 모았으면 직원에게 이 화면을 보여 준다. 직원이 단추를 길게 누르면 '수령 완료'(이 폰에서 한 번만)
+import { COLLECT_IDS, findTask, COMPLETE_MESSAGE } from './data.js';
+import { store } from './store.js';
+import { esc } from './camui.js';
+const page = document.getElementById('page');
+const fmt = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+function render() {
+  const got = COLLECT_IDS.filter((id) => store.saved(id)), all = got.length === COLLECT_IDS.length, red = store.redeemed();
+  let h = `<p class="cap">4F · 출구</p><h1>기념품 받기</h1>`;
+  if (all) {
+    h += red
+      ? `<div class="goods got"><div class="big">수령 완료</div><p>${fmt(red)} · 이 폰으로는 한 번만 받을 수 있습니다</p></div>`
+      : `<div class="goods"><div class="big">5 / 5</div><p>직원에게 이 화면을 보여 주세요</p>
+          <button class="btn hold" id="hold"><i></i><span>직원 확인 · 길게 누르기</span></button></div>`;
+    h += `<p class="lead" style="margin-top:22px;color:var(--ink)">${esc(COMPLETE_MESSAGE)}</p>`;
+  } else {
+    h += `<p class="lead">다섯 가지를 모두 모으면 출구에서 기념품을 드립니다.</p>`;
+  }
+  h += `<ul class="missing">${COLLECT_IDS.map((id) => { const { zone, task } = findTask(id); const ok = store.saved(id);
+    return `<li class="${ok ? 'ok' : ''}">${esc(task.item.name)}<span>${ok ? '모음' : esc(zone.loc.replace('4F · ', ''))}</span></li>`; }).join('')}</ul>`;
+  page.innerHTML = h;
+  const b = document.getElementById('hold');
+  if (b) {
+    let t = 0;
+    const down = (e) => { e.preventDefault(); b.classList.add('ing'); t = setTimeout(() => { store.redeem(); navigator.vibrate?.([20, 40, 20]); render(); }, 1600); };
+    const up = () => { clearTimeout(t); b.classList.remove('ing'); };
+    b.addEventListener('pointerdown', down); ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => b.addEventListener(ev, up));
+    b.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+}
+render();
+</script>
+</body>
+</html>

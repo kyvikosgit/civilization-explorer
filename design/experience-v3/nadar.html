@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#ffffff">
+<title>나다르 사진관 · MONET 100</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="v3.css">
+<style>
+.shot{margin-top:20px;background:var(--panel);aspect-ratio:500/760;display:grid;place-items:center;overflow:hidden;position:relative}
+.shot img{width:100%;height:100%;object-fit:contain}
+.shot .ph{color:var(--dim);font-size:14px;text-align:center;padding:20px}
+.shot .busy{position:absolute;inset:0;display:none;place-items:center;background:rgba(245,245,243,.8);font-size:14px;color:var(--dim)}
+.shot.ing .busy{display:grid}
+.sent{margin-top:12px;font-size:15px;font-weight:600;min-height:24px}
+.sent.ok{color:var(--ok)}
+.sent.bad{color:var(--bad)}
+#file{display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="index.html" aria-label="체험 목록으로"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="t">4F · C-4 나다르 사진관</div>
+</div>
+<main class="page">
+  <p class="cap">05 · 4F · C-4 나다르 사진관</p>
+  <h1>나다르 사진관</h1>
+  <p class="lead">사진을 찍으면 당시 나다르 사진관의 사진처럼 바뀌어, 벽에 걸린 액자에 뜹니다.</p>
+
+  <div class="shot" id="shot"><img id="out" alt="" hidden><p class="ph" id="ph">아직 찍은 사진이 없습니다</p><div class="busy">당시 사진으로 바꾸는 중</div></div>
+  <p class="note wait">머리·차림새를 당시 모습으로 바꾸는 AI 변환은 방식 결정 후 연결합니다. 지금은 사진 색감과 사진관 마운트만 당시풍으로 바뀝니다.</p>
+
+  <input type="file" id="file" accept="image/*" capture="user">
+  <div id="pre"><button class="btn" id="take"><svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>사진 찍기</button></div>
+  <div id="post" hidden>
+    <div class="btns"><button class="btn line" id="retake">다시 찍기</button><button class="btn" id="send">액자로 보내기</button></div>
+    <p class="sent" id="sent"></p>
+  </div>
+
+  <div class="foot"><a class="linkbtn" id="frameLink" href="frame.html">액자 화면 열기 (벽에 다는 아이패드·TV용)</a></div>
+</main>
+<script type="module" src="nadar.js"></script>
+</body>
+</html>

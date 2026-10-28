@@ -1,0 +1,105 @@
+/* v3 카메라 화면 · 정답 화면 — 다른 페이지(살롱 3D 장면) 위에도 얹히도록 .v3-cam / .v3-done 안으로만 범위를 묶는다 */
+.v3-cam,.v3-done{
+  --ink:#111111; --dim:#707070; --point:#D9672F; --panel:#F5F5F3; --hair:rgba(17,17,17,.10);
+  --ok:#3E8A6B; --bad:#C8553D; --cam:#F2EDE2; --gold:#E9C77A; --pad:20px;
+  font-family:Freesentation,-apple-system,sans-serif; line-height:1.6; word-break:keep-all;
+}
+.v3-cam *,.v3-done *{box-sizing:border-box;margin:0;padding:0}
+.v3-cam button,.v3-done button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.v3-cam .ico,.v3-done .ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.v3-cam .btn,.v3-done .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;border-radius:8px;font-weight:700;font-size:16px}
+.v3-cam .btns,.v3-done .btns{display:flex;gap:8px}
+
+/* 카메라 */
+.v3-cam{position:fixed;inset:0;z-index:50;background:#000;color:var(--cam);display:none}
+.v3-cam.on{display:block}
+.v3-cam .ar{position:absolute;inset:0;overflow:hidden}
+.v3-cam .top{position:absolute;left:0;right:0;top:0;z-index:6;padding:env(safe-area-inset-top) var(--pad) 0;height:calc(56px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;background:linear-gradient(rgba(0,0,0,.5),transparent)}
+.v3-cam .top .t{flex:1;font-size:15px;font-weight:600}
+.v3-cam .top button{width:36px;height:36px;margin-left:-8px;display:grid;place-items:center}
+.v3-cam .finder{position:absolute;left:50%;top:44%;width:min(72vw,340px);aspect-ratio:1;transform:translate(-50%,-50%);z-index:2;pointer-events:none;transition:opacity .25s,transform .35s cubic-bezier(.2,.8,.2,1)}
+.v3-cam .finder i{position:absolute;width:28px;height:28px;border:3px solid var(--cam)}
+.v3-cam .finder i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}
+.v3-cam .finder i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
+.v3-cam .finder i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}
+.v3-cam .finder i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0}
+.v3-cam .finder .bar{position:absolute;left:8%;right:8%;height:2px;top:10%;background:var(--point);box-shadow:0 0 12px var(--point);animation:v3sweep 2.2s ease-in-out infinite alternate}
+@keyframes v3sweep{to{top:90%}}
+.v3-cam.locked .finder{opacity:0;transform:translate(-50%,-50%) scale(.86)}
+.v3-cam .msg{position:absolute;left:var(--pad);right:var(--pad);top:calc(44% + min(36vw,170px) + 18px);z-index:2;text-align:center;font-size:15px;font-weight:600;text-shadow:0 1px 6px rgba(0,0,0,.7);white-space:pre-line}
+.v3-cam.locked .msg{opacity:0}
+.v3-cam .err{position:absolute;inset:0;z-index:3;display:none;place-items:center;padding:40px;text-align:center;white-space:pre-line;font-size:15px}
+.v3-cam.failed .err{display:grid}
+.v3-cam.failed .finder,.v3-cam.failed .msg{display:none}
+
+/* 인식 순간 — 화면을 한 번 훑는 빛 */
+.v3-cam .flash{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;background:linear-gradient(180deg,transparent 0%,rgba(242,237,226,.0) 40%,rgba(242,237,226,.55) 50%,rgba(242,237,226,0) 60%,transparent 100%);background-size:100% 300%;background-position:0 100%}
+.v3-cam .flash.go{animation:v3flash .7s ease-out}
+@keyframes v3flash{0%{opacity:1;background-position:0 100%}100%{opacity:0;background-position:0 0}}
+/* 정답 — 화면 가장자리부터 금빛 */
+.v3-cam .aura{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .5s;box-shadow:inset 0 0 90px 30px rgba(233,199,122,.55)}
+.v3-cam.golden .aura{opacity:1;animation:v3aura 1.6s ease-in-out infinite alternate}
+@keyframes v3aura{to{box-shadow:inset 0 0 130px 50px rgba(233,199,122,.75)}}
+
+/* 하단 도슨트 레이어 — 인식한 대상의 정보 */
+.v3-cam .docent{position:absolute;left:0;right:0;bottom:0;z-index:5;background:rgba(10,12,11,.86);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:18px var(--pad) calc(18px + env(safe-area-inset-bottom));transform:translateY(16px);opacity:0;pointer-events:none;transition:opacity .3s,transform .4s cubic-bezier(.2,.8,.2,1)}
+.v3-cam.locked .docent{opacity:1;transform:none;pointer-events:auto}
+.v3-cam.golden .docent{border-top:2px solid var(--gold)}
+.v3-cam .docent .dc{font-size:12px;font-weight:600;opacity:.7}
+.v3-cam .docent .dc.gold{color:var(--gold);opacity:1}
+.v3-cam .docent .dt{font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:19px;line-height:1.3;margin-top:2px}
+.v3-cam .docent .ds{font-size:14px;opacity:.8}
+.v3-cam .docent .dd{margin-top:10px;max-height:24vh;overflow:auto;font-size:15px;line-height:1.62;white-space:pre-line}
+.v3-cam .docent .hp{margin-top:10px;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.v3-cam .docent .hp span{display:flex;gap:10px}
+.v3-cam .docent .hp b{flex:none;font-weight:800}
+.v3-cam .docent .hp .pro b{color:#9CC2A5}
+.v3-cam .docent .hp .con b{color:#E0A18C}
+.v3-cam .docent .fb{margin-top:10px;white-space:pre-line;font-size:15px;color:#E0A18C;max-height:30vh;overflow:auto}
+.v3-cam .docent .btns{margin-top:14px}
+.v3-cam .docent .btn{background:var(--cam);color:#111}
+.v3-cam .docent .btn.gold{background:var(--gold)}
+.v3-cam .docent .btn.line{background:transparent;color:var(--cam);border:1.5px solid rgba(242,237,226,.6)}
+
+/* 발언 재생(시민사회) */
+.v3-cam .talk{margin-top:10px;display:flex;flex-direction:column;gap:8px;max-height:30vh;overflow:auto}
+.v3-cam .talk p{font-size:16px;line-height:1.55;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.v3-cam .talk p.on{opacity:1;transform:none}
+.v3-cam .talk p.wait{opacity:.6;font-size:14px}
+.v3-cam .prog{margin-top:12px;height:2px;background:rgba(242,237,226,.2)}
+.v3-cam .prog i{display:block;height:100%;width:0;background:var(--cam);transition:width .3s linear}
+
+/* 시연 모드 — 현장 밖 확인용 */
+.v3-cam .demo{position:absolute;left:0;right:0;bottom:0;z-index:4;padding:24px var(--pad) calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.75) 30%);display:none}
+.v3-cam.demo-on .demo{display:block}
+.v3-cam.locked .demo{display:none}
+.v3-cam .demo p{font-size:12px;opacity:.75;margin-bottom:8px}
+.v3-cam .demo .strip{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.v3-cam .demo .strip button{flex:none;width:58px;height:58px;border:1px solid rgba(242,237,226,.4);overflow:hidden;background:#222}
+.v3-cam .demo .strip img{width:100%;height:100%;object-fit:cover}
+.v3-cam .demo .strip .ph{width:100%;height:100%;display:grid;place-items:center;font-size:12px}
+
+/* 정답 화면 */
+.v3-done{position:fixed;inset:0;z-index:60;background:#fff;color:var(--ink);overflow:auto;display:none}
+.v3-done.on{display:block;animation:v3fade .45s ease}
+@keyframes v3fade{from{opacity:0}}
+.v3-done .in{max-width:520px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) var(--pad) calc(28px + env(safe-area-inset-bottom))}
+.v3-done .cap{font-size:13px;font-weight:600;color:var(--point)}
+.v3-done h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:26px;line-height:1.3;margin-top:4px}
+.v3-done .icard{margin-top:18px;background:var(--panel);border:1px solid var(--hair)}
+.v3-done .icard .im{aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;background:#ECE3D2}
+.v3-done .icard .im img{display:block;width:100%;height:100%;object-fit:cover}
+.v3-done .icard .im.contain img{object-fit:contain;padding:18px}
+.v3-done .icard .tx{padding:14px 16px}
+.v3-done .icard .tx b{display:block;font-family:Paperlogy,sans-serif;font-weight:800;font-size:18px}
+.v3-done .icard .tx small{color:var(--dim);font-size:14px}
+.v3-done .verdict{margin-top:16px;font-size:15px;white-space:pre-line;padding:14px 16px;border-left:3px solid var(--point);background:var(--panel)}
+.v3-done .body{margin-top:16px;white-space:pre-line;font-size:16px}
+.v3-done .after{margin-top:16px;color:var(--dim);font-size:15px;white-space:pre-line}
+.v3-done .wait{margin-top:16px;font-size:14px;color:var(--dim);padding-left:10px;border-left:2px solid var(--point)}
+.v3-done .btns{margin-top:24px}
+.v3-done .btn{background:var(--ink);color:#fff}
+.v3-done .btn.line{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.v3-done .btn[disabled]{background:#D6D5D1;color:#fff;cursor:default}
+.v3-done .links{margin-top:12px;text-align:center}
+.v3-done .links button{font-size:14px;color:var(--dim)}

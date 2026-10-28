@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#16110c">
+<title>나다르 사진관 · 액자 화면</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<style>
+/* 벽의 액자 안에 다는 화면(아이패드 · TV). 평소엔 벽의 다른 사진들처럼 나다르 사진관의 모네 초상, 관람객이 보내면 그 사진으로 천천히 바뀐다 */
+:root{color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
+.stage{position:fixed;inset:0;display:grid;place-items:center;padding:3vmin}
+.stage img{position:absolute;max-width:94vw;max-height:94vh;object-fit:contain;opacity:0;transition:opacity 1.6s ease;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.stage img.on{opacity:1}
+.hint{position:fixed;left:0;right:0;bottom:2vh;text-align:center;font-family:Freesentation,sans-serif;font-size:13px;color:rgba(242,237,226,.45);transition:opacity .6s}
+.hint.off{opacity:0}
+.dot{position:fixed;right:10px;bottom:10px;width:8px;height:8px;border-radius:50%;background:#C8553D}
+.dot.on{background:#3E8A6B}
+</style>
+</head>
+<body>
+<div class="stage"><img id="a" alt=""><img id="b" alt=""></div>
+<p class="hint" id="hint">화면을 한 번 누르면 전체 화면으로 바뀝니다</p>
+<i class="dot" id="dot" title="연결 상태"></i>
+<script type="module">
+import { joinRoom } from './link.js';
+const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
+const HOLD = 60000;                          // 관람객 사진은 1분 걸어 두고 평소로
+const imgs = [document.getElementById('a'), document.getElementById('b')];
+let front = 0, back = 0;
+function showSrc(src) {
+  const next = imgs[1 - front];
+  next.onload = () => { next.classList.add('on'); imgs[front].classList.remove('on'); front = 1 - front; };
+  next.src = src;
+}
+showSrc(IDLE);
+const link = joinRoom({
+  photo: (p) => {
+    if (!p?.img) return;
+    showSrc(p.img);
+    link.send('ack', { id: p.id });
+    clearTimeout(back); back = setTimeout(() => showSrc(IDLE), HOLD);
+  },
+});
+link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
+document.body.addEventListener('click', async () => {
+  try { await document.documentElement.requestFullscreen?.(); } catch {}
+  try { await navigator.wakeLock?.request('screen'); } catch {}
+  document.getElementById('hint').classList.add('off');
+});
+</script>
+</body>
+</html>

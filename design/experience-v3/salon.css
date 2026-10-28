@@ -1,0 +1,9 @@
+/* v3 살롱 — 벽에 선 뒤: 아래 '화면을 터치하세요'(천천히 숨쉬기) · 왼쪽 위 목록으로. 입장 중에는 숨긴다 */
+.tap-go{position:absolute;left:0;right:0;bottom:calc(30px + env(safe-area-inset-bottom));z-index:8;display:flex;justify-content:center;pointer-events:none;opacity:0;transition:opacity .5s}
+.tap-go span{font-family:Freesentation,sans-serif;font-size:14px;font-weight:600;color:#FFF7EA;padding:9px 18px;border-radius:999px;background:rgba(20,8,8,.55);border:1px solid rgba(233,199,122,.5);animation:tapGo 1.8s ease-in-out infinite}
+@keyframes tapGo{50%{border-color:rgba(233,199,122,.95);box-shadow:0 0 18px rgba(233,199,122,.35)}}
+.stage[data-mode="wall"] .tap-go{opacity:1;transition-delay:1.2s}
+.hub-back{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:9;width:36px;height:36px;display:grid;place-items:center;color:#FFF7EA;opacity:0;pointer-events:none;transition:opacity .4s}
+.hub-back svg{width:22px;height:22px}
+.stage[data-mode="wall"] .hub-back{opacity:1;pointer-events:auto}
+.stage[data-mode="wall"] .role{padding-left:calc(var(--pad) + 30px)}

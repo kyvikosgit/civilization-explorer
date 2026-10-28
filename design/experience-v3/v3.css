@@ -1,0 +1,88 @@
+/* 4층 체험 v3 — 앱 모네 월드 토큰(monet.tsx MT)과 같은 값. 서체는 Freesentation(본문) · Paperlogy(디스플레이)만 */
+:root{
+  --bg:#FFFFFF; --panel:#F5F5F3; --ink:#111111; --dim:#707070; --point:#D9672F;
+  --hair:rgba(17,17,17,.10); --hair2:rgba(17,17,17,.24); --ok:#3E8A6B; --bad:#C8553D;
+  --cam:#F2EDE2; --pad:20px; --safe-b:env(safe-area-inset-bottom);
+  color-scheme:light;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:Freesentation,-apple-system,sans-serif;font-size:16px;line-height:1.6;word-break:keep-all;max-width:520px;margin:0 auto;min-height:100dvh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+.disp{font-family:Paperlogy,Freesentation,sans-serif}
+
+/* 상단 바 — 앱 TopBar(52h, 좌우 20) */
+.topbar{position:sticky;top:0;z-index:5;height:52px;padding:0 var(--pad);display:flex;align-items:center;gap:8px;background:var(--bg)}
+.topbar .back{width:36px;height:36px;margin-left:-8px;display:grid;place-items:center}
+.topbar .t{flex:1;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .brand{font-family:Paperlogy,sans-serif;font-weight:800;font-size:18px}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.page{padding:4px var(--pad) calc(40px + var(--safe-b))}
+.cap{font-size:13px;font-weight:600;color:var(--point)}
+h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:26px;line-height:1.3;margin-top:4px}
+.lead{margin-top:10px;color:var(--dim);font-size:15px;white-space:pre-line}
+
+/* 허브 */
+.tally{margin-top:22px;display:flex;align-items:baseline;justify-content:space-between;border-top:2px solid var(--ink);padding-top:14px}
+.tally b{font-family:Paperlogy,sans-serif;font-weight:800;font-size:20px}
+.tally small{font-size:13px;color:var(--dim)}
+.slots{margin-top:12px;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.slot{aspect-ratio:1;background:var(--panel);border:1px solid var(--hair);overflow:hidden;position:relative}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot.contain img{object-fit:contain;padding:6px}
+.slot:not(.on) img{opacity:0}
+.rows{margin-top:26px;border-top:1px solid var(--hair)}
+.row{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--hair)}
+.row .no{flex:none;width:40px;font-family:Paperlogy,sans-serif;font-weight:800;font-size:16px}
+.row .b{flex:1;min-width:0}
+.row .tt{display:block;font-family:Paperlogy,sans-serif;font-weight:800;font-size:17px;line-height:1.35}
+.row .st{display:block;font-size:14px;color:var(--dim);margin-top:2px}
+.row .st.ok{color:var(--ok)}
+.row .chev{flex:none;width:18px;height:18px;color:var(--dim)}
+.row.exit .tt{color:var(--point)}
+.foot{margin-top:28px;display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--dim)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;background:var(--panel)}
+.toggle b{display:block;color:var(--ink);font-weight:600}
+.sw{flex:none;width:46px;height:28px;border-radius:14px;background:#D6D5D1;position:relative;transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw.on{background:var(--ink)}
+.sw.on::after{transform:translateX(18px)}
+.linkbtn{align-self:flex-start;color:var(--dim);font-size:14px}
+
+/* 구역 */
+.intro-box{margin-top:18px;padding:16px;background:var(--panel)}
+.intro-box h3{font-size:14px;font-weight:700}
+.intro-box ol{margin-top:6px;padding-left:20px;font-size:15px}
+.task{margin-top:26px;border-top:2px solid var(--ink);padding-top:16px}
+.task .tk{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.task .tk h2{font-family:Paperlogy,sans-serif;font-weight:800;font-size:19px}
+.task .tk small{flex:none;font-size:13px;color:var(--dim)}
+.task .tk small.ok{color:var(--ok)}
+.task .q{margin-top:10px;white-space:pre-line;font-size:16px}
+.note{margin-top:12px;font-size:14px;color:var(--dim);padding-left:10px;border-left:2px solid var(--hair2)}
+.note.wait{border-left-color:var(--point)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;border-radius:8px;background:var(--ink);color:#fff;font-weight:700;font-size:16px;margin-top:16px}
+.btn.line{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn[disabled]{background:#D6D5D1;color:#fff;cursor:default}
+.btn .ico{width:20px;height:20px}
+.btns{display:flex;gap:8px;margin-top:20px}
+.btns .btn{margin-top:0}
+.small-links{margin-top:12px;text-align:center}
+.small-links button{font-size:14px;color:var(--dim)}
+
+/* 출구 */
+.goods{margin-top:22px;padding:22px 18px;border:2px solid var(--ink);text-align:center}
+.goods .big{font-family:Paperlogy,sans-serif;font-weight:800;font-size:28px}
+.goods p{margin-top:6px;color:var(--dim);font-size:15px;white-space:pre-line}
+.goods.got{border-color:var(--ok)}
+.goods.got .big{color:var(--ok)}
+.hold{position:relative;overflow:hidden}
+.hold i{position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(255,255,255,.22)}
+.hold.ing i{width:100%;transition:width 1.6s linear}
+.missing{margin-top:14px;text-align:left;font-size:15px}
+.missing li{list-style:none;padding:10px 0;border-bottom:1px solid var(--hair);display:flex;justify-content:space-between}
+.missing li span{color:var(--dim);font-size:14px}
+.missing li.ok span{color:var(--ok)}

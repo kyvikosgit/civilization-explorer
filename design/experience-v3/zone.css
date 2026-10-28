@@ -1,0 +1,38 @@
+/* v3 구역 화면 — 벽면 둘러보기(산업혁명) · 잠긴 다음 단계(시민사회) · 가로 안내 · 해돋이 장면 번지기 */
+.wall{margin-top:24px;border-top:2px solid var(--ink);padding-top:16px}
+.wall h2{font-family:Paperlogy,sans-serif;font-weight:800;font-size:19px}
+.wall .wl{margin-top:8px;font-size:15px;color:var(--dim)}
+.wall-strip{margin:14px calc(var(--pad) * -1) 0;padding:0 var(--pad);display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.wall-strip::-webkit-scrollbar{display:none}
+.wall-strip figure{flex:none;width:72%;max-width:300px;scroll-snap-align:start}
+.wall-strip .im{aspect-ratio:4/3;background:var(--panel);overflow:hidden}
+.wall-strip .im img{width:100%;height:100%;object-fit:cover}
+.wall-strip figcaption{padding-top:8px;display:flex;flex-direction:column;gap:2px}
+.wall-strip figcaption b{font-weight:700;font-size:15px;line-height:1.35}
+.wall-strip figcaption small{font-size:12px;color:var(--dim)}
+.wall-strip figcaption span{font-size:14px;color:var(--dim)}
+
+.task .next{margin-bottom:14px;padding:14px 16px;background:var(--ink);color:#fff;font-size:15px;font-weight:600;white-space:pre-line}
+.task.locked{display:none}
+
+/* 가로로 돌려 주세요 */
+.rotate{position:fixed;inset:0;z-index:55;background:rgba(10,12,11,.94);color:#F2EDE2;display:grid;place-items:center;text-align:center;animation:v3fade .3s}
+.rotate .rt-in{display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px}
+.rotate .phone{width:46px;height:78px;border:3px solid #F2EDE2;border-radius:9px;position:relative;margin-bottom:14px;animation:rt 2.4s cubic-bezier(.6,0,.3,1) infinite}
+.rotate .phone i{position:absolute;left:50%;bottom:5px;width:12px;height:3px;border-radius:2px;background:#F2EDE2;transform:translateX(-50%)}
+@keyframes rt{0%,20%{transform:rotate(0)}50%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+.rotate p{font-family:Paperlogy,sans-serif;font-weight:800;font-size:20px}
+.rotate small{font-size:14px;opacity:.7}
+.rotate button{margin-top:18px;font:inherit;font-size:14px;color:rgba(242,237,226,.7);background:none;border:0}
+@keyframes v3fade{from{opacity:0}}
+
+/* 해돋이 — 그림 자리에서 시작해 화면 끝까지 */
+.bloom{position:fixed;inset:0;z-index:70;pointer-events:auto}
+.bloom video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0}
+.bloom .glow{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 60% 40%,rgba(255,214,150,.75),rgba(217,103,47,.25) 45%,transparent 75%);mix-blend-mode:screen}
+.bloom .bl-cap{position:absolute;left:calc(24px + env(safe-area-inset-left));bottom:calc(22px + env(safe-area-inset-bottom));color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);opacity:0;transform:translateY(8px);transition:opacity 1s,transform 1s;display:flex;flex-direction:column}
+.bloom .bl-cap.on{opacity:1;transform:none}
+.bloom .bl-cap b{font-family:Paperlogy,sans-serif;font-weight:800;font-size:24px}
+.bloom .bl-cap span{font-size:14px;opacity:.85}
+.bloom .bl-skip{position:absolute;right:calc(18px + env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));font:inherit;font-size:13px;color:rgba(255,255,255,.75);background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 14px;opacity:0;transition:opacity .6s}
+.bloom.open .bl-skip{opacity:1}
