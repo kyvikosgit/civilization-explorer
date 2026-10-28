@@ -13,6 +13,7 @@
 //  · 르누아르의 말: Jean Renoir, "Renoir, My Father"(1962) — "Without colours in tubes, there would be no Cézanne, no Monet, no Pissarro, and no Impressionism."
 import { toast } from '../experience-v2/proto/js/proto-common.js';
 import { openCam, closeCam } from './camui.js';
+import { openDetect, closeDetect } from './detect.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
 
@@ -159,16 +160,24 @@ if (q && BY[q]) { document.body.classList.add('no-intro'); setTimeout(() => reve
 // ── 스캔: [소품 비추기] → 카메라 → 소품을 알아보면 카메라가 닫히고 그 칸이 드러나 카드가 열린다
 const scanBtn = $('#scanBtn');
 document.body.classList.add('can-scan');
+// 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
+const MODEL = V3 + 'model/props.tflite';
 scanBtn.addEventListener('click', () => {
   closeAll(true);
-  openCam({
+  if (store.demo()) {                                   // 시연 모드 — 눌러서 인식
+    openCam({
+      title: '화가의 아틀리에 · 소품 비추기', find: '방 안의 소품에 카메라를 비추세요', mind: null, pending: TASK.pending,
+      targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), demo: true,
+      onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
+    });
+    return;
+  }
+  openDetect({
     title: '화가의 아틀리에 · 소품 비추기',
     find: '방 안의 소품에 카메라를 비추세요',
-    mind: TASK.mind ? V3 + TASK.mind : null,
-    pending: TASK.pending,
-    targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })),
-    demo: store.demo(),
-    onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
+    model: MODEL,
+    names: Object.fromEntries(OBJ.map((o) => [o.id, o.name])),
+    onFound: (id) => { closeDetect(); reveal(id); },
   });
 });
 
