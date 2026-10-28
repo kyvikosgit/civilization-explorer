@@ -1,7 +1,7 @@
 // v3 체험 목록 — 구역 순서는 동선대로. 살롱 · 아틀리에 · 나다르는 각자 화면, 나머지는 zone.html
 import { ZONES, COLLECT_IDS, findTask } from './data.js';
 import { store } from './store.js';
-import { esc } from './camui.js';
+const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const $ = (s) => document.querySelector(s);
 const PAGE = { salon: 'salon.html', atelier: 'atelier.html', nadar: 'nadar.html' };
