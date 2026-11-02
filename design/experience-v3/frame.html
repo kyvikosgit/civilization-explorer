@@ -28,6 +28,13 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 .qr b{display:block;font-size:max(14px,2.1vmin);line-height:1.35}
 .qr small{display:block;margin-top:4px;font-size:max(11px,1.5vmin);opacity:.7}
 .dot.on{background:#3E8A6B;opacity:0;transition:opacity .6s}   /* 연결되면 숨긴다 — 빨간 점은 끊겼을 때만 */
+/* 현상 중 — 찍은 뒤 사진이 올 때까지(15–20초). 액자 속 사진이 암실처럼 어두워지고 가운데 문구 */
+.dev{position:fixed;inset:0;display:grid;place-items:center;background:rgba(14,10,7,.72);opacity:0;transition:opacity .8s;pointer-events:none;font-family:Freesentation,sans-serif;color:#F2EDE2;text-align:center}
+.dev.on{opacity:1}
+.dev b{display:block;font-size:max(18px,3.4vmin);font-weight:700;letter-spacing:.02em}
+.dev small{display:block;margin-top:1.2vmin;font-size:max(12px,2vmin);opacity:.6}
+.dev i{display:block;width:12vmin;height:2px;margin:3vmin auto 0;background:linear-gradient(90deg,transparent,#E9C77A,transparent);background-size:200% 100%;animation:dv 1.6s linear infinite}
+@keyframes dv{from{background-position:100% 0}to{background-position:-100% 0}}
 </style>
 </head>
 <body>
@@ -35,6 +42,7 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 <p class="hint" id="hint">화면을 한 번 누르면 전체 화면으로 바뀝니다</p>
 <i class="dot" id="dot" title="연결 상태"></i>
 <div class="count" id="count"></div>
+<div class="dev" id="dev"><div><b>사진을 현상하고 있습니다</b><small>나다르 사진관의 유리판에서 인화지로</small><i></i></div></div>
 <div class="qr" id="qr"><canvas id="qrc"></canvas><span><b>앱으로 QR 을 찍어<br>사진을 받으세요</b><small>폰 카메라로 찍어도 받을 수 있습니다</small></span></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script type="module">
@@ -52,7 +60,7 @@ function drawQR(id) {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + pad) * k, (r + pad) * k, k, k);
 }
 const imgs = [document.getElementById('a'), document.getElementById('b')];
-let front = 0, back = 0;
+let front = 0, back = 0, devT = 0;
 function showSrc(src) {
   const next = imgs[1 - front];
   next.onload = () => { next.classList.add('on'); imgs[front].classList.remove('on'); front = 1 - front; };
@@ -62,12 +70,14 @@ showSrc(IDLE);
 const link = joinRoom({
   photo: (p) => {
     if (!p?.img) return;
+    clearTimeout(devT); document.getElementById('dev').classList.remove('on');
     showSrc(p.img);
     KEEP.set(p.id, p.img); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value);
     drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
     link.send('ack', { id: p.id });
     clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
   },
+  dev: () => { document.getElementById('dev').classList.add('on'); clearTimeout(devT); devT = setTimeout(() => document.getElementById('dev').classList.remove('on'), 90000); },
   count: (p) => { const c = document.getElementById('count'); c.textContent = p?.n || ''; c.classList.toggle('on', !!p?.n); },
   get: (p) => { const img = KEEP.get(p?.id); if (img) link.send('img', { id: p.id, img }); else link.send('img', { id: p?.id, missing: true }); },
 });

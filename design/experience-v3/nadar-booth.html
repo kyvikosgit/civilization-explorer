@@ -26,7 +26,9 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}
 <div class="shot" id="shot"></div>
 <div class="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 화면이나 버튼(Space · Enter)으로 촬영</span></div>
 <script type="module">
-// 촬영 → 액자에 3·2·1 → 찍고 → 그 시대 사진관 사진으로(지금은 기기 안 처리 booth/js/nadar.js — AI 변환이 붙으면 여기서 서버로) → 액자로
+// 촬영 → 액자에 3·2·1 → 찍고 → 액자에 '현상 중' → 서버(Supabase 함수 nadar-photo · 나노바나나 2.1)가 1870년대 나다르 사진관 사진으로 → 액자로
+//   키: 이 기기 주소 ?k=촬영기키 (한 번 열면 이 기기에 기억). 키가 없거나 변환이 안 되면 기기 안 처리(booth/js/nadar.js) 사진을 보낸다
+//   OpenRouter 키는 서버에만 — 이 페이지에는 없다
 import { joinRoom, room } from './link.js';
 import * as N from '../../booth/js/nadar.js';
 const $ = (s) => document.getElementById(s), video = $('v');
@@ -38,6 +40,21 @@ try {
   await video.play();
 } catch (e) { $('st').textContent = '카메라를 켜지 못함 · 권한 확인'; }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const AI = 'https://bttjtkhfyzapcsqocick.supabase.co/functions/v1/nadar-photo';
+const KEY = (() => { const q = new URLSearchParams(location.search).get('k'); try { if (q) localStorage.setItem('m100-booth-k', q); return q || localStorage.getItem('m100-booth-k'); } catch { return q; } })();
+if (!KEY) $('st').textContent += ' · AI 키 없음(기기 안 처리)';
+const jpeg = (cv, w, q) => { const o = document.createElement('canvas'); o.width = w; o.height = Math.round(cv.height * w / cv.width); o.getContext('2d').drawImage(cv, 0, 0, o.width, o.height); return o.toDataURL('image/jpeg', q); };
+// 서버 변환 — 70초 안에 안 오면 포기
+async function aiPhoto(comp) {
+  if (!KEY) throw new Error('no key');
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 70000);
+  try {
+    const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, img: jpeg(comp, 900, 0.9) }), signal: ctl.signal });
+    const d = await r.json(); if (!r.ok || !d.img) throw new Error(d.error || r.status);
+    const im = new Image(); im.src = d.img; await im.decode();
+    const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0); return c;
+  } finally { clearTimeout(t); }
+}
 let busy = false;
 async function shoot() {
   if (busy || video.readyState < 2) return; busy = true;
@@ -45,12 +62,15 @@ async function shoot() {
   $('count').textContent = ''; link.send('count', { n: 0 });
   $('shot').classList.remove('go'); void $('shot').offsetWidth; $('shot').classList.add('go');
   const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight; c.getContext('2d').drawImage(video, 0, 0);
-  $('st').textContent = '사진 만드는 중';
-  let card;
-  try { const comp = N.cropTo34(c); try { card = N.renderPhoto19(comp, null); } catch { card = N.quickPhoto(comp); } } catch { card = c; }
-  const o = document.createElement('canvas'), w = 600; o.width = w; o.height = Math.round(card.height * w / card.width); o.getContext('2d').drawImage(card, 0, 0, o.width, o.height);
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-  try { const r = await link.send('photo', { id, img: o.toDataURL('image/jpeg', 0.8) }); $('st').textContent = r === 'ok' ? `액자로 보냄 · ${id}` : '액자로 보내지 못함'; }
+  link.send('dev', { id }).catch(() => {});                       // 액자: 현상 중
+  $('st').textContent = '사진 현상 중';
+  let comp = c; try { comp = N.cropTo34(c); } catch {}
+  let card, how = 'AI';
+  try { card = await aiPhoto(comp); }
+  catch (e) { console.warn('[ai]', e); how = '기기'; try { card = N.renderPhoto19(comp, null); } catch { try { card = N.quickPhoto(comp); } catch { card = comp; } } }
+  // 액자 · 사진 받기로 가는 크기 — 실시간 메시지 한도 안(720px JPEG ≈ 150KB 안팎)
+  try { const r = await link.send('photo', { id, img: jpeg(card, 720, 0.82) }); $('st').textContent = r === 'ok' ? `액자로 보냄(${how}) · ${id}` : '액자로 보내지 못함'; }
   catch { $('st').textContent = '액자로 보내지 못함'; }
   busy = false;
 }
