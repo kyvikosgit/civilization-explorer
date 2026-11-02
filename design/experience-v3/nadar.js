@@ -655,7 +655,6 @@ $('#toFrame').addEventListener('click', async () => {
     ackT = setTimeout(() => { if (pending) { frameSt('액자 화면이 응답하지 않습니다. 액자 화면이 켜져 있는지 확인해 주세요.', 'bad'); b.disabled = false; } }, 6000);
   } catch (e) { frameSt('보내지 못했습니다. 연결을 확인하고 다시 눌러 주세요.', 'bad'); b.disabled = false; }
 });
-if (!store.demo()) $('#camDemo').hidden = true;
 meState('idle');
 void loadImage; void room;
 // 검수용

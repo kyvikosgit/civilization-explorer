@@ -10,8 +10,7 @@ export const store = {
   save(id) { const s = read(); (s.saved ||= {})[id] = Date.now(); (s.solved ||= {})[id] ||= Date.now(); write(s); },
   redeemed: () => read().redeemed || 0,       // 굿즈 수령 시각
   redeem() { const s = read(); s.redeemed = Date.now(); write(s); },
-  // 기본은 프로토타입: 벽 · 그림 · 소품이 없어도 화면 안에서 끝까지 돈다. 현장(실제 벽이 있는 곳)에서만 실제 카메라로 바꾼다
-  demo: () => !read().live,
-  setLive(v) { const s = read(); s.live = !!v; write(s); },
-  reset() { const l = read().live; write(l ? { live: true } : {}); },
+  // 늘 실제 카메라. 카메라를 쓸 수 없을 때의 직접 고르기는 카메라 화면 안의 예비 단추(camui.js)
+  demo: () => false,
+  reset() { write({}); },
 };

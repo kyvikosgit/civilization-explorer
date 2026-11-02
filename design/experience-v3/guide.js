@@ -1,7 +1,5 @@
 // 장면 위 안내 — 글 목록 대신, 폰이 실제 그림에 다가가 비추는 동작을 그림으로 보여 주고 한 줄과 단추 하나만 둔다. 살롱 · 시민사회 · 산업혁명 · 해돋이 공통
 // show({ coach: { img, kind: 'gilt'|'paper'|'photo'|'ticket', land }, cap, title, sub, buttons: [{ label, on, cls, cam }], note, link: { label, on } })
-import { store } from './store.js';
-
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 const coachHTML = (c) => `<div class="g-coach${c.land ? ' land' : ''}" aria-hidden="true">
@@ -16,10 +14,8 @@ export function makeGuide(host = document.body) {
   let cur = null, firstBtn = null, firstHTML = '';
   const api = {
     el,
-    show(o0) {
-      // 프로토타입에서는 카메라 권한을 묻지 않는다
-      const o = store.demo() ? { ...o0, note: /허용/.test(o0.note || '') ? '' : o0.note, buttons: o0.buttons?.map((b) => (b.cam ? { ...b, label: '화면으로 비춰 보기' } : b)) } : o0;
-      cur = o0;
+    show(o) {
+      cur = o;
       el.className = 'v3-guide' + (o.coach ? ' has-coach' : '') + (o.coach?.land ? ' side' : '');
       el.innerHTML = `<div class="g-in">
         ${o.coach ? coachHTML(o.coach) : ''}

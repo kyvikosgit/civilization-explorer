@@ -148,22 +148,20 @@ const scanBtn = $('#scanBtn');
 document.body.classList.add('can-scan');
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
 const MODEL = V3 + 'model/props.tflite';
+const pickFallback = (why) => openCam({
+  title: '에트르타 · 소품 비추기', find: '', mind: null, pending: why,
+  targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })),
+  onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
+});
 scanBtn.addEventListener('click', () => {
   closeAll(true);
-  if (store.demo()) {                                   // 시연 모드 — 눌러서 인식
-    openCam({
-      title: '에트르타 · 소품 비추기', find: '이젤 · 캔버스 · 의자 · 화구 상자에\n카메라를 비추세요', mind: null, pending: TASK.pending,
-      targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), demo: true,
-      onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
-    });
-    return;
-  }
   openDetect({
     title: '에트르타 · 소품 비추기',
-    find: '이젤 · 캔버스 · 의자 · 화구 상자에\n카메라를 비추세요',
+    find: '방 안의 소품에 카메라를 비추세요',
     model: MODEL,
     names: Object.fromEntries(OBJ.map((o) => [o.id, o.name])),
     onFound: (id) => { closeDetect(); reveal(id); },
+    onFallback: (why) => { closeDetect(); pickFallback(why); },
   });
 });
 

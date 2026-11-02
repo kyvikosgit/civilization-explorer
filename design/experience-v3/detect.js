@@ -31,14 +31,17 @@ export function openDetect(o) {
     <div class="top"><button class="x" aria-label="닫기"><svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="t">${esc(o.title)}</div></div>
     <div class="msg det-msg">${esc(o.find)}</div>
     <div class="err"></div>
-    <div class="det-load">인식 모델을 불러오는 중</div>`;
+    <div class="det-load">인식 모델을 불러오는 중</div>
+    <div class="demo"><button class="pick-open" type="button">카메라 없이 고르기</button></div>`;
   document.body.appendChild(root);
   root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' });
   const me = { root, stop: false, stream: null, tracks: new Map(), focus: null, focusT: 0, fired: false };
   cur = me;
   const video = root.querySelector('video'), cv = root.querySelector('canvas'), g = cv.getContext('2d');
   root.querySelector('.x').onclick = () => { closeDetect(); o.onClose?.(); };
-  const fail = (m) => { root.classList.add('failed'); root.querySelector('.err').textContent = m; };
+  root.querySelector('.pick-open').onclick = () => o.onFallback?.();
+  // 카메라 · 모델을 못 쓰면 예비(직접 고르기)로
+  const fail = (m) => { if (o.onFallback) return o.onFallback(m.split('\n')[0]); root.classList.add('failed'); root.querySelector('.err').textContent = m; };
 
   (async () => {
     try {

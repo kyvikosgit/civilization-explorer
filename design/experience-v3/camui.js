@@ -21,7 +21,7 @@ function build() {
     <div class="finder"><i></i><i></i><i></i><i></i><span class="bar"></span></div>
     <div class="msg"></div>
     <div class="err"></div>
-    <div class="demo"><p></p><div class="strip"></div></div>
+    <div class="demo"><button class="pick-open" type="button">카메라 없이 고르기</button><p></p><div class="strip"></div><button class="pick-close" type="button">카메라로 돌아가기</button></div>
     <div class="docent"></div>`;
   document.body.appendChild(root);
   return root;
@@ -34,7 +34,7 @@ export function openCam(o) {
   const el = root, $ = (s) => el.querySelector(s);
   const me = { o, locked: false, fx: null };
   cur = me;
-  el.className = 'v3-cam on' + (o.demo ? ' demo-on sim-on' : '') + (o.hold ? ' pre' : '');
+  el.className = 'v3-cam on' + (o.hold ? ' pre' : '');
   el.style.clipPath = '';
   // 위 한 줄: '구역 · 할 일' 을 둘로 나눠 작은 캡션과 제목으로
   const [cap, ...rest] = String(o.title || '').split(' · ');
@@ -102,39 +102,34 @@ export function openCam(o) {
     o.onFound(i, ui);
   };
 
-  // 시연 띠
-  const strip = $('.strip');
-  strip.innerHTML = (o.targets || []).map((t, i) => `<button data-i="${i}" aria-label="${esc(t.title)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<span class="ph">${esc(t.title)}</span>`}</button>`).join('');
-  strip.querySelectorAll('button').forEach((b) => { b.onclick = () => found(+b.dataset.i); });
+  // ── 예비: 카메라를 쓸 수 없을 때만 — 아래 [카메라 없이 고르기]를 눌러 펼치고, 사람이 직접 눌러야 그 대상을 비춘 것처럼 된다(자동으로 고르지 않는다)
+  const strip = $('.strip'), art = $('.sim-art'), finder = $('.finder'), targets = o.targets || [];
+  strip.innerHTML = targets.map((t, i) => `<button data-i="${i}" aria-label="${esc(t.title)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<span class="ph">${esc(t.title)}</span>`}</button>`).join('');
+  const btns = [...strip.querySelectorAll('button')];
+  art.removeAttribute('src');
+  const openPick = (why) => { el.classList.add('picking'); $('.demo p').textContent = why || '비출 곳을 고르세요'; };
+  $('.pick-open').onclick = () => openPick();
+  $('.pick-close').onclick = () => { if (me.camless) return; el.classList.remove('picking', 'sim-on', 'snap'); me.snapTo = null; finder.removeAttribute('style'); clearTimeout(me.aimT); clearTimeout(me.snapT); btns.forEach((b) => b.classList.remove('on')); };
+  const follow = () => {
+    if (cur !== me) return;
+    if (me.snapTo != null) { const r = art.getBoundingClientRect(), g = 8; if (r.width) Object.assign(finder.style, { left: `${r.left - g}px`, top: `${r.top - g}px`, width: `${r.width + g * 2}px`, height: `${r.height + g * 2}px` }); }
+    requestAnimationFrame(follow);
+  };
+  follow();
+  const aim = (i) => {
+    if (cur !== me || me.locked) return;
+    clearTimeout(me.aimT); clearTimeout(me.snapT);
+    me.snapTo = null; el.classList.remove('snap'); finder.removeAttribute('style');
+    btns.forEach((b, n) => b.classList.toggle('on', n === i));
+    art.src = targets[i].img; el.classList.add('sim-on');
+    me.snapT = setTimeout(() => { me.snapTo = i; el.classList.add('snap'); }, 650);
+    me.aimT = setTimeout(() => found(i), 1500);
+  };
+  btns.forEach((b, i) => { b.onclick = () => aim(i); });
+  $('.pick-open').hidden = !btns.length;
+  // 카메라를 아예 못 쓰면(권한 거부 · 카메라 없음 · 인식 타깃 준비 전) 고르기를 바로 펼친다
+  const camless = (why) => { me.camless = true; el.classList.add('camless'); openPick(why); if (o.hold) reveal(); };
 
-  // 프로토타입: 카메라를 켜지 않는다. 벽 · 그림이 뷰파인더에 보이고, 고르면 그 앞으로 가서 인식된다
-  if (o.demo) {
-    const art = $('.sim-art'), btns = [...strip.querySelectorAll('button')], many = btns.length > 1;
-    $('.demo p').textContent = many ? '비출 곳을 고르세요' : '';
-    $('.err').textContent = '';
-    const finder = $('.finder');
-    const follow = () => {
-      if (cur !== me) return;
-      if (me.snapTo != null) { const r = art.getBoundingClientRect(), g = 8; if (r.width) Object.assign(finder.style, { left: `${r.left - g}px`, top: `${r.top - g}px`, width: `${r.width + g * 2}px`, height: `${r.height + g * 2}px` }); }
-      requestAnimationFrame(follow);
-    };
-    follow();
-    const aim = (i) => {
-      if (cur !== me || me.locked) return;
-      clearTimeout(me.aimT); clearTimeout(me.snapT);
-      me.snapTo = null; el.classList.remove('snap'); finder.removeAttribute('style');
-      btns.forEach((b, n) => b.classList.toggle('on', n === i));
-      art.src = o.targets[i].img; el.classList.add('aiming');
-      me.snapT = setTimeout(() => { me.snapTo = i; el.classList.add('snap'); }, 650);
-      me.aimT = setTimeout(() => found(i), 1500);
-    };
-    btns.forEach((b, i) => { b.onclick = () => aim(i); });
-    if (o.hold) setTimeout(reveal, 0);
-    art.removeAttribute('src');
-    if (o.aimFirst || !many) setTimeout(() => aim(0), o.hold ? 1500 : 500);
-    else art.src = o.targets[0]?.img || '';
-    return ui;
-  }
   if (o.mind) {
     startScan($('.ar'), o.mind, (o.targets || []).length, {
       setup: o.fx ? (ctx) => (me.fx = o.fx(ctx)) : null,
@@ -144,17 +139,13 @@ export function openCam(o) {
       onError: (e) => {
         console.warn('[cam]', e);
         const denied = /Permission|NotAllowed/i.test(e?.name + e?.message);
-        const msg = denied ? '카메라를 쓸 수 없습니다.\n브라우저 설정에서 카메라 권한을 허용해 주세요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.';
-        if (o.onFail && !o.demo) return o.onFail(msg);
-        el.classList.add('failed');
-        $('.err').textContent = denied || !o.demo ? msg : '카메라를 켜지 못했습니다.\n아래에서 눌러 확인할 수 있습니다.';
-        if (o.hold) reveal();
+        const msg = denied ? '카메라 권한이 없어 직접 골라 봅니다' : '카메라를 켜지 못해 직접 골라 봅니다';
+        if (!btns.length) { if (o.onFail) return o.onFail(denied ? '카메라를 쓸 수 없습니다.\n브라우저 설정에서 카메라 권한을 허용해 주세요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.'); el.classList.add('failed'); $('.err').textContent = msg; if (o.hold) reveal(); return; }
+        camless(msg);
       },
     });
   } else {
-    el.classList.add('failed');
-    $('.err').textContent = (o.pending || '인식 타깃을 준비하고 있습니다') + (o.demo ? '\n\n아래에서 눌러 확인할 수 있습니다.' : '');
-    if (o.hold) setTimeout(reveal, 0);
+    camless(o.pending ? '인식 준비 전이라 직접 골라 봅니다' : '');
   }
   return ui;
 }
