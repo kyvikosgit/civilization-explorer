@@ -52,14 +52,15 @@ export const ZONES = [
     id: 'society', no: 'C-1', loc: '4F · C-1 시민사회', title: '카페 게르부아의 소문',
     tasks: [
       // 카페 게르부아 · 박람회 벽면 인물 대화 — 체험장치 기획서(260928) 22–25쪽의 인물 자리와 대사 그대로.
-      //   video: 그 벽 그림 자체로 만든 영상(같은 구도) — 인식한 벽 위에 겹쳐 벽이 움직인다. 아직 없음(이미지 → 영상 생성 대기) 인식 파일 순서: 11/02 카페 정면 · 260928 카페 벽면 · 박람회 벽면
+      //   video: 그 벽 그림 자체로 만든 영상(같은 구도, Kling 3.0 Pro · 첫 장면 = 벽 그림 · 앞뒤로 이어 반복) — 누른 사람 자리만 움직인다.
+      //   기획서 카페 벽만 통과. 11/02 정면(연회복 차림 — 고증 탈락) · 박람회(줌인 · 깨진 글자 · 1880년대 복식 — 탈락)는 없음 인식 파일 순서: 11/02 카페 정면 · 260928 카페 벽면 · 박람회 벽면
       {
         id: 'people', title: '카페 게르부아', kind: 'talk',
         find: '카페 게르부아 벽면을 카메라로 비춰 보세요',
         mind: 'mind/guerbois.mind',
         walls: [
           { index: 0, place: '카페 게르부아', img: 'img/cafe_facade.jpg', video: null, region: { w: 0.13, h: 0.22 }, ratio: 726 / 1080, windows: { w: 0.26, h: 0.2 }, spots: CAFE([0.78, 0.52], [0.46, 0.52], [0.22, 0.52]) },
-          { index: 1, place: '카페 게르부아', img: 'img/cafe_plan.jpg', video: null, region: { w: 0.12, h: 0.16 }, ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE([0.65, 0.59], [0.4, 0.59], [0.16, 0.59]) },
+          { index: 1, place: '카페 게르부아', img: 'img/cafe_plan.jpg', video: 'video/cafe_plan.mp4', region: { w: 0.12, h: 0.16 }, ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE([0.65, 0.59], [0.4, 0.59], [0.16, 0.59]) },
           { index: 2, place: '파리 만국 박람회', img: 'img/expo_wall.jpg', video: null, region: { w: 0.08, h: 0.15 }, ratio: 1024 / 1536, spots: [
             { x: 0.83, y: 0.63, audio: 'audio/expo1.m4a', line: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
             { x: 0.57, y: 0.58, audio: 'audio/expo2.m4a', line: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
