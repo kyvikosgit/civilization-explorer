@@ -1,5 +1,6 @@
-// 벽면 인물 대화 AR — 카페 게르부아 · 박람회 벽면을 비추면 창에 불이 들어오고, 지정된 인물이 차례로 말한다(말풍선 + 목소리)
-// 대사 · 인물 자리는 체험장치 기획서(260928) 22–25쪽. 목소리는 임시 합성음(audio/) — 성우로 교체. 인물 영상이 나오기 전 시연: 그 벽과 맞는 인물 그림이 창에서 나와 말한다(벽과 무관한 영상을 대신 쓰지 말 것)
+// 벽면 인물 대화 AR — 카페 게르부아 · 박람회 벽면을 비추면 그 벽이 살아 움직이고(벽 영상을 벽 위에 그대로 겹침), 지정된 인물이 차례로 말한다(말풍선 + 목소리)
+// 대사 · 인물 자리는 체험장치 기획서(260928) 22–25쪽. 목소리는 임시 합성음(audio/) — 성우로 교체
+// 벽 영상(walls[].video)은 그 벽 그림 자체로 만든 영상만 쓴다 — 다른 그림 · 다른 영상을 끼워 넣지 말 것. 영상이 없으면 창 불빛 · 고리 · 말풍선만
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 소리: 폰은 사용자가 누른 순간에만 재생을 허락한다 — [카메라 켜기]에서 같은 Audio 를 한 번 열어 둔다
@@ -26,8 +27,14 @@ export function talkFx(walls) {
   return ({ THREE, mindar, anchors }) => {
     const v3 = new THREE.Vector3();
     const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 4, 64, 64, 64); g.addColorStop(0, 'rgba(255,190,110,.9)'); g.addColorStop(1, 'rgba(255,170,80,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
-    const glows = [];
+    const glows = [], vids = [];
     walls.forEach((w, i) => {
+      if (w.video) {                                     // 비춘 벽 위에 같은 구도의 벽 영상을 그대로 — 벽이 살아 움직인다
+        const v = document.createElement('video');
+        Object.assign(v, { src: w.video, loop: true, muted: true, playsInline: true, crossOrigin: 'anonymous' }); v.setAttribute('playsinline', '');
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(1, w.ratio), new THREE.MeshBasicMaterial({ map: new THREE.VideoTexture(v), transparent: true, opacity: 0 }));
+        m.position.z = 0.0005; anchors[i].group.add(m); vids.push({ v, m, i });
+      }
       if (!w.windows) return;
       w.spots.forEach((s, k) => {
         const glow = new THREE.Mesh(new THREE.PlaneGeometry(w.windows.w * 1.7, w.windows.w * 1.7), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.3 }));
@@ -39,6 +46,7 @@ export function talkFx(walls) {
       setActive(k) { active = k; },
       tick(t) {
         const now = t || 0;
+        vids.forEach((o) => { const on = anchors[o.i].group.visible; if (on && o.v.paused) o.v.play().catch(() => {}); o.m.material.opacity += ((on ? 1 : 0) - o.m.material.opacity) * 0.08; });
         glows.forEach((o) => { o.m.material.opacity = (active === o.k ? 0.62 : 0.28) + 0.05 * Math.sin(now * 2.4 + o.k); });
       },
       project(i, s) {
@@ -51,32 +59,36 @@ export function talkFx(walls) {
 }
 
 // 화면 층: 인물 고리와 말풍선(글자는 또렷해야 하니 화면 요소로, 위치만 벽을 따라간다)
+//   카메라: 벽 위 자리를 three 로 투영 / 카메라 없이 고르기: 화면에 보이는 그 벽 그림(sim-art) 위 자리 그대로
 export function playTalk(ui, wall, { base, onEach, onEnd }) {
   const host = ui.el, token = {};
   host.querySelector('.talk-layer')?.remove();
   const layer = document.createElement('div');
   layer.className = 'talk-layer';
-  const still = !ui.fx?.project || host.classList.contains('demo-on');
-  layer.innerHTML = `${still ? `<img class="talk-still" src="${wall.img}" alt="">` : ''}${wall.spots.map(() => '<i class="t-ring"></i>').join('')}<div class="t-clip"><div class="in"><img alt=""><i class="flick"></i><i class="smoke a"></i><i class="smoke b"></i></div></div><div class="t-bub"></div>`;
+  const sim = host.classList.contains('sim-on') || !ui.fx?.project;
+  layer.innerHTML = `${sim && wall.video ? `<video class="talk-vid" src="${wall.video}" muted loop playsinline autoplay></video>` : ''}${wall.spots.map(() => '<i class="t-ring"></i>').join('')}<div class="t-bub"></div>`;
   host.appendChild(layer);
-  const rings = [...layer.querySelectorAll('.t-ring')], bub = layer.querySelector('.t-bub'), img = layer.querySelector('.talk-still'), clip = layer.querySelector('.t-clip'), face = clip.querySelector('img');
+  const rings = [...layer.querySelectorAll('.t-ring')], bub = layer.querySelector('.t-bub'), vid = layer.querySelector('.talk-vid');
   const pos = wall.spots.map(() => null);
+  const TOP = 76 + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat')) || 0);
   let active = -1, raf = 0;
   const place = () => {
     if (token.dead) return;
+    const r = sim ? ui.simRect?.() : null;
+    if (vid && r) Object.assign(vid.style, { left: `${r.l}px`, top: `${r.t}px`, width: `${r.r - r.l}px`, height: `${r.b - r.t}px` });
     wall.spots.forEach((s, k) => {
-      let p = null;
-      if (img) { const r = img.getBoundingClientRect(); p = { x: r.left + s.x * r.width, y: r.top + s.y * r.height }; } else p = ui.fx.project(wall.index, s);
-      if (p) pos[k] = pos[k] ? { x: pos[k].x + (p.x - pos[k].x) * 0.16, y: pos[k].y + (p.y - pos[k].y) * 0.16 } : p;
+      const p = sim ? (r ? { x: r.l + s.x * (r.r - r.l), y: r.t + s.y * (r.b - r.t) } : null) : ui.fx.project(wall.index, s);
+      if (p) pos[k] = pos[k] ? { x: pos[k].x + (p.x - pos[k].x) * 0.2, y: pos[k].y + (p.y - pos[k].y) * 0.2 } : p;
       if (pos[k]) { rings[k].style.transform = `translate(${pos[k].x}px, ${pos[k].y}px)`; rings[k].style.opacity = 1; }
     });
     if (active >= 0 && pos[active]) {
-      const W = innerWidth, bw = bub.offsetWidth, bh = bub.offsetHeight, a = pos[active], cw = clip.offsetWidth, ch = clip.offsetHeight;
-      const cx = Math.max(10, Math.min(W - cw - 10, a.x - cw / 2)), cy = Math.max(70 + bh + 12, a.y - ch + 16);
-      clip.style.transform = `translate(${cx}px, ${cy}px)`;
-      const x = Math.max(12, Math.min(W - bw - 12, a.x - bw / 2)), y = cy - bh - 12;
+      // 말풍선은 그 사람 위에. 위가 모자라면(상단 제목 줄과 겹치면) 아래로
+      const W = innerWidth, bw = bub.offsetWidth, bh = bub.offsetHeight, a = pos[active];
+      const below = a.y - 34 - bh < TOP;
+      const x = Math.max(12, Math.min(W - bw - 12, a.x - bw / 2)), y = below ? a.y + 34 : a.y - 34 - bh;
+      bub.classList.toggle('below', below);
       bub.style.transform = `translate(${x}px, ${y}px)`;
-      bub.style.setProperty('--tail', `${Math.max(18, Math.min(bw - 18, cx + cw / 2 - x))}px`);
+      bub.style.setProperty('--tail', `${Math.max(18, Math.min(bw - 18, a.x - x))}px`);
     }
     raf = requestAnimationFrame(place);
   };
@@ -85,14 +97,14 @@ export function playTalk(ui, wall, { base, onEach, onEnd }) {
     for (let k = 0; k < wall.spots.length; k++) {
       if (token.dead) return;
       active = k; ui.fx?.setActive?.(k); onEach?.(k);
-      rings.forEach((r, n) => r.classList.toggle('on', n === k));
-      face.src = base + wall.spots[k].face; bub.textContent = wall.spots[k].line;
-      bub.classList.remove('on'); clip.classList.remove('on'); void bub.offsetWidth; bub.classList.add('on'); clip.classList.add('on');
+      rings.forEach((rr, n) => rr.classList.toggle('on', n === k));
+      bub.textContent = wall.spots[k].line;
+      bub.classList.remove('on'); void bub.offsetWidth; bub.classList.add('on');
       await speak(base + wall.spots[k].audio, wall.spots[k].line.length);
       if (token.dead) return;
-      bub.classList.remove('on'); clip.classList.remove('on'); await wait(450);
+      bub.classList.remove('on'); await wait(450);
     }
-    active = -1; ui.fx?.setActive?.(-1); rings.forEach((r) => r.classList.remove('on'));
+    active = -1; ui.fx?.setActive?.(-1); rings.forEach((rr) => rr.classList.remove('on'));
     if (!token.dead) onEnd?.();
   })();
   return () => { token.dead = true; cancelAnimationFrame(raf); stopVoice(); ui.fx?.setActive?.(-1); layer.remove(); };
