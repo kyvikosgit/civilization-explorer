@@ -21,7 +21,7 @@ function build() {
     <div class="finder"><i></i><i></i><i></i><i></i><span class="bar"></span></div>
     <div class="msg"></div>
     <div class="err"></div>
-    <div class="demo"><button class="pick-open" type="button">카메라 없이 고르기</button><p></p><div class="strip"></div><button class="pick-close" type="button">카메라로 돌아가기</button></div>
+    <div class="demo"><button class="nfc-again" type="button" hidden>태그에 폰 대기</button><button class="pick-open" type="button">카메라 없이 고르기</button><p></p><div class="strip"></div><button class="pick-close" type="button">카메라로 돌아가기</button></div>
     <div class="docent"></div>`;
   document.body.appendChild(root);
   return root;
@@ -127,6 +127,27 @@ export function openCam(o) {
   };
   btns.forEach((b, i) => { b.onclick = () => aim(i); });
   $('.pick-open').hidden = !btns.length;
+  // ── 앱(NFC 가능, exp/[id].tsx 가 __m100app.nfc 를 알려 준다): 화면이 열리면 바로 태그 읽기 — 폰을 대기만 하면 그 대상으로(링크로 넘어가지 않음)
+  //    o.nfc = { 태그 키: 대상 번호 } · 태그 주소 …/n/?t=키
+  const appNfc = !!(window.__m100app && window.__m100app.nfc && o.nfc && window.ReactNativeWebView);
+  const nfcRead = () => {
+    if (!appNfc || cur !== me || me.locked) return;
+    el.classList.add('nfc-wait');
+    window.__m100nfc = (url) => {
+      el.classList.remove('nfc-wait');
+      if (cur !== me) return;
+      let key = null;
+      try { const u = new URL(url, location.href); key = u.searchParams.get('t') || u.searchParams.get('o'); } catch { key = url; }
+      const i = url && key != null ? o.nfc[key] : undefined;
+      if (i != null) found(i);
+      else $('.nfc-again').textContent = url ? '이 태그가 아닙니다 · 다시 대기' : '태그에 폰 대기';
+    };
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'nfc' }));
+  };
+  if (appNfc) { $('.nfc-again').hidden = false; $('.nfc-again').textContent = '태그에 폰 대기'; $('.nfc-again').onclick = nfcRead; setTimeout(nfcRead, o.hold ? 1700 : 300); }
+  else $('.nfc-again').hidden = true;
+  me.nfcRead = nfcRead;
+
   // 카메라를 아예 못 쓰면(권한 거부 · 카메라 없음 · 인식 타깃 준비 전) 고르기를 바로 펼친다
   const camless = (why) => { me.camless = true; el.classList.add('camless'); openPick(why); if (o.hold) reveal(); };
 
@@ -145,7 +166,7 @@ export function openCam(o) {
       },
     });
   } else {
-    camless(o.pending ? '인식 준비 전이라 직접 골라 봅니다' : '');
+    camless(appNfc ? '태그에 폰 윗부분을 대세요' : (o.pending ? '인식 준비 전이라 직접 골라 봅니다' : ''));
   }
   return ui;
 }

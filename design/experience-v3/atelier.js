@@ -153,8 +153,14 @@ const pickFallback = (why) => openCam({
   targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })),
   onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
 });
+const NFC_KEYS = { easel: 0, pochade: 0, canvas: 1, stool: 2, tube: 3 };
 scanBtn.addEventListener('click', () => {
   closeAll(true);
+  // 앱(NFC 가능): 소품 태그에 대기만 하면 그 소품 — 카메라 인식 대신
+  if (window.__m100app?.nfc && window.ReactNativeWebView) {
+    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
+    return;
+  }
   openDetect({
     title: '에트르타 · 소품 비추기',
     find: '방 안의 소품에 카메라를 비추세요',

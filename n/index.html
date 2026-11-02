@@ -19,6 +19,10 @@
   };
   // 아틀리에 물건 아홉 가지 → 그 물건 카드
   ['diary', 'bladder', 'easel', 'canvas', 'mortar', 'lamp', 'pochade', 'tube', 'stool'].forEach(function (k) { MAP[k] = P + 'c3-tube.html?o=' + k; });
+  // 11/02 v3 — 앱 밖(아이폰 기본 태그 읽기)에서도 v3 화면으로: 기차표 → 사무실, 에트르타 소품 → v3 에트르타
+  var V3 = '/design/experience-v3/';
+  MAP.ticket = V3 + 'industry.html';
+  ['easel', 'canvas', 'tube', 'stool'].forEach(function (k) { MAP[k] = V3 + 'atelier.html?o=' + k; });
   var k = new URLSearchParams(location.search).get('t') || '';
   location.replace(MAP[k] || MAP.list);
 })();
