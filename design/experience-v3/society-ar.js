@@ -3,6 +3,7 @@ import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
+import { talkFx, playTalk, unlockAudio } from './talk.js';
 
 const V3 = '../../experience-v3/', HUB = V3 + 'index.html';
 const zone = ZONES.find((z) => z.id === 'society');
@@ -16,33 +17,36 @@ let stage = 'people', ended = false;
 const PEOPLE = {
   coach: { img: V3 + 'img/cafe_facade.jpg', kind: 'photo' },
   title: '카페 게르부아 벽면을 비춰 보세요',
-  sub: '카페 안에서 오가는 대화가 들립니다',
+  sub: '창 안의 사람들이 그 시대 이야기를 시작합니다',
   buttons: [{ label: '카메라 켜기', cam: true, on: openPeople }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
   link: { label: people.skip, on: toColumn },
 };
+const walls = people.walls.map((w) => ({ ...w, img: V3 + w.img }));
+let stopTalk = null;
 function openPeople() {
   guide.busy('카메라를 켜는 중');
+  unlockAudio(V3 + walls[0].spots[0].audio);          // 누른 순간에 소리를 열어 둔다
   openCam({
-    title: '시민사회 · 카페 게르부아', find: people.find, hint: '벽면이 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
-    mind: V3 + people.mind, targets: people.targets.map((t) => ({ ...t, img: V3 + t.img })),
-    demo: store.demo(), hold: true,
+    title: '시민사회 · 카페 게르부아', find: people.find, hint: '벽면이 화면에 가득 차도록\n조금 더 뒤로 물러나 보세요',
+    mind: V3 + people.mind, targets: walls.map((w) => ({ title: w.place, img: w.img })),
+    demo: store.demo(), hold: true, fx: talkFx(walls),
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
-    onClose: () => guide.reset(),
+    onClose: () => { stopTalk?.(); guide.reset(); },
     onFound: (i, ui) => talk(i, ui),
   });
 }
 function talk(i, ui) {
-  const t = people.targets[i], lines = t.lines || [];
-  const d = ui.show({ html: `<div class="dc">카페 게르부아</div><div class="dt">카페 안에서</div>
-    <div class="talk">${lines.map((l) => `<p>${esc(l)}</p>`).join('')}</div>
-    <p class="talk-wait">대화 원고가 오면 이 자리에서 대화가 재생됩니다</p><div class="prog"><i></i></div>`, buttons: [
-    { label: '다시 비추기', cls: 'line', on: () => ui.release() },
-    { label: '칼럼으로 가기', on: async () => { await closeCam(true); toColumn(); } },
-  ] });
-  const ps = d.querySelectorAll('.talk p'), bar = d.querySelector('.prog i');
-  ps.forEach((p, k) => setTimeout(() => { p.classList.add('on'); if (bar) bar.style.width = `${((k + 1) / ps.length) * 100}%`; }, 300 + k * 2200));
+  const w = walls[i], n = w.spots.length;
+  const panel = (k, done) => ui.show({
+    html: `<div class="dc">${esc(w.place)}</div><div class="dt">${done ? '이야기가 끝났습니다' : `당시 사람들의 이야기 ${k + 1} / ${n}`}</div>`,
+    buttons: [
+      { label: '다시 듣기', cls: 'line', on: () => { stopTalk?.(); talk(i, ui); } },
+      { label: '칼럼으로 가기', on: async () => { stopTalk?.(); await closeCam(true); toColumn(); } },
+    ],
+  });
+  stopTalk = playTalk(ui, w, { base: V3, onEach: (k) => panel(k), onEnd: () => panel(n, true) });
 }
 function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }
 
