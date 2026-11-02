@@ -1,4 +1,4 @@
-// v3 나다르 — v2 c4.js 사본. 바꾼 곳: 벽의 '당신이라면?' → 내 사진 찍기, 현상한 사진을 벽의 액자 화면(frame.html)으로 보낸다
+// v3 나다르 — v2 c4.js 사본. 입장 · 초상화 벽은 그대로. 바꾼 곳: 아래는 촬영 안내 + [QR 스캔] — 사진은 현장의 옛 카메라(nadar-booth.html)가 찍어 벽 액자(frame.html)에 걸고, 관람객은 QR 로 받는다(photo.html)
 // C4 나다르 사진관 — 두 화면(2D, 서버 없음 · 업로드 없음)
 //   0. 들어가기: 나다르가 찍은 35, boulevard des Capucines 정면 사진을 밤으로 옮긴 판(img/c4n) — 서명 간판이 한 글자씩 · 창이 켜짐 · 다가감
 //      → 유리 스튜디오의 마그네슘 섬광 속으로 → 하얗게 바랜 화면 아래에서 초상화 벽이 깊이에서 밀려 나오고 연기가 흩어진다. 누르면 건너뜀
@@ -20,6 +20,7 @@ import { createSteam } from '../experience-v2/proto/js/fx-steam.js';
 import * as P from '../experience-v2/proto/c4-paint.js';
 import { joinRoom, room } from './link.js';
 import { store } from './store.js';
+import { openQR } from './qrscan.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
@@ -201,7 +202,7 @@ function setMode(m) {
   let n = 0; order.forEach((it, i) => { if (setPerson(it.id, ph, REDUCED ? 0 : i * 30)) n++; });
   if (n) buzz();
 }
-$$('#seg button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.m)));
+
 
 // ── 화면 전환 — 벽이 가운데에서 두 문처럼 갈라진다(왼쪽 문은 그림, 오른쪽 문은 사진). 돌아올 때는 문이 다시 닫힌다
 let doorBusy = false;
@@ -256,7 +257,7 @@ function showWall() {
     doorBusy = false;
   };
 }
-$('#toQ').addEventListener('click', () => document.querySelector('.tab[data-tab="me"]').click());
+
 
 // ── 고르기
 const STANCES = { paint: { label: '그림', full: '그림으로', pct: 44 }, photo: { label: '사진', full: '사진으로', pct: 56 } };   // 예시 수치
@@ -657,6 +658,7 @@ $('#toFrame').addEventListener('click', async () => {
 });
 meState('idle');
 void loadImage; void room;
+$('#scanQR').addEventListener('click', () => openQR({ onUrl: (u) => { location.href = u; } }));
 // 검수용
 window.__c4 = { get stance() { return stance; }, get intro() { return introState; }, get people() { return PEOPLE.length; }, get view() { return view; }, get mode() { return mode; },
   get photos() { return isPh.size; }, get flowing() { return wallAnims.some((a) => a.playState === 'running'); }, get qFlowing() { return qAnims.some((a) => a.playState === 'running'); },

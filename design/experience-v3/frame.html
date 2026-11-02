@@ -19,6 +19,14 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 .hint{position:fixed;left:0;right:0;bottom:2vh;text-align:center;font-family:Freesentation,sans-serif;font-size:13px;color:rgba(242,237,226,.45);transition:opacity .6s}
 .hint.off{opacity:0}
 .dot{position:fixed;right:10px;bottom:10px;width:8px;height:8px;border-radius:50%;background:#C8553D}
+.count{position:fixed;inset:0;display:grid;place-items:center;font-family:Freesentation,sans-serif;font-size:34vmin;font-weight:800;color:#F2EDE2;text-shadow:0 6px 40px rgba(0,0,0,.6);opacity:0;transition:opacity .2s;pointer-events:none}
+.count.on{opacity:1}
+.withqr .stage img{max-height:74vh;transform:translateY(-8vh);transition:opacity 1.6s ease,transform .8s ease}
+.qr{position:fixed;left:50%;margin-left:calc(-1 * min(22vmin, 170px));bottom:3vmin;display:flex;align-items:center;gap:12px;padding:12px 14px 12px 12px;border-radius:12px;background:#F7F0DF;color:#2A2119;font-family:Freesentation,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.45);opacity:0;transform:translateY(8px);transition:opacity .6s,transform .6s}
+.qr.on{opacity:1;transform:none}
+.qr canvas{width:21vmin;height:21vmin;max-width:150px;max-height:150px;image-rendering:pixelated}
+.qr b{display:block;font-size:max(14px,2.1vmin);line-height:1.35}
+.qr small{display:block;margin-top:4px;font-size:max(11px,1.5vmin);opacity:.7}
 .dot.on{background:#3E8A6B;opacity:0;transition:opacity .6s}   /* 연결되면 숨긴다 — 빨간 점은 끊겼을 때만 */
 </style>
 </head>
@@ -26,11 +34,23 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 <div class="stage"><img id="a" alt=""><img id="b" alt=""></div>
 <p class="hint" id="hint">화면을 한 번 누르면 전체 화면으로 바뀝니다</p>
 <i class="dot" id="dot" title="연결 상태"></i>
+<div class="count" id="count"></div>
+<div class="qr" id="qr"><canvas id="qrc"></canvas><span><b>앱으로 QR 을 찍어<br>사진을 받으세요</b><small>폰 카메라로 찍어도 받을 수 있습니다</small></span></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script type="module">
 import { joinRoom } from './link.js';
 setTimeout(() => document.getElementById('hint').classList.add('off'), 6000);   // 설치할 때만 보이면 된다
 const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
-const HOLD = 60000;                          // 관람객 사진은 1분 걸어 두고 평소로
+const HOLD = 90000;                          // 관람객 사진은 1분 30초 걸어 두고 평소로 — 그동안 QR 로 받는다
+const KEEP = new Map();                      // 최근 사진 — QR 로 찾아오면 여기서 보낸다(서버에 저장하지 않음)
+const roomName = new URLSearchParams(location.search).get('room') || 'c4';
+function drawQR(id) {
+  const url = new URL(`photo.html?room=${encodeURIComponent(roomName)}&id=${id}`, location.href).href;
+  const q = qrcode(0, 'M'); q.addData(url); q.make();
+  const n = q.getModuleCount(), cv = document.getElementById('qrc'), k = 6, pad = 2; cv.width = cv.height = (n + pad * 2) * k;
+  const g = cv.getContext('2d'); g.fillStyle = '#F7F0DF'; g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = '#2A2119';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + pad) * k, (r + pad) * k, k, k);
+}
 const imgs = [document.getElementById('a'), document.getElementById('b')];
 let front = 0, back = 0;
 function showSrc(src) {
@@ -43,9 +63,13 @@ const link = joinRoom({
   photo: (p) => {
     if (!p?.img) return;
     showSrc(p.img);
+    KEEP.set(p.id, p.img); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value);
+    drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
     link.send('ack', { id: p.id });
-    clearTimeout(back); back = setTimeout(() => showSrc(IDLE), HOLD);
+    clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
   },
+  count: (p) => { const c = document.getElementById('count'); c.textContent = p?.n || ''; c.classList.toggle('on', !!p?.n); },
+  get: (p) => { const img = KEEP.get(p?.id); if (img) link.send('img', { id: p.id, img }); else link.send('img', { id: p?.id, missing: true }); },
 });
 link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
 document.body.addEventListener('click', async () => {

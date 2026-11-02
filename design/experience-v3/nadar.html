@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<!-- v3 나다르: v2 c4.html 사본. 입장 · 초상화 벽 · 내 초상 그대로, 그림이냐 사진이냐 대신 내 사진을 벽의 액자로 -->
+<!-- v3 나다르: v2 c4.html 사본. 입장 · 초상화 벽은 그대로, 아래는 촬영 안내 + QR 스캔(사진은 현장의 옛 카메라가 찍어 벽 액자에 건다 — nadar-booth.html · frame.html · photo.html) -->
 <base href="../experience-v2/proto/">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
@@ -15,6 +15,8 @@
 <link rel="stylesheet" href="../ticket/fonts.css">
 <link rel="stylesheet" href="c4.css">
 <link rel="stylesheet" href="c4-fx.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="../../experience-v3/cam.css">
 <link rel="stylesheet" href="../../experience-v3/nadar.css">
 </head>
 <body class="page c4 intro-on">
@@ -51,24 +53,19 @@
     <div class="layer far" aria-hidden="true"><div class="track" id="far"></div></div>
     <div class="layer near"><div class="track" id="hang"></div></div>
     <header class="w-head">
-      <h1>같은 얼굴이<br>두 번 남았습니다.</h1>
-      <p class="w-lead">한 번은 화가의 붓으로, 한 번은 사진가의 렌즈로.<br>어느 쪽이 그 사람을 더 닮았을까요?</p>
-      <p class="w-hint" id="wHint">누르면 사진으로 · 끌어서 둘러보기</p>
+      <h1>나다르 사진관에서<br>초상을 남기세요</h1>
+      <p class="w-lead">옛 카메라 앞에 앉으면, 그 시대 사진관의 사진으로 남겨 드립니다.</p>
     </header>
-    <div class="w-foot">
-      <!-- 누가 · 언제 — 마지막으로 누른 초상의 이름표(지금 보이는 쪽 먼저, 다른 쪽은 옅게) -->
-      <div class="w-cap" id="wCap" aria-live="polite" hidden>
-        <button class="cap-x" id="capX" type="button" aria-label="선택 풀기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
-        <b class="cap-name" id="capName"></b>
-        <span class="cap-now" id="capNow"></span>
-        <span class="cap-other" id="capOther"></span>
-      </div>
-      <div class="seg" id="seg" role="group" aria-label="벽 전체를 바꾸기">
-        <i class="seg-thumb" aria-hidden="true"></i>
-        <button type="button" data-m="paint" aria-pressed="true">초상화</button>
-        <button type="button" data-m="photo" aria-pressed="false">사진</button>
-      </div>
-      <button class="btn white ask-btn" id="toQ" type="button">내 사진 찍기</button>
+    <div class="w-foot shoot">
+      <ol class="shoot-steps">
+        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 4v12M23 4v12M9 9h14M8 16h16l-1 5H9zM10 21l-1 7M22 21l1 7"/></svg></span><b>의자에 앉아<br>렌즈를 바라보세요</b></li>
+        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="9" width="24" height="17" rx="2"/><circle cx="16" cy="17.5" r="5"/><path d="M11 9l2-3h6l2 3M23 5v2"/></svg></span><b>버튼을 누르면<br>3초 뒤 찍힙니다</b></li>
+        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="4" width="22" height="24" rx="1"/><rect x="9" y="8" width="14" height="10"/><path d="M17 21h3v3h-3zM22 21h1M22 24h1M9 21h5v3H9z"/></svg></span><b>액자에 걸린 사진의<br>QR 을 스캔하세요</b></li>
+      </ol>
+      <button class="btn white ask-btn" id="scanQR" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V5h4M16 5h4v4M20 15v4h-4M8 19H4v-4M8 9h3v3H8zM13 9h3M13 12h3v3M8 15h3"/></svg>QR 스캔하고 사진 받기</button>
+      <p class="shoot-note">사진은 그 시대 사진관의 화풍으로 바뀌어 벽 액자에 걸립니다</p>
+      <!-- 기존 코드(c4.js 사본)가 찾는 요소 — 쓰지 않으니 숨겨 둔다 -->
+      <div hidden><p id="wHint"></p><div id="wCap"><button id="capX" type="button"></button><b id="capName"></b><span id="capNow"></span><span id="capOther"></span></div><div id="seg"><button type="button" data-m="paint"></button><button type="button" data-m="photo"></button></div><button id="toQ" type="button"></button></div>
     </div>
   </section>
 

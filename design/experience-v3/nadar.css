@@ -1,5 +1,12 @@
-/* v3 나다르 — 사진을 벽의 액자로 */
-.me-end .to-frame{width:100%;grid-column:1/-1;flex:1 0 100%}
-.frame-st{flex:1 0 100%;grid-column:1/-1;margin:0;min-height:22px;text-align:center;font-size:14px;font-weight:600;color:rgba(255,255,255,.75)}
-.frame-st.ok{color:#9CC2A5}
-.frame-st.bad{color:#E0A18C}
+/* v3 나다르 — 아래는 촬영 안내 세 칸 + QR 스캔. 휴대폰 셀카(내 초상) 화면 · 그림/사진 고르기는 쓰지 않는다 */
+.tabs,#me,.w-cap,.seg{display:none!important}
+.w-foot.shoot{display:flex;flex-direction:column;align-items:stretch;gap:14px;padding-top:26px;background:linear-gradient(transparent,rgba(12,10,9,.92) 22%)}
+.shoot-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.shoot-steps li{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;counter-increment:st}
+.shoot-steps .ic{position:relative;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:rgba(233,199,122,.1);box-shadow:inset 0 0 0 1px rgba(233,199,122,.45)}
+.shoot-steps .ic::after{content:counter(st);position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#1a0d08;background:#E9C77A}
+.shoot-steps svg{width:26px;height:26px;fill:none;stroke:#E9C77A;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.shoot-steps b{font-size:12.5px;font-weight:600;line-height:1.4;color:rgba(255,255,255,.86);word-break:keep-all}
+#scanQR{display:flex;align-items:center;justify-content:center;gap:8px}
+#scanQR svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.shoot-note{margin:0;text-align:center;font-size:12.5px;color:rgba(255,255,255,.55)}

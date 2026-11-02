@@ -20,7 +20,7 @@ function render() {
   $('#rows').innerHTML = ZONES.map((z) => {
     const col = z.tasks.filter((t) => t.collect);
     let st = '', ok = false;
-    if (z.id === 'nadar') st = '사진 · 벽의 액자에 걸기';
+    if (z.id === 'nadar') st = '촬영 · QR로 사진 받기';
     else if (col.length && col.every((t) => store.saved(t.id))) { st = '수집함에 담음'; ok = true; }
     else if (col.some((t) => store.solved(t.id))) { st = '정답 · 저장 전'; ok = true; }
     return `<a class="row" href="${PAGE[z.id]}"><span class="no">${esc(z.no)}</span>

@@ -3,7 +3,7 @@ import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
-import { talkFx, playTalk, unlockAudio } from './talk.js';
+import { talkFx, startTalk, unlockAudio } from './talk.js';
 
 const V3 = '../../experience-v3/', HUB = V3 + 'index.html';
 const zone = ZONES.find((z) => z.id === 'society');
@@ -39,14 +39,12 @@ function openPeople() {
 }
 function talk(i, ui) {
   const w = walls[i], n = w.spots.length;
-  const panel = (k, done) => ui.show({
-    html: `<div class="dc">${esc(w.place)}</div><div class="dt">${done ? '이야기가 끝났습니다' : `당시 사람들의 이야기 ${k + 1} / ${n}`}</div>`,
-    buttons: [
-      { label: '다시 듣기', cls: 'line', on: () => { stopTalk?.(); talk(i, ui); } },
-      { label: '칼럼으로 가기', on: async () => { stopTalk?.(); await closeCam(true); toColumn(); } },
-    ],
+  const panel = (got) => ui.show({
+    html: `<div class="dc">${esc(w.place)}</div><div class="dt">${got >= n ? '모두의 이야기를 들었습니다' : '그 시대 사람들의 이야기'}</div><div class="ds">${got} / ${n}명 · 벽의 사람을 눌러 보세요</div>`,
+    buttons: [{ label: '칼럼으로 가기', cls: got >= n ? '' : 'line', on: async () => { stopTalk?.(); await closeCam(true); toColumn(); } }],
   });
-  stopTalk = playTalk(ui, w, { base: V3, onEach: (k) => panel(k), onEnd: () => panel(n, true) });
+  panel(0);
+  stopTalk = startTalk(ui, w, { base: V3, onHeard: (got) => panel(got) });
 }
 function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }
 

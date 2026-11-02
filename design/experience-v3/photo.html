@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#16110c">
+<title>나다르 사진관 · 내 사진</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<style>
+/* QR 로 찾아온 사진 — 앱(수집함) · 앱 없는 폰(웹) 공통. 끝 단추 [처음으로 | 수집함에 저장] + 사진 저장 */
+:root{color-scheme:dark}
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100dvh;background:radial-gradient(90% 60% at 50% 30%,#2a221c,#100c0a);color:#F2EDE2;font-family:Freesentation,sans-serif;display:flex;flex-direction:column;align-items:center;padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));word-break:keep-all}
+.cap{font-size:13px;font-weight:700;color:#E9C77A}
+h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:24px;margin-top:4px;text-align:center}
+.ph{margin-top:22px;width:min(100%,360px);aspect-ratio:3/4;display:grid;place-items:center;border-radius:6px;background:rgba(242,237,226,.06);box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .8s}
+.ph img.on{opacity:1}
+.ph p{font-size:14px;color:rgba(242,237,226,.6);text-align:center;padding:20px;white-space:pre-line}
+.btns{width:min(100%,360px);display:flex;gap:8px;margin-top:22px}
+.btn{flex:1;height:52px;border-radius:12px;border:0;font:inherit;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none}
+.btn.line{background:rgba(242,237,226,.08);color:#F2EDE2;border:1px solid rgba(242,237,226,.2)}
+.btn.fill{background:#E9C77A;color:#1a0d08}
+.btn[disabled]{opacity:.55}
+.dl{margin-top:12px;font-size:14px;color:rgba(242,237,226,.7);background:none;border:0;font-family:inherit}
+</style>
+</head>
+<body>
+<p class="cap">나다르 사진관</p>
+<h1>당신의 초상</h1>
+<div class="ph" id="ph"><p id="msg">사진을 불러오는 중</p><img id="img" alt="나다르 사진관 화풍의 내 사진"></div>
+<div class="btns"><a class="btn line" href="index.html">처음으로</a><button class="btn fill" id="save" type="button" disabled>수집함에 저장</button></div>
+<button class="dl" id="dl" type="button" hidden>폰에 사진 저장</button>
+<script type="module">
+// 사진은 벽 액자 화면이 들고 있다(최근 몇 장) — 같은 방에 '이 사진 주세요'(get)를 보내고 받는다. 서버에 저장하지 않으니 액자에 걸려 있는 동안 받아야 한다
+import { joinRoom } from './link.js';
+const $ = (s) => document.getElementById(s), id = new URLSearchParams(location.search).get('id');
+let got = null;
+const link = joinRoom({ img: (p) => {
+  if (p?.id !== id || got) return;
+  if (p.missing) { $('msg').textContent = '사진을 찾지 못했습니다.\n벽 액자에 사진이 걸려 있는 동안 다시 스캔해 주세요.'; return; }
+  got = p.img; $('img').src = got; $('img').classList.add('on'); $('msg').hidden = true;
+  $('save').disabled = false; $('dl').hidden = false;
+  try { if (JSON.parse(localStorage.getItem('m100v3_nadar') || '{}').id === id) mark(); } catch {}
+} });
+const ask = () => { if (!got) link.send('get', { id }).catch(() => {}); };
+if (!id) $('msg').textContent = 'QR 을 다시 스캔해 주세요.';
+else { link.ready.then(ask); [2500, 5000, 8000].forEach((t) => setTimeout(ask, t)); setTimeout(() => { if (!got) $('msg').textContent = '액자와 연결되지 않았습니다.\n벽 액자에 사진이 걸려 있는 동안 다시 스캔해 주세요.'; }, 11000); }
+function mark() { $('save').disabled = true; $('save').textContent = '수집함에 담았어요'; }
+$('save').onclick = () => { try { localStorage.setItem('m100v3_nadar', JSON.stringify({ id, img: got, at: Date.now() })); } catch {} mark(); navigator.vibrate?.(16); };
+$('dl').onclick = async () => {
+  const blob = await (await fetch(got)).blob(), file = new File([blob], `nadar_${id}.jpg`, { type: 'image/jpeg' });
+  if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file] }); return; } catch (e) { if (e?.name === 'AbortError') return; } }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+</script>
+</body>
+</html>
