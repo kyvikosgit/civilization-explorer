@@ -1,5 +1,5 @@
 // 벽면 인물 대화 AR — 카페 게르부아 · 박람회 벽면을 비추면 창에 불이 들어오고, 지정된 인물이 차례로 말한다(말풍선 + 목소리)
-// 대사 · 인물 자리는 체험장치 기획서(260928) 22–25쪽. 목소리는 임시 합성음(audio/) — 성우로 교체. 인물 영상은 아직 없다(벽과 무관한 영상을 대신 쓰지 말 것)
+// 대사 · 인물 자리는 체험장치 기획서(260928) 22–25쪽. 목소리는 임시 합성음(audio/) — 성우로 교체. 인물 영상이 나오기 전 시연: 그 벽과 맞는 인물 그림이 창에서 나와 말한다(벽과 무관한 영상을 대신 쓰지 말 것)
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 소리: 폰은 사용자가 누른 순간에만 재생을 허락한다 — [카메라 켜기]에서 같은 Audio 를 한 번 열어 둔다
@@ -57,9 +57,9 @@ export function playTalk(ui, wall, { base, onEach, onEnd }) {
   const layer = document.createElement('div');
   layer.className = 'talk-layer';
   const still = !ui.fx?.project || host.classList.contains('demo-on');
-  layer.innerHTML = `${still ? `<img class="talk-still" src="${wall.img}" alt="">` : ''}${wall.spots.map(() => '<i class="t-ring"></i>').join('')}<div class="t-bub"></div>`;
+  layer.innerHTML = `${still ? `<img class="talk-still" src="${wall.img}" alt="">` : ''}${wall.spots.map(() => '<i class="t-ring"></i>').join('')}<div class="t-clip"><div class="in"><img alt=""><i class="flick"></i><i class="smoke a"></i><i class="smoke b"></i></div></div><div class="t-bub"></div>`;
   host.appendChild(layer);
-  const rings = [...layer.querySelectorAll('.t-ring')], bub = layer.querySelector('.t-bub'), img = layer.querySelector('.talk-still');
+  const rings = [...layer.querySelectorAll('.t-ring')], bub = layer.querySelector('.t-bub'), img = layer.querySelector('.talk-still'), clip = layer.querySelector('.t-clip'), face = clip.querySelector('img');
   const pos = wall.spots.map(() => null);
   let active = -1, raf = 0;
   const place = () => {
@@ -71,10 +71,12 @@ export function playTalk(ui, wall, { base, onEach, onEnd }) {
       if (pos[k]) { rings[k].style.transform = `translate(${pos[k].x}px, ${pos[k].y}px)`; rings[k].style.opacity = 1; }
     });
     if (active >= 0 && pos[active]) {
-      const W = innerWidth, bw = bub.offsetWidth, bh = bub.offsetHeight, a = pos[active];
-      const x = Math.max(12, Math.min(W - bw - 12, a.x - bw / 2)), y = Math.max(64, a.y - bh - 40);
+      const W = innerWidth, bw = bub.offsetWidth, bh = bub.offsetHeight, a = pos[active], cw = clip.offsetWidth, ch = clip.offsetHeight;
+      const cx = Math.max(10, Math.min(W - cw - 10, a.x - cw / 2)), cy = Math.max(70 + bh + 12, a.y - ch + 16);
+      clip.style.transform = `translate(${cx}px, ${cy}px)`;
+      const x = Math.max(12, Math.min(W - bw - 12, a.x - bw / 2)), y = cy - bh - 12;
       bub.style.transform = `translate(${x}px, ${y}px)`;
-      bub.style.setProperty('--tail', `${Math.max(18, Math.min(bw - 18, a.x - x))}px`);
+      bub.style.setProperty('--tail', `${Math.max(18, Math.min(bw - 18, cx + cw / 2 - x))}px`);
     }
     raf = requestAnimationFrame(place);
   };
@@ -84,10 +86,11 @@ export function playTalk(ui, wall, { base, onEach, onEnd }) {
       if (token.dead) return;
       active = k; ui.fx?.setActive?.(k); onEach?.(k);
       rings.forEach((r, n) => r.classList.toggle('on', n === k));
-      bub.textContent = wall.spots[k].line; bub.classList.remove('on'); void bub.offsetWidth; bub.classList.add('on');
+      face.src = base + wall.spots[k].face; bub.textContent = wall.spots[k].line;
+      bub.classList.remove('on'); clip.classList.remove('on'); void bub.offsetWidth; bub.classList.add('on'); clip.classList.add('on');
       await speak(base + wall.spots[k].audio, wall.spots[k].line.length);
       if (token.dead) return;
-      bub.classList.remove('on'); await wait(350);
+      bub.classList.remove('on'); clip.classList.remove('on'); await wait(450);
     }
     active = -1; ui.fx?.setActive?.(-1); rings.forEach((r) => r.classList.remove('on'));
     if (!token.dead) onEnd?.();

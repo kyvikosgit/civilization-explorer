@@ -4,9 +4,9 @@
 // 타깃 순서 = .mind 컴파일 순서(missions.ts choices 순서)
 
 const CAFE = (a, b, c) => [
-  { x: a[0], y: a[1], audio: 'audio/cafe1.m4a', line: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
-  { x: b[0], y: b[1], audio: 'audio/cafe2.m4a', line: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
-  { x: c[0], y: c[1], audio: 'audio/cafe3.m4a', line: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' },
+  { x: a[0], y: a[1], audio: 'audio/cafe1.m4a', face: 'img/t_c1.jpg', line: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
+  { x: b[0], y: b[1], audio: 'audio/cafe2.m4a', face: 'img/t_c2.jpg', line: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
+  { x: c[0], y: c[1], audio: 'audio/cafe3.m4a', face: 'img/t_c3.jpg', line: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' },
 ];
 
 export const ZONES = [
@@ -51,7 +51,7 @@ export const ZONES = [
   {
     id: 'society', no: 'C-1', loc: '4F · C-1 시민사회', title: '카페 게르부아의 소문',
     tasks: [
-      // 카페 게르부아 · 박람회 벽면 인물 대화 — 체험장치 기획서(260928) 22–25쪽의 인물 자리와 대사 그대로. 인식 파일 순서: 11/02 카페 정면 · 260928 카페 벽면 · 박람회 벽면
+      // 카페 게르부아 · 박람회 벽면 인물 대화 — 체험장치 기획서(260928) 22–25쪽의 인물 자리와 대사 그대로. 인물 그림(시연용): 카페는 마네 석판화 〈카페에서〉 1869(카페 게르부아, 체험 구성안 근거 자료), 박람회는 벽 그림 속 그 인물. 인식 파일 순서: 11/02 카페 정면 · 260928 카페 벽면 · 박람회 벽면
       {
         id: 'people', title: '카페 게르부아', kind: 'talk',
         find: '카페 게르부아 벽면을 카메라로 비춰 보세요',
@@ -60,10 +60,10 @@ export const ZONES = [
           { index: 0, place: '카페 게르부아', img: 'img/cafe_facade.jpg', ratio: 726 / 1080, windows: { w: 0.26, h: 0.2 }, spots: CAFE([0.78, 0.52], [0.46, 0.52], [0.22, 0.52]) },
           { index: 1, place: '카페 게르부아', img: 'img/cafe_plan.jpg', ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE([0.65, 0.59], [0.4, 0.59], [0.16, 0.59]) },
           { index: 2, place: '파리 만국 박람회', img: 'img/expo_wall.jpg', ratio: 1024 / 1536, spots: [
-            { x: 0.83, y: 0.63, audio: 'audio/expo1.m4a', line: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
-            { x: 0.57, y: 0.58, audio: 'audio/expo2.m4a', line: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
-            { x: 0.43, y: 0.53, audio: 'audio/expo3.m4a', line: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
-            { x: 0.33, y: 0.68, audio: 'audio/expo4.m4a', line: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' },
+            { x: 0.83, y: 0.63, audio: 'audio/expo1.m4a', face: 'img/t_e1.jpg', line: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
+            { x: 0.57, y: 0.58, audio: 'audio/expo2.m4a', face: 'img/t_e2.jpg', line: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
+            { x: 0.43, y: 0.53, audio: 'audio/expo3.m4a', face: 'img/t_e3.jpg', line: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
+            { x: 0.33, y: 0.68, audio: 'audio/expo4.m4a', face: 'img/t_e4.jpg', line: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' },
           ] },
         ],
         skip: '건너뛰고 칼럼으로 가기',
