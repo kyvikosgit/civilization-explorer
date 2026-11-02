@@ -14,13 +14,14 @@ function build() {
   root.className = 'v3-cam';
   root.innerHTML = `
     <div class="ar"></div>
+    <div class="sim"><div class="sim-view"><img class="sim-art" alt=""><i class="sim-glow"></i><div class="sim-medal"><small>SALON</small><b>1873</b></div>${'<u></u>'.repeat(10)}</div></div>
     <div class="aura"></div>
     <div class="flash"></div>
     <div class="top"><button class="x" aria-label="닫기">${ICO.close}</button><div class="t"></div></div>
     <div class="finder"><i></i><i></i><i></i><i></i><span class="bar"></span></div>
     <div class="msg"></div>
     <div class="err"></div>
-    <div class="demo"><p>시연 모드 · 현장 대신 눌러서 인식</p><div class="strip"></div></div>
+    <div class="demo"><p></p><div class="strip"></div></div>
     <div class="docent"></div>`;
   document.body.appendChild(root);
   return root;
@@ -33,7 +34,7 @@ export function openCam(o) {
   const el = root, $ = (s) => el.querySelector(s);
   const me = { o, locked: false, fx: null };
   cur = me;
-  el.className = 'v3-cam on' + (o.demo ? ' demo-on' : '') + (o.hold ? ' pre' : '');
+  el.className = 'v3-cam on' + (o.demo ? ' demo-on sim-on' : '') + (o.hold ? ' pre' : '');
   el.style.clipPath = '';
   $('.t').textContent = o.title || '';
   $('.msg').textContent = o.find || '';
@@ -61,6 +62,8 @@ export function openCam(o) {
     release() { me.locked = false; el.classList.remove('locked', 'golden'); me.fx?.release?.(); armHint(); },
     close() { closeCam(); },
     get el() { return el; },
+    // 프로토타입: 뷰파인더에 보이는 그림의 화면 자리
+    simRect() { const r = $('.sim-art').getBoundingClientRect(); return r.width ? { l: r.left, t: r.top, r: r.right, b: r.bottom } : null; },
     get fx() { return me.fx; },   // setup 이 돌려준 효과 객체(인식한 그림의 화면 자리 등)
   };
   me.ui = ui;
@@ -94,6 +97,25 @@ export function openCam(o) {
   strip.innerHTML = (o.targets || []).map((t, i) => `<button data-i="${i}" aria-label="${esc(t.title)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<span class="ph">${esc(t.title)}</span>`}</button>`).join('');
   strip.querySelectorAll('button').forEach((b) => { b.onclick = () => found(+b.dataset.i); });
 
+  // 프로토타입: 카메라를 켜지 않는다. 벽 · 그림이 뷰파인더에 보이고, 고르면 그 앞으로 가서 인식된다
+  if (o.demo) {
+    const art = $('.sim-art'), btns = [...strip.querySelectorAll('button')], many = btns.length > 1;
+    $('.demo p').textContent = many ? '어디를 비출까요? 아래에서 고르세요' : '';
+    $('.err').textContent = '';
+    const aim = (i) => {
+      if (cur !== me || me.locked) return;
+      clearTimeout(me.aimT);
+      btns.forEach((b, n) => b.classList.toggle('on', n === i));
+      art.src = o.targets[i].img; el.classList.add('aiming');
+      me.aimT = setTimeout(() => found(i), 1500);
+    };
+    btns.forEach((b, i) => { b.onclick = () => aim(i); });
+    if (o.hold) setTimeout(reveal, 0);
+    art.removeAttribute('src');
+    if (o.aimFirst || !many) setTimeout(() => aim(0), o.hold ? 1500 : 500);
+    else art.src = o.targets[0]?.img || '';
+    return ui;
+  }
   if (o.mind) {
     startScan($('.ar'), o.mind, (o.targets || []).length, {
       setup: o.fx ? (ctx) => (me.fx = o.fx(ctx)) : null,
@@ -121,9 +143,12 @@ export function openCam(o) {
 // fade: 끊기지 않게 어두워지며 뒤의 장면으로 돌아간다
 export async function closeCam(fade) {
   if (!cur) return;
+  const me0 = cur;
   clearTimeout(cur.hintT);
   cur = null;
-  if (fade && root) await root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
+  clearTimeout(me0.aimT);
+  // 뒤 장면(3D)이 무거워 프레임이 밀려도 닫힘이 멈추지 않게 시간으로도 끊는다
+  if (fade && root) await Promise.race([root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {}), new Promise((r) => setTimeout(r, 600))]);
   stopScan();
   if (root) { root.getAnimations().forEach((a) => a.cancel()); root.style.clipPath = ''; root.className = 'v3-cam'; root.querySelector('.ar').innerHTML = ''; }
 }

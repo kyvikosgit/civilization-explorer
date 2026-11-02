@@ -34,7 +34,7 @@ function start() {
         const t = targets[i];
         if (!t.correct) return ui.show({ html: `<div class="dc">모네 전시관</div><div class="dt">${esc(t.title)}</div><div class="ds">${esc(t.sub)}</div><div class="fb">${esc(task.wrong)}</div>`, buttons: [{ label: '다른 그림 비추기', on: () => ui.release() }] });
         ui.el.classList.add('locked');
-        const r = ui.fx?.rect?.(i);
+        const r = ui.fx?.rect?.(i) || ui.simRect?.();
         store.solve(task.id);
         bloom(r, () => window.__c5sun.endNow());
       },

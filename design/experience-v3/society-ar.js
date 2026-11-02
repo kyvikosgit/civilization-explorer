@@ -30,7 +30,7 @@ function openPeople() {
   openCam({
     title: '시민사회 · 카페 게르부아', find: people.find, hint: '벽면이 화면에 가득 차도록\n조금 더 뒤로 물러나 보세요',
     mind: V3 + people.mind, targets: walls.map((w) => ({ title: w.place, img: w.img })),
-    demo: store.demo(), hold: true, fx: talkFx(walls),
+    demo: store.demo(), hold: true, aimFirst: true, fx: talkFx(walls),
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => { stopTalk?.(); guide.reset(); },

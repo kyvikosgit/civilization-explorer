@@ -27,9 +27,9 @@ function render() {
       <span class="b"><span class="tt">${esc(z.title)}</span><span class="st${ok ? ' ok' : ''}">${esc([place(z), st].filter(Boolean).join(' · '))}</span></span>${CHEV}</a>`;
   }).join('') + `<a class="row exit" href="exit.html"><span class="no">출구</span><span class="b"><span class="tt">기념품 받기</span>
     <span class="st">${got.length === COLLECT_IDS.length ? '다섯 가지를 모두 모았습니다' : `다섯 가지를 모으면 · 지금 ${got.length}`}</span></span>${CHEV}</a>`;
-  $('#demo').classList.toggle('on', store.demo());
+  $('#demo').classList.toggle('on', !store.demo());
 }
-$('#demo').onclick = () => { store.setDemo(!store.demo()); render(); };
+$('#demo').onclick = () => { store.setLive(store.demo()); render(); };
 $('#reset').onclick = () => {
   if (!confirm('수집·정답·기념품 기록을 모두 지울까요?')) return;
   store.reset();
