@@ -33,11 +33,18 @@ export function openCam(o) {
   const el = root, $ = (s) => el.querySelector(s);
   const me = { o, locked: false, fx: null };
   cur = me;
-  el.className = 'v3-cam on' + (o.demo ? ' demo-on' : '');
+  el.className = 'v3-cam on' + (o.demo ? ' demo-on' : '') + (o.hold ? ' pre' : '');
+  el.style.clipPath = '';
   $('.t').textContent = o.title || '';
   $('.msg').textContent = o.find || '';
   $('.docent').innerHTML = '';
-  $('.x').onclick = () => { closeCam(); o.onClose?.(); };
+  // 한동안 아무것도 못 찾으면 안내를 바꾼다
+  const armHint = () => {
+    clearTimeout(me.hintT); $('.msg').textContent = o.find || '';
+    if (o.hint) me.hintT = setTimeout(() => { if (cur === me && !me.locked) $('.msg').textContent = o.hint; }, o.hintAfter || 10000);
+  };
+  me.armHint = armHint;
+  $('.x').onclick = () => { closeCam(true); o.onClose?.(); };
 
   const ui = {
     // 도슨트 레이어 채우기. buttons: [{ label, cls, on }]
@@ -51,15 +58,31 @@ export function openCam(o) {
       return d;
     },
     // 다시 찾기 — 파인더로
-    release() { me.locked = false; el.classList.remove('locked', 'golden'); me.fx?.release?.(); },
+    release() { me.locked = false; el.classList.remove('locked', 'golden'); me.fx?.release?.(); armHint(); },
     close() { closeCam(); },
     get el() { return el; },
     get fx() { return me.fx; },   // setup 이 돌려준 효과 객체(인식한 그림의 화면 자리 등)
   };
   me.ui = ui;
 
+  // 장면 → 카메라: 켜질 때까지 뒤에서 기다렸다가, 파인더 자리에 창이 열리고 화면으로 번진다
+  function reveal() {
+    if (cur !== me) return;
+    const f = $('.finder').getBoundingClientRect(), W = innerWidth, H = innerHeight;
+    o.onEnter?.(ui);
+    el.classList.remove('pre');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.classList.add('opening');
+    const ins = `inset(${f.top}px ${W - f.right}px ${H - f.bottom}px ${f.left}px)`;
+    el.style.clipPath = ins;
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' });
+    el.animate([{ clipPath: ins }, { clipPath: ins, offset: 0.42 }, { clipPath: 'inset(0px 0px 0px 0px)' }], { duration: 1700, easing: 'cubic-bezier(.6,0,.25,1)' })
+      .finished.then(() => { el.style.clipPath = ''; el.classList.remove('opening'); }).catch(() => {});
+  }
+
   const found = (i) => {
     if (cur !== me || me.locked) return;
+    clearTimeout(me.hintT);
     const f = $('.flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
     navigator.vibrate?.(18);
     me.fx?.found?.(i);
@@ -76,23 +99,31 @@ export function openCam(o) {
       setup: o.fx ? (ctx) => (me.fx = o.fx(ctx)) : null,
       onFound: found,
       onLost: (i) => me.fx?.lost?.(i),
+      onReady: () => { armHint(); if (o.hold) reveal(); },
       onError: (e) => {
+        console.warn('[cam]', e);
+        const denied = /Permission|NotAllowed/i.test(e?.name + e?.message);
+        const msg = denied ? '카메라를 쓸 수 없습니다.\n브라우저 설정에서 카메라 권한을 허용해 주세요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.';
+        if (o.onFail && !o.demo) return o.onFail(msg);
         el.classList.add('failed');
-        $('.err').textContent = /Permission|NotAllowed/i.test(e?.name + e?.message)
-          ? '카메라를 쓸 수 없습니다.\n브라우저 설정에서 카메라 권한을 허용해 주세요.'
-          : '카메라를 켜지 못했습니다.\n' + (o.demo ? '아래에서 눌러 확인할 수 있습니다.' : '잠시 후 다시 시도해 주세요.');
+        $('.err').textContent = denied || !o.demo ? msg : '카메라를 켜지 못했습니다.\n아래에서 눌러 확인할 수 있습니다.';
+        if (o.hold) reveal();
       },
     });
   } else {
     el.classList.add('failed');
     $('.err').textContent = (o.pending || '인식 타깃을 준비하고 있습니다') + (o.demo ? '\n\n아래에서 눌러 확인할 수 있습니다.' : '');
+    if (o.hold) setTimeout(reveal, 0);
   }
   return ui;
 }
 
-export function closeCam(silent) {
+// fade: 끊기지 않게 어두워지며 뒤의 장면으로 돌아간다
+export async function closeCam(fade) {
   if (!cur) return;
+  clearTimeout(cur.hintT);
   cur = null;
+  if (fade && root) await root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
   stopScan();
-  if (root) { root.className = 'v3-cam'; root.querySelector('.ar').innerHTML = ''; }
+  if (root) { root.getAnimations().forEach((a) => a.cancel()); root.style.clipPath = ''; root.className = 'v3-cam'; root.querySelector('.ar').innerHTML = ''; }
 }

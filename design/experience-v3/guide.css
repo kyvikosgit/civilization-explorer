@@ -1,0 +1,38 @@
+/* 장면 위 안내 시트 · 가로 안내 — 각 체험의 어두운 장면 위에 얹는다 */
+.v3-guide{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:520px;margin:0 auto;padding:18px 20px calc(16px + env(safe-area-inset-bottom));background:rgba(18,10,8,.93);border-top:1px solid rgba(233,199,122,.45);color:#FFF7EA;font-family:Freesentation,-apple-system,sans-serif;line-height:1.5;word-break:keep-all;transform:translateY(100%);opacity:0;pointer-events:none;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .4s;max-height:78vh;overflow:auto}
+.v3-guide *{box-sizing:border-box}
+.v3-guide.on{transform:none;opacity:1;pointer-events:auto}
+.v3-guide .g-cap{margin:0;font-size:13px;font-weight:700;color:#E9C77A}
+.v3-guide .g-title{margin:2px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:21px;line-height:1.3}
+.v3-guide ol{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.v3-guide li{display:flex;gap:10px;font-size:15px;line-height:1.45;color:rgba(255,247,234,.92)}
+.v3-guide li b{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#1a0d08;background:#E9C77A;margin-top:1px}
+.v3-guide em{font-style:normal;font-weight:700;color:#E9C77A}
+.v3-guide .g-body{margin:8px 0 0;font-size:15px;white-space:pre-line;color:rgba(255,247,234,.92)}
+.v3-guide .g-btns{display:flex;gap:8px;margin-top:14px}
+.v3-guide .g-go{flex:1;height:52px;border:0;border-radius:8px;background:#E9C77A;color:#1a0d08;font:inherit;font-size:16px;font-weight:800;cursor:pointer}
+.v3-guide .g-go.line{background:transparent;color:#FFF7EA;border:1.5px solid rgba(255,247,234,.6)}
+.v3-guide .g-go[disabled]{opacity:.6;cursor:default}
+.v3-guide .g-note{margin:8px 0 0;font-size:13px;text-align:center;color:rgba(255,247,234,.65);white-space:pre-line}
+.v3-guide .g-note.bad{color:#E0A18C}
+.v3-guide .g-link{display:block;margin:8px auto 0;padding:4px 8px;background:none;border:0;font:inherit;font-size:14px;color:rgba(255,247,234,.7);cursor:pointer}
+
+.v3-rotate{position:fixed;inset:0;z-index:55;background:rgba(10,12,11,.94);color:#F2EDE2;display:grid;place-items:center;text-align:center;font-family:Freesentation,sans-serif}
+.v3-rotate .rt-in{display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px}
+.v3-rotate .phone{width:46px;height:78px;border:3px solid #F2EDE2;border-radius:9px;position:relative;margin-bottom:14px;animation:v3rt 2.4s cubic-bezier(.6,0,.3,1) infinite}
+.v3-rotate .phone i{position:absolute;left:50%;bottom:5px;width:12px;height:3px;border-radius:2px;background:#F2EDE2;transform:translateX(-50%)}
+@keyframes v3rt{0%,20%{transform:rotate(0)}50%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+.v3-rotate p{margin:0;font-family:Paperlogy,sans-serif;font-weight:800;font-size:20px}
+.v3-rotate small{font-size:14px;opacity:.7}
+.v3-rotate button{margin-top:18px;font:inherit;font-size:14px;color:rgba(242,237,226,.7);background:none;border:0}
+
+/* 해돋이 — 그림 자리에서 시작해 화면 끝까지 */
+.v3-bloom{position:fixed;inset:0;z-index:70}
+.v3-bloom video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0}
+.v3-bloom .glow{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 60% 40%,rgba(255,214,150,.75),rgba(217,103,47,.25) 45%,transparent 75%);mix-blend-mode:screen}
+.v3-bloom .bl-cap{position:absolute;left:calc(24px + env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom));color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);opacity:0;transform:translateY(8px);transition:opacity 1s,transform 1s;display:flex;flex-direction:column;font-family:Freesentation,sans-serif}
+.v3-bloom .bl-cap.on{opacity:1;transform:none}
+.v3-bloom .bl-cap b{font-family:Paperlogy,sans-serif;font-weight:800;font-size:22px}
+.v3-bloom .bl-cap small{font-size:13px;opacity:.8}
+.v3-bloom .bl-skip{position:absolute;right:calc(18px + env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));font:inherit;font-size:13px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 14px;opacity:0;transition:opacity .6s}
+.v3-bloom.open .bl-skip{opacity:1}

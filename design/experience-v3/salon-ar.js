@@ -1,9 +1,9 @@
 // v3 살롱 — 입장 연출이 끝난 벽에서 화면을 누르면 카메라. 현장의 후보작을 비추면 그 그림의 해설·심사 기준(부합/지적)이 뜬다
-// 정답 그림(메르송 〈환상〉)은 비추는 순간 노골적으로 — 그림 둘레 금빛 후광, 위로 오르는 금가루, 그림 위에 도는 1873 메달, 화면 가장자리 금빛
+// 정답 그림(메르송 〈환상〉)은 비추는 순간 노골적으로 — 그림 둘레 금빛 후광, 위로 오르는 금가루, 그림 위의 1873 메달, 화면 가장자리 금빛
 // 다른 그림은 훑는 빛만. 문서 기준(<base>)이 v2 폴더라 v3 자원은 V3 경로로 읽는다
 import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
-import { showDone } from './result.js';
+import { makeGuide } from './guide.js';
 import { store } from './store.js';
 
 const V3 = '../../experience-v3/';
@@ -48,7 +48,7 @@ function fx({ THREE, anchors }) {
   const dots = new THREE.Points(geo, new THREE.PointsMaterial({ map: dotTex, size: 0.05, color: 0xffe2a0, opacity: 1, ...add }));
   dots.position.z = 0.01; g.add(dots);
 
-  // 1873 메달 — 그림 위쪽에서 천천히 돈다
+  // 1873 메달 — 그림 위쪽에서 천천히 흔들린다
   const medalTex = canvasTex(THREE, 256, 256, (x, w) => {
     const c = w / 2, gr = x.createRadialGradient(c * 0.8, c * 0.7, 10, c, c, c);
     gr.addColorStop(0, '#FFF1C4'); gr.addColorStop(0.55, '#E2B565'); gr.addColorStop(1, '#9C6B22');
@@ -84,7 +84,7 @@ function fx({ THREE, anchors }) {
       }
       geo.attributes.position.needsUpdate = true;
       dots.material.size = 0.045 + 0.015 * Math.sin(t * 5);
-      medal.rotation.y = t * 1.6;
+      medal.rotation.y = Math.sin(t * 1.4) * 0.55;       // 글자가 뒤집히지 않게 앞면만 보이며 흔들린다
       medal.position.y = medalGlow.position.y = r / 2 + 0.2 + Math.sin(t * 2) * 0.015;
       medalGlow.material.opacity = 0.55 + 0.25 * Math.sin(t * 3);
     },
@@ -112,19 +112,40 @@ function onFound(i, ui) {
     ] });
 }
 
-function win() {
-  closeCam();
-  showDone(task, { hub: V3 + 'index.html', base: V3 });
+async function win() {
+  await closeCam(true);
+  guide.hide();
+  window.__salon.award(WIN);
 }
 
-function open() {
+// ── 벽 앞 안내 → [카메라 켜기] → 허용을 기다리는 동안 장면은 그대로 → 다 켜지면 벽으로 다가가며 파인더 자리에 진짜 카메라 창이 열린다
+const guide = makeGuide();
+const INFO = {
+  cap: '이렇게 심사합니다',
+  steps: ['지금 보이는 다섯 점이 전시장 벽에도 걸려 있습니다. <em>특별한 액자</em>를 찾으세요', '폰 카메라로 그림을 비추면 해설과 심사 기준이 나옵니다', '기준에 맞는 그림에 메달을 주세요'],
+  buttons: [{ label: '카메라 켜기', on: begin }],
+  note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
+};
+let shownOnce = false;
+function showGuide() {
+  if (guide.shown) return;
+  shownOnce = true;
+  window.__salonGuideH = guide.show(INFO) + 14;       // 벽을 안내 위로 올려 다섯 점이 다 보이게
+  window.__salon.to('wall', 700);
+}
+function begin() {
+  guide.busy('카메라를 켜는 중');
   openCam({
     title: '아카데미 살롱 · 후보작 심사',
-    find: '특별한 액자에 걸린 후보작에\n카메라를 비추세요',
+    find: '벽에 걸린 진짜 그림을 비춰 보세요\n특별한 액자의 다섯 점입니다',
+    hint: '그림이 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
     mind: V3 + 'mind/salon.mind',
-    targets, demo: store.demo(), fx,
-    onFound,
+    targets, demo: store.demo(), fx, onFound, hold: true,
+    onEnter: () => { guide.hide(); window.__salon.to('near', 1600); },
+    onFail: (msg) => { closeCam(); guide.fail(msg); },
+    onClose: () => { guide.reset(); window.__salon.to('wall', 900); },
   });
 }
-window.addEventListener('salon:tap', open);
-if (store.solved(task.id) && new URLSearchParams(location.search).has('done')) showDone(task, { hub: V3 + 'index.html', base: V3 });
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+window.addEventListener('salon:wall', () => setTimeout(showGuide, RM ? 0 : 1100));   // 역할 문장을 읽을 틈을 두고 올라온다
+window.addEventListener('salon:tap', showGuide);

@@ -1,0 +1,4 @@
+/* v3 시민사회 — 시작은 안내 시트가 맡는다 */
+#guide{pointer-events:none}
+.s1-bottom,.s2-bottom{display:none!important}
+body.ended .s3-bottom,body.ended #closeBtn{display:none!important}

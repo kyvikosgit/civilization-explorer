@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- v3: v2 c3.html 그대로(아틀리에 정답 뒤 이어짐). 처음으로 · 뒤로만 v3 목록으로 -->
+<base href="../experience-v2/proto/">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#161412">
+<title>C3 · 밖의 빛으로 칠하기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="c3.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/"
+} }
+</script>
+<link rel="preload" as="image" href="img/c3env/studio.jpg" crossorigin="anonymous">
+</head>
+<body class="page c3 intro">
+
+<!-- 아틀리에 장면(three.js · c3-env.js): 실제 화가 작업실 360° 사진(현대 물건은 지움)을 등불·창빛만 남기고 어둡게, 진짜 나무 이젤, 창빛 줄기와 먼지,
+     이젤 곁의 걸상·팔레트·물감 상자·헝겊. 다 칠하면 빛이 번져 방이 걷히고 여름 들판 — 이젤은 흙길 위 제자리, 둘레는 키 큰 들풀과 양귀비(3D, 바람).
+     완성 뒤 누르고 있으면 다시 등불의 방. WebGL 이 없으면 사진 한 장(.nogl) -->
+<div class="studio" id="studio" aria-hidden="true">
+  <canvas id="gl"></canvas>
+  <div class="veil"></div>
+</div>
+
+<div class="topbar">
+  <a class="icon-btn" href="../../experience-v3/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="tb-title"></div>
+  <span></span>
+</div>
+
+<main class="wrap room">
+  <header class="role-hd st st-head">
+    <div class="eyebrow">C3 · 화가의 아틀리에</div>
+    <h1>밖의 빛</h1>
+    <p class="sub" id="roleSub">같은 장면을 밖의 빛으로 다시 칠해 보세요</p>
+  </header>
+
+  <!-- 캔버스 — 화면 폭 가득(양옆 16px), 얇은 나무 액자 안 6:5. 굵은 붓(화면 폭의 약 1/4)이라 세 번이면 대부분 드러난다.
+       다 칠한 뒤엔 캔버스 자체가 비교 단추: 누르고 있는 동안 아틀리에에서 그린 그림 -->
+  <section class="easel st st-easel" aria-label="캔버스">
+    <div class="frame" id="frame">
+      <div class="canvas-wrap" id="stage">
+        <img id="indoor" class="indoor" src="img/c3-indoor.jpg" alt="실내 캔버스(임시 이미지)" draggable="false">
+        <canvas id="reveal" class="reveal" aria-label="손가락으로 쓸어 칠하기"></canvas>
+        <span class="lamp-tint" aria-hidden="true"></span><span class="day-edge" aria-hidden="true"></span>
+        <span class="hold-tip" id="holdTip" hidden>누르고 있으면 아틀리에에서 그린 그림</span>
+      </div>
+    </div>
+    <!-- 액자 아래 이름표 한 줄 -->
+    <div class="cap-row">
+      <p class="label" id="label"><span id="labelMain">아틀리에에서 그린 그림</span><i class="tmp">임시</i></p>
+    </div>
+  </section>
+
+  <p class="hint st st-hint" id="hint">손가락으로 쓸어 보세요</p>
+
+  <!-- 다 칠한 뒤에만 -->
+  <section class="after" id="after" hidden>
+    <div class="actions">
+      <a class="btn dark-line home" href="../../experience-v3/index.html">처음으로</a><button class="btn" id="save" type="button">수집함에 저장</button>
+    </div>
+    <p class="note placeholder-note">두 캔버스는 제작 전 임시 이미지</p>
+  </section>
+</main>
+
+<script type="module" src="c3-env.js"></script>
+<script type="module" src="c3.js"></script>
+</body>
+</html>

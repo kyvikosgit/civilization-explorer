@@ -5,7 +5,7 @@ import * as THREE from 'three';
 
 let cur = null;
 
-export async function startScan(container, mindUrl, count, { onFound, onLost, onError, setup }) {
+export async function startScan(container, mindUrl, count, { onFound, onLost, onError, onReady, setup }) {
   await stopScan();
   const me = { stopped: false, container };
   cur = me;
@@ -32,6 +32,7 @@ export async function startScan(container, mindUrl, count, { onFound, onLost, on
     const t0 = performance.now();
     renderer.setAnimationLoop(() => { me.fxTick?.((performance.now() - t0) / 1000); renderer.render(scene, camera); });
     me.fxTick = fx?.tick;
+    onReady?.();
   } catch (e) {
     if (!me.stopped) onError?.(e);
   }

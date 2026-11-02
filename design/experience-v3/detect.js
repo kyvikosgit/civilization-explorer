@@ -33,6 +33,7 @@ export function openDetect(o) {
     <div class="err"></div>
     <div class="det-load">인식 모델을 불러오는 중</div>`;
   document.body.appendChild(root);
+  root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' });
   const me = { root, stop: false, stream: null, tracks: new Map(), focus: null, focusT: 0, fired: false };
   cur = me;
   const video = root.querySelector('video'), cv = root.querySelector('canvas'), g = cv.getContext('2d');

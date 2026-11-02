@@ -110,3 +110,8 @@
 .v3-cam.det .det-msg{top:auto;bottom:calc(36px + env(safe-area-inset-bottom));transition:opacity .3s}
 .v3-cam.det.has .det-msg{opacity:0}
 .v3-cam .det-load{position:absolute;left:0;right:0;top:46%;text-align:center;font-size:14px;opacity:.75;z-index:3}
+
+/* 켜지는 동안은 3D 장면 뒤에서 기다린다 — 다 켜지면 파인더 자리에서 창이 열린다(salon-ar.js) */
+.v3-cam.pre{opacity:0;pointer-events:none}
+.v3-cam.opening .msg,.v3-cam.opening .top{opacity:0}
+.v3-cam .msg,.v3-cam .top{transition:opacity .5s}

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- v3 시민사회: v2 c1.html 사본. 거리 연출 · 3D 칼럼 그대로, 고르기 대신 현장 스캔 -->
+<base href="../experience-v2/proto/">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#000000">
+<title>C1 · 어느 전시를 보러 갈까</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="../ticket/fonts.css">
+<link rel="stylesheet" href="proto-base.css">
+<link rel="stylesheet" href="css/crowd.css">
+<link rel="stylesheet" href="c1.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/",
+  "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+} }
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="../../experience-v3/cam.css">
+<link rel="stylesheet" href="../../experience-v3/guide.css">
+<link rel="stylesheet" href="../../experience-v3/society.css">
+</head>
+<body class="c1" data-step="1">
+
+<div id="stage" class="stage">
+  <!-- 해 질 녘 카퓌신 대로 — 같은 그림(모네가 1873년 이 대로를 그렸다, 사람들은 그림 속 붓자국 그대로)을 저녁빛으로.
+       가스등이 하나씩 켜지고, 멀리 마차 등불이 대로를 오간다. 실루엣 행인은 두지 않는다 -->
+  <div class="street" id="street" aria-hidden="true">
+    <div class="st-img"></div>
+    <div class="st-sky"></div>
+    <div class="st-mist"></div>
+    <div class="st-lamps" id="lamps"></div>
+    <div class="st-cars" id="cars"></div>
+    <div class="st-haze"></div>
+  </div>
+  <!-- 3D 모리스 칼럼 (js/morris-viewer-proto.js) -->
+  <div id="mv" class="mv off"></div>
+
+  <div class="stage-top">
+    <div class="topbar dark">
+      <button class="icon-btn" id="backBtn" aria-label="뒤로"><i data-ic="back"></i></button>
+      <div class="tb-title" id="tbTitle">시민사회</div>
+      <span class="tb-right">
+        <button class="icon-btn" id="closeBtn" aria-label="칼럼에 돌려놓기" hidden><i data-ic="close"></i></button>
+        <span class="collect-ic" id="collectIc" aria-label="수집함"><i data-ic="box"></i><b id="collectN" hidden>1</b></span>
+      </span>
+    </div>
+  </div>
+
+  <!-- 1 역할 + 스캔 — 칼럼은 처음부터 저녁 거리에 서 있다. 그 윤곽에 점선(3D 모델 실측 프로파일)이 겹치고, 점선을 누르면 데모로 진행
+       → 카메라가 가스등 거리를 걸어 칼럼 앞으로 다가간다(솟지 않는다) -->
+  <div class="s s1">
+    <div class="role-head">
+      <div class="eyebrow">Colonne Morris · Avril 1874</div>
+      <h1>당신은 1874년 4월,<br>이 칼럼 앞을 지나는 파리 시민입니다</h1>
+    </div>
+  </div>
+  <button id="guide" class="guide" aria-label="칼럼을 스캔하세요 (데모로 진행)"><svg id="guideSvg" aria-hidden="true"></svg></button>
+  <div id="pillWrap" class="pill-wrap"><span id="pill" class="pill"></span></div>
+  <div class="s s1 s1-bottom"><p class="s-desc"><span>프로토타입 · 점선을 누르면 시작합니다</span></p></div>
+
+  <!-- 2 찾기 — 끌어서 칼럼을 돌린다. 어느 포스터든 누르면 떼어 읽는다. 찾을 것: 누군가 접어서 압정에 꽂아 두고 간 전단지(바람에 들리고 가스등에 윤이 난다) -->
+  <div class="s s2 s2-bottom">
+    <div class="hunt">
+      <p class="hunt-line" id="huntLine">칼럼을 돌려 보세요.<br>이번 주말 열리는 <em>두 전시</em>의 안내문이 꽂혀 있습니다</p>
+      <p class="hunt-sub" id="huntSub"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌리기 · 포스터와 만평을 누르면 떼어 읽어요</p>
+      <!-- 안내문을 하나라도 찾은 뒤: 같은 놋쇠 명판이 칼럼 아래에 남는다 — 더 둘러보다가 준비되면 누른다 -->
+      <button class="plaque dock" id="toAsk2" aria-label="두 전시 나란히 보기" tabindex="-1">
+        <span class="pl-fr">Salon <i>ou</i> Capucines ?</span>
+        <span class="pl-ko">두 전시 나란히 보기</span>
+        <i class="pl-sh" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- 3 살펴보기 — 떠 있는 전단지, 캡션 (두 전시의 안내문은 여기를 거치지 않고 바로 4로 펼쳐진다) -->
+  <div class="s s3 s3-bottom">
+    <div class="caption" id="caption"><strong id="cTitle"></strong><p id="cBody"></p><p class="c-meta" id="cMeta"></p></div>
+    <p class="s-desc" id="s3Desc"><span>바깥을 누르면 칼럼으로 돌아갑니다</span></p>
+  </div>
+
+  <!-- 4 접힌 안내문(살롱 공고 · 독립 전시 안내 — 어느 쪽이든. 칼럼에서 누르면 압정에서 빠져 가운데로 오며 세 단이 펼쳐진다) → 놋쇠 명판을 누르면 펼친 것은 제자리로, 다른 하나는 칼럼에서 떼어져 온다
+       → 5 이번 주말 어느 전시를 보러 갈까 → 6 오늘의 관람객(두 포스터 크기 = 오늘의 비율)
+       언제든 칼럼으로 돌아갈 수 있다: 4 → 전단지는 펼친 채 제자리에 다시 꽂힌다 · 5·6 → 두 인쇄물이 칼럼의 제자리로 돌아간다 -->
+  <div class="s unfold" id="unfold">
+    <div class="unfold-dim"></div>
+    <div class="unfold-body">
+      <div class="cap light found-cap" id="unfoldCap" data-on="4"></div>
+      <div class="flyer-wrap" id="flyerWrap" data-on="4"><div class="flyer folded" id="flyer"><div class="strip t"><i class="f"></i><i class="b"></i></div><div class="strip m"><i class="f"></i><i class="b"></i></div><div class="strip d"><i class="f"></i><i class="b"></i></div></div></div>
+      <p class="f-hint fly-hint" data-on="4"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌려 보기 · 두 번 누르면 바로</p>
+
+      <!-- 4 -->
+      <p class="hist-dark intro" id="histIntro" data-on="4"></p>
+      <div class="plaque-row" data-on="4">
+        <button class="plaque" id="toAsk" aria-label="두 전시 나란히 보기">
+          <span class="pl-fr">Salon <i>ou</i> Capucines ?</span>
+          <span class="pl-ko">두 전시 나란히 보기</span>
+          <i class="pl-sh" aria-hidden="true"></i>
+        </button>
+      </div>
+      <button class="col-link" id="backCol4" data-on="4">칼럼 더 둘러보기</button>
+
+      <!-- 5 질문 — 칼럼에 나란히 붙은 두 전시 포스터(둘 다 재현). 이번 주말 보러 갈 전시를 고른다 -->
+      <div class="ask" id="ask" data-on="5">
+        <h2 class="ask-q">이번 주말, 어느 전시를<br>보러 가시겠습니까?</h2>
+      </div>
+
+      <!-- 6 머리: 작은 캡 + 한 줄 -->
+      <div class="crowd dark center crowd-head" data-on="6"><div class="crowd-cap">Aujourd'hui</div><div class="crowd-line">오늘 이 전시를 보러 간 관람객</div></div>
+
+      <!-- 5·6 공용: 두 포스터(캔버스 조판 재현 — js/c1-posters.js). 6 에서는 오늘의 비율만큼 커지고 작아진다 -->
+      <div class="papers" id="papers" data-on="5 6" role="radiogroup" aria-label="보러 갈 전시">
+        <button class="paper salon" data-k="jury" role="radio" aria-checked="false" aria-label="살롱 · 샹젤리제 궁 · 5월 1일 (공고 재현)">
+          <div class="notice salon" aria-hidden="true"></div>
+          <span class="paper-lb"><b>살롱</b><small>샹젤리제 궁 · 5월 1일</small></span>
+        </button>
+        <button class="paper expo" data-k="viewer" role="radio" aria-checked="false" aria-label="독립 전시 · 카퓌신 대로 35번지 · 4월 15일 (안내 재현)">
+          <div class="notice expo" aria-hidden="true"></div>
+          <span class="paper-lb"><b>독립 전시</b><small>카퓌신 대로 35번지 · 4월 15일</small></span>
+        </button>
+      </div>
+      <!-- 5 고르기는 두 번에: 포스터를 누르면 그 포스터가 가운데로 크게 온다(끌어서 돌려 볼 수 있다) · 자세한 설명 · 다른 하나는 옆으로 물러나 어둡게(누르면 바꾼다)
+           → '이 전시에 가기' 명판을 눌러야 정해진다. 바깥이나 '둘 다 보기' → 나란히 -->
+      <div class="focus" id="focus" data-on="5">
+        <button class="f-side" id="fSide" aria-label="다른 전시 보기"><div class="notice" aria-hidden="true"></div></button>
+        <div class="f-stage"><div class="f-sheet tiltable" id="fSheet" aria-hidden="true"><div class="notice f-front"></div><i class="f-back"></i><i class="f-edge"></i><b class="fsh"></b></div></div>
+        <p class="f-hint"><span class="drag" aria-hidden="true"><i></i></span>끌어서 돌려 보기 · 두 번 누르면 바로</p>
+        <dl class="f-info" id="fInfo"></dl>
+        <div class="plaque-row go-row">
+          <button class="plaque go" id="go" aria-label="이 전시에 가기" tabindex="-1">
+            <span class="pl-fr" id="goFr">Ce week-end</span>
+            <span class="pl-ko">이 전시에 가기</span>
+            <i class="pl-sh" aria-hidden="true"></i>
+          </button>
+        </div>
+        <button class="col-link" id="bothBtn">둘 다 보기</button>
+      </div>
+
+      <!-- 6 오늘의 관람객 — 두 포스터 아래 숫자 -->
+      <div class="crowd dark center" id="crowd" data-on="6">
+        <div class="crowd-cols" id="crowdCols" aria-live="polite"></div>
+        <div class="crowd-stamp" id="crowdStamp"></div>
+      </div>
+
+      <!-- 끝 — 모든 체험 공통: [처음으로 | 수집함에 저장] 한 줄(저장 뒤 오른쪽은 제자리에서 '수집함에 담았어요'로), 체험별 동작은 아래 조용한 글자 단추 -->
+      <div class="unfold-btns two" data-on="6"><button class="btn dark-line" id="restart">처음으로</button><button class="btn white" id="collect">수집함에 저장</button>
+        <p class="end-links"><button class="col-link" id="again">다시 고르기</button><span aria-hidden="true">·</span><button class="col-link" id="backCol6">칼럼 더 둘러보기</button></p></div>
+    </div>
+  </div>
+
+  <div id="camLoading" class="cam-loading"><div class="spinner"></div><span>모리스 칼럼 불러오는 중</span></div>
+</div>
+
+<script type="module" src="../../experience-v3/society.js"></script>
+<script type="module" src="../../experience-v3/society-ar.js"></script>
+</body>
+</html>

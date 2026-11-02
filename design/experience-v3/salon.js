@@ -17,6 +17,8 @@ import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, icons, sheet, toast, sleep, reduceMotion, haptic, saveChoice } from '../experience-v2/proto/js/proto-common.js';
 import { buildSalon, HALL } from './salon-intro.js';
+import { ZONES } from './data.js';
+import { store } from './store.js';
 
 const WORKS = [
   { n: 1, src: '../works/c0-cambyses.jpg',   hd: 'img/c0-cambyses.jpg',   w: 960,  h: 695,  title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '', desc: '기원전 525년, 페르시아 왕 캄비세스가 이집트의 펠루시움을 치는 장면. 이집트인이 신성하게 여긴 고양이를 앞세웠다는 전설을 그렸습니다.' },
@@ -302,7 +304,10 @@ function camFor(k) {
   }
   if (k === 'wall') {   // 후보작 벽 — 역할 문장 아래부터 안내 위까지, 눈높이에서 정면
     const rb = roleEl.getBoundingClientRect(), top = Math.max(safeT + 96, rb.bottom - stage.getBoundingClientRect().top + 14);
-    return fit(CL, { l: 30, r: W - 30, t: top, b: H - 96 - safeB() }, HALL.EYE);
+    return fit(CL, { l: 30, r: W - 30, t: top, b: H - (window.__salonGuideH || 96) - safeB() }, HALL.EYE);
+  }
+  if (k === 'near') {   // v3: 카메라로 넘어갈 때 벽으로 한 걸음 다가간다
+    const c = { ...camFor('wall') }; c.z = c.tz + (c.z - c.tz) * 0.5; return shift(c);
   }
   // 'focus' — 앞으로 나온 그림(이름판 자리까지)을 상단 바와 메달 단추 사이에
   const f = frames[fi];
@@ -428,6 +433,7 @@ function stepIntro(dt, now) {
     salon.setDoor(1, time); salon.setAir(0, time); renderer.toneMappingExposure = 1; spec.intensity = 0.9; specX = specXT;
     camKey = 'wall'; camB = camFor('wall'); camT0 = 0; camMs = 1; Object.assign(cam, camB);
     setMode('wall'); cv.removeEventListener('pointerdown', skipIntro);
+    window.dispatchEvent(new CustomEvent('salon:wall'));
     return false;
   }
   return true;
@@ -761,18 +767,15 @@ function sizeHero(w) {
 let resWork = null;
 function fillResult(me) {
   const w = me.w; resWork = w;
+  const t = ZONES.find((z) => z.id === 'salon').tasks[0];
   const img = $('#resImg'); img.src = w.hd; sizeHero(w);
   $('#resTitle').textContent = `〈${w.title}〉`;
-  $('#resMeta').textContent = `${w.artist} · ${w.year}`;
-  $('#resLine').innerHTML = `오늘 심사위원 <em><b>${TODAY[w.n]}</b>%</em>가 같은 그림을 골랐습니다`;
-  $('#resStamp').textContent = stampLine(JURY);
-  $('#resRank').innerHTML = RANK.map(({ w: x, p }, k) => {
-    const mine = x.n === w.n, top = k === 0;
-    return `<li class="rk${mine ? ' me' : ''}${top ? ' top' : ''}" style="--i:${k};--p:${(p / MAXP).toFixed(3)}">
-      <span class="rk-th"><span class="rk-fr"><img src="${x.src}" alt=""></span></span>
-      <span class="rk-tx"><span class="rk-t"><span class="rk-name">〈${x.title}〉</span>${mine ? '<em class="chip me">나</em>' : ''}${top ? '<em class="chip top">가장 많이 고름</em>' : ''}</span><span class="rk-rule"><i></i></span></span>
-      <span class="rk-pct"><b data-to="${p}">${p}</b><small>%</small></span></li>`;
-  }).join('');
+  $('#resMeta').textContent = [w.artist, w.year].filter(Boolean).join(' · ');
+  const line = $('#resLine'); line.classList.add('plan'); line.textContent = t.successBody;
+  if (!$('.res-verdict')) {
+    line.insertAdjacentHTML('afterend', `<p class="res-verdict"></p><p class="res-after"></p>`);
+    $('.res-verdict').textContent = t.successVerdict; $('.res-after').textContent = t.after;
+  }
 }
 window.addEventListener('resize', () => { if (resWork) sizeHero(resWork); });
 function medalScreen() {
@@ -782,9 +785,6 @@ function medalScreen() {
 function resIn() {
   res.scrollTop = 0; $('#resScroll').scrollTop = 0;
   res.classList.remove('in'); void res.offsetWidth; res.classList.add('in');
-  // 숫자 — 내 그림 문장은 액자가 걸린 뒤, 다섯 점은 줄이 그어지는 박자에 맞춰 차례로
-  countUp($('#resLine b'), TODAY[resWork.n], 900, 1000);
-  $$('#resRank b[data-to]').forEach((b, k) => countUp(b, +b.dataset.to, 900, 1250 + k * 90));
 }
 async function toResult(me, seq) {
   if (reduceMotion) {
@@ -851,37 +851,9 @@ $('#home').addEventListener('click', async () => {
   await $('#s3').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduceMotion ? 120 : 380, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
   location.href = '../../experience-v3/index.html';
 });
-$('#save').addEventListener('click', async () => {
-  const me = chosen; if (!me || $('#save').disabled) return;
-  markSaved(true);
-  $('#cardImg').src = me.w.hd;
-  $('#cardPos').innerHTML = `오늘 심사위원 <b>${TODAY[me.w.n]}%</b>가 같은 그림을 골랐습니다`;
-  $('#cardTitle').textContent = `〈${me.w.title}〉`;
-  $('#cardMeta').textContent = [me.w.artist, me.w.year, me.w.coll].filter(Boolean).join(' · ');
-  $('#cardShown').textContent = me.w.shown; $('#cardShown').hidden = !me.w.shown;
-  saveChoice('c0', { n: me.w.n, title: me.w.title, pct: TODAY[me.w.n] });   // 기기 안에만 · 출구 화면(exit.html)이 읽는다
-  const rr = $('#resImg').getBoundingClientRect(), r0 = { x: rr.left, y: rr.top, w: rr.width, h: rr.height };
-  const s4 = $('#s4'); s4.classList.add('morph'); screenOn('s4', true);
-  try { await $('#cardImg').decode(); } catch (e) { /* noop */ }
-  const r1 = $('#cardImg').getBoundingClientRect();
-  if (reduceMotion) { s4.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300 }); await sleep(300); s4.classList.remove('morph'); toast('수집함에 저장했습니다', 1600); return; }
-  const ghost = document.createElement('img'); ghost.src = me.w.hd; ghost.className = 'fly-ghost';
-  Object.assign(ghost.style, { left: r1.left + 'px', top: r1.top + 'px', width: r1.width + 'px', height: r1.height + 'px' });
-  document.body.appendChild(ghost); $('#cardFrame').style.opacity = '0';
-  const sx = r0.w / r1.width, sy = r0.h / r1.height, dx = r0.x - r1.left, dy = r0.y - r1.top;
-  s4.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 520, easing: 'ease', fill: 'backwards', delay: 120 });
-  $('.card', s4).animate([{ transform: 'translateY(40px) scale(.94)' }, { transform: 'none' }], { duration: 900, easing: 'cubic-bezier(.2,.8,.2,1)', delay: 120, fill: 'backwards' });
-  const a = ghost.animate([
-    { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, boxShadow: '0 30px 60px rgba(0,0,0,.6)' },
-    { transform: `translate(${dx * 0.4}px, ${dy * 0.4 - 30}px) scale(${lerp(sx, 1, 0.6)}, ${lerp(sy, 1, 0.6)}) rotate(-2deg)`, offset: 0.55 },
-    { transform: 'none', boxShadow: '0 4px 8px rgba(0,0,0,.3)' },
-  ], { duration: 980, easing: 'cubic-bezier(.45,0,.2,1)' });
-  await a.finished.catch(() => {});
-  $('#cardFrame').style.opacity = ''; ghost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, fill: 'forwards' }).finished.then(() => ghost.remove());
-  $('#cardFrame').animate([{ transform: 'scale(1.06)', opacity: 0 }, { opacity: 1, offset: 0.4 }, { transform: 'none', opacity: 1 }], { duration: 520, easing: 'cubic-bezier(.3,1.5,.4,1)' });
-  $('#cardMedal').animate([{ transform: 'translateY(-26px) rotate(-30deg) scale(1.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560, easing: 'cubic-bezier(.3,1.4,.4,1)' });
-  s4.classList.remove('morph');
-  haptic(16); toast('수집함에 저장했습니다', 1600);
+$('#save').addEventListener('click', () => {
+  if ($('#save').disabled) return;
+  store.save('salon'); markSaved(true); haptic(16); toast('수집함에 저장했습니다', 1600);
 });
 // 카드 → 결과: 카드가 내려가며 사라지고 뒤의 결과 화면이 그대로
 $('#back4').addEventListener('click', async () => {
@@ -907,13 +879,28 @@ new ResizeObserver(() => layout()).observe(stage);
   if (reduceMotion || new URLSearchParams(location.search).has('nointro')) {
     salon.setDoor(1, 0); salon.setAir(0, 0);
     roleIn(); setMode('wall'); camKey = 'wall'; camB = camFor('wall'); camT0 = 0; camMs = 1; Object.assign(cam, camB);
-    stage.classList.add('lit'); kick(); return;
+    stage.classList.add('lit'); kick(); window.dispatchEvent(new CustomEvent('salon:wall')); return;
   }
   cv.addEventListener('pointerdown', skipIntro);
   Object.assign(cam, camFor('door')); salon.setDoor(0, 0);
   stage.classList.add('lit');
   kick();
 })();
+
+// v3: 안내 · 카메라 전환에서 장면을 움직인다(salon-ar.js)
+window.__salon = {
+  to: (k, ms) => camTo(k, ms),
+  // 카메라에서 정답을 고른 뒤: 벽으로 돌아와 그 그림이 앞으로 나오고 → 메달이 날아와 앉고 → 금빛 → 결과 화면
+  async award(i) {
+    window.__salonGuideH = 96;
+    camTo('wall', reduceMotion ? 1 : 900); await sleep(reduceMotion ? 0 : 900);
+    store.solve('salon');
+    focus(i); await sleep(reduceMotion ? 100 : 1300);
+    setMode('placed'); chosen = frames[fi]; chosen.glowT = 1; haptic(14); kick();
+    await sleep(reduceMotion ? 100 : 500);
+    reveal(award);
+  },
+};
 
 // 검수용
 window.__c0 = {

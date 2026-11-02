@@ -1,0 +1,1395 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<!-- v3 산업혁명: v2 map-picker.html 사본. 생라자르 도입 · 발권 연출 그대로, 행선지 고르기 대신 기차표 스캔 -->
+<base href="../experience-v2/ticket/">
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>산업혁명 · 기차표</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="../proto/css/crowd.css">
+<link rel="stylesheet" href="map-picker.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="../../experience-v3/cam.css">
+<link rel="stylesheet" href="../../experience-v3/guide.css">
+<link rel="stylesheet" href="../../experience-v3/industry.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/",
+  "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+} }
+</script>
+<style>
+/* ── 기차표 (ticket.html 의 카드 CSS 그대로, 1140×600 → 350px 축소) ── */
+
+/* 57×30 mm 에드몬슨 카드 → 20 px/mm = 1140×600 px.  글꼴: Old Standard TT(19세기 디돈 계열 본문·숫자, OFL) ·
+   Playfair Display(디돈 팻페이스, 큰 숫자, OFL) · 한글 주석만 Freesentation.  서체 선택 근거는 보드 C2 참고.
+   ?to=argenteuil|vernon|rouen|ifs|havre  ·  ?view=front|back|phone  ·  ?d=21&m=10 (관람일) */
+.stage{
+  --card:#E8DCB8;            /* 담황색 카드(한 가지 색, 등급별 색 미확인) */
+  --card-2:#DFD0A6;
+  --tink:#2A2420;             /* 인쇄 잉크 */
+  --tink-soft:#4A413A;
+  --stamp:#3B3F8C;           /* 날인 잉크(보라·남색) */
+}
+.stage{width:1140px;height:600px;position:relative;overflow:hidden;font-family:'Old Standard TT',serif;color:var(--tink);-webkit-font-smoothing:antialiased}
+
+/* 카드 */
+.card{position:absolute;inset:0;background:
+  radial-gradient(120% 90% at 30% 20%,rgba(255,255,255,.28),transparent 60%),
+  repeating-linear-gradient(115deg,rgba(0,0,0,.025) 0 2px,transparent 2px 7px),
+  linear-gradient(180deg,var(--card),var(--card-2));
+  border-radius:10px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}
+.card::after{content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;
+  background:
+   radial-gradient(circle at 12% 78%,rgba(90,70,30,.10),transparent 18%),
+   radial-gradient(circle at 86% 24%,rgba(90,70,30,.08),transparent 16%)}
+
+/* 양 끝 세로 일련번호 (1898년 실물 방식) */
+.serial{position:absolute;top:0;bottom:0;width:86px;display:flex;align-items:center;justify-content:center}
+.serial span{font-weight:700;font-size:58px;letter-spacing:.14em;writing-mode:vertical-rl;color:var(--tink)}
+.serial.l{left:0}.serial.l span{transform:rotate(180deg)}
+.serial.r{right:0}
+
+/* 인쇄 틀 */
+.frame{position:absolute;left:92px;right:92px;top:30px;bottom:30px;border:3px solid var(--tink);outline:1.5px solid var(--tink);outline-offset:4px;
+  display:grid;grid-template-rows:auto 1fr auto}
+.route{border-bottom:3px solid var(--tink);padding:14px 20px 10px;text-align:center;line-height:1}
+.route .from{font-size:60px;font-weight:700;letter-spacing:.06em}
+.route .from small{font-size:34px;font-weight:700;letter-spacing:.02em}
+.route .to{font-size:92px;font-weight:700;letter-spacing:.10em;margin-top:4px;font-family:'Playfair Display',serif;white-space:nowrap}
+.route .to.long{font-size:78px;letter-spacing:.06em}
+.route .via{font-size:26px;font-style:italic;letter-spacing:.04em;margin-top:2px;color:var(--tink-soft);min-height:26px}
+.mid{display:grid;grid-template-columns:232px 1fr 230px}
+.mid>div{padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1}
+.mid .co{border-right:3px solid var(--tink)}
+.mid .co b{font-size:50px;letter-spacing:.12em;font-weight:700}
+.mid .co i{font-style:normal;font-size:22px;margin-top:10px;letter-spacing:.08em;color:var(--tink-soft)}
+.mid .cls .n{font-family:'Playfair Display',serif;font-weight:900;font-size:150px;line-height:.9;letter-spacing:-.02em}
+.mid .cls .n sup{font-size:48px;font-family:'Old Standard TT',serif;font-weight:700;vertical-align:top;position:relative;top:22px;letter-spacing:0}
+.mid .cls .w{font-size:40px;font-weight:700;letter-spacing:.18em;margin-top:6px}
+.mid .cls .pe{font-size:24px;letter-spacing:.14em;margin-top:8px;color:var(--tink-soft)}
+.mid .px{border-left:3px solid var(--tink)}
+.mid .px small{font-size:22px;letter-spacing:.2em}
+.mid .px b{font-size:66px;line-height:1;margin-top:10px;font-weight:700;white-space:nowrap}
+.mid .px b sup{font-size:30px;vertical-align:top;position:relative;top:6px}
+.mid .px b.none{font-size:40px;color:var(--tink-soft);letter-spacing:.3em}
+.foot{border-top:3px solid var(--tink);display:grid;grid-template-columns:auto 1fr;align-items:center;padding:8px 20px;line-height:1;min-height:70px}
+.foot .aller{font-size:40px;font-weight:700;letter-spacing:.3em}
+.foot .yr{font-size:30px;letter-spacing:.14em;color:var(--tink-soft);text-align:right;font-weight:700}
+
+/* 날인(기기에서 합성): 날짜는 왼쪽 가장자리 세로 */
+.stamp{position:absolute;color:var(--stamp);font-weight:700;letter-spacing:.08em;opacity:.86;
+  mix-blend-mode:multiply;filter:url(#rough)}
+.stamp.date{left:-74px;top:50%;width:300px;text-align:center;transform:translateY(-50%) rotate(-90deg);transform-origin:center;font-size:38px;white-space:nowrap}
+.stamp.date::before,.stamp.date::after{content:"";display:inline-block;width:28px;height:3px;background:var(--stamp);vertical-align:middle;margin:0 14px}
+
+/* 뒷면: 메모 없음. 회사명·구간·날짜·재현물 표기만 */
+.back .frame{display:block;padding:40px 36px}
+.back .k{font-size:24px;letter-spacing:.22em;color:var(--tink-soft);text-align:center}
+.back .ttl{font-size:44px;font-weight:700;letter-spacing:.16em;text-align:center;margin-top:14px;font-family:'Playfair Display',serif}
+.back .ttl small{display:block;font-size:26px;letter-spacing:.06em;font-weight:400;margin-top:18px;color:var(--tink-soft);font-family:'Old Standard TT',serif}
+.back .rule{width:220px;height:3px;background:var(--tink);margin:40px auto 0}
+.back .fine{position:absolute;left:36px;right:36px;bottom:16px;font-size:17px;letter-spacing:.04em;color:var(--tink-soft);display:flex;justify-content:space-between}
+.back .fine b{font-family:Freesentation,sans-serif;font-weight:600}
+
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="2.2"/></filter></svg>
+<template id="front">
+<div class="stage front">
+  <div class="card"></div>
+  <div class="serial l"><span data-no></span></div>
+  <div class="serial r"><span data-no></span></div>
+  <div class="frame">
+    <div class="route">
+      <div class="from">PARIS <small>(S<sup style="font-size:.55em">t</sup>-LAZARE)</small></div>
+      <div class="to" data-to></div>
+      <div class="via" data-via></div>
+    </div>
+    <div class="mid">
+      <div class="co"><b>OUEST</b><i>SÉRIE A</i></div>
+      <div class="cls"><div class="n">2<sup>me</sup></div><div class="w">CLASSE</div><div class="pe">PLACE ENTIÈRE</div></div>
+      <div class="px"><small>PRIX</small><b data-prix></b></div>
+    </div>
+    <div class="foot"><div class="aller">ALLER</div><div class="yr" data-yr></div></div>
+  </div>
+  <div class="stamp date" data-date></div>
+</div>
+</template>
+
+<template id="back">
+<div class="stage back">
+  <div class="card"></div>
+  <div class="serial l"><span data-no></span></div>
+  <div class="serial r"><span data-no></span></div>
+  <div class="frame">
+    <div class="k">CHEMIN DE FER DE L'OUEST</div>
+    <div class="ttl">PARIS – <span data-to-text></span><small data-longdate></small></div>
+    <div class="rule"></div>
+    <div class="fine"><span>N° <span data-no></span> · 2<sup>me</sup> classe · aller</span><b>MONET 100 · 재현물 · <span data-ko-date></span></b></div>
+  </div>
+</div>
+</template>
+
+<!-- 1 고르기 — 부스 C-2 화면(booth/c2.html · css/c2.css · js/c2.js)의 도착지 단계를 그대로 옮겨 왔다: 흰 상단 바(뒤로 · INDUSTRIAL REVOLUTION), 현장 단서 서랍, 화면을 채우는 지도, 아래 칩 줄, 확인 시트.
+     열면 바로 파리 → 노르망디 해안 지도. 생라자르역은 출발지로 표시만 되고(고르지 않는다), 행선지 5곳(행정구역 영역 + 역점)을 누르면 노선이 이어지고 그 자리의 사진이 역 옆에 붙는다 → "르아브르행 표를 끊을까요?" 시트 -->
+<section class="scr quiz on" id="s1">
+  <div id="mapBox" class="map-box">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="지도"></svg>
+  </div>
+  <header class="quiz-top">
+    <div class="quiz-bar">
+      <button class="icon-btn" id="mapBack" type="button" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
+      <span class="quiz-count"></span>
+    </div>
+    <div class="banner">
+      <strong>그 기차표로군요.<br>생라자르역에서 르아브르까지</strong>
+      <div class="stage-row">
+        <ol class="stages" aria-label="출발역"><li class="on"><b></b>생라자르역 출발</li></ol>
+        <button id="openClues" class="clue-btn" type="button">현장 자료 <span>4</span></button>
+      </div>
+    </div>
+  </header>
+  <!-- 행선지 사진 카드 — 고른 역 옆에 붙는다(지도를 밀면 같이 움직인다). 사진은 위키미디어 공용 자유 이용 사진, 크레딧은 카드 아래 -->
+  <button class="place-card" id="placeCard" type="button" hidden aria-label="표 끊기">
+    <span class="pc-face"><span class="pc-img"><img id="pcImg" alt="" draggable="false"></span>
+    <span class="pc-t"><b id="pcName"></b><em id="pcCredit"></em></span></span>
+  </button>
+  <div class="quiz-bottom">
+    <!-- 아래 판: 처음엔 안내 한 줄, 고르면 행선지 + "표 끊기". 확인 시트는 "표 끊기"를 눌렀을 때만 -->
+    <div class="pick-panel" id="pickPanel" aria-live="polite">
+      <p class="pk-prompt" id="pkPrompt">지도나 아래 이름에서 행선지를 고르세요</p>
+      <div class="pk-sel" id="pkSel" hidden>
+        <span class="pk-t"><b id="pkName"></b><small id="pkInfo"></small></span>
+        <button class="pk-go" id="pkGo" type="button">표 끊기</button>
+      </div>
+    </div>
+    <div id="chips" class="chips" role="radiogroup" aria-label="선택지"></div>
+  </div>
+</section>
+
+<!-- 0 들어가기 — 지도 전에 그때의 역과 내 자리를 먼저. 부스 상단 바 그대로. 문장은 상세 페이지(experience-v2-detail.html C2)에 있는 사실만 -->
+<section class="intro" id="intro" aria-label="생라자르역">
+  <!-- 들어가기 장면: 모네 〈생라자르역〉(1877) 안에서 시작한다. 그림 위에 증기(입자) · 유리 지붕으로 드는 빛줄기 · 기관차 앞등 · 출발 안내판(글자판이 넘어가며 행선지 다섯).
+       그림 자체는 변형하지 않는다(색·빛 층만 얹음). 끝나면 "행선지 고르기" → 카메라가 안내판으로 다가가고, 안내판 글자판이 화면 가득 펼쳐졌다 넘어가며 지도가 드러난다 -->
+  <div class="cam" id="cam">
+    <div class="scene" id="scene">
+      <img class="scene-img" id="sceneImg" src="img/lazare-1877.jpg" alt="클로드 모네 〈생라자르역〉, 1877. 유리 지붕 아래 증기를 뿜는 기관차" draggable="false">
+      <div class="shafts" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+      <canvas class="steam" id="steamCv" aria-hidden="true"></canvas>
+      <div class="lamp" aria-hidden="true"><i></i></div>
+      <div class="scene-dark" aria-hidden="true"></div>
+    </div>
+    <div class="board" id="board" role="img" aria-label="출발 안내판: 르아브르 · 루앙 · 베르농 · 아르장퇴유 · 레지프">
+      <div class="bd-head"><span>Départs</span><span>Chemins de fer de l’Ouest</span></div>
+      <div class="bd-rows" id="bdRows"></div>
+    </div>
+  </div>
+  <div class="scene-shade" aria-hidden="true"></div>
+  <header class="quiz-bar intro-bar">
+    <a class="icon-btn" id="introBack" href="../../experience-v3/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
+    <span class="quiz-count"></span>
+  </header>
+  <div class="intro-copy">
+    <p class="intro-credit ln">클로드 모네 〈생라자르역〉 1877 · 오르세 미술관 · 퍼블릭 도메인</p>
+    <div class="eyebrow ln">Gare Saint-Lazare · 1870년대</div>
+    <ul class="intro-lines">
+      <li class="ln">생라자르역은 노르망디로 가는 서부철도의 파리 출발역이었습니다.</li>
+      <li class="ln">파리–루앙(1843), 루앙–르아브르(1847) 철길이 열려, 파리 사람들은 하루 만에 바닷가에 닿을 수 있게 되었습니다.</li>
+      <li class="ln">아르장퇴유에 살던 모네도 이 역으로 파리를 오갔습니다.</li>
+    </ul>
+    <p class="intro-role ln">벽면의 자료를 먼저 살펴보세요.</p>
+    <div class="intro-go ln"><button class="btn" id="introGo" type="button">벽면 자료 보기</button></div>
+  </div>
+  <div class="flaps" id="flaps" aria-hidden="true"></div>
+</section>
+
+<!-- 현장 단서 — 부스 소품(벽면 그림 · 신문 · 시간표 · 엽서)을 앱에서 다시 보기. booth/js/c2.js CLUES 그대로 -->
+<div id="clueSheet" class="sheet clue-sheet" role="dialog" aria-label="현장 자료">
+  <div class="grip"></div>
+  <h3 class="confirm-title">현장 자료</h3>
+  <div id="clueRow" class="clue-row"></div>
+  <button class="btn" data-sheet-close style="margin-top:14px">닫기</button>
+</div>
+
+<!-- 확인 시트(부스 confirmSheet 그대로) — "르아브르행 표를 끊을까요?" -->
+<div id="confirmSheet" class="sheet" role="dialog" aria-label="표 끊기">
+  <div class="grip"></div>
+  <div class="eyebrow" id="cfWhat"></div>
+  <h3 class="confirm-title" id="cfTitle"></h3>
+  <p class="small muted" id="cfSub" style="margin:6px 0 0"></p>
+  <div class="btn-row" style="margin-top:18px">
+    <button id="cfRetry" class="btn line" type="button">다시 고르기</button>
+    <button id="buy" class="btn" type="button">표 끊기</button>
+  </div>
+</div>
+
+<!-- 2 발권 이후: 한 장의 스크롤 캔버스 (표 → 거리·소요·운임 → 이야기 → 오늘의 관람객) -->
+<div class="dim" id="dim"></div>
+<canvas class="puff" id="puffCv" aria-hidden="true"></canvas>
+<div class="flow" id="flow" hidden>
+  <div class="flow-in" id="flowIn">
+    <header class="hero" id="hero">
+      <div class="hero-bar">
+        <button class="icon-btn" id="flowBack" aria-label="지도로"></button>
+        <div class="hero-t" id="heroT"><b id="heroTitle">르아브르 · 1872년 표</b><span id="heroSub">PARIS → LE HAVRE</span></div>
+        <button class="coll" id="coll" aria-label="수집함"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M3 5h18v3H3z"/><path d="M10 12h4"/></svg><i id="collN" hidden>1</i></button>
+      </div>
+      <div class="tk-scrim" id="tkScrim"></div>
+      <div class="card-wrap" id="cardWrap">
+        <div class="card-shadow" id="cardShadow"></div>
+        <div class="card3d" id="card3d">
+          <div class="edge e4"></div><div class="edge e3"></div><div class="edge e2"></div><div class="edge e1"></div>
+          <div class="face back"><div class="tk" data-slot="back"></div><div class="grain"></div><div class="sheen"></div></div>
+          <div class="face front"><div class="tk" data-slot="front"></div><div class="grain"></div><div class="sheen"></div></div>
+        </div>
+        <div class="tak" id="tak">탁</div>
+      </div>
+      <div class="hint" id="hint">끌어서 돌려 보기 · 두 번 탭하면 뒷면</div>
+    </header>
+    <div class="canvas" id="canvas">
+      <div class="hero-space"></div>
+      <div class="tiles" id="tkTiles"></div>
+      <div class="why" id="tkWhy"></div>
+      <section class="story" id="story">
+        <div class="story-h"><div class="eyebrow" id="stK"></div><h2 id="stH"></h2></div>
+        <!-- 그 자리의 지금 사진(위키미디어 공용) + 거기서 그린 그림 한 점, 문장 하나씩 -->
+        <div class="pair" id="pair">
+          <figure class="pf place"><div class="img"><img id="pairPhoto" alt="" draggable="false"></div><figcaption><b id="pairPlace"></b><p id="pairPlaceT"></p><small id="pairPlaceCr"></small></figcaption></figure>
+          <div class="pair-k"><i></i>이 자리에서 그린 그림<i></i></div>
+          <figure class="pf paint"><div class="img"><img id="pairPaint" alt="" draggable="false"><canvas class="dissolve" id="pairDis" aria-hidden="true"></canvas></div><figcaption><b id="pairTitle"></b><p id="pairPaintT"></p><small id="pairMeta"></small></figcaption></figure>
+        </div>
+      </section>
+      <!-- 엽서 — 앞면: 대표 그림 전면 + 당대풍 우표 + 둥근 소인(행선지 · 모네의 해) + 그림 위에 직접 적는 한 줄(≤60자, 1904년 전 프랑스 엽서처럼 글은 그림 면에).
+           한 줄은 끌어서 위·가운데·아래 셋 중 한 자리에 붙고, 크기 둘. 글자색은 그 자리 그림 밝기로 크림/잉크. 뒷면: 세로 구분선 · 받는 사람 · 그림 캡션 · 표 번호(메시지 없음).
+           뒤집기는 표의 3D 카드 문법. 저장은 앞면(글 포함)을 기기 안에서 JPEG -->
+      <section class="postcard" id="postcard">
+        <div class="story-h"><div class="eyebrow">Carte postale</div><h2>그림 위에 한 줄을 적어 엽서를 만드세요</h2></div>
+        <div class="pc-wrap" id="pcWrap">
+          <div class="pc3d" id="pc3d">
+            <div class="pface front" id="pcFront">
+              <img id="pcPaint" alt="" draggable="false">
+              <div class="grain"></div><div class="sheen"></div>
+              <div class="pc-guides" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="pc-ink" id="pcInk" data-slot="bottom" data-size="s">
+                <span class="pc-grip" aria-hidden="true"></span>
+                <textarea id="pcMsg" rows="1" maxlength="60" placeholder="여기를 눌러 한 줄을 적으세요" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="엽서에 적을 한 줄"></textarea>
+              </div>
+              <div class="stamp-corner">
+                <div class="pstamp"><span>République<br>Française</span><b>15<sup>c</sup></b><small>Postes</small></div>
+                <svg class="postmark" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="pmArc" d="M50,50 m-33,0 a33,33 0 1,1 66,0 a33,33 0 1,1 -66,0"/></defs><circle cx="50" cy="50" r="44"/><circle cx="50" cy="50" r="23"/><text class="pm-arc"><textPath href="#pmArc" id="pmText" startOffset="2">LE HAVRE · 1872 ·</textPath></text><text class="pm-mid" x="50" y="48" text-anchor="middle" id="pmDate">21 OCT</text><text class="pm-mid s" x="50" y="58" text-anchor="middle" id="pmYear">1872</text></svg>
+              </div>
+            </div>
+            <div class="pface back">
+              <div class="pb-head"><b>Carte Postale</b><span>Chemins de fer de l’Ouest</span></div>
+              <div class="pb-l">
+                <div class="pb-cap" id="pcCap"></div>
+              </div>
+              <div class="pb-div"></div>
+              <div class="pb-r">
+                <div class="pb-stampbox">Timbre</div>
+                <label class="pb-to"><span>받는 사람</span><input id="pcTo" type="text" maxlength="16" placeholder="나에게" enterkeyhint="done" autocomplete="off"></label>
+                <i></i><i></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pc-opts">
+          <div class="seg" role="radiogroup" aria-label="글자 크기"><button type="button" role="radio" data-size="s" aria-checked="true">작게</button><button type="button" role="radio" data-size="l" aria-checked="false">크게</button></div>
+          <span class="pc-count" id="pcCount">0 / 60</span>
+        </div>
+        <div class="pc-tools"><button class="btn line" id="pcFlip" type="button">뒷면 보기</button><button class="btn" id="pcSave" type="button">엽서 저장 · 공유</button></div>
+        <p class="pc-note">글은 끌어서 옮길 수 있습니다</p>
+      </section>
+      <!-- 오늘의 관람객 — 들어가기 장면의 출발 안내판(검은 판 · 놋쇠 테 · 크림 글자판)을 그대로 한 장 더: 다섯 행선지를 많이 고른 순서로 한 줄씩.
+           줄마다 그곳의 그림 한 점 · 프랑스어/한글 이름 · 비율만큼 놋쇠 선 · 글자판 숫자(0부터 넘어가며 올라간다). 내 줄은 등불처럼 밝고 '나', 맨 많은 곳은 '가장 많이' -->
+      <section class="today crowd" id="today">
+        <div class="crowd-cap">Aujourd'hui au guichet</div>
+        <div class="crowd-line">오늘 관람객이 고른 행선지</div>
+        <div class="dep" id="dep">
+          <div class="dep-head"><span>Départs</span><span id="depDate">Paris S<sup>t</sup>-Lazare</span></div>
+          <ol class="dep-rows" id="depRows"></ol>
+        </div>
+        <div class="crowd-stamp" id="crowdStamp"></div>
+        <!-- 끝 줄(체험 공통): 처음으로(체험 목록) | 수집함에 저장 → 저장하면 같은 자리에서 '수집함에 담았어요'(비활성). 다시 고르기는 아래 조용한 글자 링크 -->
+        <div class="btns"><button class="btn line" id="home" type="button">처음으로</button><button class="btn" id="save" type="button">수집함에 저장</button></div>
+        <button class="again-link" id="again" type="button">다시 고르기</button>
+      </section>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast">수집함에 저장했습니다</div>
+
+<script type="module">
+// ── 부스 프로토타입 booth/js/c2.js 의 도착지 단계를 그대로 옮겼다: 지도 그리기(el · proj · initMap · smoothPath · drawRoute · 라벨 · 영역 강조), 시점 맞춤(fitStage),
+//    팬·핀치 입력(bindInput), 칩(buildChips · markChips · regionThumb), 확인 시트, 현장 단서 서랍(CLUES).
+//    바꾼 것: 출발역 단계 없음 — 열면 바로 파리 → 노르망디 해안. 생라자르는 출발지로 표시만(노르망디행 서부철도의 출발역). 도착지는 노르망디 5곳(행정구역 영역 + 역점, zones.json). 고르면 그 자리의 사진 카드가 역 옆에 붙고 "표를 끊을까요?" 시트.
+//    데이터: map.json = booth/assets/data/map.json 사본 · zones.json = france-geojson arrondissements/cantons를 같은 메르카토르로 투영
+const NS = 'http://www.w3.org/2000/svg';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const el = (tag, attrs = {}, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ── 출발역: 생라자르(실제 좌표). 노르망디행 서부철도의 파리 종착역 — 지도에 출발지로 표시만 한다
+const ORIGIN = { id: 'lazare', ko: '생라자르역', fr: 'Gare Saint-Lazare', ll: [2.3253, 48.8763], lab: [8, 24, 'end'], co: '서부철도(Chemins de fer de l’Ouest)' };
+// 경유지(실제 간선): 망트 · 베르농 · 루앙 · 이브토 · 브레오테-뵈즈빌(0.40,49.61 — 페캉 지선 분기) · 아니에르
+const V = { mantes: [1.72, 48.99], vernon: [1.4850, 49.0930], rouen: [1.0993, 49.4431], yvetot: [0.753, 49.617], beuzeville: [0.40, 49.61], asnieres: [2.285, 48.905] };
+const DEST = [
+  { id: 'argenteuil', fr: 'Argenteuil', ko: '아르장퇴유', ll: [2.2472, 48.9472], lab: [0, -30, 'middle'], info: '11 km · 25분', year: 1874, via: [V.asnieres] },
+  { id: 'vernon', fr: 'Vernon', ko: '베르농', ll: [1.4850, 49.0930], lab: [0, 22, 'middle'], info: '80 km · 급행 1시간 30분', year: 1883, via: [V.mantes] },
+  { id: 'rouen', fr: 'Rouen', ko: '루앙', ll: [1.0993, 49.4431], lab: [12, 5, 'start'], info: '140 km · 급행 2시간 40분', year: 1892, via: [V.mantes, V.vernon] },
+  { id: 'lesifs', fr: 'Les Ifs', ko: '레지프', ll: [0.4661, 49.6463], lab: [12, -4, 'start'], info: '214 km · 4시간 33분 + 마차 15 km', year: 1883, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
+  { id: 'lehavre', fr: 'Le Havre', ko: '르아브르', ll: [0.1079, 49.4938], lab: [0, 24, 'middle'], info: '229 km · 급행 4시간 30분', year: 1872, via: [V.mantes, V.vernon, V.rouen, V.yvetot, V.beuzeville] },
+];
+// 행선지의 지금 모습 — 모네가 그린 자리의 사진(위키미디어 공용, 자유 이용). 크레딧은 카드와 상세 판 출처에
+const PLACES = window.PLACES = {
+  argenteuil: { name: '아르장퇴유의 센강과 다리', img: 'img/places/argenteuil.jpg', credit: 'Remi Jouan · CC BY-SA 3.0', page: 'https://commons.wikimedia.org/wiki/File:Argenteuil_-_Pont_(11).jpg' },
+  vernon: { name: '지베르니 · 모네의 물의 정원', img: 'img/places/vernon.jpg', credit: 'Fondation Monet · CC BY-SA 3.0', page: 'https://commons.wikimedia.org/wiki/File:Le_%22Pont_Japonais%22,_vu_du_bassin_des_Nymph%C3%A9as.jpg' },
+  rouen: { name: '루앙 대성당 서쪽 정면', img: 'img/places/rouen.jpg', credit: 'Ввласенко · CC BY-SA 3.0', page: 'https://commons.wikimedia.org/wiki/File:Rouen_Cathedral,_front.jpg' },
+  lesifs: { name: '에트르타 · 마네포르트', img: 'img/places/lesifs.jpg', credit: 'Tobi 87 · CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:La_Manneporte-Etretat-Normandie.jpg' },
+  lehavre: { name: '르아브르 항구', img: 'img/places/lehavre.jpg', credit: 'Gary Dee · CC BY-SA 4.0', page: 'https://commons.wikimedia.org/wiki/File:(Sunset_Port_Le_Havre_France)_2015.jpg' },
+};
+// 목적지 영역 색 — 부스 지역 양피지 색 계열에서 고른 5색
+const ZTINT = { argenteuil: '#DDAE74', vernon: '#C3D0A4', rouen: '#D9BE8C', lesifs: '#E4D47E', lehavre: '#C89E72' };
+const ZORDER = ['argenteuil', 'vernon', 'rouen', 'lehavre', 'lesifs'];
+const ZLAB = { lesifs: [-14, -10, 'end'] };   // 영역 이름을 역 점 기준 화면 px 로 두는 곳 [dx, dy, text-anchor]
+const FIT = { lon0: -0.62, lon1: 2.7, lat0: 48.72, lat1: 49.92 };    // 파리 → 노르망디 해안(바다 쪽 여유)
+
+// ── 현장 단서 (부스 소품과 같은 것: 벽면 그림 · 신문 · 책상 위 시간표 · 엽서) — booth/js/c2.js CLUES 그대로
+const CLUES = [
+  { kind: 'img', img: '../../../booth/assets/clue/monet_gare_saint_lazare_1877.jpg', k: '벽면의 그림', t: '노르망디로 가는 서부철도의 파리 출발역, 생라자르.', meta: '클로드 모네 〈생라자르역〉 1877 · 퍼블릭 도메인' },
+  { kind: 'news', k: '신문 광고 · 재현', t: '바다로 가는 유람 열차 광고. 행선지는 영불해협(라망슈) 해안 도시들.' },
+  { kind: 'table', k: '책상 위 시간표 · 재현', t: '서부철도 파리–르아브르 선의 정차역.' },
+  { kind: 'img', img: '../../../booth/assets/clue/monet_manneporte_etretat_1883.jpg', k: '엽서', t: '바다 절벽의 마을 에트르타. 모네는 이 해안의 항구 도시 르아브르에서 자랐습니다.', meta: '클로드 모네 〈에트르타의 마네포르트〉 1883 · 퍼블릭 도메인' },
+];
+function clueCard(c) {
+  if (c.kind === 'img') return `<figure class="clue"><div class="clue-img"><img src="${c.img}" alt="" loading="lazy"></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p><div class="clue-meta">${c.meta}</div></figcaption></figure>`;
+  if (c.kind === 'news') return `<figure class="clue"><div class="clue-paper news"><div class="np-mast">LE PETIT JOURNAL<span>— annonces —</span></div><div class="np-rule"></div><div class="np-big">TRAINS DE PLAISIR</div><div class="np-mid">PARIS — LA MER</div><div class="np-sm">Dieppe · Le Havre · Trouville<br>Billets d’aller et retour</div></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p></figcaption></figure>`;
+  return `<figure class="clue"><div class="clue-paper table"><div class="tt-co">CHEMINS DE FER DE L’OUEST</div><div class="tt-line">Ligne de Paris au Havre</div><ol class="tt-st"><li>Paris</li><li>Mantes</li><li>Vernon</li><li>Rouen</li><li>Yvetot</li><li>Le Havre</li></ol></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p></figcaption></figure>`;
+}
+$('#clueRow').innerHTML = CLUES.map(clueCard).join('');
+// 바텀시트(부스 common.js sheet 그대로): 딤은 제자리에서 페이드, 시트만 올라온다
+//   close('dismiss') = 닫기 버튼 · 딤 탭 · 아래로 쓸기 → onDismiss. close('confirm') = 확인으로 닫기(onDismiss 없음)
+function sheet(e, { onDismiss = null, swipe = false } = {}) {
+  let dim = e.previousElementSibling;
+  if (!dim || !dim.classList.contains('sheet-dim')) { dim = document.createElement('div'); dim.className = 'sheet-dim'; e.parentNode.insertBefore(dim, e); }
+  const api = {
+    open() { e.style.transform = ''; dim.style.opacity = ''; dim.classList.add('open'); e.classList.add('open'); },
+    close(reason = 'dismiss') { const was = e.classList.contains('open'); e.style.transform = ''; dim.style.opacity = ''; dim.classList.remove('open'); e.classList.remove('open'); if (was && reason === 'dismiss' && onDismiss) onDismiss(); },
+    get isOpen() { return e.classList.contains('open'); },
+  };
+  dim.addEventListener('click', () => api.close('dismiss')); $$('[data-sheet-close]', e).forEach((b) => b.addEventListener('click', () => api.close('dismiss')));
+  // 아래로 쓸어 닫기: 6px 넘게 아래로 끌면 시트가 손가락을 따라오고, 80px 넘게(또는 빠르게) 놓으면 닫힌다
+  if (swipe) {
+    let d = null;
+    e.addEventListener('pointerdown', (ev) => { if (!api.isOpen || e.scrollTop > 0) return; d = { id: ev.pointerId, y: ev.clientY, t: performance.now(), dy: 0, on: false }; });
+    e.addEventListener('pointermove', (ev) => {
+      if (!d || ev.pointerId !== d.id) return;
+      const dy = ev.clientY - d.y;
+      if (!d.on && dy > 6) { d.on = true; try { e.setPointerCapture(ev.pointerId); } catch (_) { /* noop */ } e.classList.add('dragging'); }
+      if (d.on) { d.dy = Math.max(0, dy); e.style.transform = `translateY(${d.dy}px)`; dim.style.opacity = String(Math.max(0, 1 - d.dy / (e.offsetHeight || 300))); }
+    });
+    const end = (ev) => {
+      if (!d || ev.pointerId !== d.id) return; const was = d; d = null; e.classList.remove('dragging');
+      if (!was.on) return;
+      const v = was.dy / Math.max(1, performance.now() - was.t);
+      if (was.dy > 80 || v > 0.6) api.close('dismiss'); else { e.style.transform = ''; dim.style.opacity = ''; }
+    };
+    e.addEventListener('pointerup', end); e.addEventListener('pointercancel', end);
+  }
+  return api;
+}
+const clueSheet = sheet($('#clueSheet')), confirmSheet = sheet($('#confirmSheet'), { swipe: true, onDismiss: () => resetPick() });
+$('#openClues').addEventListener('click', () => clueSheet.open());
+
+let M = null, Z = null, svg, world, labels, routeG, routeGlow, routeCore, routeLine, pinG, regionEls = {}, zoneEls = {}, zoneHl = {}, parisG, pinAt = null, fxG, glintG, glintTrail, glintRaf = 0;
+const view = { s: 1, tx: 0, ty: 0, min: 0.1, max: 200 };
+let picked = null, busy = false;
+const proj = (lon, lat) => { const merc = (a) => (Math.log(Math.tan(Math.PI / 4 + (a * Math.PI) / 360)) * 180) / Math.PI; const P = M.projection; return [(lon - P.lon0) * P.k, (merc(P.lat1) - merc(lat)) * P.k]; };
+const mix = (hex, to, t) => { const a = hex.match(/\w\w/g).map((h) => parseInt(h, 16)), b = to.match(/\w\w/g).map((h) => parseInt(h, 16)); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+
+async function initMap() {
+  [M, Z] = await Promise.all([fetch('map.json').then((r) => r.json()), fetch('zones.json').then((r) => r.json())]);
+  svg = $('#map');
+  const defs = el('defs', {}, svg);
+  defs.innerHTML = `
+    <pattern id="seaHatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+      <rect width="7" height="7" fill="#6f8f88"/><path d="M0 3.5h7" stroke="#638179" stroke-width="1.2"/></pattern>
+    <radialGradient id="vig" cx="50%" cy="50%" r="75%"><stop offset="55%" stop-color="#2a1c10" stop-opacity="0"/><stop offset="100%" stop-color="#2a1c10" stop-opacity=".55"/></radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>`;
+  el('rect', { width: '100%', height: '100%', fill: 'url(#seaHatch)' }, svg);
+  world = el('g', {}, svg);
+  [[22, '#89a59c', 0.35], [13, '#9db6aa', 0.5], [6, '#b7c9b8', 0.7]].forEach(([w, c, o]) =>
+    el('path', { d: M.land, fill: 'none', stroke: c, 'stroke-width': w, 'stroke-opacity': o, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world));
+  el('path', { d: M.land, fill: '#E8D6AD', stroke: '#6b5235', 'stroke-width': 1.1, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world);
+  const tint = { normandie: '#C2C48E', hauts: '#D6C08C', grandest: '#D8AE7C', paca: '#DCB98A', bretagne: '#CFB57F' };
+  Object.keys(tint).forEach((id) => { regionEls[id] = el('path', { d: M.regions[id], fill: tint[id], 'fill-opacity': 0.85, class: 'region', 'data-id': id }, world); });
+  // 목적지 영역(행정구역 폴리곤) — 지역색 위, 경계선 아래
+  ZORDER.forEach((id) => { zoneEls[id] = el('path', { d: Z.zones[id].d, fill: ZTINT[id], 'fill-opacity': 0.92, class: 'zone', 'data-id': id, stroke: '#8a6d47', 'stroke-width': 0.7, 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round' }, world); });
+  el('path', { d: M.regionBorders, fill: 'none', stroke: '#8a6d47', 'stroke-width': 0.9, 'stroke-dasharray': '2 3', 'stroke-opacity': 0.7, 'vector-effect': 'non-scaling-stroke' }, world);
+  el('path', { d: M.borders, fill: 'none', stroke: '#6b5235', 'stroke-width': 1.3, 'stroke-dasharray': '6 3 1 3', 'stroke-opacity': 0.8, 'vector-effect': 'non-scaling-stroke' }, world);
+  // 파리 시가지(데파르트망 75) + 근교 — 출발지 생라자르가 놓인 자리
+  parisG = el('g', { opacity: 0.6 }, world);
+  el('path', { d: M.regions.petitecouronne, fill: '#DCC8A0', stroke: '#8a6d47', 'stroke-width': 0.8, 'stroke-dasharray': '2 3', 'vector-effect': 'non-scaling-stroke' }, parisG);
+  el('path', { d: M.regions.paris, fill: '#F1E2C0', stroke: '#6b5235', 'stroke-width': 1.4, 'vector-effect': 'non-scaling-stroke' }, parisG);
+  ZORDER.forEach((id) => { zoneHl[id] = el('path', { d: Z.zones[id].d, fill: 'none', stroke: '#E0662C', 'stroke-width': 2.4, opacity: 0, 'vector-effect': 'non-scaling-stroke', 'stroke-linejoin': 'round', 'pointer-events': 'none' }, world); });
+  routeG = el('g', {}, world);
+  routeGlow = el('path', { fill: 'none', stroke: '#FF8A3D', 'stroke-width': 9, 'stroke-opacity': 0.45, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', filter: 'url(#glow)', 'vector-effect': 'non-scaling-stroke' }, routeG);
+  routeCore = el('path', { fill: 'none', stroke: '#F06A28', 'stroke-width': 4.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'vector-effect': 'non-scaling-stroke' }, routeG);
+  routeLine = el('path', { fill: 'none', stroke: '#FFF1DC', 'stroke-width': 2.2, 'stroke-linecap': 'round', 'stroke-dasharray': '1 7', 'vector-effect': 'non-scaling-stroke' }, routeG);
+  el('rect', { width: '100%', height: '100%', fill: 'url(#vig)', 'pointer-events': 'none' }, svg);
+  // 노선 위를 달리는 열차 빛(화면 좌표 — 확대해도 크기가 같다) + 누른 자리의 물결
+  fxG = el('g', { 'pointer-events': 'none' }, svg);
+  glintTrail = el('path', { fill: 'none', stroke: '#FFF0D6', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0 }, fxG);
+  glintG = el('g', { opacity: 0 }, fxG);
+  el('circle', { r: 18, fill: '#FFB060', 'fill-opacity': 0.7, filter: 'url(#glow)' }, glintG);
+  el('circle', { r: 5, fill: '#FFFBF0', stroke: '#FF9B4A', 'stroke-width': 1.4 }, glintG);
+  pinG = el('g', { 'pointer-events': 'none', opacity: 0 }, svg);
+  pinG.innerHTML = `<g class="pin-in"><path d="M0 0C-3-9-12-14-12-24a12 12 0 0 1 24 0C12-14 3-9 0 0z" fill="#E0482A" stroke="#fff" stroke-width="2"/><circle cy="-24" r="4.5" fill="#fff"/></g>`;
+  labels = el('g', { 'pointer-events': 'none' }, svg);     // 이름표는 핀 위에 — 고른 역 이름이 가려지지 않게
+  $('#cfRetry').addEventListener('click', () => confirmSheet.close('dismiss'));
+  $('#placeCard').addEventListener('click', () => { if (picked) openConfirm(); });
+  $('#pkGo').addEventListener('click', () => { if (picked) openConfirm(); });
+  Object.values(PLACES).forEach((p) => { const i = new Image(); i.src = p.img; });     // 사진 카드가 누르자마자 뜨도록 미리 받아 둔다
+  bindInput();
+  buildChips();
+  fitStage(false);
+  window.addEventListener('resize', () => fitStage(false));
+  window.mapReady = true;
+}
+
+// ── 시점: 파리 → 노르망디 해안(FIT 경위도 상자)에 맞춰 부드럽게 (부스 fitStage 그대로)
+function stageBounds() {
+  const [x0, y0] = proj(FIT.lon0, FIT.lat1), [x1, y1] = proj(FIT.lon1, FIT.lat0);
+  return [x0, y0, x1, y1];
+}
+let tween = 0;
+function fitStage(animate = true) {
+  const box = $('#mapBox').getBoundingClientRect();
+  svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+  const top = ($('.quiz-top').getBoundingClientRect().bottom || 220) + 6;
+  const bottom = box.height - ($('.quiz-bottom').offsetHeight || 100);
+  const [x0, y0, x1, y1] = stageBounds();
+  const pad = 16;
+  const s = Math.min((box.width - pad * 2) / (x1 - x0), (bottom - top - pad * 2) / (y1 - y0));
+  const to = { s, tx: (box.width - (x1 - x0) * s) / 2 - x0 * s, ty: top + (bottom - top - (y1 - y0) * s) / 2 - y0 * s };
+  view.min = s * 0.7; view.max = s * 6;
+  if (!animate || RM) { Object.assign(view, to); applyView(); return; }
+  const from = { s: view.s, tx: view.tx, ty: view.ty }, t0 = performance.now(), D = 900, id = ++tween;
+  const cxw = (box.width / 2 - from.tx) / from.s, cyw = ((top + bottom) / 2 - from.ty) / from.s;
+  const cxt = (box.width / 2 - to.tx) / to.s, cyt = ((top + bottom) / 2 - to.ty) / to.s;
+  const step = (now) => {
+    if (id !== tween) return;
+    const k = Math.min((now - t0) / D, 1), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    const sc = Math.exp(Math.log(from.s) + (Math.log(to.s) - Math.log(from.s)) * e);
+    const wx = cxw + (cxt - cxw) * e, wy = cyw + (cyt - cyw) * e;
+    view.s = sc; view.tx = box.width / 2 - wx * sc; view.ty = (top + bottom) / 2 - wy * sc;
+    applyView();
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+const toScreen = ([x, y]) => [x * view.s + view.tx, y * view.s + view.ty];
+const toWorld = (sx, sy) => [(sx - view.tx) / view.s, (sy - view.ty) / view.s];
+function applyView() {
+  world.setAttribute('transform', `translate(${view.tx} ${view.ty}) scale(${view.s})`);
+  drawLabels(); updatePin(); placeCardPos();
+}
+
+function drawLabels() {
+  let h = '';
+  const txt = (x, y, fr, ko, fs, anchor = 'middle', w = 600, dim = false) =>
+    `<text class="lbl${dim ? ' dim' : ''}" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${fs}" font-weight="${w}" stroke-width="3">${fr}</text>` +
+    (ko ? `<text class="lbl-ko${dim ? ' dim' : ''}" x="${x}" y="${y + fs * 1.05}" text-anchor="${anchor}" font-size="${fs * 0.82}" stroke-width="3">${ko}</text>` : '');
+  {
+    const [sx, sy] = toScreen(proj(0.35, 49.86));
+    h += `<text class="lbl-sea" x="${sx}" y="${sy}" text-anchor="middle" font-size="13">La Manche</text>`;
+    const [px, py] = toScreen(M.anchors.paris);
+    h += `<text class="lbl-faint" x="${px}" y="${py + 58}" text-anchor="middle" font-size="18">PARIS</text>`;   // 생라자르역 이름표 아래(겹치지 않게)
+    // 영역 이름(행정구역명, 작은 대문자) — 영역 가운데, 자리가 있을 때만
+    //   레지프 영역(에트르타 · 페캉, 칸통 셋을 합친 한 영역)은 좁아서 이름이 역 이름표·해안선과 겹친다 → 역 점 왼쪽 위, 바다 쪽에 오른쪽 끝을 맞춰 둔다
+    ZORDER.forEach((id) => {
+      const z = Z.zones[id]; const a = z.anchor || [(z.bounds[0] + z.bounds[2]) / 2, (z.bounds[1] + z.bounds[3]) / 2];
+      let [x, y] = toScreen(a); const w = (z.bounds[2] - z.bounds[0]) * view.s;
+      if (w < 56 && !z.anchor) return;
+      const on = picked && picked.id === id; let anchor = 'middle';
+      const zl = ZLAB[id]; if (zl) { const [dx, dy] = toScreen(proj(...DEST.find((d) => d.id === id).ll)); x = dx + zl[0]; y = dy + zl[1]; anchor = zl[2]; }
+      h += `<text class="lbl-zone${on ? ' on' : ''}" x="${x}" y="${y}" text-anchor="${anchor}" font-size="${w < 90 ? 7.5 : 9.5}">${(id === 'lehavre' ? 'LE HAVRE' : z.label).toUpperCase()}</text>`;
+    });
+    const dot = (s, on, origin) => {
+      const [x, y] = toScreen(proj(...s.ll)); const lab = on && s.labSel ? s.labSel : s.lab; const lx = x + lab[0], ly = y + lab[1];
+      h += `<line x1="${x}" y1="${y}" x2="${lx}" y2="${ly + (lab[1] < 0 ? 4 : -12)}" stroke="#6b5235" stroke-width="1"/>`;
+      h += `<circle cx="${x}" cy="${y}" r="${on ? 9 : 7}" fill="${on || origin ? '#E0662C' : '#1E140C'}" stroke="#FFF1DC" stroke-width="2.5"/>`;
+      h += txt(lx, ly, s.fr, s.ko, origin ? 12 : 13, lab[2], on || origin ? 800 : 600);
+    };
+    DEST.forEach((s) => dot(s, picked && picked.id === s.id, false));
+    dot(ORIGIN, false, true);
+  }
+  labels.innerHTML = h;
+  // 영역 이름이 역 이름표와 겹치면 영역 이름을 뺀다(역 이름이 먼저)
+  const boxes = $$('text.lbl, text.lbl-ko, circle', labels).map((n) => n.getBBox());
+  $$('text.lbl-zone', labels).forEach((z) => { const a = z.getBBox(); if (boxes.some((b) => a.x - 10 < b.x + b.width && b.x < a.x + a.width + 10 && a.y - 3 < b.y + b.height && b.y < a.y + a.height + 3)) z.remove(); });
+}
+
+// ── 칩 줄(부스 buildChips · markChips 의 도착지 단계 그대로)
+function buildChips() {
+  const box = $('#chips');
+  box.innerHTML = DEST.map((c) => `<button class="chip region" role="radio" aria-checked="false" data-id="${c.id}"><span class="thumb" style="--z:${ZTINT[c.id]}">${regionThumb(c.id)}</span><span class="chip-t">${c.ko}<small>${c.fr}</small></span><span class="ck">${ICON_CHECK}</span></button>`).join('');
+  $$('.chip', box).forEach((b) => b.addEventListener('click', () => pick(b.dataset.id)));
+  markChips();
+}
+function markChips() {
+  const cur = picked && picked.id;
+  $$('#chips .chip').forEach((b) => { const on = b.dataset.id === cur; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: RM ? 'auto' : 'smooth' }); });
+  ZORDER.forEach((id) => {
+    const on = cur === id;
+    zoneHl[id].setAttribute('opacity', on ? 1 : 0);
+    zoneEls[id].setAttribute('fill', on ? mix(ZTINT[id], '#F3E7CB', 0.35) : ZTINT[id]); zoneEls[id].setAttribute('fill-opacity', on ? 1 : 0.92);
+  });
+}
+// 칩의 작은 영역 모양(부스 regionThumb — 여기서는 행정구역 영역)
+function regionThumb(id) {
+  const b = Z.zones[id].bounds; const w = b[2] - b[0], h = b[3] - b[1]; const m = Math.max(w, h) * 0.12;
+  return `<svg viewBox="${b[0] - m} ${b[1] - m} ${w + 2 * m} ${h + 2 * m}" aria-hidden="true"><path d="${Z.zones[id].d}"/></svg>`;
+}
+
+// ── 노선(부스 smoothPath · drawRoute 그대로: 실제 간선의 경유지를 따라)
+function smoothPath(pts) {
+  let d = `M${pts[0][0]},${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const p0 = pts[i - 1], p1 = pts[i]; const m = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2];
+    d += i === 1 ? ` L${m[0]},${m[1]}` : ` Q${p0[0]},${p0[1]} ${m[0]},${m[1]}`;
+    if (i === pts.length - 1) d += ` L${p1[0]},${p1[1]}`;
+  }
+  return d;
+}
+function drawRoute(dest) {
+  const pts = [proj(...ORIGIN.ll), ...dest.via.map((ll) => proj(...ll)), proj(...dest.ll)];
+  const d = smoothPath(pts);
+  [routeGlow, routeCore, routeLine].forEach((p) => p.setAttribute('d', d));
+  const Lw = routeCore.getTotalLength() * view.s + 6;
+  stopRouteAnims();
+  // 노선은 누르는 즉시 그어지기 시작하고(0.9초), 그 끝을 열차 빛이 달려간다. 다 그어지면 점선(선로)이 떠오르고, 빛은 몇 초마다 다시 파리에서 출발한다
+  const DRAW = RM ? 0 : 900;
+  [routeGlow, routeCore].forEach((p) => { p.style.strokeDasharray = `${Lw}`; if (!RM) p.animate([{ strokeDashoffset: Lw }, { strokeDashoffset: 0 }], { duration: DRAW, easing: 'cubic-bezier(.45,.05,.25,1)' }); });
+  if (!RM) routeLine.animate([{ opacity: 0 }, { opacity: 0, offset: 0.7 }, { opacity: 1 }], { duration: DRAW + 300 });
+  pinAt = null; updatePin();   // 핀은 쓰지 않는다 — 고른 역은 커진 주황 점 · 영역 테두리 · 노선 끝으로 보인다
+  runGlint(DRAW);
+}
+// 열차 빛: 노선 길이를 따라 머리(빛 한 점) + 꼬리(뒤로 40px)
+const easeDraw = (k) => { // 노선 그리기와 같은 곡선(cubic-bezier(.45,.05,.25,1))을 근사
+  const bz = (t, a, b) => 3 * a * t * (1 - t) * (1 - t) + 3 * b * t * t * (1 - t) + t * t * t;
+  let lo = 0, hi = 1; for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (bz(m, 0.45, 0.25) < k) lo = m; else hi = m; } return bz((lo + hi) / 2, 0.05, 1);
+};
+function runGlint(DRAW) {
+  cancelAnimationFrame(glintRaf);
+  if (RM) { glintG.setAttribute('opacity', 0); glintTrail.setAttribute('opacity', 0); return; }
+  const L = routeCore.getTotalLength(), t0 = performance.now(), RUN = 1700, GAP = 2600;
+  const place = (k, a) => {
+    const at = (len) => { const p = routeCore.getPointAtLength(clamp(len, 0, L)); return toScreen([p.x, p.y]); };
+    const [x, y] = at(k * L); glintG.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`); glintG.setAttribute('opacity', a.toFixed(2));
+    const back = 64 / view.s; let d = '';
+    for (let i = 0; i <= 8; i++) { const [px, py] = at(k * L - (back * i) / 8); d += `${i ? 'L' : 'M'}${px.toFixed(1)},${py.toFixed(1)}`; }
+    glintTrail.setAttribute('d', d); glintTrail.setAttribute('opacity', (a * 0.75).toFixed(2));
+  };
+  const tick = (now) => {
+    const t = now - t0;
+    if (t < DRAW) place(easeDraw(t / DRAW), Math.min(1, t / 120));
+    else if (t < DRAW + 380) place(1, 1 - (t - DRAW) / 380);                       // 도착 — 끝에서 스러진다
+    else {
+      const c = (t - DRAW - 380) % (RUN + GAP);
+      if (c < RUN) { const k = c / RUN, e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; place(e, Math.min(1, k * 8, (1 - k) * 8) * 0.85); }
+      else { glintG.setAttribute('opacity', 0); glintTrail.setAttribute('opacity', 0); }
+    }
+    glintRaf = requestAnimationFrame(tick);
+  };
+  glintRaf = requestAnimationFrame(tick);
+}
+function stopGlint() { cancelAnimationFrame(glintRaf); if (glintG) { glintG.setAttribute('opacity', 0); glintTrail.setAttribute('opacity', 0); } }
+// 누른 자리의 물결(역을 누르면 그 점에서 둥글게 번진다)
+function ripple(id) {
+  if (RM || !fxG) return; const s = DEST.find((d) => d.id === id); if (!s) return;
+  const [x, y] = toScreen(proj(...s.ll));
+  const c = el('circle', { cx: x, cy: y, r: 9, fill: 'none', stroke: '#E0662C', 'stroke-width': 2.4, style: 'transform-box: fill-box; transform-origin: center' }, fxG);
+  c.animate([{ transform: 'scale(1)', opacity: 0.9 }, { transform: 'scale(3.6)', opacity: 0 }], { duration: 620, easing: 'cubic-bezier(.2,.7,.2,1)' }).onfinish = () => c.remove();
+}
+function stopRouteAnims() { [routeGlow, routeCore, routeLine, pinG.querySelector('.pin-in')].forEach((p) => p.getAnimations().forEach((a) => a.cancel())); }
+function clearRoute() { stopRouteAnims(); stopGlint(); [routeGlow, routeCore, routeLine].forEach((p) => { p.setAttribute('d', ''); p.style.strokeDasharray = ''; }); pinAt = null; updatePin(); }
+function updatePin() { if (!pinAt) { pinG.setAttribute('opacity', 0); return; } const [x, y] = toScreen(pinAt); pinG.setAttribute('transform', `translate(${x} ${y})`); pinG.setAttribute('opacity', 1); }
+
+// ── 사진 카드: 고른 역 옆에 붙어 지도와 함께 움직인다. 오른쪽이 좁으면 왼쪽, 아래가 좁으면 위로
+function placeCard(dest) {
+  const card = $('#placeCard');
+  if (!dest) { card.hidden = true; card.classList.remove('in'); return; }
+  const p = PLACES[dest.id];
+  $('#pcImg').src = p.img; $('#pcImg').alt = p.name; $('#pcName').textContent = p.name; $('#pcCredit').textContent = `사진 ${p.credit}`;
+  card.hidden = false; card.classList.remove('in'); void card.offsetWidth; card.classList.add('in');
+  placeCardPos();
+}
+function placeCardPos() {
+  const card = $('#placeCard'); if (card.hidden || !picked) return;
+  const box = $('#mapBox').getBoundingClientRect(); const [x, y] = toScreen(proj(...picked.ll));
+  const w = card.offsetWidth || 156, h = card.offsetHeight || 160, top = ($('.quiz-top').offsetHeight || 220) + 8, bottom = box.height - ($('.quiz-bottom').offsetHeight || 90) - 8;
+  // 역 점 · 이름표(고른 곳과 다른 행선지 모두)를 가장 덜 가리는 자리를 고른다 — 다른 행선지를 지도에서 바로 누를 수 있게.
+  //   후보: 오른쪽 위 · 왼쪽 위 · 오른쪽 아래 · 왼쪽 아래 · 내 이름표 아래 · 오른쪽 · 왼쪽 (같은 점수면 이 순서). 지도를 밀 때 덜컥거리지 않게 지금 자리를 조금 우대
+  const obs = [];
+  $$('text, circle', labels).forEach((n) => {
+    const c = n.getAttribute('class') || ''; if (/lbl-sea|lbl-faint/.test(c)) return;
+    const b = n.getBBox(); obs.push([b.x - 3, b.y - 3, b.x + b.width + 3, b.y + b.height + 3, n.tagName === 'circle' ? 6 : /lbl-zone/.test(c) ? 1 : 3]);
+  });
+  obs.push([x - 14, y - 40, x + 14, y + 4, 12]);                       // 고른 역의 핀
+  let own = null; $$('text.lbl, text.lbl-ko', labels).forEach((n) => { if (n.textContent === picked.fr || n.textContent === picked.ko) { const b = n.getBBox(); own = own ? [Math.min(own[0], b.x), Math.min(own[1], b.y), Math.max(own[2], b.x + b.width), Math.max(own[3], b.y + b.height)] : [b.x, b.y, b.x + b.width, b.y + b.height]; } });
+  if (own) obs.push([own[0] - 4, own[1] - 4, own[2] + 4, own[3] + 4, 14]);   // 고른 역의 이름은 가리지 않는다
+  const cands = [[x + 16, y - h - 18], [x - 16 - w, y - h - 18], [x + 16, y + 16], [x - 16 - w, y + 16], [x - w / 2, (own ? own[3] : y + 20) + 8], [x + 18, y - h / 2], [x - 18 - w, y - h / 2]];
+  const scored = cands.map(([cx, cy], i) => {
+    cx = clamp(cx, 8, box.width - w - 8); cy = clamp(cy, top, Math.max(top, bottom - h));
+    let s = i * 2;
+    obs.forEach(([a, b, c, d, k]) => { const ox = Math.min(c, cx + w) - Math.max(a, cx), oy = Math.min(d, cy + h) - Math.max(b, cy); if (ox > 0 && oy > 0) s += ox * oy * k; });
+    return { cx, cy, s, i };
+  });
+  let best = scored.reduce((a, b) => (b.s < a.s ? b : a));
+  const prev = scored[placeCardPos.last];
+  if (prev && placeCardPos.lastId === picked.id && prev.s <= best.s + 400) best = prev;
+  placeCardPos.last = best.i; placeCardPos.lastId = picked.id;
+  card.style.transform = `translate(${best.cx.toFixed(1)}px, ${best.cy.toFixed(1)}px)`;
+}
+
+// ── 고르기: 누르는 즉시 영역 강조 + 노선 + 사진 카드 + 아래 판("표 끊기"). 시트는 "표 끊기"를 눌렀을 때만.
+//    같은 곳을 다시 누르면 고르기 취소(처음 상태), 다른 곳을 누르면 그곳으로 바로 바뀐다
+function pick(id) {
+  if (busy || confirmSheet.isOpen) return;
+  if (picked && picked.id === id) { resetPick(); return; }
+  const next = DEST.find((s) => s.id === id); if (!next) return;
+  picked = next;
+  markChips(); drawLabels(); drawRoute(picked); placeCard(picked); setPanel(picked); ripple(id);
+}
+// 들어가기 장면에서 넘어올 때: 지도가 가까이에서 시작해 파리 → 노르망디 해안으로 물러난다(글자판이 넘어가는 동안)
+window.mapEnter = (phase) => {
+  if (!svg || RM) return;
+  if (phase === 'prep') {
+    fitStage(false);
+    const box = $('#mapBox').getBoundingClientRect(), k = 1.9, cx = box.width / 2, cy = box.height * 0.46;
+    view.tx = cx - (cx - view.tx) * k; view.ty = cy - (cy - view.ty) * k; view.s *= k; applyView();
+  } else fitStage(true);
+};
+// 처음 상태로: 고른 곳 없음 · 노선 없음 · 사진 카드 없음 · 칩 해제 · 아래 판은 안내 한 줄
+function resetPick() {
+  picked = null;
+  const ch = $('#chips'); if (ch) ch.scrollTo({ left: 0, behavior: 'auto' });
+  if (confirmSheet.isOpen) confirmSheet.close('confirm');
+  clearRoute(); placeCard(null); markChips(); drawLabels(); setPanel(null);
+}
+function setPanel(p) {
+  $('#pkPrompt').hidden = !!p; $('#pkSel').hidden = !p; $('#pickPanel').classList.toggle('on', !!p);
+  if (!p) return;
+  $('#pkName').textContent = `${p.ko}행`; $('#pkInfo').textContent = `${p.fr} · ${p.info.split(' · ')[0]} · ${p.year}`;
+}
+function openConfirm() {
+  const p = picked, z = Z.zones[p.id];
+  $('#cfWhat').textContent = `Paris (St-Lazare) → ${p.fr}`;
+  $('#cfTitle').textContent = `${p.ko}행 표를 끊을까요?`;
+  $('#cfSub').textContent = `${p.info} · 2등`; void z;
+  confirmSheet.open();
+}
+function stationAt(sx, sy) {
+  let best = null, bd = 26;
+  DEST.forEach((s) => {
+    const [x, y] = toScreen(proj(...s.ll)); const d = Math.hypot(x - sx, y - sy);
+    const lx = x + s.lab[0], ly = y + s.lab[1];
+    const dl = Math.hypot((lx + (s.lab[2] === 'end' ? -30 : s.lab[2] === 'start' ? 30 : 0)) - sx, (ly + 4) - sy) * 0.8;
+    const m = Math.min(d, dl); if (m < bd) { bd = m; best = s.id; }
+  });
+  return best;
+}
+function zoneAt(sx, sy) {
+  const [wx, wy] = toWorld(sx, sy); const pt = svg.createSVGPoint(); pt.x = wx; pt.y = wy;
+  for (const id of [...ZORDER].reverse()) if (zoneEls[id].isPointInFill(pt)) return id;     // 위에 그려진 영역(레지프)이 르아브르보다 먼저
+  return null;
+}
+
+// ── 입력(부스 bindInput 그대로): 팬·핀치 줌, 탭 선택. 화면이 고정이라 세로 제스처도 지도가 받는다
+function bindInput() {
+  const box = $('#mapBox');
+  const pts = new Map();
+  let pan = null, pinch = null, down = null;
+  const local = (e) => { const r = box.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  box.addEventListener('pointerdown', (e) => {
+    box.setPointerCapture(e.pointerId); tween++;
+    const p = local(e); pts.set(e.pointerId, p);
+    if (pts.size === 2) { pan = null; const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), s: view.s, w: toWorld((a[0] + b[0]) / 2, (a[1] + b[1]) / 2) }; return; }
+    down = { p, moved: false };
+    pan = { p, tx: view.tx, ty: view.ty };
+  });
+  box.addEventListener('pointermove', (e) => {
+    if (!pts.has(e.pointerId)) return;
+    const p = local(e); pts.set(e.pointerId, p);
+    if (down && Math.hypot(p[0] - down.p[0], p[1] - down.p[1]) > 6) down.moved = true;
+    if (pinch && pts.size >= 2) {
+      const [a, b] = [...pts.values()];
+      const ns = clamp(pinch.s * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.d, view.min, view.max);
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+      view.s = ns; view.tx = mx - pinch.w[0] * ns; view.ty = my - pinch.w[1] * ns; applyView();
+    } else if (pan) { view.tx = pan.tx + p[0] - pan.p[0]; view.ty = pan.ty + p[1] - pan.p[1]; applyView(); }
+  });
+  const up = (e) => {
+    if (!pts.has(e.pointerId)) return;
+    const p = pts.get(e.pointerId); pts.delete(e.pointerId);
+    if (pts.size < 2) pinch = null;
+    if (down && !down.moved && e.type === 'pointerup') { const hit = stationAt(p[0], p[1]) || zoneAt(p[0], p[1]); if (hit) pick(hit); }
+    if (!pts.size) { pan = null; down = null; }
+  };
+  box.addEventListener('pointerup', up); box.addEventListener('pointercancel', up);
+  box.addEventListener('wheel', (e) => {
+    e.preventDefault(); tween++;
+    const [mx, my] = local(e); const w = toWorld(mx, my);
+    view.s = clamp(view.s * (1 - e.deltaY * 0.0015), view.min, view.max);
+    view.tx = mx - w[0] * view.s; view.ty = my - w[1] * view.s; applyView();
+  }, { passive: false });
+}
+window.pick = pick; window.getPicked = () => picked; window.DEST = DEST; window.closeConfirm = () => confirmSheet.close('confirm'); window.resetPick = resetPick;
+window.mapState = () => ({ picked: picked && picked.id, route: !!routeCore.getAttribute('d'), card: !$('#placeCard').hidden, chips: $$('#chips .chip.on').length, panel: $('#pkSel').hidden ? 'prompt' : 'selected', sheet: confirmSheet.isOpen, hl: ZORDER.filter((id) => zoneHl[id].getAttribute('opacity') === '1') });   // 검수용
+window.refit = () => fitStage(false); window.worldToScreen = (p) => toScreen(p); window.screenOf = (id) => toScreen(proj(...DEST.find((d) => d.id === id).ll));   // 검수용
+window.mapData = { get M() { return M; }, get Z() { return Z; }, proj, mix, ZTINT, ZORDER, DEST, ORIGIN };   // 발권 뒤 "오늘의 관람객" 작은 지도가 같은 자료를 쓴다
+initMap();
+</script>
+<script type="module">
+// ── 발권 이후 한 장의 캔버스: 3D 표(끌어서 회전·관성·광택·그림자·두 번 탭 뒤집기) → 스크롤하며 상단에 고정 → 이야기 컷(패럴랙스·등장) → 오늘의 관람객(출발 안내판)
+import { stampLine } from '../proto/js/crowd.js';
+import { createSteam, brushDissolve, coverDraw } from './fx.js';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const TK = {"argenteuil": {"to": "ARGENTEUIL", "via": "", "prix": null}, "vernon": {"to": "VERNON", "via": "", "prix": null}, "rouen": {"to": "ROUEN", "via": "rive droite", "prix": null}, "lesifs": {"to": "LES IFS", "via": "par Beuzeville", "prix": null}, "lehavre": {"to": "LE HAVRE", "via": "par Rouen", "prix": "21<sup>f</sup>05"}};
+const NARR = {
+  argenteuil: { h: '아르장퇴유에 가서, 강과 들판을 그렸습니다', place: '파리에서 9 km. 모네는 1871년 12월부터 1878년 1월까지 여기 살며 생라자르역으로 파리를 오갔다.',
+    paint: { img: '../works/c2-arg-coquelicots-orsay.jpg', cap: '양귀비 들판', meta: '1873 · 오르세(RF 1676) · PD', t: '1873년 여름, 마을 근처 양귀비 들판을 카미유와 장을 앞세워 그렸다. 이듬해 1874년 첫 전시에 걸렸다.' } },
+  vernon: { h: '베르농에 가서, 기차에서 본 마을에 정원을 만들었습니다', place: '베르농역에서 5 km, 지베르니. 1883년 5월 ‘르 프레수아르’를 빌렸고, 뒤에 연못을 파고 일본식 다리를 놓았다.',
+    paint: { img: '../works/c2-giverny-footbridge-nga.jpg', cap: '일본식 다리', meta: '1899 · 내셔널 갤러리 워싱턴(1992.9.1) · CC0', t: '1899년, 정원 연못 위 다리를 같은 자리에서 거듭 그렸다. 그 뒤 수련 연작 약 250점.' } },
+  rouen: { h: '루앙에 가서, 대성당 맞은편 방에서 같은 정면을 거듭 그렸습니다', place: '파리에서 140 km. 1892년 2월, 대성당 광장 맞은편 2층 방에 자리를 잡았다. 병풍 뒤에서 손님들에게 등을 돌리고 그렸다.',
+    paint: { img: '../works/c2-rouen-cathedrale-nga.jpg', cap: '루앙 대성당, 서쪽 정면, 햇빛', meta: '1894 · 내셔널 갤러리 워싱턴(1963.10.179) · CC0', t: '빛이 옮겨가면 캔버스를 바꿨다. 한 번에 열네 점까지.' } },
+  lesifs: { h: '레지프에 가서, 마차로 에트르타에 들어가 절벽을 그렸습니다', place: '에트르타에는 철도가 없었다. 레지프역에서 마차로 15 km. 1883년 1~2월, 관광객 없는 비수기에 묵었다.',
+    paint: { img: '../works/c2-etretat-manneporte-met.jpg', cap: '마네포르트(에트르타)', meta: '1883 · 메트로폴리탄(51.30.5) · CC0', t: '쿠르베가 이미 그린 절벽이라는 것을 알고 그렸다. 바위문 마네포르트와 썰물의 바늘바위.' } },
+  lehavre: { h: '르아브르에 가서, 호텔 창문에서 항구의 해돋이를 그렸습니다', place: '파리에서 229 km. 모네는 다섯 살이던 1845년 가족과 함께 이 항구 도시로 와서 자랐다.',
+    paint: { img: '../works/c2-havre-impression-marmottan.jpg', cap: '인상, 해돋이', meta: '1872 · 마르모탕 모네(inv. 4014) · PD', t: '1872년 11월경 오텔 드 라미로테 창문에서 항구를 몇 시간 만에 그렸다. 1874년 첫 전시 카탈로그에 〈인상〉이라 적었고, 르루아의 기사 제목이 ‘인상주의자’가 됐다.' } },
+};
+const PCT = {"argenteuil": 13, "vernon": 11, "rouen": 9, "lesifs": 13, "lehavre": 54}, VISITORS = 1508;   // 예시 수치
+// 표의 해 — 모네가 그곳에서 무엇을 한 해인지 (위 NARR 의 문장에서만)
+const WHY = { argenteuil: '〈양귀비 들판〉이 첫 전시에 걸린 해', vernon: '모네가 지베르니에 집을 빌린 해', rouen: '모네가 대성당 맞은편 방에 자리 잡은 해', lesifs: '모네가 에트르타에 묵으며 절벽을 그린 해', lehavre: '〈인상, 해돋이〉를 그린 해' };
+const MF = ['JANV','FÉV','MARS','AVR','MAI','JUIN','JUIL','AOÛT','SEPT','OCT','NOV','DÉC'], MFL = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const WD = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'], WK = ['일','월','화','수','목','금','토'];
+const q = new URLSearchParams(location.search), today = new Date();
+const day = parseInt(q.get('d') || today.getDate(), 10), mon = parseInt(q.get('m') || (today.getMonth() + 1), 10);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const make = (id) => document.getElementById(id).content.firstElementChild.cloneNode(true);
+const loadImage = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+const flow = $('#flow'), flowIn = $('#flowIn'), hero = $('#hero'), wrap = $('#cardWrap'), card = $('#card3d'), shadow = $('#cardShadow'), sheens = $$('.sheen'), hint = $('#hint');
+let cur = null, no = '04173', saved = false;
+
+// 종이결(한 번만 그려서 data URL로)
+(function grain() {
+  const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'); const im = g.createImageData(160, 160);
+  for (let i = 0; i < im.data.length; i += 4) { const v = 150 + Math.random() * 105; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 28; }
+  g.putImageData(im, 0, 0); document.documentElement.style.setProperty('--grain', `url(${c.toDataURL()})`);
+})();
+
+function fill(root, d) {
+  const wd = new Date(d.year, mon - 1, day).getDay();
+  root.querySelectorAll('[data-no]').forEach((e) => e.textContent = no);
+  const to = root.querySelector('[data-to]'); if (to) { to.innerHTML = d.to; if (d.to.length > 9) to.classList.add('long'); }
+  const via = root.querySelector('[data-via]'); if (via) via.innerHTML = d.via || '';
+  const px = root.querySelector('[data-prix]'); if (px) { if (d.prix) px.innerHTML = d.prix; else { px.textContent = '— —'; px.classList.add('none'); } }
+  const yr = root.querySelector('[data-yr]'); if (yr) yr.textContent = d.year;
+  const ds = root.querySelector('[data-date]'); if (ds) ds.textContent = `${day} ${MF[mon - 1]} ${d.year}`;
+  const tt = root.querySelector('[data-to-text]'); if (tt) tt.textContent = d.to;
+  const ld = root.querySelector('[data-longdate]'); if (ld) ld.textContent = `${WD[wd]} ${day} ${MFL[mon - 1]} ${d.year}`;
+  const kd = root.querySelector('[data-ko-date]'); if (kd) kd.textContent = `${d.year}년 ${mon}월 ${day}일 ${WK[wd]}요일`;
+  return root;
+}
+
+// ── 3D 표: 상태(회전·속도·뒤집기) + rAF 루프. transform/opacity만 바꾼다
+const R = { rx: 0, ry: 0, vx: 0, vy: 0, flip: 0, flipT: 0, drag: null, lastInput: 0, dragged: false, t: 0, issued: false };
+const LIM = 60;
+function applyCard(now) {
+  const idle = now - R.lastInput > 1800 && !R.drag && R.t < 0.25 && !RM && R.issued;
+  if (!R.drag) {
+    R.rx += R.vx; R.ry += R.vy; R.vx *= 0.92; R.vy *= 0.92;
+    if (Math.abs(R.rx) > LIM) { R.rx = LIM * Math.sign(R.rx); R.vx *= -0.3; }
+    if (Math.abs(R.ry) > LIM) { R.ry = LIM * Math.sign(R.ry); R.vy *= -0.3; }
+    // 가만히 두면 천천히 흔들리고, 스크롤해 작아지면 0으로 돌아온다
+    const tx = idle ? 5 * Math.sin(now / 1400) : 0, ty = idle ? 9 * Math.sin(now / 2100 + 1) : 0;
+    const k = R.t > 0.25 ? 0.12 : 0.03;
+    if (Math.abs(R.vx) < 0.02 && Math.abs(R.vy) < 0.02) { R.rx += (tx - R.rx) * k; R.ry += (ty - R.ry) * k; }
+  }
+  R.flipT += (R.flip - R.flipT) * 0.14;
+  const ry = R.ry + R.flipT, rx = R.rx;
+  if (R.issued) card.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+  const f = Math.cos(ry * Math.PI / 180) >= 0 ? 1 : -1;     // 보이는 면
+  sheens.forEach((s, i) => { s.style.transform = `translate(${(f * R.ry * 1.9).toFixed(1)}%, ${(-rx * 1.4).toFixed(1)}%)`; s.style.opacity = (0.18 + Math.min(0.5, (Math.abs(R.ry) + Math.abs(rx)) / 90)).toFixed(2); });
+  shadow.style.transform = `translate(${(-R.ry * 0.5).toFixed(1)}px, ${(14 + rx * 0.45).toFixed(1)}px) scale(${(0.94 - Math.abs(rx) / 600).toFixed(3)})`;
+  shadow.style.opacity = (0.55 - (Math.abs(rx) + Math.abs(R.ry)) / 400).toFixed(2);
+}
+let raf = 0;
+function loop(now) { applyCard(now); raf = requestAnimationFrame(loop); }
+
+// 끌어서 돌리기(관성) · 두 번 탭 뒤집기
+//   표 위: touch-action none + 포인터 캡처 + 끄는 동안 touchmove preventDefault → 페이지는 움직이지 않는다
+//   표 밖·작아진 표: 평소대로 스크롤 (작아지면 .small 로 touch-action 을 돌려준다)
+let lastTap = 0;
+wrap.addEventListener('pointerdown', (e) => {
+  if (TS.state !== 'open') return;
+  try { wrap.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+  R.drag = { x: e.clientX, y: e.clientY, rx: R.rx, ry: R.ry, moved: 0, px: e.clientX, py: e.clientY, pt: performance.now() }; R.vx = R.vy = 0; R.lastInput = performance.now();
+});
+wrap.addEventListener('touchstart', (e) => { if (R.drag) e.preventDefault(); }, { passive: false });
+wrap.addEventListener('touchmove', (e) => { if (R.drag) e.preventDefault(); }, { passive: false });
+wrap.addEventListener('pointermove', (e) => {
+  const d = R.drag; if (!d) return;
+  const dx = e.clientX - d.x, dy = e.clientY - d.y; d.moved = Math.max(d.moved, Math.hypot(dx, dy));
+  R.ry = clamp(d.ry + dx * 0.45, -LIM, LIM); R.rx = clamp(d.rx - dy * 0.45, -LIM, LIM);
+  const now = performance.now(), dt = Math.max(8, now - d.pt);
+  R.vy = ((e.clientX - d.px) * 0.45) / dt * 16; R.vx = (-(e.clientY - d.py) * 0.45) / dt * 16; d.px = e.clientX; d.py = e.clientY; d.pt = now; R.lastInput = now;
+  if (d.moved > 10 && !R.dragged) { R.dragged = true; hint.classList.add('off'); }
+});
+const up = (e) => {
+  const d = R.drag; if (!d) return; R.drag = null; R.lastInput = performance.now();
+  if (RM) { R.vx = R.vy = 0; }
+  if (d.moved < 8) { const now = performance.now(); if (now - lastTap < 320) { R.flip += 180; lastTap = 0; hint.classList.add('off'); } else lastTap = now; }
+};
+wrap.addEventListener('pointerup', up); wrap.addEventListener('pointercancel', up);
+
+// ── 표의 자리 셋(같은 요소 하나가 transform 으로 옮겨 다닌다 — 공유 요소 전환)
+//    centre: 화면 가운데 큰 표(발권 직후 · 눌러서 펼친 때) / dock: 상단 바 왼쪽의 작은 표(보딩패스처럼 고정) / coll: 수집함 아이콘(저장)
+//    state: 'create'(가운데에서 만들어지는 중) → 'docked' ⇄ 'open'(작은 표를 누르면 가운데로, 바깥을 누르면 제자리) · 'saved'
+const TW = 350, TH = 184.2, DOCK = { x: 50 + 52, y: 26, s: 0.30 };
+const TS = { state: 'idle', timers: [] };
+let W = 390, H = 844;
+const centreXY = () => [W / 2, Math.round(H * 0.45)];
+const xf = (x, y, s) => `translate(${(x - TW / 2).toFixed(1)}px, ${(y - TH / 2).toFixed(1)}px) scale(${s})`;
+function cardAt(where) {
+  if (where === 'dock') return xf(DOCK.x, DOCK.y + (parseFloat(getComputedStyle($('.hero-bar')).paddingTop) || 0), DOCK.s);
+  const [x, y] = centreXY(); return xf(x, y, 1);
+}
+function placeHint() { const [, y] = centreXY(); hint.style.top = `${(y + TH / 2 + 22).toFixed(0)}px`; }
+function setTicket(state, animate = true) {
+  TS.state = state;
+  wrap.classList.toggle('moving', animate && !RM);
+  wrap.style.transform = cardAt(state === 'docked' || state === 'saved' ? 'dock' : 'centre');
+  const docked = state === 'docked';
+  R.t = docked ? 1 : 0;                                    // 작은 표는 기울기를 0으로 되돌린다(흔들림 없음)
+  wrap.classList.toggle('small', docked);
+  hero.classList.toggle('docked', docked || state === 'saved');
+  hero.classList.toggle('open', state === 'open');
+  if (state === 'open') { R.lastInput = performance.now(); placeHint(); hint.classList.toggle('off', R.dragged); } else hint.classList.add('off');
+  if (docked) { R.flip = Math.round(R.flip / 360) * 360; }  // 제자리로 갈 때는 앞면으로
+}
+function layout() { W = flow.clientWidth; H = flow.clientHeight; if (TS.state !== 'idle') { wrap.classList.remove('moving'); wrap.style.transform = cardAt(TS.state === 'docked' || TS.state === 'saved' ? 'dock' : 'centre'); placeHint(); } onScroll(); }
+function onScroll() { hero.classList.toggle('pinned', flow.scrollTop > 2); }
+flow.addEventListener('scroll', onScroll, { passive: true });
+// 작은 표를 누르면 가운데로 펼쳐지고(끌어서 돌리기 · 두 번 탭 뒤집기), 바깥(어두운 막)을 누르면 다시 바에 붙는다
+wrap.addEventListener('click', () => { if (TS.state === 'docked') setTicket('open'); });
+$('#tkScrim').addEventListener('click', () => { if (TS.state === 'open') setTicket('docked'); });
+window.addEventListener('resize', layout);
+const io = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { x.target.classList.add('in'); io.unobserve(x.target); } }), { root: flow, threshold: 0.12 });
+
+// ── 오늘의 관람객: 출발 안내판 한 장(들어가기 장면의 그 판). 많이 고른 순서로 다섯 줄 — 그림 한 점 · Le Havre / 르아브르 · 비율만큼 놋쇠 선 · 글자판 숫자.
+//    내 줄은 밝게 + '나', 맨 많은 곳은 '가장 많이'(같은 비율이면 둘 다). 화면에 들어오면 줄이 차례로 켜지고 숫자가 0부터 넘어가며 오른다(선도 함께)
+const flapHTML = () => '<span class="fl"><span class="h t"><b>&nbsp;</b></span><span class="h b"><b>&nbsp;</b></span><span class="h ft"><b>&nbsp;</b></span><span class="h fb"><b>&nbsp;</b></span></span>';
+function flapTo(cell, to, dur) {
+  const from = cell.dataset.v || ' '; if (from === to) return; cell.dataset.v = to;
+  const [t, b, ft, fb] = cell.children, put = (n, c) => { n.firstChild.innerHTML = c === ' ' ? '&nbsp;' : c; };
+  ft.getAnimations().forEach((a) => a.cancel()); fb.getAnimations().forEach((a) => a.cancel());
+  put(t, to); put(fb, to); put(ft, from); put(b, from);
+  if (!dur) { put(b, to); put(ft, to); return; }
+  ft.animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-90deg)' }], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+  const a = fb.animate([{ transform: 'rotateX(90deg)' }, { transform: 'rotateX(0deg)' }], { duration: dur, delay: dur, easing: 'ease-out', fill: 'backwards' });
+  a.onfinish = () => { if (cell.dataset.v === to) { put(b, to); put(ft, to); } };
+}
+const DIG = Math.max(2, String(Math.max(...Object.values(PCT))).length);
+const setNum = (row, v, dur) => { const s = String(v).padStart(DIG, ' '); [...row.querySelectorAll('.dep-n .fl')].forEach((c, i) => flapTo(c, s[i], dur)); };
+let depRun = 0;
+function buildBoard(p) {
+  depRun++;
+  $('#depDate').innerHTML = `Paris S<sup>t</sup>-Lazare · ${day} ${MF[mon - 1]}`;
+  const top = Math.max(...Object.values(PCT));
+  const rows = window.DEST.map((d, i) => ({ d, i, v: PCT[d.id] })).sort((a, b) => b.v - a.v || a.i - b.i);
+  $('#depRows').innerHTML = rows.map(({ d, v }) => {
+    const me = d.id === p.id, most = v === top;
+    const tags = `${me ? '<em class="tag me">나</em>' : ''}${most ? '<em class="tag most">가장 많이</em>' : ''}`;
+    const say = `${d.ko} ${v}%${me ? ', 내가 고른 곳' : ''}${most ? ', 가장 많이 고른 곳' : ''}`;
+    return `<li class="dep-row${me ? ' me' : ''}" data-v="${v}" aria-label="${say}">
+      <span class="dep-img"><img src="${NARR[d.id].paint.img}" alt="" loading="lazy" decoding="async" draggable="false"></span>
+      <span class="dep-name" aria-hidden="true"><b>${d.fr}</b><small>${d.ko}${tags}</small></span>
+      <span class="dep-n" aria-hidden="true">${flapHTML().repeat(DIG)}<i>%</i></span>
+      <span class="dep-bar" aria-hidden="true"><i style="width:${v}%"></i></span>
+    </li>`;
+  }).join('');
+  $('#dep').classList.remove('on');
+  $$('#depRows .dep-row').forEach((r) => setNum(r, 0, 0));
+  depArmed = true;
+}
+function startBoard() {
+  const run = depRun, dep = $('#dep'), rows = $$('#depRows .dep-row');
+  dep.classList.add('on');
+  if (RM) { rows.forEach((r) => { setNum(r, +r.dataset.v, 0); r.querySelector('.dep-bar i').style.transform = 'none'; }); return; }
+  // 줄은 위에서부터 110ms 간격으로 켜지고, 숫자는 그 뒤 1.5초 동안(끝이 느려지게) 오른다
+  const T0 = performance.now() + 260, DUR = 1500, GAP = 110;
+  const ease = (t) => 1 - Math.pow(1 - t, 3);
+  const tick = (now) => {
+    if (run !== depRun) return;
+    let done = true;
+    rows.forEach((r, i) => {
+      const t = clamp((now - T0 - i * GAP) / DUR, 0, 1), e = ease(t), v = +r.dataset.v;
+      if (t < 1) done = false;
+      const n = Math.round(v * e);
+      if (r._n !== n) { r._n = n; setNum(r, n, t < 1 ? 36 : 70); }
+      r.querySelector('.dep-bar i').style.transform = `scaleX(${e.toFixed(4)})`;
+    });
+    if (!done) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+// 판이 화면 아래쪽 1/4 위로 올라오면 켠다(스크롤한 뒤에만 — 발권 직후 그림이 아직 안 불러져 판이 잠깐 화면 안에 있어도 켜지지 않게)
+let depArmed = false;
+function checkBoard() {
+  if (!depArmed || flow.hidden || flow.scrollTop < 60) return;
+  const r = $('#dep').getBoundingClientRect(), fr = flow.getBoundingClientRect();
+  if (r.top < fr.top + fr.height * 0.75 && r.bottom > fr.top) { depArmed = false; startBoard(); }
+}
+flow.addEventListener('scroll', checkBoard, { passive: true });
+
+// 표가 바닥에 닿는 순간 밑에서 김이 확 밀려 나와 번진다(지도 위 · 표 뒤)
+let puff = null;
+function steamPuff() {
+  const cv = $('#puffCv'); cv.classList.add('on');
+  if (!puff) puff = createSteam(cv, { res: 0.5, tints: ['244,244,248', '230,232,242', '255,248,236'] }); else puff.resize();
+  const [x, y] = centreXY();
+  puff.burst(x, y + 6, 34, { w: TW * 0.92, h: TH * 0.7, speed: 240, size: [60, 120], life: [1.1, 2.0], alpha: 1 });
+  puff.burst(x, y + TH * 0.42, 12, { speed: 90, size: [100, 170], life: [1.4, 2.3], alpha: 0.8 });
+  setTimeout(() => cv.classList.remove('on'), 2300);
+}
+// ── 그림이 되는 순간: 그림 자리에 먼저 그 장소의 사진이 있고, 화면에 들어오면 굵은 붓질이 지나가며 모네의 그림으로 칠해진다(약 1.8초)
+let dis = null, disImgs = null, disToken = 0;
+const disIO = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting && disImgs) { disIO.unobserve(x.target); runDissolve(); } }), { root: flow, threshold: 0.55 });
+async function prepDissolve(photo, paint) {
+  const tk = ++disToken, cv = $('#pairDis'); if (dis) dis.cancel(); dis = null; disImgs = null; disIO.unobserve($('.pf.paint'));
+  cv.classList.remove('done'); cv.hidden = RM;
+  if (RM) return;
+  const [a, b] = await Promise.all([loadImage(photo), loadImage(paint)]).catch(() => [null, null]);
+  try { await $('#pairPaint').decode(); } catch (e) { /* noop */ }
+  if (tk !== disToken || !a || !b) { cv.hidden = true; return; }
+  const box = cv.parentElement, dpr = Math.min(2, devicePixelRatio || 1);
+  cv.width = Math.round(box.clientWidth * dpr); cv.height = Math.round(box.clientHeight * dpr);
+  coverDraw(cv.getContext('2d'), a, cv.width, cv.height);
+  disImgs = [a, b]; disIO.observe($('.pf.paint'));
+}
+function runDissolve() {
+  const cv = $('#pairDis'), [a, b] = disImgs;
+  dis = brushDissolve(cv, a, b, { duration: 1900, onDone: () => cv.classList.add('done') });
+}
+// ── 엽서가 들어온다: 뒷면이 보이게 떠 있다가 돌아 앞면 → 우표가 "쿵" 붙고, 한 박자 뒤 소인이 찍힌다
+let arrived = false;
+const pcIO = new IntersectionObserver((es) => es.forEach((x) => { if (x.isIntersecting) { pcIO.unobserve(x.target); arrive(); } }), { root: flow, threshold: 0.5 });
+function prepArrive() { arrived = false; ['pre', 'await'].forEach((c) => $('#postcard').classList.toggle(c, !RM)); $('#postcard').classList.remove('thud', 'mark'); pcIO.observe($('#pcWrap')); }
+function arrive() {
+  if (arrived || RM) return; arrived = true;
+  const pc = $('#pc3d'), sec = $('#postcard');
+  sec.classList.remove('pre');
+  pc.animate([
+    { transform: 'translateY(26px) rotateX(10deg) rotateY(-180deg) scale(.9)', easing: 'cubic-bezier(.3,.7,.3,1)' },
+    { transform: 'translateY(-6px) rotateX(0deg) rotateY(-8deg) scale(1.02)', offset: 0.75, easing: 'cubic-bezier(.4,0,.4,1)' },
+    { transform: 'none' },
+  ], { duration: 1050 });
+  setTimeout(() => { sec.classList.add('thud'); pc.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(3px) scale(.995)' }, { transform: 'translate(-1px,-1px)' }, { transform: 'none' }], { duration: 220, easing: 'ease-out' }); }, 1000);
+  setTimeout(() => sec.classList.add('mark'), 1280);
+}
+// ── 발권: 지도가 어두워지고 창구 슬롯에서 표가 밀려 나온 뒤 날인이 찍힌다
+function issue() {
+  const p = window.getPicked(); if (!p) return; cur = p; saved = false; no = String(10000 + Math.floor(Math.random() * 89999));
+  const d = { ...TK[p.id], year: p.year };
+  const f = $('[data-slot=front]'), b = $('[data-slot=back]'); f.innerHTML = ''; b.innerHTML = ''; f.appendChild(fill(make('front'), d)); b.appendChild(fill(make('back'), d));
+  $('#heroTitle').textContent = `${p.ko} · ${p.year}년 표`; $('#heroSub').textContent = `PARIS → ${d.to}`;
+  const [km, dur] = p.info.split(' · ');
+  $('#tkTiles').innerHTML = `<div><small>파리에서</small><b>${km}</b></div><div><small>소요</small><b>${dur.replace('급행 ', '')}</b></div><div><small>2등 운임</small><b>${d.prix ? '21 fr. 05' : '— —'}</b></div>`;
+  $('#tkWhy').innerHTML = `<b>${d.year}년</b> ${WHY[p.id]}. 오늘 날짜에 그 해를 붙여 찍었습니다.${d.prix ? ' 운임은 1874년 안내서의 2등 값입니다.' : ' 이 구간의 운임은 찾지 못해 비워 두었습니다.'}`;
+  // 이야기 — 그 자리의 사진 + 거기서 그린 그림 한 점
+  const n = NARR[p.id], pl = window.PLACES[p.id];
+  $('#stK').textContent = `${p.fr} · ${p.year}`; $('#stH').textContent = n.h;
+  $('#pairPhoto').src = pl.img; $('#pairPhoto').alt = pl.name; $('#pairPlace').textContent = `${pl.name} · 지금`; $('#pairPlaceT').textContent = n.place; $('#pairPlaceCr').textContent = `사진 ${pl.credit} · Wikimedia Commons`;
+  $('#pairPaint').src = n.paint.img; $('#pairPaint').alt = n.paint.cap; $('#pairTitle').textContent = `〈${n.paint.cap}〉`; $('#pairPaintT').textContent = n.paint.t; $('#pairMeta').textContent = n.paint.meta;
+  $('#pair').classList.remove('in'); io.observe($('#pair'));
+  prepDissolve(pl.img, n.paint.img);
+  setupPostcard(p, n, no); prepArrive();
+  // 오늘의 관람객 — 출발 안내판(많이 고른 순서 · 내 줄 '나' · 맨 많은 곳 '가장 많이')
+  $('#crowdStamp').textContent = stampLine(VISITORS);
+  buildBoard(p);
+  $('#save').textContent = '수집함에 저장'; $('#save').disabled = false; $('#collN').hidden = true; wrap.classList.remove('fly'); hero.classList.remove('saved');
+  // 표시 + 발권 동작 — 지도가 어두워지고, 표가 화면 가운데에서 "쿵" 하고 만들어진 뒤(1.6 → 1.0, 짧은 되튐 · 2~3px 흔들림 · 그림자가 바닥에 붙음 · 한 박자 뒤 날짜 날인),
+  //   0.6초 머문 다음 같은 요소가 그대로 상단 바 왼쪽 자리로 날아가 붙고, 아래에서 이야기가 올라온다
+  TS.timers.forEach(clearTimeout); TS.timers = []; wrap.getAnimations().forEach((a) => a.cancel()); shadow.getAnimations().forEach((a) => a.cancel());
+  R.rx = R.ry = R.vx = R.vy = 0; R.flip = R.flipT = 0; R.dragged = false; R.issued = true; R.lastInput = performance.now(); hint.classList.add('off');
+  card.style.transform = ''; flow.hidden = false; flow.scrollTop = 0;
+  flow.classList.add('issuing', 'on'); $('#dim').classList.add('on'); hero.classList.add('issuing'); hero.classList.remove('docked', 'open', 'pinned'); wrap.classList.remove('stamped'); $('#tak').classList.remove('on');
+  layout(); setTicket('create', false); cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+  const at = (ms, fn) => TS.timers.push(setTimeout(fn, ms));
+  const CREATE = RM ? 200 : 540, IMPACT = RM ? 0 : Math.round(CREATE * 0.6), STAMP = RM ? 220 : IMPACT + 200, DOCK_AT = RM ? 1000 : CREATE + 640;
+  const centre = cardAt('centre'), big = centre.replace(/scale\([^)]*\)/, 'scale(1.6)');
+  if (RM) wrap.animate([{ opacity: 0 }, { opacity: 1 }], { duration: CREATE, easing: 'ease-out' });
+  else {
+    // 떨어지듯 가속해 1.0 아래(.965)로 살짝 눌렸다가 되돌아온다
+    wrap.animate([
+      { transform: big, opacity: 0, easing: 'cubic-bezier(.55,0,.85,.35)' },
+      { transform: centre.replace(/scale\([^)]*\)/, 'scale(.965)'), opacity: 1, offset: 0.6, easing: 'cubic-bezier(.2,.7,.3,1)' },
+      { transform: centre.replace(/scale\([^)]*\)/, 'scale(1.012)'), offset: 0.82, easing: 'ease-in-out' },
+      { transform: centre },
+    ], { duration: CREATE });
+    // 그림자: 높이 떠 있을 때는 크고 흐릿 → 닿는 순간 짙고 작게(쾅) → 제자리
+    shadow.animate([
+      { opacity: 0.08, transform: 'translate(0px, 70px) scale(1.3)', easing: 'cubic-bezier(.55,0,.85,.35)' },
+      { opacity: 0.9, transform: 'translate(0px, 5px) scale(.97)', offset: 0.6, easing: 'ease-out' },
+      { opacity: 0.55, transform: 'translate(0px, 14px) scale(.94)' },
+    ], { duration: CREATE + 160 });
+  }
+  at(IMPACT, () => { if (!RM) { [flowIn, $('#s1')].forEach((n) => { n.classList.remove('shake'); void n.offsetWidth; n.classList.add('shake'); }); steamPuff(); } });
+  at(IMPACT + 260, () => [flowIn, $('#s1')].forEach((n) => n.classList.remove('shake')));
+  at(STAMP, () => { wrap.classList.add('stamped'); $('#tak').classList.add('on'); });
+  at(DOCK_AT, () => { flow.classList.remove('issuing'); hero.classList.remove('issuing'); setTicket('docked'); });
+  at(DOCK_AT + (RM ? 0 : 700), () => { R.lastInput = performance.now(); });
+}
+window.ticketState = () => TS.state;   // 검수용
+// ── 엽서: 앞면(그림 + 우표 + 소인 + 그림 위에 적는 한 줄) ↔ 뒷면(받는 사람 + 캡션 + 표 번호). 뒤집기만 3D.
+//    한 줄: 끌면 손가락을 따라오고, 놓으면 위·가운데·아래 셋 중 가까운 자리에 붙는다. 크기 둘(작게/크게 = 앞면 폭의 5.2% / 7%).
+//    글자색은 그 자리 그림 밝기(상대 휘도 평균)로 크림 또는 잉크, 부드러운 그림자. 저장은 앞면(글 포함)을 1480×1000 JPEG 로 — 기기 안에서만
+const pc3d = $('#pc3d'), pcMsg = $('#pcMsg'), pcTo = $('#pcTo'), pcInk = $('#pcInk'), pcFront = $('#pcFront');
+const SLOT = { top: 0.2, middle: 0.5, bottom: 0.8 }, FS = { s: 0.052, l: 0.07 }, PC_W = 1480, PC_H = 1000;
+let pcFlipped = false, pcData = null, pcSlot = 'bottom', pcSize = 's', pcLum = null;
+function setupPostcard(p, n, no) {
+  pcData = { id: p.id, fr: p.fr, ko: p.ko, year: p.year, paint: n.paint, no };
+  pcLum = null; $('#pcPaint').onload = () => { sampleLum(); placeInk(false); }; $('#pcPaint').src = n.paint.img; $('#pcPaint').alt = n.paint.cap;
+  $('#pmText').textContent = `${p.fr.toUpperCase()} · ${p.year} ·`; $('#pmDate').textContent = `${day} ${MF[mon - 1]}`; $('#pmYear').textContent = p.year;
+  $('#pcCap').innerHTML = `<b>〈${n.paint.cap}〉</b><span>${n.paint.meta.split(' · ').slice(0, 2).join(' · ')}</span><span>N° ${no}</span>`;
+  let st = null; try { st = JSON.parse(localStorage.getItem('m100_c2_postcard') || 'null'); } catch (e) { /* noop */ }
+  const mine = st && st.id === p.id;
+  pcMsg.value = mine ? (st.text || '').slice(0, 60) : ''; pcTo.value = mine ? st.to || '' : '';
+  setSlot(mine && SLOT[st.slot] ? st.slot : 'bottom', false); setSize(mine && FS[st.size] ? st.size : 's');
+  onMsg(false); setFlip(false);
+}
+function setFlip(on) { pcFlipped = on; pc3d.classList.toggle('flipped', on); $('#pcFlip').textContent = on ? '앞면 보기' : '뒷면 보기'; pcMsg.blur(); pcTo.blur(); }
+$('#pcFlip').addEventListener('click', () => setFlip(!pcFlipped));
+pc3d.addEventListener('click', (e) => { if (pcFlipped && !e.target.closest('input')) setFlip(false); });   // 뒷면을 누르면 앞으로(앞면은 글 쓰는 자리라 뒤집지 않는다)
+// 글 높이를 내용에 맞춘다 → 자리 다시 계산
+function fitMsg() { pcMsg.style.height = 'auto'; pcMsg.style.height = `${pcMsg.scrollHeight}px`; }
+function onMsg(stash = true) {
+  const v = pcMsg.value.replace(/[\r\n]+/g, ' ').slice(0, 60); if (v !== pcMsg.value) pcMsg.value = v;
+  $('#pcCount').textContent = `${v.length} / 60`; pcInk.classList.toggle('empty', !v);
+  fitMsg(); placeInk(false); if (stash) stashPostcard();
+}
+pcMsg.addEventListener('input', () => onMsg());
+pcMsg.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); pcMsg.blur(); } });
+pcMsg.addEventListener('focus', () => pcInk.classList.add('editing'));
+pcMsg.addEventListener('blur', () => pcInk.classList.remove('editing'));
+pcTo.addEventListener('input', stashPostcard);
+function setSize(s) {
+  pcSize = s; pcInk.dataset.size = s;
+  $$('.pc-opts .seg button').forEach((b) => b.setAttribute('aria-checked', b.dataset.size === s));
+  fitMsg(); placeInk(false);
+}
+$$('.pc-opts .seg button').forEach((b) => b.addEventListener('click', () => { setSize(b.dataset.size); stashPostcard(); }));
+function setSlot(s, anim = true) { pcSlot = s; pcInk.dataset.slot = s; fitMsg(); placeInk(anim); }
+// 자리: 세 칸 중 하나의 가운데 높이, 앞면 밖으로 넘치지 않게
+function inkTop(slot, h) { const H = pcFront.clientHeight, pad = H * 0.05; return clamp(H * SLOT[slot] - h / 2, pad, H - pad - h); }
+function placeInk(anim = true) {
+  if (!pcFront.clientHeight) return;
+  pcInk.classList.toggle('anim', anim && !RM);
+  pcInk.style.top = `${inkTop(pcSlot, pcInk.offsetHeight).toFixed(1)}px`;
+  if (pcLum) toneInk();
+}
+// 그림 밝기(상대 휘도)를 작게(148×100) 한 번 떠 두고, 글이 놓인 띠의 평균으로 색을 고른다
+function sampleLum() {
+  const img = $('#pcPaint'); if (!img.naturalWidth) return;
+  const w = 148, h = 100, c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d', { willReadFrequently: true });
+  const sc = Math.max(w / img.naturalWidth, h / img.naturalHeight), sw = w / sc, sh = h / sc;
+  g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, w, h);
+  try { const d = g.getImageData(0, 0, w, h).data; const L = new Float32Array(w * h); const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    for (let i = 0; i < w * h; i++) L[i] = 0.2126 * lin(d[i * 4]) + 0.7152 * lin(d[i * 4 + 1]) + 0.0722 * lin(d[i * 4 + 2]);
+    pcLum = { w, h, L }; } catch (e) { pcLum = null; }
+}
+function inkBox() {   // 앞면 안에서 글(textarea) 상자의 비율 좌표
+  const W = pcFront.clientWidth, H = pcFront.clientHeight;
+  const x = pcInk.offsetLeft + pcMsg.offsetLeft, y = pcInk.offsetTop + pcMsg.offsetTop;
+  return { x: x / W, y: y / H, w: pcMsg.offsetWidth / W, h: pcMsg.offsetHeight / H };
+}
+function toneInk() {
+  const b = inkBox(), { w, h, L } = pcLum; let s = 0, n = 0;
+  for (let y = Math.floor(b.y * h); y < Math.ceil((b.y + b.h) * h); y++) for (let x = Math.floor(b.x * w); x < Math.ceil((b.x + b.w) * w); x++) { if (x < 0 || y < 0 || x >= w || y >= h) continue; s += L[y * w + x]; n++; }
+  const dark = n ? s / n > 0.36 : false;      // 밝은 자리(휘도 > .36 ≈ 회색 64%) → 잉크, 어두운 자리 → 크림
+  pcInk.dataset.tone = dark ? 'ink' : 'cream';
+}
+// 끌기: 글 상자 어디든(쓰는 중이면 손잡이만). 6px 넘게 움직이면 끌기, 아니면 탭 → 쓰기
+(() => {
+  let d = null;
+  pcInk.addEventListener('pointerdown', (e) => {
+    if (pcFlipped) return;
+    const editing = pcInk.classList.contains('editing');
+    if (editing && !e.target.closest('.pc-grip')) return;            // 쓰는 중: 글 안은 커서 놓기
+    e.preventDefault(); try { pcInk.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+    d = { y: e.clientY, top: pcInk.offsetTop, moved: false, id: e.pointerId };
+  });
+  pcInk.addEventListener('pointermove', (e) => {
+    if (!d || e.pointerId !== d.id) return;
+    const dy = e.clientY - d.y;
+    if (!d.moved && Math.abs(dy) > 6) { d.moved = true; pcMsg.blur(); pcInk.classList.remove('anim'); pcFront.classList.add('dragging'); }
+    if (d.moved) { const H = pcFront.clientHeight, h = pcInk.offsetHeight; pcInk.style.top = `${clamp(d.top + dy, 0, H - h).toFixed(1)}px`; if (pcLum) toneInk(); }
+  });
+  const end = (e) => {
+    if (!d || e.pointerId !== d.id) return; const was = d; d = null; pcFront.classList.remove('dragging');
+    if (was.moved) { const H = pcFront.clientHeight, c = (pcInk.offsetTop + pcInk.offsetHeight / 2) / H;
+      setSlot(Object.keys(SLOT).reduce((a, k) => (Math.abs(SLOT[k] - c) < Math.abs(SLOT[a] - c) ? k : a), 'middle')); stashPostcard(); }
+    else if (e.type === 'pointerup') pcMsg.focus();
+  };
+  pcInk.addEventListener('pointerup', end); pcInk.addEventListener('pointercancel', end);
+  pcInk.addEventListener('touchmove', (e) => { if (d) e.preventDefault(); }, { passive: false });
+})();
+new ResizeObserver(() => { fitMsg(); placeInk(false); }).observe(pcFront);
+function stashPostcard() { if (!pcData) return; try { localStorage.setItem('m100_c2_postcard', JSON.stringify({ id: pcData.id, ko: pcData.ko, year: pcData.year, text: pcMsg.value.slice(0, 60), slot: pcSlot, size: pcSize, to: pcTo.value.slice(0, 16), no: pcData.no, paint: pcData.paint.img, cap: pcData.paint.cap, at: Date.now() })); } catch (e) { /* 기기 안에만 */ } }
+// 줄 나누기(화면과 같은 규칙에 가깝게: 어절 단위, 한 어절이 넘치면 글자 단위)
+function wrapLines(g, text, maxW) {
+  const out = []; let line = '';
+  for (const word of text.split(/(\s+)/)) {
+    if (!word) continue;
+    if (g.measureText(line + word).width <= maxW) { line += word; continue; }
+    if (line.trim()) { out.push(line.trimEnd()); line = ''; }
+    const w = word.trimStart(); if (!w) continue;
+    if (g.measureText(w).width <= maxW) { line = w; continue; }
+    for (const ch of w) { if (g.measureText(line + ch).width > maxW && line) { out.push(line); line = ch; } else line += ch; }
+  }
+  if (line.trim()) out.push(line.trimEnd());
+  return out;
+}
+// 앞면 한 장(148×100 mm → 1480×1000): 그림 + 우표 + 소인 + 글
+async function renderPostcard() {
+  const W = PC_W, Hf = PC_H, c = document.createElement('canvas'); c.width = W; c.height = Hf; const g = c.getContext('2d');
+  try { await Promise.all(['600 72px Freesentation', '700 40px "Old Standard TT"', '700 30px "Playfair Display"'].map((f) => document.fonts.load(f, '모네 Le Havre'))); } catch (e) { /* noop */ }
+  const img = await loadImage(pcData.paint.img).catch(() => null);
+  g.fillStyle = '#DDD4BC'; g.fillRect(0, 0, W, Hf);
+  if (img) { const sc = Math.max(W / img.naturalWidth, Hf / img.naturalHeight), sw = W / sc, sh = Hf / sc; g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, W, Hf); }
+  // 우표(천공 테두리) + 소인
+  const sx = W - 300, sy = 60, sw2 = 200, sh2 = 240;
+  g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 10; g.shadowOffsetY = 3; g.fillStyle = '#F2EAD6'; g.fillRect(sx, sy, sw2, sh2); g.restore();
+  g.fillStyle = '#F2EAD6'; for (let i = 0; i <= sw2; i += 16) { g.beginPath(); g.arc(sx + i, sy, 6, 0, 6.2832); g.fill(); g.beginPath(); g.arc(sx + i, sy + sh2, 6, 0, 6.2832); g.fill(); } for (let i = 0; i <= sh2; i += 16) { g.beginPath(); g.arc(sx, sy + i, 6, 0, 6.2832); g.fill(); g.beginPath(); g.arc(sx + sw2, sy + i, 6, 0, 6.2832); g.fill(); }
+  g.fillStyle = '#5C6E8E'; g.fillRect(sx + 16, sy + 16, sw2 - 32, sh2 - 32); g.strokeStyle = '#F2EAD6'; g.lineWidth = 2; g.strokeRect(sx + 24, sy + 24, sw2 - 48, sh2 - 48);
+  g.fillStyle = '#F2EAD6'; g.textAlign = 'center'; g.font = '700 16px "Old Standard TT", Georgia, serif'; g.fillText('RÉPUBLIQUE', sx + sw2 / 2, sy + 58); g.fillText('FRANÇAISE', sx + sw2 / 2, sy + 78);
+  g.font = '700 74px "Playfair Display", Georgia, serif'; g.fillText('15', sx + sw2 / 2 - 8, sy + 158); g.font = '700 26px "Old Standard TT", Georgia, serif'; g.fillText('c', sx + sw2 / 2 + 44, sy + 128); g.font = '700 18px "Old Standard TT", Georgia, serif'; g.fillText('POSTES', sx + sw2 / 2, sy + 196);
+  const cx = sx - 30, cy = sy + sh2 - 40, r = 96;
+  g.strokeStyle = 'rgba(40,44,70,.85)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, r, 0, 6.2832); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, r * 0.52, 0, 6.2832); g.stroke();
+  const arcText = `${pcData.fr.toUpperCase()} · ${pcData.year} · `; g.fillStyle = 'rgba(40,44,70,.9)'; g.font = '700 22px "Old Standard TT", Georgia, serif';
+  const chars = arcText.split(''), rr = r * 0.76; let ang = -Math.PI / 2 - (chars.length * 0.16) / 2;
+  chars.forEach((ch) => { const wch = g.measureText(ch).width; const a = ang + 0.08; g.save(); g.translate(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); g.rotate(a + Math.PI / 2); g.fillText(ch, 0, 0); g.restore(); ang += Math.max(0.1, wch / rr); });
+  g.font = '700 18px "Old Standard TT", Georgia, serif'; g.fillText(`${day} ${MF[mon - 1]}`, cx, cy - 2); g.font = '700 16px "Old Standard TT", Georgia, serif'; g.fillText(String(pcData.year), cx, cy + 20);
+  // 그림 위의 한 줄 — 화면의 자리·크기·색·기울기 그대로
+  const msg = (pcMsg.value || '').trim().slice(0, 60);
+  if (msg) {
+    const b = inkBox(), fs = FS[pcSize] * W, lh = fs * 1.34, cream = pcInk.dataset.tone !== 'ink';
+    g.font = `600 ${fs.toFixed(1)}px Freesentation, sans-serif`; g.textAlign = 'left'; g.textBaseline = 'middle';
+    const lines = wrapLines(g, msg, b.w * W + 1), bx = b.x * W, by = b.y * Hf, bh = lines.length * lh;
+    g.save(); g.translate(bx + (b.w * W) / 2, by + bh / 2); g.rotate((-1.2 * Math.PI) / 180); g.translate(-(bx + (b.w * W) / 2), -(by + bh / 2));
+    const pass = (blur, col, fill) => { g.shadowColor = col; g.shadowBlur = blur; g.shadowOffsetY = blur > 10 ? 0 : fs * 0.03; g.fillStyle = fill; lines.forEach((ln, i) => g.fillText(ln, bx, by + lh * (i + 0.5))); };
+    if (cream) { pass(fs * 0.45, 'rgba(20,14,8,.42)', '#F7F0DF'); pass(fs * 0.08, 'rgba(20,14,8,.55)', '#F7F0DF'); }
+    else { pass(fs * 0.45, 'rgba(247,240,223,.55)', '#2A2420'); pass(fs * 0.06, 'rgba(247,240,223,.6)', '#2A2420'); }
+    g.restore();
+  }
+  return c;
+}
+$('#pcSave').addEventListener('click', async () => {
+  if (!pcData) return; const btn = $('#pcSave'); btn.disabled = true; pcMsg.blur(); stashPostcard();
+  try {
+    const c = await renderPostcard();
+    const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', 0.9));
+    const file = new File([blob], `monet100_엽서_${pcData.fr}.jpg`, { type: 'image/jpeg' });
+    const touch = matchMedia('(pointer: coarse)').matches;
+    if (touch && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file] }); btn.disabled = false; return; } catch (e) { if (e && e.name === 'AbortError') { btn.disabled = false; return; } } }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    const t = $('#toast'); t.textContent = '엽서를 저장했습니다 · 기기 안에만'; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500);
+  } catch (e) { console.error(e); }
+  btn.disabled = false;
+});
+window.renderPostcard = renderPostcard;
+function leave() { TS.timers.forEach(clearTimeout); TS.timers = []; TS.state = 'idle'; flow.hidden = true; flow.classList.remove('on', 'issuing'); hero.classList.remove('issuing', 'docked', 'open'); $('#dim').classList.remove('on'); cancelAnimationFrame(raf); }
+$('#flowBack').addEventListener('click', leave);
+$('#again').addEventListener('click', () => { leave(); window.resetPick(); });     // 다시 고르기 = 지도 처음 상태로
+$('#home').addEventListener('click', () => { location.href = '../../experience-v3/index.html'; });   // 처음으로 = 체험 목록
+// 표 끊기: 확인 시트에서 → 시트를 닫고 발권
+$('#buy').addEventListener('click', () => { window.closeConfirm(); setTimeout(issue, RM ? 0 : 260); });
+$('#save').addEventListener('click', () => {
+  if (saved) return; $('#toast').textContent = '수집함에 저장했습니다'; saved = true; $('#save').disabled = true; $('#save').textContent = '수집함에 담았어요';
+  try { const p = window.getPicked(); const all = JSON.parse(localStorage.getItem('m100_choice') || '{}') || {}; all.c2 = { id: p.id, label: p.ko, year: p.year, pct: PCT[p.id], at: Date.now() }; localStorage.setItem('m100_choice', JSON.stringify(all)); } catch (e) { /* 기기 안에만 · 마지막 화면(c5)이 읽는다 */ }
+  // 바에 붙은 작은 표가 그대로 수집함 아이콘으로 날아간다(같은 요소)
+  setTimeout(() => {
+    const hr = hero.getBoundingClientRect(), cr = $('#coll').getBoundingClientRect();
+    TS.state = 'saved'; wrap.classList.remove('moving'); wrap.classList.add('fly'); hero.classList.add('saved');
+    wrap.style.transform = xf(cr.left + cr.width / 2 - hr.left, cr.top + cr.height / 2 - hr.top, 0.06);
+  }, RM ? 0 : 150);
+  setTimeout(() => { $('#collN').hidden = false; $('#coll').classList.add('bump'); setTimeout(() => $('#coll').classList.remove('bump'), 500); const t = $('#toast'); t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 1500); }, RM ? 100 : 1250);
+});
+window.flow = { issue, leave, R, layout, startBoard };
+</script>
+<script type="module">
+// 0 들어가기 ↔ 1 지도: 지도 화면은 밑에서 그대로 그려 두고(레이아웃 유지) 들어가기 장면만 덮었다 걷는다
+//   들어가기(약 3.6초, 아무 데나 누르면 끝 장면으로): 어둠 → 그림 속 기관차에서 카메라가 물러나며 밝아짐 · 증기 · 빛줄기 · 앞등 → 안내판이 내려오고 글자판이 넘어간다 → 문장이 한 줄씩
+//   행선지 고르기(약 1.1초): 글이 내려가고 카메라가 안내판으로 → 안내판 글자판이 화면 가득 → 글자판이 가운데부터 넘어가며 지도가 다가온다
+import { createSteam } from './fx.js';
+const $ = (s) => document.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const intro = $('#intro'), cam = $('#cam'), scene = $('#scene'), board = $('#board'), flaps = $('#flaps');
+const IMG_AR = 1600 / 1189;               // 그림 비율
+const LOCO = [0.479, 0.77];               // 그림 속 가운데 기관차(비율 좌표)
+const DEST = ['LE HAVRE', 'ROUEN', 'VERNON', 'ARGENTEUIL', 'LES IFS'];
+const COLS = 10, ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let steam = null, playing = false, timers = [];
+const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+
+// ── 그림 자리: 기관차가 화면 47% 높이에 오도록, 그림은 위쪽 3/4 을 채우고 아래는 어둠(글 자리)
+function frameScene() {
+  const W = intro.clientWidth, H = intro.clientHeight;
+  const Hd = Math.max(H * 0.74, W / IMG_AR + 40), Wd = Hd * IMG_AR;
+  const left = Math.min(0, Math.max(W - Wd, W * 0.5 - LOCO[0] * Wd)), top = Math.min(0, H * 0.47 - LOCO[1] * Hd);
+  Object.assign(scene.style, { width: `${Wd}px`, height: `${Hd}px`, left: `${left}px`, top: `${top}px`, transformOrigin: `${LOCO[0] * 100}% ${LOCO[1] * 100}%` });
+  if (steam) steam.resize();
+}
+
+// ── 글자판(스플릿 플랩): 칸마다 위·아래 반쪽 + 넘어가는 반쪽 둘
+function cellHTML(ch) { const c = ch === ' ' ? '&nbsp;' : ch; return `<span class="fl"><span class="h t"><b>${c}</b></span><span class="h b"><b>${c}</b></span><span class="h ft"><b>${c}</b></span><span class="h fb"><b>${c}</b></span></span>`; }
+function buildBoard() {
+  $('#bdRows').innerHTML = DEST.map((d) => `<div class="bd-row">${[...d.padEnd(COLS)].map(() => cellHTML(' ')).join('')}</div>`).join('');
+}
+function setCell(cell, from, to, dur = 64) {
+  const [t, b, ft, fb] = cell.children, put = (n, c) => { n.firstChild.innerHTML = c === ' ' ? '&nbsp;' : c; };
+  put(t, to); put(b, from); put(ft, from); put(fb, to);
+  if (RM) { put(b, to); return; }
+  ft.animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-90deg)' }], { duration: dur, easing: 'ease-in', fill: 'forwards' });
+  const a = fb.animate([{ transform: 'rotateX(90deg)' }, { transform: 'rotateX(0deg)' }], { duration: dur, delay: dur, easing: 'ease-out', fill: 'backwards' });
+  a.onfinish = () => { put(b, to); put(ft, to); };
+}
+function flipBoard(final = false) {
+  const rows = [...document.querySelectorAll('#bdRows .bd-row')];
+  rows.forEach((row, r) => {
+    const target = DEST[r].padEnd(COLS);
+    [...row.children].forEach((cell, c) => {
+      const to = target[c];
+      if (final || RM) { setCell(cell, to, to); return; }
+      // 앞 칸부터, 위 줄부터 자리를 잡는다. 칸마다 무작위 글자 몇 장을 넘긴 뒤 멈춘다
+      const n = 3 + Math.round(c * 0.9 + r * 1.1 + Math.random() * 3);
+      let prev = ' ';
+      for (let i = 0; i < n; i++) {
+        const ch = i === n - 1 ? to : (to === ' ' && i > n - 3 ? ' ' : ABC[(Math.random() * 26) | 0]);
+        const p = prev; prev = ch;
+        at(i * 82 + r * 70, () => setCell(cell, p, ch));
+      }
+    });
+  });
+}
+
+// ── 들어가기
+function play() {
+  timers.forEach(clearTimeout); timers = [];
+  frameScene(); buildBoard();
+  intro.classList.remove('going', 'gone', 'played'); intro.classList.add('enter');
+  if (!steam) {
+    steam = createSteam($('#steamCv'), { res: 0.5, tints: ['214,220,240', '196,204,232', '232,228,238'] });   // 그림 속 김처럼 푸르스름한 흰빛
+    const W = scene.clientWidth, H = scene.clientHeight;
+    // 가운데 기관차 굴뚝 → 유리 지붕 쪽으로 (왼쪽 위로 흐르는 그림 속 푸른 김을 따라)
+    steam.emitter({ x: W * 0.478, y: H * 0.69, rate: 8, vy: [26, 50], vx: 10, wind: -9, size: [16, 34], grow: [30, 58], alpha: [0.14, 0.3], life: [4.5, 7.5], jx: 5 });
+    // 왼쪽 큰 기관차 위
+    steam.emitter({ x: W * 0.26, y: H * 0.6, rate: 2.6, vy: [16, 34], vx: 12, wind: 4, size: [30, 60], grow: [20, 40], alpha: [0.08, 0.18], life: [4, 7], jx: 20 });
+    // 선로 위 낮게 깔린 김
+    steam.emitter({ x: W * 0.56, y: H * 0.8, rate: 1.6, vy: [4, 12], vx: 22, wind: 6, size: [40, 70], grow: [14, 24], alpha: [0.05, 0.11], life: [4, 6], jx: 60 });
+    steam.prewarm(5);                                    // 첫 프레임부터 김이 피어 있게(동작 줄이기에서는 멈춘 김 한 장)
+  }
+  if (RM) { finish(); return; }
+  steam.start();
+  playing = true;
+  // 카메라: 기관차 앞에서 시작해 물러난다(1.3 → 1, 3.6초), 어둠이 걷힌다
+  scene.animate([{ transform: 'scale(1.32)' }, { transform: 'scale(1)' }], { duration: 3600, easing: 'cubic-bezier(.25,.6,.2,1)', fill: 'both' });
+  at(60, () => intro.classList.add('s-light'));          // 어둠이 걷히고 빛줄기
+  at(700, () => intro.classList.add('s-lamp'));          // 앞등
+  at(950, () => intro.classList.add('s-board'));         // 안내판이 내려온다
+  at(1150, () => flipBoard());                           // 글자판
+  const lines = [...intro.querySelectorAll('.intro-copy .ln')];
+  lines.forEach((n, i) => at(1300 + i * 380, () => n.classList.add('in')));
+  at(1300 + lines.length * 380 + 200, () => { playing = false; intro.classList.add('played'); });
+}
+// 누르면 끝 장면으로
+function finish() {
+  timers.forEach(clearTimeout); timers = []; playing = false;
+  scene.getAnimations().forEach((a) => a.finish());
+  intro.classList.add('s-light', 's-lamp', 's-board', 'played');
+  intro.querySelectorAll('.intro-copy .ln').forEach((n) => n.classList.add('in'));
+  flipBoard(true);
+}
+intro.addEventListener('pointerdown', (e) => { if (playing && !e.target.closest('a, button')) finish(); });
+
+// ── 행선지 고르기: 안내판으로 다가가 글자판이 화면 가득 펼쳐졌다 넘어가며 지도
+function go() {
+  if (playing) finish();
+  window.mapEnter && window.mapEnter('prep');
+  if (RM) { intro.classList.add('gone'); hideIntro(true); window.mapEnter && window.mapEnter('go'); return; }
+  intro.classList.add('going');
+  const W = intro.clientWidth, H = intro.clientHeight, br = board.getBoundingClientRect(), ir = intro.getBoundingClientRect();
+  const bx = br.left - ir.left + br.width / 2, by = br.top - ir.top + br.height / 2, k = 2.7;
+  cam.style.transformOrigin = `${bx}px ${by}px`;
+  cam.animate([{ transform: 'none' }, { transform: `translate(${W / 2 - bx}px, ${H / 2 - by}px) scale(${k})` }], { duration: 820, easing: 'cubic-bezier(.7,0,.25,1)', fill: 'forwards' });
+  scene.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, delay: 300, easing: 'ease-in', fill: 'forwards' });
+  // 화면 가득한 글자판 — 안내판이 펼쳐진 것처럼(같은 색·같은 경첩선)
+  const cw = Math.ceil(W / 6), ch = Math.round(cw * 1.32), cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
+  flaps.style.gridTemplateColumns = `repeat(${cols}, ${cw}px)`; flaps.style.gridAutoRows = `${ch}px`;
+  const word = 'LEHAVREROUENVERNONARGENTEUILLESIFS';
+  flaps.innerHTML = Array.from({ length: cols * rows }, (_, i) => `<i><b>${word[i % word.length]}</b></i>`).join('');
+  const tiles = [...flaps.children];
+  setTimeout(() => {
+    flaps.classList.add('on');
+    flaps.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
+  }, 470);
+  setTimeout(() => {
+    intro.classList.add('gone');                         // 바탕이 투명해진다 — 글자판 뒤는 이미 지도
+    cam.style.visibility = 'hidden';
+    window.mapEnter && window.mapEnter('go');
+    tiles.forEach((t, i) => {
+      const c = i % cols, r = Math.floor(i / cols), x = (c + 0.5) * cw, y = (r + 0.5) * ch;
+      const d = Math.hypot(x - W / 2, y - H / 2) / Math.hypot(W / 2, H / 2);
+      t.animate([{ transform: 'perspective(500px) rotateX(0deg)', opacity: 1 }, { transform: 'perspective(500px) rotateX(-86deg)', opacity: 1, offset: 0.8 }, { transform: 'perspective(500px) rotateX(-92deg)', opacity: 0 }],
+        { duration: 340, delay: d * 300, easing: 'cubic-bezier(.5,0,.75,.4)', fill: 'both' });
+    });
+  }, 640);
+  setTimeout(() => hideIntro(false), 640 + 300 + 360);
+}
+function hideIntro(instant) {
+  intro.classList.add('off'); intro.setAttribute('aria-hidden', 'true'); intro.inert = true;
+  if (steam) steam.stop();
+  flaps.classList.remove('on'); flaps.getAnimations().forEach((a) => a.cancel()); flaps.innerHTML = '';
+  void instant;
+}
+// 지도에서 뒤로: 장면이 다시 밝아진다(처음부터 다시 틀지 않는다)
+function backToIntro() {
+  cam.getAnimations().forEach((a) => a.cancel()); scene.getAnimations().forEach((a) => a.cancel());
+  cam.style.visibility = ''; cam.style.transform = '';
+  intro.classList.remove('going', 'gone', 'off'); intro.setAttribute('aria-hidden', 'false'); intro.inert = false;
+  if (!RM) { intro.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' }); steam && steam.start(); }
+  finish();
+}
+$('#mapBack').addEventListener('click', backToIntro);
+window.addEventListener('resize', () => { if (!intro.classList.contains('off')) frameScene(); });
+const img = $('#sceneImg');
+if (img.complete) play(); else { img.addEventListener('load', play, { once: true }); img.addEventListener('error', play, { once: true }); }
+window.intro = { show: (on) => (on ? backToIntro() : go()), finish, get playing() { return playing; } };
+</script>
+<script type="module" src="../../experience-v3/industry.js"></script>
+</body>
+</html>

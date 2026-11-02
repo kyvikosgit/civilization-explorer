@@ -1,10 +1,10 @@
-// v3 체험 목록 — 구역 순서는 동선대로. 살롱 · 아틀리에 · 나다르는 각자 화면, 나머지는 zone.html
+// v3 체험 목록 — 구역 순서는 동선대로. 체험마다 v2 연출을 살린 자기 화면
 import { ZONES, COLLECT_IDS, findTask } from './data.js';
 import { store } from './store.js';
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const $ = (s) => document.querySelector(s);
-const PAGE = { salon: 'salon.html', atelier: 'atelier.html', nadar: 'nadar.html' };
+const PAGE = { salon: 'salon.html', society: 'society.html', industry: 'industry.html', atelier: 'atelier.html', nadar: 'nadar.html', monet: 'monet.html' };
 const CHEV = '<svg class="ico chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
 
 function render() {
@@ -20,7 +20,7 @@ function render() {
     if (z.id === 'nadar') st = '사진 · 벽의 액자에 걸기';
     else if (col.length && col.every((t) => store.saved(t.id))) { st = '수집함에 담음'; ok = true; }
     else if (col.some((t) => store.solved(t.id))) { st = '정답 · 저장 전'; ok = true; }
-    return `<a class="row" href="${PAGE[z.id] || `zone.html?z=${z.id}`}"><span class="no">${esc(z.no)}</span>
+    return `<a class="row" href="${PAGE[z.id]}"><span class="no">${esc(z.no)}</span>
       <span class="b"><span class="tt">${esc(z.title)}</span><span class="st${ok ? ' ok' : ''}">${esc(z.loc.replace('4F · ', ''))}${st ? ` · ${esc(st)}` : ''}</span></span>${CHEV}</a>`;
   }).join('') + `<a class="row exit" href="exit.html"><span class="no">출구</span><span class="b"><span class="tt">기념품 받기</span>
     <span class="st">${got.length === COLLECT_IDS.length ? '다섯 가지를 모두 모았습니다' : `다섯 가지를 모으면 · 지금 ${got.length}`}</span></span>${CHEV}</a>`;

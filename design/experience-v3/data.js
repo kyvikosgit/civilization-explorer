@@ -157,8 +157,9 @@ export const ZONES = [
       mind: 'mind/sunrise.mind',
       cta: '이 그림',
       targets: [
-        { id: 's1', title: '생라자르역', sub: '클로드 모네, 1877', img: 'img/z_lazare.jpg' },
+        // sunrise.mind 컴파일 순서 그대로 — 해돋이가 0번(비율로 확인: 0.769 · 0.744 · 0.801 · 1.255)
         { id: 's2', title: '인상, 해돋이', sub: '클로드 모네, 1872', img: 'img/hero_sunrise.jpg', correct: true },
+        { id: 's1', title: '생라자르역', sub: '클로드 모네, 1877', img: 'img/z_lazare.jpg' },
         { id: 's3', title: '에트르타의 마네포르트', sub: '클로드 모네, 1883', img: 'img/z_etretat.jpg' },
         { id: 's4', title: '수련 연못', sub: '클로드 모네, 1900', img: 'img/z_giverny.jpg' },
       ],
