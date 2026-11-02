@@ -10,3 +10,5 @@
 .res-line.plan{white-space:pre-line}
 .res-verdict{margin:14px 20px 0;padding:12px 14px;border-left:3px solid #E9C77A;font-size:15px;line-height:1.55;color:rgba(255,247,234,.9);white-space:pre-line}
 .res-after{margin:14px 20px 0;font-size:14px;line-height:1.55;color:rgba(255,247,234,.65);white-space:pre-line}
+/* 작은 폰: 안내 위로 벽이 작아지면 이름표끼리 겹친다 — 이름표를 뺀다 */
+@media (max-height:700px){.stage[data-mode="wall"] .labels{opacity:0!important}}

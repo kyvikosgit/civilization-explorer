@@ -121,16 +121,17 @@ async function win() {
 // ── 벽 앞 안내 → [카메라 켜기] → 허용을 기다리는 동안 장면은 그대로 → 다 켜지면 벽으로 다가가며 파인더 자리에 진짜 카메라 창이 열린다
 const guide = makeGuide();
 const INFO = {
-  cap: '이렇게 심사합니다',
-  steps: ['지금 보이는 다섯 점이 전시장 벽에도 걸려 있습니다. <em>특별한 액자</em>를 찾으세요', '폰 카메라로 그림을 비추면 해설과 심사 기준이 나옵니다', '기준에 맞는 그림에 메달을 주세요'],
-  buttons: [{ label: '카메라 켜기', on: begin }],
+  coach: { img: V3 + 'img/m_cartridges.jpg', kind: 'gilt' },
+  title: '벽에 걸린 진짜 그림을\n카메라로 비춰 보세요',
+  sub: '특별한 액자의 다섯 점 가운데 1873년 수상작이 있습니다',
+  buttons: [{ label: '카메라 켜기', cam: true, on: begin }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
 };
 let shownOnce = false;
 function showGuide() {
   if (guide.shown) return;
   shownOnce = true;
-  window.__salonGuideH = guide.show(INFO) + 14;       // 벽을 안내 위로 올려 다섯 점이 다 보이게
+  window.__salonGuideH = guide.show(INFO) - 44;       // 벽을 안내 위로 올려 다섯 점이 다 보이게
   window.__salon.to('wall', 700);
 }
 function begin() {

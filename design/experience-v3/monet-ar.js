@@ -10,8 +10,10 @@ const RATIO = [0.769, 0.744, 0.801, 1.255];
 const targets = task.targets.map((t) => ({ ...t, img: V3 + t.img }));
 const guide = makeGuide();
 const INFO = {
-  cap: '마지막 방입니다', body: task.question,
-  buttons: [{ label: '카메라 켜기', on: start }],
+  coach: { img: V3 + 'img/hero_sunrise.jpg', kind: 'gilt', land: true },
+  title: '“그냥 인상에 지나지 않는다”',
+  sub: '1874년, 비평가를 화나게 한 그림을 찾아 비춰 보세요',
+  buttons: [{ label: '카메라 켜기', cam: true, on: start }],
   note: '다음 화면에서 폰을 가로로 돌려 주세요',
 };
 function showGuide() { if (!guide.shown && window.__c5sun.state === 'scan') guide.show(INFO); }

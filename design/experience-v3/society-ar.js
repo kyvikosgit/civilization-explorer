@@ -14,9 +14,10 @@ let stage = 'people', ended = false;
 
 // ── 벽의 사람들
 const PEOPLE = {
-  cap: '먼저, 이 동네 사람들의 이야기를 들어 봅니다',
-  steps: ['벽에 있는 사람들을 찾으세요', '폰 카메라로 비추면 그 사람이 그 시대 이야기를 들려줍니다', '다 들었으면 모리스 칼럼으로 갑니다'],
-  buttons: [{ label: '카메라 켜기', on: openPeople }],
+  coach: { img: V3 + 'img/coach_people.jpg', kind: 'photo' },
+  title: '벽의 사람들을 비춰 보세요',
+  sub: '비추면 그 시대 사람들의 목소리가 들립니다',
+  buttons: [{ label: '카메라 켜기', cam: true, on: openPeople }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
   link: { label: people.skip.replace('전단지 찾기', '칼럼으로 가기'), on: toColumn },
 };
@@ -47,10 +48,10 @@ function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }
 
 // ── 칼럼의 전단지
 const FLYER = {
-  cap: '모리스 칼럼', title: '이 시대의 분위기를 떠올리며\n그 전단지를 찾아 보세요',
-  body: flyer.question,
-  buttons: [{ label: '카메라 켜기', on: openFlyer }],
-  note: '실제 칼럼에 붙은 전단지를 비춥니다',
+  coach: { img: V3 + 'img/fl_bonmarche.jpg', kind: 'paper' },
+  title: '그 모임 이름이 뭐였더라?',
+  sub: '카페 게르부아에 매주 모이는 예술가들 이야기,\n칼럼의 전단지를 찾아 비춰 보세요',
+  buttons: [{ label: '카메라 켜기', cam: true, on: openFlyer }],
 };
 function openFlyer() {
   guide.busy('카메라를 켜는 중');
@@ -79,8 +80,9 @@ async function win() {
   c1().openPrint(i);
   await new Promise((r) => setTimeout(r, 900));
   const saved = store.saved(flyer.id);
+  const [name, , ...rest] = flyer.successBody.split('\n');
   guide.show({
-    cap: flyer.successTitle, body: flyer.successBody,
+    cap: flyer.successTitle, title: name, sub: rest.join('\n'),
     buttons: [
       { label: '처음으로', cls: 'line', on: () => { location.href = HUB; } },
       { label: saved ? '수집함에 담았어요' : '수집함에 저장', on: (b) => { store.save(flyer.id); b.disabled = true; b.textContent = '수집함에 담았어요'; navigator.vibrate?.(16); } },

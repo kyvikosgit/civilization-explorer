@@ -4,3 +4,6 @@
 .tk-plan{margin:18px 0 0;padding:0 20px;font-size:16px;line-height:1.65;white-space:pre-line}
 .tk-after{margin:12px 0 0;padding:0 20px;font-size:14px;line-height:1.6;opacity:.7;white-space:pre-line}
 .clue-lead{margin:6px 0 12px;font-size:15px;line-height:1.6;opacity:.85}
+
+/* 안내가 뜨면 도입 글은 물러난다 */
+body.asked .intro-copy{opacity:0;pointer-events:none;transition:opacity .4s}

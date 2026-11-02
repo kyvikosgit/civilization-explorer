@@ -14,15 +14,16 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 // 벽면 자료 — 도슨트 원고 한 문단 + v2 현장 자료 네 장
 $('#clueRow').insertAdjacentHTML('beforebegin', `<p class="clue-lead">${zone.wall.lead}</p>`);
 const ASK = {
-  cap: '벽면 자료를 다 보셨나요', title: task.title, body: task.question,
-  buttons: [{ label: '카메라 켜기', on: scan }],
-  note: '책상 위의 진짜 기차표를 비춥니다',
+  coach: { img: V3 + 'img/t_ticket.png', kind: 'ticket' },
+  title: task.title,
+  sub: '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
+  buttons: [{ label: '카메라 켜기', cam: true, on: scan }],
   link: { label: '벽면 자료 다시 보기', on: () => $('#openClues').click() },
 };
 $('#introGo').addEventListener('click', () => {
   window.intro.finish();
   $('#openClues').click();
-  $('.intro-go').style.visibility = 'hidden';
+  document.body.classList.add('asked');
   setTimeout(() => guide.show(ASK), 300);
 });
 function scan() {
