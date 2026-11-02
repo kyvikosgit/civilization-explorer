@@ -1,10 +1,6 @@
-// 벽면 인물 대화 AR — 카페 게르부아 · 박람회 벽면을 비추면 창 안에서 사람들이 움직이고, 지정된 인물이 차례로 말한다(말풍선 + 목소리)
-// 대사 · 인물 자리는 체험장치 기획서(260928) 22–25쪽. 목소리는 임시 합성음(audio/), 창 안 움직임은 전단지 삽화 영상(guerbois.mp4)의 실루엣 — 성우 · 실제 영상으로 교체
-const VIDEO = '../../../booth/assets/video/guerbois.mp4';
+// 벽면 인물 대화 AR — 카페 게르부아 · 박람회 벽면을 비추면 창에 불이 들어오고, 지정된 인물이 차례로 말한다(말풍선 + 목소리)
+// 대사 · 인물 자리는 체험장치 기획서(260928) 22–25쪽. 목소리는 임시 합성음(audio/) — 성우로 교체. 인물 영상은 아직 없다(벽과 무관한 영상을 대신 쓰지 말 것)
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-
-// 창마다 삽화의 다른 자리(u0, v0, 폭, 높이 — 영상 좌표, v 는 아래에서 위로)
-const CROPS = [[0.5, 0.2, 0.46, 0.17], [0.26, 0.2, 0.46, 0.17], [0.04, 0.2, 0.46, 0.17]];
 
 // 소리: 폰은 사용자가 누른 순간에만 재생을 허락한다 — [카메라 켜기]에서 같은 Audio 를 한 번 열어 둔다
 const voice = new Audio();
@@ -25,43 +21,24 @@ function speak(src, textLen) {
 }
 export function stopVoice() { try { voice.pause(); } catch {} }
 
-// three 장면: 창 안 실루엣과 따뜻한 빛
+// three 장면: 말하는 사람의 창에 따뜻한 빛
 export function talkFx(walls) {
   return ({ THREE, mindar, anchors }) => {
     const v3 = new THREE.Vector3();
-    const vid = document.createElement('video');
-    Object.assign(vid, { src: VIDEO, loop: true, muted: true, playsInline: true, crossOrigin: 'anonymous' });
-    vid.setAttribute('playsinline', ''); vid.setAttribute('muted', '');
-    const tex = new THREE.VideoTexture(vid);
     const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 4, 64, 64, 64); g.addColorStop(0, 'rgba(255,190,110,.9)'); g.addColorStop(1, 'rgba(255,170,80,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
-    const mats = [], glows = [];
+    const glows = [];
     walls.forEach((w, i) => {
       if (!w.windows) return;
       w.spots.forEach((s, k) => {
-        const px = s.x - 0.5, py = (0.5 - s.y) * w.ratio, ww = w.windows.w, wh = w.windows.h;
-        const glow = new THREE.Mesh(new THREE.PlaneGeometry(ww * 1.7, ww * 1.7), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.3 }));
-        glow.position.set(px, py, 0.001); anchors[i].group.add(glow); glows.push({ m: glow, i, k });
-        const crop = CROPS[k % CROPS.length];
-        const m = new THREE.ShaderMaterial({
-          transparent: true, depthWrite: false,
-          uniforms: { map: { value: tex }, crop: { value: new THREE.Vector4(...crop) }, on: { value: 0 } },
-          vertexShader: 'varying vec2 q; void main(){ q = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
-          fragmentShader: `uniform sampler2D map; uniform vec4 crop; uniform float on; varying vec2 q;
-            void main(){ vec3 c = texture2D(map, crop.xy + q * crop.zw).rgb; float l = dot(c, vec3(.3, .59, .11));
-              float edge = smoothstep(0., .14, q.x) * smoothstep(0., .14, 1. - q.x) * smoothstep(0., .14, q.y) * smoothstep(0., .1, 1. - q.y);
-              gl_FragColor = vec4(.13, .07, .04, smoothstep(.5, .2, l) * edge * on * .82); }`,
-        });
-        const p = new THREE.Mesh(new THREE.PlaneGeometry(ww, wh), m);
-        p.position.set(px, py, 0.002); anchors[i].group.add(p); mats.push({ m, i, k });
+        const glow = new THREE.Mesh(new THREE.PlaneGeometry(w.windows.w * 1.7, w.windows.w * 1.7), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.3 }));
+        glow.position.set(s.x - 0.5, (0.5 - s.y) * w.ratio, 0.001); anchors[i].group.add(glow); glows.push({ m: glow, k });
       });
     });
     let active = -1;
     return {
-      found() { vid.play().catch(() => {}); },
       setActive(k) { active = k; },
       tick(t) {
         const now = t || 0;
-        mats.forEach((o) => { const want = anchors[o.i].group.visible ? (active === o.k ? 1 : 0.72) : 0; o.m.uniforms.on.value += (want - o.m.uniforms.on.value) * 0.06; });
         glows.forEach((o) => { o.m.material.opacity = (active === o.k ? 0.62 : 0.28) + 0.05 * Math.sin(now * 2.4 + o.k); });
       },
       project(i, s) {
@@ -103,7 +80,6 @@ export function playTalk(ui, wall, { base, onEach, onEnd }) {
   };
   place();
   (async () => {
-    ui.fx?.found?.();
     for (let k = 0; k < wall.spots.length; k++) {
       if (token.dead) return;
       active = k; ui.fx?.setActive?.(k); onEach?.(k);

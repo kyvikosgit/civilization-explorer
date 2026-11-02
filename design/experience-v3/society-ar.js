@@ -17,7 +17,7 @@ let stage = 'people', ended = false;
 const PEOPLE = {
   coach: { img: V3 + 'img/cafe_facade.jpg', kind: 'photo' },
   title: '카페 게르부아 벽면을 비춰 보세요',
-  sub: '창 안의 사람들이 그 시대 이야기를 시작합니다',
+  sub: '창 안에서 그 시대 사람들의 이야기가 들립니다',
   buttons: [{ label: '카메라 켜기', cam: true, on: openPeople }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
   link: { label: people.skip, on: toColumn },
