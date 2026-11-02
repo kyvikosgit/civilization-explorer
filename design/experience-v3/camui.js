@@ -17,7 +17,7 @@ function build() {
     <div class="sim"><div class="sim-view"><img class="sim-art" alt=""><i class="sim-glow"></i><div class="sim-medal"><small>SALON</small><b>1873</b></div>${'<u></u>'.repeat(10)}</div></div>
     <div class="aura"></div>
     <div class="flash"></div>
-    <div class="top"><button class="x" aria-label="닫기">${ICO.close}</button><div class="t"></div></div>
+    <div class="top"><button class="x" aria-label="닫기">${ICO.close}</button><div class="tt"><small class="cap"></small><b class="t"></b><span class="dots"></span></div><span></span></div>
     <div class="finder"><i></i><i></i><i></i><i></i><span class="bar"></span></div>
     <div class="msg"></div>
     <div class="err"></div>
@@ -36,7 +36,14 @@ export function openCam(o) {
   cur = me;
   el.className = 'v3-cam on' + (o.demo ? ' demo-on sim-on' : '') + (o.hold ? ' pre' : '');
   el.style.clipPath = '';
-  $('.t').textContent = o.title || '';
+  // 위 한 줄: '구역 · 할 일' 을 둘로 나눠 작은 캡션과 제목으로
+  const [cap, ...rest] = String(o.title || '').split(' · ');
+  $('.cap').textContent = rest.length ? cap : ''; $('.t').textContent = rest.length ? rest.join(' · ') : cap;
+  // 찾은 개수 — 대상이 여럿일 때만, 회색 → 금색 두 단계
+  const n = (o.targets || []).length, seen = new Set();
+  $('.dots').innerHTML = n > 1 ? '<i></i>'.repeat(n) : '';
+  const markSeen = (i) => { seen.add(i); $('.dots').children[i]?.classList.add('on'); el.querySelectorAll('.strip button')[i]?.classList.add('seen'); };
+  el.querySelector('.finder').removeAttribute('style');
   $('.msg').textContent = o.find || '';
   $('.docent').innerHTML = '';
   // 한동안 아무것도 못 찾으면 안내를 바꾼다
@@ -59,7 +66,7 @@ export function openCam(o) {
       return d;
     },
     // 다시 찾기 — 파인더로
-    release() { me.locked = false; el.classList.remove('locked', 'golden'); me.fx?.release?.(); armHint(); },
+    release() { me.locked = false; me.snapTo = null; el.classList.remove('locked', 'golden', 'snap'); $('.finder').removeAttribute('style'); me.fx?.release?.(); armHint(); },
     close() { closeCam(); },
     get el() { return el; },
     // 프로토타입: 뷰파인더에 보이는 그림의 화면 자리
@@ -86,7 +93,10 @@ export function openCam(o) {
   const found = (i) => {
     if (cur !== me || me.locked) return;
     clearTimeout(me.hintT);
-    const f = $('.flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+    const f = $('.flash'), fr = $('.finder').getBoundingClientRect();
+    f.style.setProperty('--fx', `${fr.left + fr.width / 2}px`); f.style.setProperty('--fy', `${fr.top + fr.height / 2}px`);
+    f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+    markSeen(i);
     navigator.vibrate?.(18);
     me.fx?.found?.(i);
     o.onFound(i, ui);
@@ -100,13 +110,22 @@ export function openCam(o) {
   // 프로토타입: 카메라를 켜지 않는다. 벽 · 그림이 뷰파인더에 보이고, 고르면 그 앞으로 가서 인식된다
   if (o.demo) {
     const art = $('.sim-art'), btns = [...strip.querySelectorAll('button')], many = btns.length > 1;
-    $('.demo p').textContent = many ? '어디를 비출까요? 아래에서 고르세요' : '';
+    $('.demo p').textContent = many ? '비출 곳을 고르세요' : '';
     $('.err').textContent = '';
+    const finder = $('.finder');
+    const follow = () => {
+      if (cur !== me) return;
+      if (me.snapTo != null) { const r = art.getBoundingClientRect(), g = 8; if (r.width) Object.assign(finder.style, { left: `${r.left - g}px`, top: `${r.top - g}px`, width: `${r.width + g * 2}px`, height: `${r.height + g * 2}px` }); }
+      requestAnimationFrame(follow);
+    };
+    follow();
     const aim = (i) => {
       if (cur !== me || me.locked) return;
-      clearTimeout(me.aimT);
+      clearTimeout(me.aimT); clearTimeout(me.snapT);
+      me.snapTo = null; el.classList.remove('snap'); finder.removeAttribute('style');
       btns.forEach((b, n) => b.classList.toggle('on', n === i));
       art.src = o.targets[i].img; el.classList.add('aiming');
+      me.snapT = setTimeout(() => { me.snapTo = i; el.classList.add('snap'); }, 650);
       me.aimT = setTimeout(() => found(i), 1500);
     };
     btns.forEach((b, i) => { b.onclick = () => aim(i); });
@@ -146,7 +165,7 @@ export async function closeCam(fade) {
   const me0 = cur;
   clearTimeout(cur.hintT);
   cur = null;
-  clearTimeout(me0.aimT);
+  clearTimeout(me0.aimT); clearTimeout(me0.snapT);
   // 뒤 장면(3D)이 무거워 프레임이 밀려도 닫힘이 멈추지 않게 시간으로도 끊는다
   if (fade && root) await Promise.race([root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {}), new Promise((r) => setTimeout(r, 600))]);
   stopScan();

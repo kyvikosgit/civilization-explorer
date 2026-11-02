@@ -29,7 +29,7 @@ $('#introGo').addEventListener('click', () => {
 function scan() {
   guide.busy('카메라를 켜는 중');
   openCam({
-    title: '산업혁명 · 기차표 찾기', find: task.find, hint: '기차표가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
+    title: '사업가의 사무실 · 기차표 찾기', find: task.find, hint: '기차표가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
     mind: task.mind ? V3 + task.mind : null, pending: task.pending,
     targets: task.targets.map((t) => ({ ...t, img: V3 + t.img })), demo: store.demo(), hold: true,
     onEnter: () => guide.hide(),
