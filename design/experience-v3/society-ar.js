@@ -22,7 +22,7 @@ const PEOPLE = {
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
   link: { label: people.skip, on: toColumn },
 };
-const walls = people.walls.map((w) => ({ ...w, img: V3 + w.img, video: w.video ? V3 + w.video : null }));
+const walls = people.walls.map((w) => ({ ...w, img: V3 + w.img, spots: w.spots.map((s) => (s.video ? { ...s, video: V3 + s.video } : s)) }));
 let stopTalk = null;
 function openPeople() {
   guide.busy('카메라를 켜는 중');

@@ -55,6 +55,7 @@ const CAN_SCAN = !store.demo();                        // 시연 모드면 '?' �
 
 // ── 소품 아홉 칸 — 처음엔 전부 '?'. 소품에 폰을 대면(스캔) 그 칸이 드러나고 카드가 열린다. 한 번 드러난 칸은 다시 눌러 볼 수 있다.
 //    NFC 가 없는 기기(아이폰 사파리 · 컴퓨터)는 '?' 를 눌러도 드러난다 — 시연용
+const APP_NFC = !!(window.__m100app?.nfc && window.ReactNativeWebView);   // 앱(NFC 가능): 소품 태그에 대면 바로
 const grid = $('#objs');
 grid.innerHTML = OBJ.map((o, i) => `
   <button class="ob${o.hint ? ' hint' : ''}" type="button" data-id="${o.id}" style="--i:${i}">
@@ -65,7 +66,7 @@ grid.addEventListener('click', (e) => {
   const b = e.target.closest('.ob'); if (!b) return;
   const id = b.dataset.id;
   if (seen.has(id) || !CAN_SCAN) { reveal(id); return; }
-  toast('에트르타 공간에서 소품을 찾아 카메라로 비춰 보세요');
+  toast(APP_NFC ? '에트르타 공간의 소품에 휴대폰을 대 보세요' : '에트르타 공간에서 소품을 찾아 카메라로 비춰 보세요');
 });
 function paintSeen() {
   grid.querySelectorAll('.ob').forEach((b) => { b.classList.toggle('seen', seen.has(b.dataset.id)); });
@@ -145,6 +146,7 @@ if (q && BY[q]) { document.body.classList.add('no-intro'); setTimeout(() => reve
 
 // ── 스캔: [소품 비추기] → 카메라 → 소품을 알아보면 카메라가 닫히고 그 칸이 드러나 카드가 열린다
 const scanBtn = $('#scanBtn');
+if (APP_NFC) scanBtn.lastChild.textContent = '소품에 폰 대기';
 document.body.classList.add('can-scan');
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
 const MODEL = V3 + 'model/props.tflite';
@@ -157,8 +159,8 @@ const NFC_KEYS = { easel: 0, pochade: 0, canvas: 1, stool: 2, tube: 3 };
 scanBtn.addEventListener('click', () => {
   closeAll(true);
   // 앱(NFC 가능): 소품 태그에 대기만 하면 그 소품 — 카메라 인식 대신
-  if (window.__m100app?.nfc && window.ReactNativeWebView) {
-    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
+  if (APP_NFC) {
+    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, nfcMsg: '소품에 휴대폰 윗부분을 가까이 대세요', onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
     return;
   }
   openDetect({

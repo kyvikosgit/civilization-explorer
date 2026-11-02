@@ -142,7 +142,7 @@ export function openCam(o) {
       if (i != null) found(i);
       else $('.nfc-again').textContent = url ? '이 태그가 아닙니다 · 다시 대기' : '태그에 폰 대기';
     };
-    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'nfc' }));
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'nfc', msg: o.nfcMsg }));   // msg: 아이폰 시스템 창 문구
   };
   if (appNfc) { $('.nfc-again').hidden = false; $('.nfc-again').textContent = '태그에 폰 대기'; $('.nfc-again').onclick = nfcRead; setTimeout(nfcRead, o.hold ? 1700 : 300); }
   else $('.nfc-again').hidden = true;

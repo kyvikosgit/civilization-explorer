@@ -1,6 +1,7 @@
-// 벽면 인물 대화 AR — 카페 게르부아 · 박람회 벽면을 비추고, 그 벽의 사람을 누르면 그 자리만 움직이며 그 사람이 말한다(말풍선 + 목소리)
+// 벽면 인물 대화 AR — 카페 게르부아 · 박람회 벽면을 비추고, 그 벽의 사람을 누르면 그 창만 움직이며 그 사람이 말한다(말풍선 + 목소리)
 // 대사 · 인물 자리는 체험장치 기획서(260928) 22–25쪽. 목소리는 임시 합성음(audio/) — 성우로 교체
-// 벽 영상(walls[].video)은 그 벽 그림 자체로 만든 영상만 쓴다 — 다른 그림 · 다른 영상을 끼워 넣지 말 것. 영상이 없으면 창 불빛 · 고리 · 말풍선만
+// 창 영상(spots[].video)은 그 벽 그림의 그 창을 잘라 만든 영상만 쓴다 — 첫 장면 = 벽 그림 그 자리, clip(벽 안 영상 자리) · glass(영상 안 창 유리 자리)
+// 영상이 없는 벽은 창 불빛 · 말풍선만
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 소리: 폰은 사용자가 누른 순간에만 재생을 허락한다 — [카메라 켜기]에서 같은 Audio 를 한 번 열어 둔다
@@ -22,43 +23,54 @@ function speak(src, textLen) {
 }
 export function stopVoice() { try { voice.pause(); } catch {} }
 
-// three 장면: 말하는 사람의 창에 따뜻한 빛
+function winVideo(src) {
+  const v = document.createElement('video');
+  Object.assign(v, { src, muted: true, playsInline: true, preload: 'auto', crossOrigin: 'anonymous' }); v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+  return v;
+}
+// 창 영상 한 번 재생: 처음(= 벽 그림)부터. 끝나면 마지막 장면에 멈춰 있다가 말이 끝나면 사라진다
+function playFromStart(v) { try { v.pause(); v.currentTime = 0; } catch {} v.play().catch(() => {}); }
+const ended = (v, max) => new Promise((r) => { if (!v || v.ended || v.paused) return r(); const t = setTimeout(r, max); v.addEventListener('ended', () => { clearTimeout(t); r(); }, { once: true }); });
+
+// three 장면: 창 불빛 + 창 영상(벽 위 그 창 자리에 겹친 판, 유리 자리만 보이게)
 export function talkFx(walls) {
   return ({ THREE, mindar, anchors }) => {
     const v3 = new THREE.Vector3();
     const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 4, 64, 64, 64); g.addColorStop(0, 'rgba(255,190,110,.9)'); g.addColorStop(1, 'rgba(255,170,80,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
     const glows = [], vids = [];
     walls.forEach((w, i) => {
-      if (w.video) {                                     // 같은 구도의 벽 영상 — 누른 사람 자리만 보이게(타원 마스크)
-        const v = document.createElement('video');
-        Object.assign(v, { src: w.video, loop: true, muted: true, playsInline: true, crossOrigin: 'anonymous' }); v.setAttribute('playsinline', '');
-        const mat = new THREE.ShaderMaterial({
-          transparent: true, depthWrite: false,
-          uniforms: { map: { value: new THREE.VideoTexture(v) }, c: { value: new THREE.Vector2(0.5, 0.5) }, r: { value: new THREE.Vector2(0.14, 0.22) }, on: { value: 0 } },
-          vertexShader: 'varying vec2 q; void main(){ q = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
-          fragmentShader: 'uniform sampler2D map; uniform vec2 c, r; uniform float on; varying vec2 q; void main(){ vec2 d = (q - c) / r; float a = 1. - smoothstep(.55, 1., length(d)); gl_FragColor = vec4(texture2D(map, q).rgb, a * on); }',
-        });
-        const m = new THREE.Mesh(new THREE.PlaneGeometry(1, w.ratio), mat);
-        m.position.z = 0.0005; anchors[i].group.add(m); vids.push({ v, m, i, w });
-      }
-      if (!w.windows) return;
       w.spots.forEach((s, k) => {
+        if (s.video) {
+          const v = winVideo(s.video), [cx, cy, cw, ch] = s.clip, [gx, gy, gw, gh] = s.glass;
+          const mat = new THREE.ShaderMaterial({
+            transparent: true, depthWrite: false,
+            uniforms: { map: { value: new THREE.VideoTexture(v) }, g: { value: new THREE.Vector4(gx, 1 - gy - gh, gx + gw, 1 - gy) }, f: { value: 0.025 }, on: { value: 0 } },
+            vertexShader: 'varying vec2 q; void main(){ q = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+            fragmentShader: 'uniform sampler2D map; uniform vec4 g; uniform float f, on; varying vec2 q; void main(){ float a = smoothstep(g.x, g.x + f, q.x) * (1. - smoothstep(g.z - f, g.z, q.x)) * smoothstep(g.y, g.y + f, q.y) * (1. - smoothstep(g.w - f, g.w, q.y)); gl_FragColor = vec4(texture2D(map, q).rgb, a * on); }',
+          });
+          const m = new THREE.Mesh(new THREE.PlaneGeometry(cw, ch * w.ratio), mat);
+          m.position.set(cx + cw / 2 - 0.5, (0.5 - cy - ch / 2) * w.ratio, 0.0008); anchors[i].group.add(m); vids.push({ v, m, i, k });
+        }
+        if (!w.windows) return;
         const glow = new THREE.Mesh(new THREE.PlaneGeometry(w.windows.w * 1.7, w.windows.w * 1.7), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.3 }));
-        glow.position.set(s.x - 0.5, (0.5 - s.y) * w.ratio, 0.001); anchors[i].group.add(glow); glows.push({ m: glow, k });
+        glow.position.set(s.x - 0.5, (0.5 - s.y) * w.ratio, 0.0005); anchors[i].group.add(glow); glows.push({ m: glow, i, k });
       });
     });
-    let active = -1;
+    let active = { i: -1, k: -1 };
     return {
-      setActive(k) { active = k; },
+      setActive(k, i = -1) {
+        active = { i, k };
+        vids.forEach((o) => { if (o.i === i && o.k === k) playFromStart(o.v); });
+      },
+      video(i, k) { return vids.find((o) => o.i === i && o.k === k)?.v || null; },
       tick(t) {
         const now = t || 0;
         vids.forEach((o) => {
-          const vis = anchors[o.i].group.visible, sp = o.w.spots[active], u = o.m.material.uniforms;
-          if (vis && o.v.paused) o.v.play().catch(() => {});
-          if (sp) { u.c.value.set(sp.x, 1 - sp.y); u.r.value.set(o.w.region?.w || 0.14, o.w.region?.h || 0.22); }
-          u.on.value += ((vis && sp ? 1 : 0) - u.on.value) * 0.08;
+          const on = anchors[o.i].group.visible && active.i === o.i && active.k === o.k, u = o.m.material.uniforms;
+          u.on.value += ((on ? 1 : 0) - u.on.value) * (on ? 0.25 : 0.08);
+          if (!on && u.on.value < 0.01 && !o.v.paused) o.v.pause();
         });
-        glows.forEach((o) => { o.m.material.opacity = (active === o.k ? 0.62 : 0.28) + 0.05 * Math.sin(now * 2.4 + o.k); });
+        glows.forEach((o) => { o.m.material.opacity = (active.i === o.i && active.k === o.k ? 0.62 : 0.28) + 0.05 * Math.sin(now * 2.4 + o.k); });
       },
       project(i, s) {
         const w = walls[i], c = mindar.container;
@@ -69,27 +81,38 @@ export function talkFx(walls) {
   };
 }
 
-// 화면 층: 누를 자리(보이지 않음) · 누른 자리의 움직임 · 말풍선. 글자는 또렷해야 하니 화면 요소로, 위치만 벽을 따라간다
+// 화면 층: 누를 자리(보이지 않음) · 말풍선 · (카메라 없이 고르기) 창 영상
 //   카메라: 벽 위 자리를 three 로 투영 / 카메라 없이 고르기: 화면에 보이는 그 벽 그림(sim-art) 위 자리 그대로
+//   카메라 없이 고르기에서는 벽 그림이 폰 화면 안에 작게 보이니, 누른 창으로 다가가듯 확대했다가 말이 끝나면 돌아온다(실제 벽 앞에선 다가가면 된다)
 export function startTalk(ui, wall, { base, onHeard }) {
   const host = ui.el, token = {}, heard = new Set();
   host.querySelector('.talk-layer')?.remove();
   const layer = document.createElement('div');
   layer.className = 'talk-layer';
   const sim = host.classList.contains('sim-on') || !ui.fx?.project;
-  layer.innerHTML = `${sim && wall.video ? `<video class="t-vid" src="${wall.video}" muted loop playsinline autoplay></video>` : ''}<i class="t-glow"></i>${wall.spots.map((s, k) => `<button class="t-hit" type="button" aria-label="인물 ${k + 1}"></button>`).join('')}<div class="t-bub"></div><p class="t-tip">말을 걸 사람을 눌러 보세요</p>`;
+  layer.innerHTML = `<i class="t-glow"></i>${wall.spots.map((s, k) => `<button class="t-hit" type="button" aria-label="인물 ${k + 1}"></button>`).join('')}<div class="t-bub"></div><p class="t-tip">말을 걸 사람을 눌러 보세요</p>`;
   host.appendChild(layer);
-  const hits = [...layer.querySelectorAll('.t-hit')], bub = layer.querySelector('.t-bub'), vid = layer.querySelector('.t-vid'), glow = layer.querySelector('.t-glow'), tip = layer.querySelector('.t-tip');
+  const hits = [...layer.querySelectorAll('.t-hit')], bub = layer.querySelector('.t-bub'), glow = layer.querySelector('.t-glow'), tip = layer.querySelector('.t-tip');
+  const wins = wall.spots.map((s) => {
+    if (!sim || !s.video) return null;
+    const v = winVideo(s.video); v.className = 't-win';
+    const [gx, gy, gw, gh] = s.glass, f = 0.025, p = (n) => `${(n * 100).toFixed(2)}%`;
+    v.style.webkitMaskImage = v.style.maskImage = `linear-gradient(to right, transparent ${p(gx)}, #000 ${p(gx + f)}, #000 ${p(gx + gw - f)}, transparent ${p(gx + gw)}), linear-gradient(to bottom, transparent ${p(gy)}, #000 ${p(gy + f)}, #000 ${p(gy + gh - f)}, transparent ${p(gy + gh)})`;
+    layer.prepend(v); return v;
+  });
   const pos = wall.spots.map(() => null);
-  const TOP = 76;
-  let active = -1, raf = 0, run = 0;
+  const TOP = 76, stage = host.querySelector('.sim');
+  let active = -1, raf = 0, run = 0, zoom = { s: 1, x: 0, y: 0 };
   const place = () => {
     if (token.dead) return;
     const r = sim ? ui.simRect?.() : null;
-    if (vid && r) Object.assign(vid.style, { left: `${r.l}px`, top: `${r.t}px`, width: `${r.r - r.l}px`, height: `${r.b - r.t}px` });
     wall.spots.forEach((s, k) => {
+      if (wins[k] && r) {
+        const W = r.r - r.l, H = r.b - r.t, [cx, cy, cw, ch] = s.clip;
+        Object.assign(wins[k].style, { left: `${r.l + cx * W}px`, top: `${r.t + cy * H}px`, width: `${cw * W}px`, height: `${ch * H}px` });
+      }
       const p = sim ? (r ? { x: r.l + s.x * (r.r - r.l), y: r.t + s.y * (r.b - r.t) } : null) : ui.fx.project(wall.index, s);
-      if (p) pos[k] = pos[k] ? { x: pos[k].x + (p.x - pos[k].x) * 0.2, y: pos[k].y + (p.y - pos[k].y) * 0.2 } : p;
+      if (p) pos[k] = sim ? p : (pos[k] ? { x: pos[k].x + (p.x - pos[k].x) * 0.2, y: pos[k].y + (p.y - pos[k].y) * 0.2 } : p);
       if (pos[k]) hits[k].style.transform = `translate(${pos[k].x}px, ${pos[k].y}px)`;
     });
     const top = Math.min(...pos.filter(Boolean).map((p) => p.y), innerHeight * 0.5);
@@ -98,8 +121,12 @@ export function startTalk(ui, wall, { base, onHeard }) {
       const a = pos[active];
       glow.style.left = `${a.x}px`; glow.style.top = `${a.y}px`;   // transform 은 숨쉬기 애니메이션이 쓴다
       // 말풍선은 그 사람 위에. 위가 모자라면(상단 제목 줄과 겹치면) 아래로
-      const W = innerWidth, bw = bub.offsetWidth, bh = bub.offsetHeight, below = a.y - 40 - bh < TOP;
-      const x = Math.max(12, Math.min(W - bw - 12, a.x - bw / 2)), y = below ? a.y + 40 : a.y - 40 - bh;
+      //   창 영상을 크게 볼 때는 창 윗부분(샹들리에 쪽)에 — 얼굴을 가리지 않게
+      const W = innerWidth, bw = bub.offsetWidth, bh = bub.offsetHeight, s = wall.spots[active];
+      const gTop = wins[active]?.classList.contains('on') && r ? r.t + (s.clip[1] + s.glass[1] * s.clip[3]) * (r.b - r.t) + 14 : null;
+      const high = gTop != null && gTop + bh < a.y - 70 ? Math.max(TOP, gTop) : null;
+      const below = high == null && a.y - 40 - bh < TOP;
+      const x = Math.max(12, Math.min(W - bw - 12, a.x - bw / 2)), y = high ?? (below ? a.y + 40 : a.y - 40 - bh);
       bub.classList.toggle('below', below);
       bub.style.transform = `translate(${x}px, ${y}px)`;
       bub.style.setProperty('--tail', `${Math.max(18, Math.min(bw - 18, a.x - x))}px`);
@@ -107,21 +134,43 @@ export function startTalk(ui, wall, { base, onHeard }) {
     raf = requestAnimationFrame(place);
   };
   place();
-  // 누른 사람: 그 자리만 움직이고(벽 영상의 그 부분) 그 사람이 말한다. 다른 사람을 누르면 바로 바뀐다
+  // 카메라 없이: 누른 창이 화면 가운데(제목 줄과 아래 안내 사이)에 크게 오도록 벽 그림을 당겨 온다
+  const zoomTo = (s) => {
+    if (!sim || !stage) return;
+    const r = ui.simRect?.(); if (!r) return;
+    const bl = (r.l - zoom.x) / zoom.s, bt = (r.t - zoom.y) / zoom.s, bw = (r.r - r.l) / zoom.s, bh = (r.b - r.t) / zoom.s;   // 확대 전 자리
+    const [cx, cy, cw, ch] = s.clip, [gx, gy, gw, gh] = s.glass;
+    const g = { x: bl + (cx + gx * cw) * bw, y: bt + (cy + gy * ch) * bh, w: gw * cw * bw, h: gh * ch * bh };
+    const dock = host.querySelector('.docent')?.getBoundingClientRect(), bottom = dock && dock.height ? dock.top - 14 : innerHeight - 24;
+    const top = TOP + 8, k = Math.max(1, Math.min((innerWidth * 0.64) / g.w, (bottom - top) / g.h));
+    zoom = { s: k, x: innerWidth / 2 - k * (g.x + g.w / 2), y: (top + bottom) / 2 - k * (g.y + g.h / 2) };
+    stage.style.transformOrigin = '0 0';
+    stage.style.transform = `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.s})`;
+    host.classList.add('t-zoomed');
+  };
+  const unzoom = () => {
+    if (!stage) return;
+    zoom = { s: 1, x: 0, y: 0 }; stage.style.transform = ''; host.classList.remove('t-zoomed');
+  };
+  // 누른 사람: 그 창만 움직이고(그 창 영상) 그 사람이 말한다. 다른 사람을 누르면 바로 바뀐다
   const speakTo = async (k) => {
     const my = ++run;
     stopVoice(); tip.classList.add('off');
-    active = k; ui.fx?.setActive?.(k);
+    wins.forEach((v, j) => { if (v && j !== k) { v.classList.remove('on'); v.pause(); } });
+    active = k; ui.fx?.setActive?.(k, wall.index);
     const s = wall.spots[k];
-    if (vid) { vid.style.setProperty('--mx', `${s.x * 100}%`); vid.style.setProperty('--my', `${s.y * 100}%`); vid.style.setProperty('--rw', `${(wall.region?.w || 0.14) * 100}%`); vid.style.setProperty('--rh', `${(wall.region?.h || 0.22) * 100}%`); vid.classList.add('on'); vid.play().catch(() => {}); }
-    else glow.classList.add('on');                        // 벽 영상이 아직 없으면 그 자리에 불빛만
+    if (wins[k]) { zoomTo(s); playFromStart(wins[k]); wins[k].classList.add('on'); }
+    else if (!s.video) glow.classList.add('on');            // 창 영상이 없는 벽은 그 자리에 불빛만
     bub.textContent = s.line; bub.classList.remove('on'); void bub.offsetWidth; bub.classList.add('on');
     await speak(base + s.audio, s.line.length);
     if (my !== run || token.dead) return;
-    bub.classList.remove('on'); vid?.classList.remove('on'); glow.classList.remove('on');
+    bub.classList.remove('on');
+    await ended(wins[k] || ui.fx?.video?.(wall.index, k), 1500);   // 영상이 조금 남았으면 마저 보고
+    if (my !== run || token.dead) return;
+    wins[k]?.classList.remove('on'); glow.classList.remove('on'); unzoom();
     active = -1; ui.fx?.setActive?.(-1);
     heard.add(k); onHeard?.(heard.size, wall.spots.length);
   };
   hits.forEach((h, k) => { h.onclick = () => speakTo(k); });
-  return () => { token.dead = true; run++; cancelAnimationFrame(raf); stopVoice(); ui.fx?.setActive?.(-1); layer.remove(); };
+  return () => { token.dead = true; run++; cancelAnimationFrame(raf); stopVoice(); ui.fx?.setActive?.(-1); unzoom(); layer.remove(); };
 }

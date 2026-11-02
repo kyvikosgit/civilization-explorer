@@ -3,11 +3,13 @@
 // v2(선택·통계형)는 design/experience-v2 에 그대로 보관 — 후관람·마케팅용
 // 타깃 순서 = .mind 컴파일 순서(missions.ts choices 순서)
 
-const CAFE = (a, b, c) => [
-  { x: a[0], y: a[1], audio: 'audio/cafe1.m4a', line: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
-  { x: b[0], y: b[1], audio: 'audio/cafe2.m4a', line: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
-  { x: c[0], y: c[1], audio: 'audio/cafe3.m4a', line: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' },
+const CAFE_LINES = [
+  { audio: 'audio/cafe1.m4a', line: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
+  { audio: 'audio/cafe2.m4a', line: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
+  { audio: 'audio/cafe3.m4a', line: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' },
 ];
+// 인물 자리 { x, y } (벽 그림 안 0–1) + 창 영상이 있으면 video · clip(벽 안 영상 자리 x,y,w,h) · glass(영상 안 창 유리 자리 x,y,w,h)
+const CAFE = (...at) => CAFE_LINES.map((l, k) => ({ ...at[k], ...l }));
 
 export const ZONES = [
   {
@@ -52,16 +54,19 @@ export const ZONES = [
     id: 'society', no: 'C-1', loc: '4F · C-1 시민사회', title: '카페 게르부아의 소문',
     tasks: [
       // 카페 게르부아 · 박람회 벽면 인물 대화 — 체험장치 기획서(260928) 22–25쪽의 인물 자리와 대사 그대로.
-      //   video: 그 벽 그림 자체로 만든 영상(같은 구도, Kling 3.0 Pro · 첫 장면 = 벽 그림 · 앞뒤로 이어 반복) — 누른 사람 자리만 움직인다.
+      //   창 영상: 기획서 카페 벽(260928 22쪽 원본)의 창 하나씩을 잘라 만든 영상(Kling 3.0 Pro · 첫 장면 = 그 창 · 카메라 고정) — 누른 사람의 창만 움직인다.
       //   기획서 카페 벽만 통과. 11/02 정면(연회복 차림 — 고증 탈락) · 박람회(줌인 · 깨진 글자 · 1880년대 복식 — 탈락)는 없음 인식 파일 순서: 11/02 카페 정면 · 260928 카페 벽면 · 박람회 벽면
       {
         id: 'people', title: '카페 게르부아', kind: 'talk',
         find: '카페 게르부아 벽면을 카메라로 비춰 보세요',
         mind: 'mind/guerbois.mind',
         walls: [
-          { index: 0, place: '카페 게르부아', img: 'img/cafe_facade.jpg', video: null, region: { w: 0.13, h: 0.22 }, ratio: 726 / 1080, windows: { w: 0.26, h: 0.2 }, spots: CAFE([0.78, 0.52], [0.46, 0.52], [0.22, 0.52]) },
-          { index: 1, place: '카페 게르부아', img: 'img/cafe_plan.jpg', video: 'video/cafe_plan.mp4', region: { w: 0.12, h: 0.16 }, ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE([0.65, 0.59], [0.4, 0.59], [0.16, 0.59]) },
-          { index: 2, place: '파리 만국 박람회', img: 'img/expo_wall.jpg', video: null, region: { w: 0.08, h: 0.15 }, ratio: 1024 / 1536, spots: [
+          { index: 0, place: '카페 게르부아', img: 'img/cafe_facade.jpg', ratio: 726 / 1080, windows: { w: 0.26, h: 0.2 }, spots: CAFE({ x: 0.78, y: 0.52 }, { x: 0.46, y: 0.52 }, { x: 0.22, y: 0.52 }) },
+          { index: 1, place: '카페 게르부아', img: 'img/cafe_plan.jpg', ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE(
+            { x: 0.276, y: 0.524, video: 'video/cafe_w1.mp4', clip: [0.174, 0.3572, 0.2044, 0.2725], glass: [0.1959, 0.0203, 0.6081, 0.9527] },
+            { x: 0.477, y: 0.524, video: 'video/cafe_w2.mp4', clip: [0.375, 0.3572, 0.2044, 0.2725], glass: [0.2669, 0.0203, 0.4662, 0.9527] },
+            { x: 0.676, y: 0.524, video: 'video/cafe_w3.mp4', clip: [0.5745, 0.3572, 0.2044, 0.2725], glass: [0.2027, 0.0203, 0.5912, 0.9527] }) },
+          { index: 2, place: '파리 만국 박람회', img: 'img/expo_wall.jpg', ratio: 1024 / 1536, spots: [
             { x: 0.83, y: 0.63, audio: 'audio/expo1.m4a', line: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
             { x: 0.57, y: 0.58, audio: 'audio/expo2.m4a', line: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
             { x: 0.43, y: 0.53, audio: 'audio/expo3.m4a', line: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
