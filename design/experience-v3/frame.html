@@ -19,7 +19,7 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 .hint{position:fixed;left:0;right:0;bottom:2vh;text-align:center;font-family:Freesentation,sans-serif;font-size:13px;color:rgba(242,237,226,.45);transition:opacity .6s}
 .hint.off{opacity:0}
 .dot{position:fixed;right:10px;bottom:10px;width:8px;height:8px;border-radius:50%;background:#C8553D}
-.dot.on{background:#3E8A6B}
+.dot.on{background:#3E8A6B;opacity:0;transition:opacity .6s}   /* 연결되면 숨긴다 — 빨간 점은 끊겼을 때만 */
 </style>
 </head>
 <body>
@@ -28,6 +28,7 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 <i class="dot" id="dot" title="연결 상태"></i>
 <script type="module">
 import { joinRoom } from './link.js';
+setTimeout(() => document.getElementById('hint').classList.add('off'), 6000);   // 설치할 때만 보이면 된다
 const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
 const HOLD = 60000;                          // 관람객 사진은 1분 걸어 두고 평소로
 const imgs = [document.getElementById('a'), document.getElementById('b')];
