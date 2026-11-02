@@ -7,6 +7,9 @@ const $ = (s) => document.querySelector(s);
 const PAGE = { salon: 'salon.html', society: 'society.html', industry: 'industry.html', atelier: 'atelier.html', nadar: 'nadar.html', monet: 'monet.html' };
 const CHEV = '<svg class="ico chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
 
+// 구역 이름(번호는 왼쪽 칸에 있다). 제목과 같으면 쓰지 않는다
+const place = (z) => { const l = z.loc.replace('4F · ', '').replace(`${z.no} `, ''); return l === z.title ? '' : l; };
+
 function render() {
   const got = COLLECT_IDS.filter((id) => store.saved(id));
   $('#tally').textContent = `${got.length} / ${COLLECT_IDS.length}`;
@@ -21,7 +24,7 @@ function render() {
     else if (col.length && col.every((t) => store.saved(t.id))) { st = '수집함에 담음'; ok = true; }
     else if (col.some((t) => store.solved(t.id))) { st = '정답 · 저장 전'; ok = true; }
     return `<a class="row" href="${PAGE[z.id]}"><span class="no">${esc(z.no)}</span>
-      <span class="b"><span class="tt">${esc(z.title)}</span><span class="st${ok ? ' ok' : ''}">${esc(z.loc.replace('4F · ', ''))}${st ? ` · ${esc(st)}` : ''}</span></span>${CHEV}</a>`;
+      <span class="b"><span class="tt">${esc(z.title)}</span><span class="st${ok ? ' ok' : ''}">${esc([place(z), st].filter(Boolean).join(' · '))}</span></span>${CHEV}</a>`;
   }).join('') + `<a class="row exit" href="exit.html"><span class="no">출구</span><span class="b"><span class="tt">기념품 받기</span>
     <span class="st">${got.length === COLLECT_IDS.length ? '다섯 가지를 모두 모았습니다' : `다섯 가지를 모으면 · 지금 ${got.length}`}</span></span>${CHEV}</a>`;
   $('#demo').classList.toggle('on', store.demo());

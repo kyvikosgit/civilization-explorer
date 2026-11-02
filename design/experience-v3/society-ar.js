@@ -1,4 +1,4 @@
-// v3 시민사회 — 거리 입장 → 벽의 사람들(카메라 · 그 시대의 말) → 칼럼으로 걸어가기(v2 그대로) → 칼럼의 전단지 찾기(카메라) → 그 전단지가 칼럼에서 떼어져 떠오른다
+// v3 시민사회 — 거리 입장 → 카페 게르부아 벽면(카메라 · 대화) → 칼럼으로 걸어가기(v2 그대로) → 칼럼의 전단지 찾기(카메라) → 그 전단지가 칼럼에서 떼어져 떠오른다
 import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
@@ -14,17 +14,18 @@ let stage = 'people', ended = false;
 
 // ── 벽의 사람들
 const PEOPLE = {
-  coach: { img: V3 + 'img/coach_people.jpg', kind: 'photo' },
-  title: '벽의 사람들을 비춰 보세요',
-  sub: '비추면 그 시대 사람들의 목소리가 들립니다',
+  coach: { img: V3 + 'img/cafe_facade.jpg', kind: 'photo' },
+  title: '카페 게르부아 벽면을 비춰 보세요',
+  sub: '카페 안에서 오가는 대화가 들립니다',
   buttons: [{ label: '카메라 켜기', cam: true, on: openPeople }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
-  link: { label: people.skip.replace('전단지 찾기', '칼럼으로 가기'), on: toColumn },
+  link: { label: people.skip, on: toColumn },
 };
 function openPeople() {
   guide.busy('카메라를 켜는 중');
   openCam({
-    title: '시민사회 · 벽의 사람들', find: people.find, mind: people.mind, pending: people.pending, targets: people.targets,
+    title: '시민사회 · 카페 게르부아', find: people.find, hint: '벽면이 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
+    mind: V3 + people.mind, targets: people.targets.map((t) => ({ ...t, img: V3 + t.img })),
     demo: store.demo(), hold: true,
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
@@ -34,14 +35,13 @@ function openPeople() {
 }
 function talk(i, ui) {
   const t = people.targets[i], lines = t.lines || [];
-  const body = lines.length
-    ? `<div class="talk">${lines.map((l) => `<p>${esc(l)}</p>`).join('')}</div><div class="prog"><i></i></div>`
-    : '<div class="talk"><p class="on wait">발언 원고 대기 · 이 자리에서 영상 또는 3D 인물이 그 시대 사람의 말을 들려줍니다</p></div>';
-  const d = ui.show({ html: `<div class="dc">벽의 사람들</div><div class="dt">${esc(t.title)}</div>${body}`, buttons: [
-    { label: '다른 사람 비추기', cls: 'line', on: () => ui.release() },
+  const d = ui.show({ html: `<div class="dc">카페 게르부아</div><div class="dt">카페 안에서</div>
+    <div class="talk">${lines.map((l) => `<p>${esc(l)}</p>`).join('')}</div>
+    <p class="talk-wait">대화 원고가 오면 이 자리에서 대화가 재생됩니다</p><div class="prog"><i></i></div>`, buttons: [
+    { label: '다시 비추기', cls: 'line', on: () => ui.release() },
     { label: '칼럼으로 가기', on: async () => { await closeCam(true); toColumn(); } },
   ] });
-  const ps = d.querySelectorAll('.talk p:not(.wait)'), bar = d.querySelector('.prog i');
+  const ps = d.querySelectorAll('.talk p'), bar = d.querySelector('.prog i');
   ps.forEach((p, k) => setTimeout(() => { p.classList.add('on'); if (bar) bar.style.width = `${((k + 1) / ps.length) * 100}%`; }, 300 + k * 2200));
 }
 function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }

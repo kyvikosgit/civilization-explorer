@@ -7,3 +7,4 @@
 
 /* 안내가 뜨면 도입 글은 물러난다 */
 body.asked .intro-copy{opacity:0;pointer-events:none;transition:opacity .4s}
+.to-next{display:flex;align-items:center;justify-content:center;height:52px;margin-top:10px;border-radius:8px;background:#E9C77A;color:#1a0d08;font-weight:800;font-size:16px;text-decoration:none}

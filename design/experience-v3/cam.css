@@ -115,3 +115,4 @@
 .v3-cam.pre{opacity:0;pointer-events:none}
 .v3-cam.opening .msg,.v3-cam.opening .top{opacity:0}
 .v3-cam .msg,.v3-cam .top{transition:opacity .5s}
+.v3-cam .talk-wait{margin-top:10px;font-size:13px;opacity:.55}

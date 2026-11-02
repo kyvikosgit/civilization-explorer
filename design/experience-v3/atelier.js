@@ -1,5 +1,6 @@
 // v3 아틀리에 — v2 c3-tube.js 사본. 구성(소품 아홉 칸 · 소품 카드 · 일기장 힌트 · 튜브물감 해설)은 그대로
 //   바꾼 곳: 소품은 카메라로 비춰야 드러난다(NFC 스캔 → 카메라). 고르기는 정답형 — 튜브물감이면 정답, 아니면 그 물건의 한 줄(기획서). 관람객 비율 없음
+//   11/02 공간연출기획안: 실내 아틀리에 없음 — 에트르타 야외 작업 공간, 소품 넷(이젤 · 작업 중인 캔버스 · 접이식 의자 · 화구 상자와 튜브물감), 일기장 힌트 없음
 //   카메라 인식 타깃은 소품 실물 사진을 받은 뒤 만든다 — 그 전엔 시연 모드에서 눌러서 확인
 // (아래는 v2 원문 주석)
 // C3 화가의 아틀리에 · 튜브물감 — 방 안의 물건을 둘러보고, 화가를 밖으로 이끈 것을 하나 고른다
@@ -21,40 +22,25 @@ const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const IMG = 'img/c3obj/';
 // 물건 → 사진 파일(튜브물감 상자 = 브레이트너의 물감 상자). 돼지 방광 = 기획서(260928) 소품 이미지
-const PHOTO = { tube: 'tubebox' };
-const src = (id) => (PHOTO[id] === null ? '' : `${IMG}${PHOTO[id] || id}.jpg`);
+const PHOTO = { tube: 'tubebox', easel: 'pochade' };
+const src = (id) => (id === 'canvas' ? '../../experience-v3/img/et_canvas.jpg' : `${IMG}${PHOTO[id] || id}.jpg`);
 
 // where: 기획서의 배치(아틀리에 안 6 · 야외 자리 3). why: 고른 뒤 한 줄(기획서의 물건별 문장)
 const OBJ = [
-  { id: 'diary', name: '화가의 일기장', where: '아틀리에 안', hint: true },
-  { id: 'bladder', name: '돼지 방광 물감', where: '아틀리에 안',
-    desc: '물감을 돼지 방광에 담아 끈으로 묶어 두었습니다. 쓸 때는 바늘로 구멍을 내 짜고, 다시 막았습니다.',
-    why: '툭하면 터지고 금세 굳는 이 물감 주머니가, 오히려 화가를 아틀리에에 묶어 두었습니다.' },
-  { id: 'easel', name: '대형 이젤', where: '아틀리에 안',
-    desc: '서서 큰 캔버스를 거는 육중한 이젤입니다.',
-    why: '이 이젤은 애초에 방 밖으로 나갈 수조차 없었습니다.' },
-  { id: 'canvas', name: '실내 캔버스', where: '아틀리에 안',
-    desc: '아틀리에에서 완성한 풍경화. 지난여름의 스케치를 보며 방 안에서 칠했습니다.',
-    why: '기억에 기대어 그린 그림이라, 그림 속 빛이 실제 풍경과 다릅니다.' },
-  { id: 'mortar', name: '안료 병과 절구', where: '아틀리에 안',
-    desc: '안료를 절구에 갈아 기름에 개어, 물감을 직접 만들었습니다.',
-    why: '물감을 갈아 쓰는 일은 아틀리에 안에서만 할 수 있었습니다.' },
-  { id: 'lamp', name: '오일램프', where: '아틀리에 안',
-    desc: '해가 지면 이 불빛 아래에서 칠했습니다.',
-    why: '이 불빛은 창밖의 햇빛과 전혀 다른 빛입니다.' },
-  { id: 'pochade', name: '휴대용 이젤', where: '야외 자리',
+  { id: 'easel', name: '이젤', where: '에트르타',
     desc: '접어서 들고 다니는 상자 이젤. 뚜껑을 열면 작은 캔버스를 받칩니다.',
     why: '이젤은 들고 나갈 수 있었지만, 결정적인 이유는 따로 있었습니다.' },
-  { id: 'tube', name: '튜브물감 상자', where: '야외 자리',
-    desc: '작은 나무 상자에 금속 튜브 물감과 팔레트가 들어 있습니다.',
-    why: '새지 않고 가벼운 금속 튜브가, 물감을 처음으로 밖에 들고 나가게 했습니다.' },
-  { id: 'stool', name: '접이식 의자', where: '야외 자리',
+  { id: 'canvas', name: '작업 중인 캔버스', where: '에트르타',
+    desc: '화가가 잠시 자리를 비운 듯 놓여 있는, 그리다 만 풍경입니다.',
+    why: '캔버스는 밖으로 나온 결과이지, 나오게 한 이유는 아니었습니다.' },
+  { id: 'stool', name: '접이식 의자', where: '에트르타',
     desc: '접으면 한 손에 들리는 야외용 의자입니다.',
     why: '앉을 자리는 마련됐지만, 화가를 밖으로 이끈 이유는 아니었습니다.' },
+  { id: 'tube', name: '화구 상자와 튜브물감', where: '에트르타',
+    desc: '작은 나무 상자에 금속 튜브 물감과 팔레트가 들어 있습니다.',
+    why: '새지 않고 가벼운 금속 튜브가, 물감을 처음으로 밖에 들고 나가게 했습니다.' },
 ];
 const BY = Object.fromEntries(OBJ.map((o) => [o.id, o]));
-// 오늘 관람객의 선택(예시 수치 · 서버가 붙으면 실제 집계)
-const STATS = { tube: 46, pochade: 22, bladder: 9, stool: 6, canvas: 5, lamp: 5, mortar: 4, easel: 3 };
 // 사진 출처(img/c3obj/SOURCES.md 의 한 줄 요약). 없는 사진은 이름만
 let CREDIT = {};
 
@@ -79,7 +65,7 @@ grid.addEventListener('click', (e) => {
   const b = e.target.closest('.ob'); if (!b) return;
   const id = b.dataset.id;
   if (seen.has(id) || !CAN_SCAN) { reveal(id); return; }
-  toast('방에서 소품을 찾아 카메라로 비춰 보세요');
+  toast('에트르타 공간에서 소품을 찾아 카메라로 비춰 보세요');
 });
 function paintSeen() {
   grid.querySelectorAll('.ob').forEach((b) => { b.classList.toggle('seen', seen.has(b.dataset.id)); });
@@ -166,15 +152,15 @@ scanBtn.addEventListener('click', () => {
   closeAll(true);
   if (store.demo()) {                                   // 시연 모드 — 눌러서 인식
     openCam({
-      title: '화가의 아틀리에 · 소품 비추기', find: '방 안의 소품에 카메라를 비추세요', mind: null, pending: TASK.pending,
+      title: '에트르타 · 소품 비추기', find: '이젤 · 캔버스 · 의자 · 화구 상자에\n카메라를 비추세요', mind: null, pending: TASK.pending,
       targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), demo: true,
       onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
     });
     return;
   }
   openDetect({
-    title: '화가의 아틀리에 · 소품 비추기',
-    find: '방 안의 소품에 카메라를 비추세요',
+    title: '에트르타 · 소품 비추기',
+    find: '이젤 · 캔버스 · 의자 · 화구 상자에\n카메라를 비추세요',
     model: MODEL,
     names: Object.fromEntries(OBJ.map((o) => [o.id, o.name])),
     onFound: (id) => { closeDetect(); reveal(id); },

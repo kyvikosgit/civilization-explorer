@@ -206,8 +206,8 @@
       <li class="ln">파리–루앙(1843), 루앙–르아브르(1847) 철길이 열려, 파리 사람들은 하루 만에 바닷가에 닿을 수 있게 되었습니다.</li>
       <li class="ln">아르장퇴유에 살던 모네도 이 역으로 파리를 오갔습니다.</li>
     </ul>
-    <p class="intro-role ln">벽면의 자료를 먼저 살펴보세요.</p>
-    <div class="intro-go ln"><button class="btn" id="introGo" type="button">벽면 자료 보기</button></div>
+    <p class="intro-role ln">사업가의 사무실을 먼저 살펴보세요.</p>
+    <div class="intro-go ln"><button class="btn" id="introGo" type="button">사무실 살펴보기</button></div>
   </div>
   <div class="flaps" id="flaps" aria-hidden="true"></div>
 </section>
@@ -215,7 +215,7 @@
 <!-- 현장 단서 — 부스 소품(벽면 그림 · 신문 · 시간표 · 엽서)을 앱에서 다시 보기. booth/js/c2.js CLUES 그대로 -->
 <div id="clueSheet" class="sheet clue-sheet" role="dialog" aria-label="현장 자료">
   <div class="grip"></div>
-  <h3 class="confirm-title">현장 자료</h3>
+  <h3 class="confirm-title">사업가의 사무실</h3>
   <div id="clueRow" class="clue-row"></div>
   <button class="btn" data-sheet-close style="margin-top:14px">닫기</button>
 </div>
@@ -366,14 +366,16 @@ const ZLAB = { lesifs: [-14, -10, 'end'] };   // 영역 이름을 역 점 기준
 const FIT = { lon0: -0.62, lon1: 2.7, lat0: 48.72, lat1: 49.92 };    // 파리 → 노르망디 해안(바다 쪽 여유)
 
 // ── 현장 단서 (부스 소품과 같은 것: 벽면 그림 · 신문 · 책상 위 시간표 · 엽서) — booth/js/c2.js CLUES 그대로
+// 11/02 공간연출기획안 사무실 벽 · 책상 자료. 글은 전시패널 원고, 그림은 기획안 이미지
 const CLUES = [
-  { kind: 'img', img: '../../../booth/assets/clue/monet_gare_saint_lazare_1877.jpg', k: '벽면의 그림', t: '노르망디로 가는 서부철도의 파리 출발역, 생라자르.', meta: '클로드 모네 〈생라자르역〉 1877 · 퍼블릭 도메인' },
-  { kind: 'news', k: '신문 광고 · 재현', t: '바다로 가는 유람 열차 광고. 행선지는 영불해협(라망슈) 해안 도시들.' },
-  { kind: 'table', k: '책상 위 시간표 · 재현', t: '서부철도 파리–르아브르 선의 정차역.' },
-  { kind: 'img', img: '../../../booth/assets/clue/monet_manneporte_etretat_1883.jpg', k: '엽서', t: '바다 절벽의 마을 에트르타. 모네는 이 해안의 항구 도시 르아브르에서 자랐습니다.', meta: '클로드 모네 〈에트르타의 마네포르트〉 1883 · 퍼블릭 도메인' },
+  { kind: 'img', img: '../../experience-v3/img/of_train.jpg', k: '증기기관차', t: '철도와 증기선은 이동과 교역의 범위를 넓혔습니다.' },
+  { kind: 'img', img: '../../experience-v3/img/of_map.jpg', k: '노선도', t: '철도의 발전으로 파리 생라자르역에서 노르망디로 향하는 여행이 수월해졌습니다.' },
+  { kind: 'img', img: '../../experience-v3/img/of_world.jpg', k: '세계지도', t: '세계지도와 열차·선박 시간표는 활발해진 이동을 보여줍니다.' },
+  { kind: 'img', img: '../../experience-v3/img/of_ledger.jpg', k: '무역장부', t: '무역장부는 활발해진 거래를 보여줍니다.' },
+  { kind: 'img', img: '../../experience-v3/img/of_wave.jpg', k: '우키요에', t: '일본에서 건너온 목판화 우키요에에는 먼 나라의 문화가 일상과 예술 속으로 들어오던 시대가 드러납니다.' },
 ];
 function clueCard(c) {
-  if (c.kind === 'img') return `<figure class="clue"><div class="clue-img"><img src="${c.img}" alt="" loading="lazy"></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p><div class="clue-meta">${c.meta}</div></figcaption></figure>`;
+  if (c.kind === 'img') return `<figure class="clue"><div class="clue-img"><img src="${c.img}" alt="" loading="lazy"></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p><div class="clue-meta">${c.meta || ""}</div></figcaption></figure>`;
   if (c.kind === 'news') return `<figure class="clue"><div class="clue-paper news"><div class="np-mast">LE PETIT JOURNAL<span>— annonces —</span></div><div class="np-rule"></div><div class="np-big">TRAINS DE PLAISIR</div><div class="np-mid">PARIS — LA MER</div><div class="np-sm">Dieppe · Le Havre · Trouville<br>Billets d’aller et retour</div></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p></figcaption></figure>`;
   return `<figure class="clue"><div class="clue-paper table"><div class="tt-co">CHEMINS DE FER DE L’OUEST</div><div class="tt-line">Ligne de Paris au Havre</div><ol class="tt-st"><li>Paris</li><li>Mantes</li><li>Vernon</li><li>Rouen</li><li>Yvetot</li><li>Le Havre</li></ol></div><figcaption><div class="clue-k">${c.k}</div><p>${c.t}</p></figcaption></figure>`;
 }
