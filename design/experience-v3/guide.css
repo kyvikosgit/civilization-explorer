@@ -73,7 +73,10 @@
 
 /* 해돋이 — 그림 자리에서 시작해 화면 끝까지 */
 .v3-bloom{position:fixed;inset:0;z-index:70}
-.v3-bloom video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0}
+.v3-bloom{pointer-events:auto}
+.v3-bloom .bl-bg{position:absolute;inset:0;background:#000;opacity:0}
+.v3-bloom video,.v3-bloom .bl-paint{position:absolute;object-fit:cover;opacity:0;will-change:left,top,width,height}
+.v3-bloom video{opacity:0}
 .v3-bloom .glow{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 60% 40%,rgba(255,214,150,.75),rgba(217,103,47,.25) 45%,transparent 75%);mix-blend-mode:screen}
 .v3-bloom .bl-cap{position:absolute;left:calc(24px + env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom));color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6);opacity:0;transform:translateY(8px);transition:opacity 1s,transform 1s;display:flex;flex-direction:column;font-family:Freesentation,sans-serif}
 .v3-bloom .bl-cap.on{opacity:1;transform:none}
