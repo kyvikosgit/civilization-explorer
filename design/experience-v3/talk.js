@@ -32,14 +32,13 @@ function winVideo(src) {
 function playFromStart(v) { try { v.pause(); v.currentTime = 0; } catch {} v.play().catch(() => {}); }
 const ended = (v, max) => new Promise((r) => { if (!v || v.ended || v.paused) return r(); const t = setTimeout(r, max); v.addEventListener('ended', () => { clearTimeout(t); r(); }, { once: true }); });
 
-// three 장면: 창 불빛 + 창 영상(벽 위 그 창 자리에 겹친 판, 유리 자리만 보이게)
+// three 장면: 창 영상(벽 위 그 창 자리에 겹친 판, 유리 자리만 보이게) — 나머지는 카메라에 비친 벽 그대로(덧칠하지 않는다)
 //   walls = 같은 벽의 인식 대상들(벽 전체 · 창 하나씩) — k 번째 사람은 어느 대상에서나 같은 사람. 영상은 사람마다 하나를 같이 쓰고,
 //   지금 잡힌 대상(maxTrack 1 이라 하나) 위에 그린다. 창 하나로 시작했다가 옆 창으로 옮겨 가도 이어진다
 export function talkFx(walls) {
   return ({ THREE, mindar, anchors }) => {
     const v3 = new THREE.Vector3();
-    const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 4, 64, 64, 64); g.addColorStop(0, 'rgba(255,190,110,.9)'); g.addColorStop(1, 'rgba(255,170,80,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
-    const glows = [], vids = [], shared = new Map();
+    const vids = [], shared = new Map();
     const vidOf = (src) => { if (!shared.has(src)) { const v = winVideo(src); shared.set(src, { v, tex: new THREE.VideoTexture(v) }); } return shared.get(src); };
     walls.forEach((w, i) => {
       w.spots.forEach((s, k) => {
@@ -54,9 +53,6 @@ export function talkFx(walls) {
           const m = new THREE.Mesh(new THREE.PlaneGeometry(cw, ch * w.ratio), mat);
           m.position.set(cx + cw / 2 - 0.5, (0.5 - cy - ch / 2) * w.ratio, 0.0008); anchors[i].group.add(m); vids.push({ v, m, i, k });
         }
-        if (!w.windows) return;
-        const glow = new THREE.Mesh(new THREE.PlaneGeometry(w.windows.w * 1.7, w.windows.w * 1.7), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.3 }));
-        glow.position.set(s.x - 0.5, (0.5 - s.y) * w.ratio, 0.0005); anchors[i].group.add(glow); glows.push({ m: glow, i, k });
       });
     });
     let active = -1;
@@ -66,15 +62,14 @@ export function talkFx(walls) {
         const o = vids.find((o) => o.k === k); if (o) playFromStart(o.v);
       },
       video(k) { return vids.find((o) => o.k === k)?.v || null; },
-      tick(t) {
-        const now = t || 0, live = new Set();
+      tick() {
+        const live = new Set();
         vids.forEach((o) => {
           const on = anchors[o.i].group.visible && active === o.k, u = o.m.material.uniforms;
           u.on.value += ((on ? 1 : 0) - u.on.value) * (on ? 0.25 : 0.08);
           if (on || u.on.value >= 0.01) live.add(o.v);
         });
         vids.forEach((o) => { if (!live.has(o.v) && active !== o.k && !o.v.paused) o.v.pause(); });
-        glows.forEach((o) => { o.m.material.opacity = (active === o.k ? 0.62 : 0.28) + 0.05 * Math.sin(now * 2.4 + o.k); });
       },
       // k 번째 사람의 화면 자리 — 지금 잡혀 있는 대상 기준
       project(k) {
@@ -88,18 +83,19 @@ export function talkFx(walls) {
   };
 }
 
-// 화면 층: 누를 자리(보이지 않음) · 말풍선 · (카메라 없이 고르기) 창 영상
+// 화면 층: 누를 자리(보이지 않음) · 말풍선 · 인식 표시 · (카메라 없이 고르기) 창 영상
 //   카메라: 벽 위 자리를 three 로 투영 / 카메라 없이 고르기: 화면에 보이는 그 벽 그림(sim-art) 위 자리 그대로
-//   카메라 없이 고르기에서는 벽 그림이 폰 화면 안에 작게 보이니, 누른 창으로 다가가듯 확대했다가 말이 끝나면 돌아온다(실제 벽 앞에선 다가가면 된다)
-export function startTalk(ui, wall, { base, onHeard }) {
+//   카메라 없이 고르기에서는 벽 그림이 폰 화면 안에 작게 보이니, 그 창으로 다가가듯 확대했다가 말이 끝나면 돌아온다(실제 벽 앞에선 다가가면 된다)
+//   인식되면 작은 '인식' 표시와 함께 바로 대화가 시작된다 — start 번째 사람부터 차례로(창 하나를 비췄으면 그 창부터). 사람을 누르면 그 사람으로 넘어간다
+export function startTalk(ui, wall, { base, onHeard, start = 0 }) {
   const host = ui.el, token = {}, heard = new Set();
   host.querySelector('.talk-layer')?.remove();
   const layer = document.createElement('div');
   layer.className = 'talk-layer';
   const sim = host.classList.contains('sim-on') || !ui.fx?.project;
-  layer.innerHTML = `<i class="t-glow"></i>${wall.spots.map((s, k) => `<button class="t-hit" type="button" aria-label="인물 ${k + 1}"></button>`).join('')}<div class="t-bub"></div><p class="t-tip">말을 걸 사람을 눌러 보세요</p>`;
+  layer.innerHTML = `<i class="t-glow"></i>${wall.spots.map((s, k) => `<button class="t-hit" type="button" aria-label="인물 ${k + 1}"></button>`).join('')}<div class="t-bub"></div><p class="t-ok"><i></i>인식했어요</p>`;
   host.appendChild(layer);
-  const hits = [...layer.querySelectorAll('.t-hit')], bub = layer.querySelector('.t-bub'), glow = layer.querySelector('.t-glow'), tip = layer.querySelector('.t-tip');
+  const hits = [...layer.querySelectorAll('.t-hit')], bub = layer.querySelector('.t-bub'), glow = layer.querySelector('.t-glow'), ok = layer.querySelector('.t-ok');
   const wins = wall.spots.map((s) => {
     if (!sim || !s.video) return null;
     const v = winVideo(s.video); v.className = 't-win';
@@ -122,8 +118,6 @@ export function startTalk(ui, wall, { base, onHeard }) {
       if (p) pos[k] = sim ? p : (pos[k] ? { x: pos[k].x + (p.x - pos[k].x) * 0.2, y: pos[k].y + (p.y - pos[k].y) * 0.2 } : p);
       if (pos[k]) hits[k].style.transform = `translate(${pos[k].x}px, ${pos[k].y}px)`;
     });
-    const top = Math.min(...pos.filter(Boolean).map((p) => p.y), innerHeight * 0.5);
-    tip.style.top = `${Math.max(TOP, top - 70)}px`;
     if (active >= 0 && pos[active]) {
       const a = pos[active];
       glow.style.left = `${a.x}px`; glow.style.top = `${a.y}px`;   // transform 은 숨쉬기 애니메이션이 쓴다
@@ -162,7 +156,7 @@ export function startTalk(ui, wall, { base, onHeard }) {
   // 누른 사람: 그 창만 움직이고(그 창 영상) 그 사람이 말한다. 다른 사람을 누르면 바로 바뀐다
   const speakTo = async (k) => {
     const my = ++run;
-    stopVoice(); tip.classList.add('off');
+    stopVoice();
     wins.forEach((v, j) => { if (v && j !== k) { v.classList.remove('on'); v.pause(); } });
     active = k; ui.fx?.setActive?.(k);
     const s = wall.spots[k];
@@ -177,7 +171,18 @@ export function startTalk(ui, wall, { base, onHeard }) {
     wins[k]?.classList.remove('on'); glow.classList.remove('on'); unzoom();
     active = -1; ui.fx?.setActive?.(-1);
     heard.add(k); onHeard?.(heard.size, wall.spots.length);
+    return true;
   };
-  hits.forEach((h, k) => { h.onclick = () => speakTo(k); });
+  // k 부터 차례로: 한 사람이 끝나면 아직 안 들은 다음 사람(창 순서대로 돌아서). 누르면 거기서 다시 이어 간다
+  const chain = async (k) => {
+    if (!(await speakTo(k))) return;
+    const n = wall.spots.length, next = [...Array(n).keys()].map((j) => (k + 1 + j) % n).find((j) => !heard.has(j));
+    if (next == null) return;
+    const my = run; await wait(500);
+    if (my === run && !token.dead) chain(next);
+  };
+  hits.forEach((h, k) => { h.onclick = () => chain(k); });
+  ok.classList.add('on'); setTimeout(() => ok.classList.remove('on'), 1800);
+  setTimeout(() => { if (!token.dead && run === 0) chain(Math.min(start, wall.spots.length - 1)); }, 650);
   return () => { token.dead = true; run++; cancelAnimationFrame(raf); stopVoice(); ui.fx?.setActive?.(-1); unzoom(); layer.remove(); };
 }

@@ -47,11 +47,11 @@ function openPeople() {
 function talk(i, ui) {
   const w = walls[i], n = w.spots.length;
   const panel = (got) => ui.show({
-    html: `<div class="dc">${esc(w.place)}</div><div class="dt">${got >= n ? '모두의 이야기를 들었습니다' : '그 시대 사람들의 이야기'}</div><div class="ds">${got} / ${n}명 · 벽의 사람을 눌러 보세요</div>`,
+    html: `<div class="dc">${esc(w.place)}</div><div class="dt">${got >= n ? '모두의 이야기를 들었습니다' : '그 시대 사람들의 이야기'}</div><div class="ds">${got >= n ? `${n}명 모두 · 다시 들으려면 그 사람을 누르세요` : `${got} / ${n}명`}</div>`,
     buttons: [{ label: '칼럼으로 가기', cls: got >= n ? '' : 'line', on: async () => { stopTalk?.(); await closeCam(true); toColumn(); } }],
   });
   panel(0);
-  stopTalk = startTalk(ui, w, { base: V3, onHeard: (got) => panel(got) });
+  stopTalk = startTalk(ui, w, { base: V3, onHeard: (got) => panel(got), start: i > 0 ? i - 1 : 0 });   // 창 하나(1–3)를 비췄으면 그 창 사람부터
 }
 function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }
 
