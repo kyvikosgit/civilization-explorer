@@ -25,7 +25,7 @@ const PEOPLE = {
 // 인식 대상 = 벽 전체(0) + 창 하나씩(1–3). 창 대상은 같은 벽을 그 창 기준 좌표로 옮긴 것 — 창 하나만 비춰도 옆 창 자리까지 그대로 이어진다
 const wall0 = { ...people.wall, index: 0, img: V3 + people.wall.img, spots: people.wall.spots.map((s) => ({ ...s, video: V3 + s.video })) };
 const part = ({ img, rect: [rx, ry, rw, rh] }, index) => ({
-  ...wall0, index, img: V3 + img, ratio: (wall0.ratio * rh) / rw,
+  ...wall0, index, focus: index - 1, img: V3 + img,   // focus: 이 창 대상이 가리키는 사람(창 1 → 0번) ratio: (wall0.ratio * rh) / rw,
   windows: { w: wall0.windows.w / rw, h: wall0.windows.h / rh },
   spots: wall0.spots.map((s) => ({ ...s, x: (s.x - rx) / rw, y: (s.y - ry) / rh, clip: [(s.clip[0] - rx) / rw, (s.clip[1] - ry) / rh, s.clip[2] / rw, s.clip[3] / rh] })),
 });
@@ -51,7 +51,7 @@ function talk(i, ui) {
     buttons: [{ label: '칼럼으로 가기', cls: got >= n ? '' : 'line', on: async () => { stopTalk?.(); await closeCam(true); toColumn(); } }],
   });
   panel(0);
-  stopTalk = startTalk(ui, w, { base: V3, onHeard: (got) => panel(got), start: i > 0 ? i - 1 : 0 });   // 창 하나(1–3)를 비췄으면 그 창 사람부터
+  stopTalk = startTalk(ui, w, { base: V3, onHeard: (got) => panel(got) });
 }
 function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }
 

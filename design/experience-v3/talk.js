@@ -71,6 +71,8 @@ export function talkFx(walls) {
         });
         vids.forEach((o) => { if (!live.has(o.v) && active !== o.k && !o.v.paused) o.v.pause(); });
       },
+      // 지금 잡혀 있는 대상: i(벽 전체 0 · 창 하나 1–3)와 그 대상이 가리키는 사람(창 하나면 그 창, 벽 전체면 null)
+      target() { const i = anchors.findIndex((a) => a.group.visible); return i < 0 ? null : { i, focus: walls[i].focus ?? null }; },
       // k 번째 사람의 화면 자리 — 지금 잡혀 있는 대상 기준
       project(k) {
         const i = anchors.findIndex((a) => a.group.visible);
@@ -86,8 +88,10 @@ export function talkFx(walls) {
 // 화면 층: 누를 자리(보이지 않음) · 말풍선 · 인식 표시 · (카메라 없이 고르기) 창 영상
 //   카메라: 벽 위 자리를 three 로 투영 / 카메라 없이 고르기: 화면에 보이는 그 벽 그림(sim-art) 위 자리 그대로
 //   카메라 없이 고르기에서는 벽 그림이 폰 화면 안에 작게 보이니, 그 창으로 다가가듯 확대했다가 말이 끝나면 돌아온다(실제 벽 앞에선 다가가면 된다)
-//   인식되면 작은 '인식' 표시와 함께 바로 대화가 시작된다 — start 번째 사람부터 차례로(창 하나를 비췄으면 그 창부터). 사람을 누르면 그 사람으로 넘어간다
-export function startTalk(ui, wall, { base, onHeard, start = 0 }) {
+//   카메라: 비추는 그 창의 영상·대사만 재생한다(창 하나를 비추면 그 창, 벽 전체면 화면 가운데에 가장 가까운 창). 그 창에서 벗어나면 바로 멈추고,
+//   다른 창으로 옮기면 그 창으로 바뀐다. 한 번 끝난 창은 벗어났다 다시 비출 때 다시 재생. 자동으로 다음 사람으로 넘어가지 않는다
+//   카메라 없이 고르기: 사람을 누르면 그 사람
+export function startTalk(ui, wall, { base, onHeard }) {
   const host = ui.el, token = {}, heard = new Set();
   host.querySelector('.talk-layer')?.remove();
   const layer = document.createElement('div');
@@ -106,8 +110,32 @@ export function startTalk(ui, wall, { base, onHeard, start = 0 }) {
   const pos = wall.spots.map(() => null);
   const TOP = 76, stage = host.querySelector('.sim');
   let active = -1, raf = 0, run = 0, zoom = { s: 1, x: 0, y: 0 };
+  let region = -1, want = -1, wantT = 0;
+  // 지금 비추는 창(사람 번호) — 없으면 -1
+  const regionNow = () => {
+    const t = ui.fx?.target?.();
+    if (!t) return -1;
+    if (t.focus != null) return t.focus;
+    let best = -1, bd = Infinity;
+    const cx = innerWidth / 2, cy = innerHeight * 0.45;
+    pos.forEach((p, k) => {
+      if (!p || p.x < 0 || p.x > innerWidth || p.y < 0 || p.y > innerHeight) return;
+      const d = Math.hypot(p.x - cx, p.y - cy);
+      if (d < bd) { bd = d; best = k; }
+    });
+    return best;
+  };
   const place = () => {
     if (token.dead) return;
+    // 카메라: 비추는 창이 0.4초 그대로면 그 창 재생, 0.6초 동안 아무 창도 안 보이면 멈춤(인식이 잠깐 끊기는 건 무시)
+    if (!sim) {
+      const now = performance.now(), w = regionNow();
+      if (w !== want) { want = w; wantT = now; }
+      if (want !== region && now - wantT > (want < 0 ? 600 : 400)) {
+        region = want;
+        if (region < 0) hush(); else speakTo(region);
+      }
+    }
     const r = sim ? ui.simRect?.() : null;
     wall.spots.forEach((s, k) => {
       if (wins[k] && r) {
@@ -173,16 +201,14 @@ export function startTalk(ui, wall, { base, onHeard, start = 0 }) {
     heard.add(k); onHeard?.(heard.size, wall.spots.length);
     return true;
   };
-  // k 부터 차례로: 한 사람이 끝나면 아직 안 들은 다음 사람(창 순서대로 돌아서). 누르면 거기서 다시 이어 간다
-  const chain = async (k) => {
-    if (!(await speakTo(k))) return;
-    const n = wall.spots.length, next = [...Array(n).keys()].map((j) => (k + 1 + j) % n).find((j) => !heard.has(j));
-    if (next == null) return;
-    const my = run; await wait(500);
-    if (my === run && !token.dead) chain(next);
-  };
-  hits.forEach((h, k) => { h.onclick = () => chain(k); });
+  // 멈춤: 비추던 창에서 벗어났을 때 — 대사·말풍선·영상을 바로 거둔다
+  function hush() {
+    run++; stopVoice();
+    bub.classList.remove('on'); glow.classList.remove('on');
+    wins.forEach((v) => { if (v) { v.classList.remove('on'); v.pause(); } });
+    active = -1; ui.fx?.setActive?.(-1); unzoom();
+  }
+  hits.forEach((h, k) => { h.onclick = () => speakTo(k); });
   ok.classList.add('on'); setTimeout(() => ok.classList.remove('on'), 1800);
-  setTimeout(() => { if (!token.dead && run === 0) chain(Math.min(start, wall.spots.length - 1)); }, 650);
   return () => { token.dead = true; run++; cancelAnimationFrame(raf); stopVoice(); ui.fx?.setActive?.(-1); unzoom(); layer.remove(); };
 }
