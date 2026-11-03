@@ -160,7 +160,7 @@ scanBtn.addEventListener('click', () => {
   closeAll(true);
   // 앱(NFC 가능): 소품 태그에 대기만 하면 그 소품 — 카메라 인식 대신
   if (APP_NFC) {
-    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, nfcMsg: '소품에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '소품에 폰 대기', nfcAuto: true, onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
+    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, nfcAny: () => OBJ.findIndex((o) => o.id === nextObj()), nfcMsg: '소품에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '소품에 폰 대기', nfcAuto: true, onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
     return;
   }
   openDetect({
@@ -182,6 +182,8 @@ function tagToObject(url) {
 fetch(`${IMG}credits.json`).then((r) => (r.ok ? r.json() : {})).then((j) => { CREDIT = j || {}; }).catch(() => {});
 
 // 앱(빌드 9): 이 화면이 열려 있을 때 태그를 대면 아이폰 알림 → 앱이 넘겨준다
-window.__m100tag = (url) => { const k = tagToObject(url); if (k) { closeCam(); reveal(k); } };
+// 시연용(11/03): 이 화면 소품 태그가 아니어도 읽히기만 하면 아직 안 본 다음 소품으로
+const nextObj = () => (OBJ.find((o) => !seen.has(o.id)) || OBJ[OBJ.length - 1]).id;
+window.__m100tag = (url) => { if (!url) return; const k = tagToObject(url) || nextObj(); closeCam(); reveal(k); };
 
 window.__c3tube = { open, choose, closeAll, get seen() { return [...seen]; } };

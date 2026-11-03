@@ -36,7 +36,7 @@ function scan() {
     title: '사업가의 사무실 · 기차표 찾기', find: task.find, hint: '기차표가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
     mind: task.mind ? V3 + task.mind : null, pending: task.pending,
     targets: task.targets.map((t) => ({ ...t, img: V3 + t.img })), hold: true,
-    nfc: { ticket: 0, c2: 0 }, nfcMsg: '기차표에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '기차표 태그로 찍기', nfcFind: '기차표를 비추거나 휴대폰을 대 보세요',
+    nfc: { ticket: 0, c2: 0 }, nfcAny: 0, nfcMsg: '기차표에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '기차표 태그로 찍기', nfcFind: '기차표를 비추거나 휴대폰을 대 보세요',
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => guide.reset(),
@@ -44,15 +44,15 @@ function scan() {
   });
 }
 // 태그로 찾음 — 앱이 넘겨준 태그 주소(…/n/?t=ticket), 또는 태그로 이 화면이 처음 열린 경우(?tag=ticket)
-const isTicket = (url) => { try { const k = new URL(url, location.href).searchParams.get('t'); return k === 'ticket' || k === 'c2'; } catch (e) { return false; } };
 let won = false;
 function byTag() {
   if (won) return;
   if (!document.body.classList.contains('asked')) { window.intro.finish(); document.body.classList.add('asked'); }
   win();
 }
-window.__m100tag = (url) => { if (isTicket(url)) byTag(); };
-if (['ticket', 'c2'].includes(new URLSearchParams(location.search).get('tag'))) setTimeout(byTag, 900);
+// 시연용(11/03): 어떤 태그든 읽히기만 하면 기차표를 찾은 것으로
+window.__m100tag = (url) => { if (url) byTag(); };
+if (new URLSearchParams(location.search).get('tag')) setTimeout(byTag, 900);
 
 async function win() {
   if (won) return;

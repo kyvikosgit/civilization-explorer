@@ -146,7 +146,9 @@ export function openCam(o) {
       if (cur !== me || me.locked) return;
       let key = null;
       try { const u = new URL(url, location.href); key = u.searchParams.get('t') || u.searchParams.get('o'); } catch { key = url; }
-      const i = url && key != null ? o.nfc[key] : undefined;
+      // 시연용(11/03): 태그 주소가 이 화면 것이 아니어도 태그가 읽히기만 하면 찾은 것으로 — o.nfcAny(번호 또는 번호를 돌려주는 함수)
+      const any = typeof o.nfcAny === 'function' ? o.nfcAny() : o.nfcAny;
+      const i = url ? (key != null && o.nfc[key] != null ? o.nfc[key] : any) : undefined;
       if (i != null) return found(i);
       if (!quiet) { nb.textContent = url ? '이 태그가 아닙니다 · 다시 찍기' : o.nfcBtn || '태그로 찍기'; return; }
       if (!url) return;                                           // 안드로이드 NFC 꺼짐 등 — 카메라로만
