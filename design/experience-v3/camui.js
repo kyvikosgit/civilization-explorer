@@ -92,7 +92,9 @@ export function openCam(o) {
   }
 
   const found = (i) => {
+    if (me.shown === i) clearTimeout(me.lostT);                   // 잠깐 놓쳤다가 다시 잡힘 — 그대로 둔다
     if (cur !== me || me.locked) return;
+    me.shown = i;
     clearTimeout(me.hintT);
     const f = $('.flash'), fr = $('.finder').getBoundingClientRect();
     f.style.setProperty('--fx', `${fr.left + fr.width / 2}px`); f.style.setProperty('--fy', `${fr.top + fr.height / 2}px`);
@@ -172,7 +174,11 @@ export function openCam(o) {
     startScan($('.ar'), o.mind, (o.targets || []).length, {
       setup: o.fx ? (ctx) => (me.fx = o.fx(ctx)) : null,
       onFound: found,
-      onLost: (i) => me.fx?.lost?.(i),
+      onLost: (i) => {
+        me.fx?.lost?.(i);
+        // o.releaseOnLost: 보던 대상이 화면에서 벗어나면(0.8초) 해설을 닫고 다시 찾는 화면으로
+        if (o.releaseOnLost && me.locked && me.shown === i) { clearTimeout(me.lostT); me.lostT = setTimeout(() => { if (cur === me && me.locked && !me.o.keepOnLost) { me.shown = -1; ui.release(); } }, 800); }
+      },
       onReady: () => { armHint(); if (o.hold) reveal(); },
       onError: (e) => {
         console.warn('[cam]', e);

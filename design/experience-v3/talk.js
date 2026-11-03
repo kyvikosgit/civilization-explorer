@@ -32,29 +32,80 @@ function winVideo(src) {
 function playFromStart(v) { try { v.pause(); v.currentTime = 0; } catch {} v.play().catch(() => {}); }
 const ended = (v, max) => new Promise((r) => { if (!v || v.ended || v.paused) return r(); const t = setTimeout(r, max); v.addEventListener('ended', () => { clearTimeout(t); r(); }, { once: true }); });
 
-// three 장면: 창 영상(벽 위 그 창 자리에 겹친 판, 유리 자리만 보이게) — 나머지는 카메라에 비친 벽 그대로(덧칠하지 않는다)
+// three 장면: 창 영상 — 움직이는 부분만 카메라 화면 위에 얹는다(해리포터의 움직이는 그림처럼)
+//   영상을 통째로 덮으면 색·선명도가 카메라에 비친 벽과 달라 사각형이 뜬다. 그래서 유리 자리에서
+//     첫 장면과 달라진 곳(사람이 움직인 곳, 둘레를 조금 넓혀 부드럽게)만 영상(밝기 맞춤)을 쓰고, 나머지는 카메라에 비친 벽 그대로 둔다.
+//   움직이지 않는 곳은 카메라 화면 그대로라 이음매가 없다.
+//   밝기 맞춤(gain): 카메라에 비친 그 창의 평균 색 ÷ 첫 장면의 평균 색(0.25초마다, 부드럽게)
 //   walls = 같은 벽의 인식 대상들(벽 전체 · 창 하나씩) — k 번째 사람은 어느 대상에서나 같은 사람. 영상은 사람마다 하나를 같이 쓰고,
-//   지금 잡힌 대상(maxTrack 1 이라 하나) 위에 그린다. 창 하나로 시작했다가 옆 창으로 옮겨 가도 이어진다
+//   지금 잡힌 대상(maxTrack 1 이라 하나) 위에 그린다
+const FRAG = `
+uniform sampler2D map, ref, cam; uniform vec4 g, cr; uniform vec3 view, gain; uniform float f, on, ready;
+varying vec2 q;
+float md(vec2 p){ return length(texture2D(map, p).rgb - texture2D(ref, p).rgb); }
+void main(){
+  float a = smoothstep(g.x, g.x + f, q.x) * (1. - smoothstep(g.z - f, g.z, q.x)) * smoothstep(g.y, g.y + f, q.y) * (1. - smoothstep(g.w - f, g.w, q.y));
+  vec3 v = texture2D(map, q).rgb;
+  vec2 css = vec2(gl_FragCoord.x / view.z, view.y - gl_FragCoord.y / view.z);
+  vec2 cu = vec2((css.x - cr.x) / cr.z, 1. - (css.y - cr.y) / cr.w);
+  vec3 c = texture2D(cam, cu).rgb;
+  float mm = 0.;
+  for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) mm += md(q + vec2(float(i), float(j)) * .014);
+  float m = smoothstep(.035, .1, mm / 9.);
+  vec3 o = mix(v * gain, mix(c, clamp(v * gain, 0., 1.), m), ready);
+  gl_FragColor = vec4(o, a * on);
+}`;
 export function talkFx(walls) {
   return ({ THREE, mindar, anchors }) => {
     const v3 = new THREE.Vector3();
     const vids = [], shared = new Map();
-    const vidOf = (src) => { if (!shared.has(src)) { const v = winVideo(src); shared.set(src, { v, tex: new THREE.VideoTexture(v) }); } return shared.get(src); };
+    const blank = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); blank.needsUpdate = true;
+    // 첫 장면(= 벽 그림 그 창) — 같은 영상 파일의 0초를 그대로 떠 둔다(압축까지 같아야 움직이지 않는 곳이 0이 된다)
+    const vidOf = (src) => {
+      if (shared.has(src)) return shared.get(src);
+      const v = winVideo(src), c = document.createElement('canvas'), o = { v, tex: new THREE.VideoTexture(v), ref: new THREE.CanvasTexture(c), refMean: null, gain: new THREE.Vector3(1, 1, 1) };
+      const grab = () => {
+        if (o.refMean || !v.videoWidth) return;
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(v, 0, 0);
+        o.ref.needsUpdate = true; o.refCtx = x;
+        o.refMean = true;
+      };
+      v.addEventListener('loadeddata', grab, { once: true });
+      shared.set(src, o); return o;
+    };
     walls.forEach((w, i) => {
       w.spots.forEach((s, k) => {
-        if (s.video) {
-          const { v, tex } = vidOf(s.video), [cx, cy, cw, ch] = s.clip, [gx, gy, gw, gh] = s.glass;
-          const mat = new THREE.ShaderMaterial({
-            transparent: true, depthWrite: false,
-            uniforms: { map: { value: tex }, g: { value: new THREE.Vector4(gx, 1 - gy - gh, gx + gw, 1 - gy) }, f: { value: 0.025 }, on: { value: 0 } },
-            vertexShader: 'varying vec2 q; void main(){ q = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
-            fragmentShader: 'uniform sampler2D map; uniform vec4 g; uniform float f, on; varying vec2 q; void main(){ float a = smoothstep(g.x, g.x + f, q.x) * (1. - smoothstep(g.z - f, g.z, q.x)) * smoothstep(g.y, g.y + f, q.y) * (1. - smoothstep(g.w - f, g.w, q.y)); gl_FragColor = vec4(texture2D(map, q).rgb, a * on); }',
-          });
-          const m = new THREE.Mesh(new THREE.PlaneGeometry(cw, ch * w.ratio), mat);
-          m.position.set(cx + cw / 2 - 0.5, (0.5 - cy - ch / 2) * w.ratio, 0.0008); anchors[i].group.add(m); vids.push({ v, m, i, k });
-        }
+        if (!s.video) return;
+        const o = vidOf(s.video), [cx, cy, cw, ch] = s.clip, [gx, gy, gw, gh] = s.glass;
+        const mat = new THREE.ShaderMaterial({
+          transparent: true, depthWrite: false,
+          uniforms: { map: { value: o.tex }, ref: { value: o.ref }, cam: { value: blank }, g: { value: new THREE.Vector4(gx, 1 - gy - gh, gx + gw, 1 - gy) }, f: { value: 0.025 }, on: { value: 0 },
+            cr: { value: new THREE.Vector4(0, 0, 1, 1) }, view: { value: new THREE.Vector3(1, 1, 1) }, gain: { value: o.gain }, ready: { value: 0 } },
+          vertexShader: 'varying vec2 q; void main(){ q = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+          fragmentShader: FRAG,
+        });
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(cw, ch * w.ratio), mat);
+        m.position.set(cx + cw / 2 - 0.5, (0.5 - cy - ch / 2) * w.ratio, 0.0008); anchors[i].group.add(m);
+        vids.push({ v: o.v, o, m, i, k, glass: [cx + gx * cw, cy + gy * ch, gw * cw, gh * ch] });
       });
     });
+    // 카메라 화면 → 텍스처(MindAR 가 만든 video 요소) · 화면 자리
+    let camTex = null, lastGain = 0;
+    const box = document.createElement('canvas'); box.width = box.height = 24;
+    const bx = box.getContext('2d', { willReadFrequently: true });
+    const mean = (ctx, sx, sy, sw, sh, img) => {
+      bx.clearRect(0, 0, 24, 24);
+      bx.drawImage(img, sx, sy, sw, sh, 0, 0, 24, 24);
+      const d = bx.getImageData(0, 0, 24, 24).data; let r = 0, g = 0, b = 0;
+      for (let p = 0; p < d.length; p += 4) { r += d[p]; g += d[p + 1]; b += d[p + 2]; }
+      const n = d.length / 4; return [r / n, g / n, b / n];
+    };
+    const toScreen = (i, u, v) => {
+      const w = walls[i], c = mindar.container;
+      v3.set(u - 0.5, (0.5 - v) * w.ratio, 0).applyMatrix4(anchors[i].group.matrixWorld).project(mindar.camera);
+      return [(v3.x * 0.5 + 0.5) * c.clientWidth, (1 - (v3.y * 0.5 + 0.5)) * c.clientHeight];
+    };
     let active = -1;
     return {
       setActive(k) {
@@ -63,11 +114,35 @@ export function talkFx(walls) {
       },
       video(k) { return vids.find((o) => o.k === k)?.v || null; },
       tick() {
+        const cv = mindar.video, ct = mindar.container;
+        if (!camTex && cv && cv.videoWidth) { camTex = new THREE.VideoTexture(cv); vids.forEach((o) => { o.m.material.uniforms.cam.value = camTex; o.m.material.uniforms.ready.value = 1; }); }
+        let cr = null;
+        if (cv && ct) { const a = cv.getBoundingClientRect(), b = ct.getBoundingClientRect(); cr = [a.left - b.left, a.top - b.top, a.width, a.height]; }
+        const dpr = mindar.renderer.getPixelRatio(), now = performance.now(), doGain = now - lastGain > 250;
+        if (doGain) lastGain = now;
         const live = new Set();
         vids.forEach((o) => {
-          const on = anchors[o.i].group.visible && active === o.k, u = o.m.material.uniforms;
+          const vis = anchors[o.i].group.visible, on = vis && active === o.k, u = o.m.material.uniforms;
           u.on.value += ((on ? 1 : 0) - u.on.value) * (on ? 0.25 : 0.08);
           if (on || u.on.value >= 0.01) live.add(o.v);
+          if (cr) { u.cr.value.set(...cr); u.view.value.set(ct.clientWidth, ct.clientHeight, dpr); }
+          // 밝기 맞춤: 카메라에 비친 그 창 유리 자리의 평균 색 ÷ 첫 장면 유리 자리의 평균 색
+          if (doGain && vis && camTex && cr && o.o.refCtx && cv.videoWidth) {
+            try {
+              const [gx, gy, gw, gh] = o.glass, pts = [toScreen(o.i, gx, gy), toScreen(o.i, gx + gw, gy), toScreen(o.i, gx, gy + gh), toScreen(o.i, gx + gw, gy + gh)];
+              const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+              const kx = cv.videoWidth / cr[2], ky = cv.videoHeight / cr[3];
+              let sx = (Math.min(...xs) - cr[0]) * kx, sy = (Math.min(...ys) - cr[1]) * ky, sw = (Math.max(...xs) - Math.min(...xs)) * kx, sh = (Math.max(...ys) - Math.min(...ys)) * ky;
+              sx = Math.max(0, sx); sy = Math.max(0, sy); sw = Math.min(cv.videoWidth - sx, sw); sh = Math.min(cv.videoHeight - sy, sh);
+              if (sw > 8 && sh > 8) {
+                const c = mean(null, sx, sy, sw, sh, cv);
+                const rc = o.o.refCtx.canvas, [g0, g1, g2, g3] = o.m.material.uniforms.g.value.toArray();
+                const r = mean(null, g0 * rc.width, (1 - g3) * rc.height, (g2 - g0) * rc.width, (g3 - g1) * rc.height, rc);
+                const t = [0, 1, 2].map((j) => Math.min(3, Math.max(0.25, c[j] / Math.max(4, r[j]))));
+                const gn = o.o.gain; gn.set(gn.x + (t[0] - gn.x) * 0.35, gn.y + (t[1] - gn.y) * 0.35, gn.z + (t[2] - gn.z) * 0.35);
+              }
+            } catch {}
+          }
         });
         vids.forEach((o) => { if (!live.has(o.v) && active !== o.k && !o.v.paused) o.v.pause(); });
       },
