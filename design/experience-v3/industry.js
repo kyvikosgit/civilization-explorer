@@ -13,12 +13,15 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 벽면 자료 — 도슨트 원고 한 문단 + v2 현장 자료 네 장
 $('#clueRow').insertAdjacentHTML('beforebegin', `<p class="clue-lead">${zone.wall.lead}</p>`);
-// 기차표 찾기: 카메라로 비추거나, 앱(NFC 가능)이면 기차표 태그에 폰을 대도 된다 — 둘 다 같은 화면에서(camui.js)
+// 기차표 찾기: 카메라로 비추거나, 앱(NFC 가능)이면 기차표 태그에 폰을 대도 된다(camui.js)
+//   아이폰 앱(빌드 9, 유니버설 링크): 카메라를 켜면 아이폰이 태그를 스스로 읽지 않는다 — 그래서 이 안내 화면(카메라 꺼짐)에서 태그를 대게 한다.
+//   대면 아이폰이 화면 위에 알림을 띄우고, 누르면 앱이 이 페이지에 넘긴다(window.__m100tag). 카메라는 [카메라로 찾기]를 누를 때만
+const IOS_UL = !!(window.__m100app?.ul && window.ReactNativeWebView);
 const ASK = {
   coach: { img: V3 + 'img/t_ticket.png', kind: 'ticket' },
   title: task.title,
-  sub: '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
-  buttons: [{ label: '카메라 켜기', cam: true, on: scan }],
+  sub: IOS_UL ? '책상 위에서 노르망디행 기차표를 찾아\n휴대폰 윗부분을 대 보세요\n화면 위에 알림이 뜨면 눌러 주세요' : '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
+  buttons: [{ label: IOS_UL ? '카메라로 찾기' : '카메라 켜기', cam: true, on: scan }],
   link: { label: '사무실 다시 살펴보기', on: () => $('#openClues').click() },
 };
 $('#introGo').addEventListener('click', () => {
@@ -40,7 +43,20 @@ function scan() {
     onFound: () => win(),
   });
 }
+// 태그로 찾음 — 앱이 넘겨준 태그 주소(…/n/?t=ticket), 또는 태그로 이 화면이 처음 열린 경우(?tag=ticket)
+const isTicket = (url) => { try { const k = new URL(url, location.href).searchParams.get('t'); return k === 'ticket' || k === 'c2'; } catch (e) { return false; } };
+let won = false;
+function byTag() {
+  if (won) return;
+  if (!document.body.classList.contains('asked')) { window.intro.finish(); document.body.classList.add('asked'); }
+  win();
+}
+window.__m100tag = (url) => { if (isTicket(url)) byTag(); };
+if (['ticket', 'c2'].includes(new URLSearchParams(location.search).get('tag'))) setTimeout(byTag, 900);
+
 async function win() {
+  if (won) return;
+  won = true;
   store.solve(task.id);
   await closeCam(true);
   guide.hide();

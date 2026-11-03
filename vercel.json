@@ -1,8 +1,41 @@
 {
   "routes": [
-    { "src": "/(.*)", "has": [{ "type": "host", "value": "www.monet100.com" }], "status": 308, "headers": { "Location": "https://monet100.com/$1" } },
-    { "src": "/", "has": [{ "type": "host", "value": "monet100.com" }], "dest": "/monet100-web/index.html" },
-    { "handle": "filesystem" },
-    { "src": "/app-v2(/.*)?", "dest": "/app-v2/index.html" }
+    {
+      "src": "/.well-known/apple-app-site-association",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "continue": true
+    },
+    {
+      "src": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.monet100.com"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "https://monet100.com/$1"
+      }
+    },
+    {
+      "src": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "monet100.com"
+        }
+      ],
+      "dest": "/monet100-web/index.html"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/app-v2(/.*)?",
+      "dest": "/app-v2/index.html"
+    }
   ]
 }

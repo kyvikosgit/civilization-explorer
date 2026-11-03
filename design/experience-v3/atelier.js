@@ -141,7 +141,7 @@ $('#save').addEventListener('click', () => {
 });
 
 // ── NFC: 태그로 열린 경우(?o=물건 — 아이폰 알림 · 다른 기기) 그 칸을 드러낸다
-const q = new URLSearchParams(location.search).get('o');
+const q = new URLSearchParams(location.search).get('o') || new URLSearchParams(location.search).get('tag');
 if (q && BY[q]) { document.body.classList.add('no-intro'); setTimeout(() => reveal(q), REDUCED ? 0 : 450); }
 
 // ── 스캔: [소품 비추기] → 카메라 → 소품을 알아보면 카메라가 닫히고 그 칸이 드러나 카드가 열린다
@@ -180,5 +180,8 @@ function tagToObject(url) {
 
 // 사진 출처 한 줄
 fetch(`${IMG}credits.json`).then((r) => (r.ok ? r.json() : {})).then((j) => { CREDIT = j || {}; }).catch(() => {});
+
+// 앱(빌드 9): 이 화면이 열려 있을 때 태그를 대면 아이폰 알림 → 앱이 넘겨준다
+window.__m100tag = (url) => { const k = tagToObject(url); if (k) { closeCam(); reveal(k); } };
 
 window.__c3tube = { open, choose, closeAll, get seen() { return [...seen]; } };

@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "X76N643F9F.com.kyvikos.kippu",
+        "appIDs": ["X76N643F9F.com.kyvikos.kippu"],
+        "paths": ["/n", "/n/", "/n/index.html"],
+        "components": [{ "/": "/n" }, { "/": "/n/" }, { "/": "/n/index.html" }]
+      }
+    ]
+  }
+}
