@@ -68,7 +68,8 @@
       <ol class="res-rank" id="resRank"></ol>
     </div>
   </div>
-  <div class="res-btns"><button class="btn res-again" id="home" type="button">처음으로</button><button class="btn res-save" id="save" type="button">수집함에 저장</button><div class="res-links"><button class="res-link" id="again" type="button">다시 고르기</button></div></div>
+  <!-- 끝 줄: done.js 공통 [목록으로 돌아가기 | 다음 미션으로] · 체험 더보기 — 정답을 고르면 salon.js 가 채운다 -->
+  <div class="res-btns"><button hidden id="again" type="button"></button></div>
 </section>
 
 <!-- 내가 메달을 준 그림 — 카드(기기에서 생성) -->
@@ -99,6 +100,14 @@
   <div class="grip"></div>
   <h3 id="cfTitle">이 그림에 올해의 메달을 줄까요?</h3>
   <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">메달 주기</button></div>
+</div>
+
+<!-- 아닌 그림 — 그 그림의 심사평 -->
+<div class="sheet" id="wrong">
+  <div class="grip"></div>
+  <h3 id="wrT"></h3>
+  <p class="wr-b" id="wrB"></p>
+  <div class="btns one"><button class="btn" id="wrOk">다른 그림 고르기</button></div>
 </div>
 
 <!-- 살롱의 기준 -->

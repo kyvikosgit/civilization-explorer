@@ -137,14 +137,11 @@ export function startTalk(ui, wall, { base, onHeard }) {
   };
   place();
 
-  // 말풍선: 커진 창 안 그 사람 위에(위가 모자라면 창 윗부분)
+  // 자막(11/03): 그 시대의 말이 영상 아래쪽에 자막처럼 — 말풍선 꼬리 없이 가운데
   const placeBub = (k, R) => {
-    const s = wall.spots[k], [cx, cy, cw, ch] = s.clip;
-    const px = R.l + ((s.x - cx) / cw) * (R.r - R.l), py = R.t + ((s.y - cy) / ch) * (R.b - R.t);
     const bw = bub.offsetWidth, bh = bub.offsetHeight, W = innerWidth;
-    const x = Math.max(12, Math.min(W - bw - 12, px - bw / 2)), y = Math.max(R.t + 12, py - 44 - bh);
+    const x = Math.max(12, Math.min(W - bw - 12, (R.l + R.r) / 2 - bw / 2)), y = R.b - bh - 18;
     bub.style.transform = `translate(${x}px, ${y}px)`;
-    bub.style.setProperty('--tail', `${Math.max(18, Math.min(bw - 18, px - x))}px`);
   };
 
   // 그 창: 자리에서 커지며 재생 → 말 → 끝나면 그 창 자리로 돌아간다

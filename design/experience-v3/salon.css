@@ -5,7 +5,12 @@
 .stage[data-mode="wall"] .role{padding-left:calc(var(--pad) + 30px)}
 
 /* 찾은 뒤에는 v2 의 메달 연출을 그대로 쓴다. 그림 앞 단추와 관람객 비율은 쓰지 않는다 */
-.stage .dock,.stage .gest,.stage #back2{display:none!important}
+body:not(.pick) .stage .dock,body:not(.pick) .stage .gest,body:not(.pick) .stage #back2{display:none!important}
+/* 11/03: 벽 전체를 비춘 뒤(body.pick) 화면의 벽에서 고른다 — 그림 앞 단추를 다시 쓴다 */
+.wr-b{margin-top:10px;font-size:15px;line-height:1.6;white-space:pre-line;color:var(--ink-2,#555)}
+#s3 .res-btns{display:block;padding-top:34px}
+#s3 .res-btns .v3-end{--ve-fill:#E2B565;--ve-on:#2A1806;--ve-ink:#F3DDB0}
+#s3 .res-scroll{padding-bottom:calc(190px + var(--safe-b))}
 .res-split,.res-links,#s3 .res-top{display:none!important}
 .res-line.plan{white-space:pre-line}
 .res-verdict{margin:14px 20px 0;padding:12px 14px;border-left:3px solid #E9C77A;font-size:15px;line-height:1.55;color:rgba(255,247,234,.9);white-space:pre-line}

@@ -1,5 +1,6 @@
 /* v3 나다르 — 아래는 촬영 안내 세 칸 + QR 스캔. 휴대폰 셀카(내 초상) 화면 · 그림/사진 고르기는 쓰지 않는다 */
-.tabs,#me,.w-cap,.seg{display:none!important}
+/* 11/03: 내 초상(휴대폰 셀카)은 체험 더보기 — 사진을 받은 뒤 photo.html 에서 nadar.html?more 로 들어오면 탭이 보인다 */
+body:not(.more) .tabs,body:not(.more) #me,.w-cap,.seg{display:none!important}
 .w-foot.shoot{display:flex;flex-direction:column;align-items:stretch;gap:14px;padding-top:26px;background:linear-gradient(transparent,rgba(12,10,9,.92) 22%)}
 .shoot-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .shoot-steps li{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;counter-increment:st}

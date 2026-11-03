@@ -10,7 +10,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <style>
-/* QR 로 찾아온 사진 — 앱(수집함) · 앱 없는 폰(웹) 공통. 끝 단추 [처음으로 | 수집함에 저장] + 사진 저장 */
+/* QR 로 찾아온 사진 — 앱(수집함) · 앱 없는 폰(웹) 공통. 11/03: 사진을 받으면 수집함에 저절로 → 끝 줄(done.js) [목록으로 | 다음 미션] · 체험 더보기 + 폰에 사진 저장 */
+#end{width:min(100%,360px);margin-top:22px}
 :root{color-scheme:dark}
 *{margin:0;padding:0;box-sizing:border-box}
 body{min-height:100dvh;background:radial-gradient(90% 60% at 50% 30%,#2a221c,#100c0a);color:#F2EDE2;font-family:Freesentation,sans-serif;display:flex;flex-direction:column;align-items:center;padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));word-break:keep-all}
@@ -32,25 +33,27 @@ h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:24px;margin-top:4p
 <p class="cap">나다르 사진관</p>
 <h1>당신의 초상</h1>
 <div class="ph" id="ph"><p id="msg">사진을 불러오는 중</p><img id="img" alt="나다르 사진관 화풍의 내 사진"></div>
-<div class="btns"><a class="btn line" href="index.html">처음으로</a><button class="btn fill" id="save" type="button" disabled>수집함에 저장</button></div>
 <button class="dl" id="dl" type="button" hidden>폰에 사진 저장</button>
+<div id="end"></div>
 <script type="module">
 // 사진은 벽 액자 화면이 들고 있다(최근 몇 장) — 같은 방에 '이 사진 주세요'(get)를 보내고 받는다. 서버에 저장하지 않으니 액자에 걸려 있는 동안 받아야 한다
 import { joinRoom } from './link.js';
+import { mountEnd } from './done.js';
 const $ = (s) => document.getElementById(s), id = new URLSearchParams(location.search).get('id');
 let got = null;
 const link = joinRoom({ img: (p) => {
   if (p?.id !== id || got) return;
   if (p.missing) { $('msg').textContent = '사진을 찾지 못했습니다.\n벽 액자에 사진이 걸려 있는 동안 다시 스캔해 주세요.'; return; }
   got = p.img; $('img').src = got; $('img').classList.add('on'); $('msg').hidden = true;
-  $('save').disabled = false; $('dl').hidden = false;
-  try { if (JSON.parse(localStorage.getItem('m100v3_nadar') || '{}').id === id) mark(); } catch {}
+  $('dl').hidden = false;
+  // 받은 사진이 곧 수집품 — 저절로 담는다
+  try { localStorage.setItem('m100v3_nadar', JSON.stringify({ id, img: got, at: Date.now() })); } catch {}
+  navigator.vibrate?.(16);
+  mountEnd($('end'), 'nadar', { item: { name: '나다르 사진관의 내 초상', img: got }, moreLabel: '체험 더보기 · 내 초상 찍어 보기', more: () => { location.href = 'nadar.html?more'; } });
 } });
 const ask = () => { if (!got) link.send('get', { id }).catch(() => {}); };
 if (!id) $('msg').textContent = 'QR 을 다시 스캔해 주세요.';
 else { link.ready.then(ask); [2500, 5000, 8000].forEach((t) => setTimeout(ask, t)); setTimeout(() => { if (!got) $('msg').textContent = '액자와 연결되지 않았습니다.\n벽 액자에 사진이 걸려 있는 동안 다시 스캔해 주세요.'; }, 11000); }
-function mark() { $('save').disabled = true; $('save').textContent = '수집함에 담았어요'; }
-$('save').onclick = () => { try { localStorage.setItem('m100v3_nadar', JSON.stringify({ id, img: got, at: Date.now() })); } catch {} mark(); navigator.vibrate?.(16); };
 $('dl').onclick = async () => {
   const blob = await (await fetch(got)).blob(), file = new File([blob], `nadar_${id}.jpg`, { type: 'image/jpeg' });
   if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file] }); return; } catch (e) { if (e?.name === 'AbortError') return; } }

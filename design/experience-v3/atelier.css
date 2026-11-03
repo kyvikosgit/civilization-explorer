@@ -4,3 +4,10 @@
 .room-bg .ph{background:url(img/etretat_scene.jpg) 40% 40% / cover no-repeat;filter:brightness(.62) saturate(.95)}
 .room-bg .lamp{display:none}
 .objs{grid-template-columns:repeat(2,1fr)!important}
+
+/* 11/03: 메인 미션 중엔 질문과 [소품 찾기]만 — 소품 칸 · 밖으로 나가 칠하기는 체험 더보기(body.more) */
+body:not(.more) .found-row,body:not(.more) .objs,body:not(.more) .foot-hint,body:not(.more) .more-go{display:none!important}
+body.more .main-hint{display:none}
+.main-hint{margin:28px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.7);text-align:center}
+.more-go{display:flex;margin:26px 0 110px}
+#res .actions{display:block;margin-top:26px}

@@ -19,7 +19,11 @@ import { $, $$, icons, sheet, toast, sleep, reduceMotion, haptic, saveChoice } f
 import { buildSalon, HALL } from './salon-intro.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
+import { collect, mountEnd } from './done.js';
 
+// 11/03: 벽 전체를 비춘 뒤(PICK) 벽에서 고르는 정답형. 정답 = data.js 의 correct(메르송 〈환상〉 = n 3)
+let PICK = false;
+const WIN_N = ZONES.find((z) => z.id === 'salon').tasks[0].targets.findIndex((t) => t.correct) + 1;
 const WORKS = [
   { n: 1, src: '../works/c0-cambyses.jpg',   hd: 'img/c0-cambyses.jpg',   w: 960,  h: 695,  title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '', desc: '기원전 525년, 페르시아 왕 캄비세스가 이집트의 펠루시움을 치는 장면. 이집트인이 신성하게 여긴 고양이를 앞세웠다는 전설을 그렸습니다.' },
   { n: 2, src: '../works/c0-cartridges.jpg', hd: 'img/c0-cartridges.jpg', w: 1280, h: 832,  title: '마지막 탄약통',          artist: '알퐁스 드 뇌빌',     year: '1873', coll: '바제유 마지막 탄약통의 집', shown: '1873년 살롱 출품', desc: '1870년 프로이센과의 전쟁, 바제유의 한 여관에서 프랑스 병사들이 마지막 탄약까지 버티는 장면입니다.' },
@@ -582,7 +586,8 @@ cv.addEventListener('contextmenu', (e) => e.preventDefault());
 cv.addEventListener('pointerdown', (e) => {
   if (mode === 'intro') { skipIntro(); return; }
   // v3: 입장이 끝난 벽에서 화면을 누르면 카메라로(벽 위 그림 고르기 대신 현장의 그림을 비춘다) — salon-ar.js
-  if (mode === 'wall') { e.preventDefault(); window.dispatchEvent(new CustomEvent('salon:tap')); return; }
+  //     11/03: 벽 전체를 비추고 나면(PICK) 이 벽에서 직접 한 점을 눌러 고른다
+  if (mode === 'wall' && !PICK) { e.preventDefault(); window.dispatchEvent(new CustomEvent('salon:tap')); return; }
   if (mode !== 'wall' && mode !== 'focus') return;
   e.preventDefault();
   try { cv.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
@@ -721,7 +726,24 @@ function flyMedal(fromEl) {
 award.addEventListener('click', placeMedal);
 $('#cfBack').addEventListener('click', unplace);
 $$('.sheet-dim').forEach((d) => d.addEventListener('click', () => { if (mode === 'placed') unplace(); }));
-$('#cfOk').addEventListener('click', () => { if (mode === 'placed') reveal($('#cfOk')); });
+$('#cfOk').addEventListener('click', () => {
+  if (mode !== 'placed') return;
+  if (PICK && chosen.w.n !== WIN_N) return wrongPick(chosen);   // 11/03: 정답형 — 아니면 심사평을 보이고 벽으로
+  reveal($('#cfOk'));
+});
+// 아닌 그림 — 그 그림의 심사평(기획안) → [다른 그림 고르기] = 벽으로
+const wrongSheet = sheet($('#wrong'));
+function wrongPick(f) {
+  confirm.close();
+  const t = ZONES.find((z) => z.id === 'salon').tasks[0].targets[f.w.n - 1];
+  $('#wrT').textContent = `〈${f.w.title}〉`;
+  $('#wrB').textContent = (t?.feedback || '').replace(/^심사평 — /, '');
+  wrongSheet.open(); haptic(8);
+}
+$('#wrOk').addEventListener('click', () => {
+  wrongSheet.close();
+  if (mode === 'placed') { chosen.glowT = 0; chosen = null; setMode('focus'); toWall(); }
+});
 
 // ── 메달 → 결과
 //   메달이 날아와 앉고 번호판이 이름판으로 뒤집힌다 → 이름판을 읽을 틈 → 메달이 한 번 크게 반짝이고, 둘레가 어두워지며
@@ -775,6 +797,11 @@ function fillResult(me) {
   if (!$('.res-verdict')) {
     line.insertAdjacentHTML('afterend', `<p class="res-verdict"></p><p class="res-after"></p>`);
     $('.res-verdict').textContent = t.successVerdict; $('.res-after').textContent = t.after;
+  }
+  // 11/03: 수집품은 정답과 함께 저절로 → 끝 줄 [목록으로 | 다음 미션] · 체험 더보기(후보작 하나씩 살펴보기)
+  if (w.n === WIN_N) {
+    collect('salon');
+    mountEnd($('.res-btns'), 'salon', { item: t.item, moreLabel: '체험 더보기 · 후보작 하나씩 살펴보기', more: () => window.dispatchEvent(new CustomEvent('salon:more')) });
   }
 }
 window.addEventListener('resize', () => { if (resWork) sizeHero(resWork); });
@@ -846,15 +873,8 @@ function frameScreenRect(f) {
   return { x: sr.left + (a.x + 1) / 2 * W, y: sr.top + (1 - c.y) / 2 * H, w: (c.x - a.x) / 2 * W, h: (c.y - a.y) / 2 * H };
 }
 // 끝 단추 공통: 처음으로(체험 목록) · 수집함에 저장 → 저장하면 같은 자리에서 '수집함에 담았어요'
-const markSaved = (on) => { const b = $('#save'); b.disabled = on; b.textContent = on ? '수집함에 담았어요' : '수집함에 저장'; };
-$('#home').addEventListener('click', async () => {
-  await $('#s3').animate([{ opacity: 1 }, { opacity: 0 }], { duration: reduceMotion ? 120 : 380, easing: 'ease-in', fill: 'forwards' }).finished.catch(() => {});
-  location.href = '../../experience-v3/index.html';
-});
-$('#save').addEventListener('click', () => {
-  if ($('#save').disabled) return;
-  store.save('salon'); markSaved(true); haptic(16); toast('수집함에 저장했습니다', 1600);
-});
+//   11/03: 끝 줄은 done.js 공통(fillResult 에서 끼운다) — 저장 단추 없음
+const markSaved = () => {};
 // 카드 → 결과: 카드가 내려가며 사라지고 뒤의 결과 화면이 그대로
 $('#back4').addEventListener('click', async () => {
   const s4 = $('#s4'); kick();
@@ -890,6 +910,14 @@ new ResizeObserver(() => layout()).observe(stage);
 // v3: 안내 · 카메라 전환에서 장면을 움직인다(salon-ar.js)
 window.__salon = {
   to: (k, ms) => camTo(k, ms),
+  // 11/03: 현장의 벽을 비춘 뒤 — 같은 벽이 화면에 그대로 있고, 여기서 한 점을 눌러 고른다
+  pick() {
+    PICK = true; window.__salonGuideH = 96; document.body.classList.add('pick');
+    $('#role .lead').innerHTML = '메달을 줄 그림을 눌러 고르세요. <button type="button" class="crit-link" id="critBtn2">살롱의 기준</button>';
+    $('#critBtn2').addEventListener('click', () => $('#critBtn').click());
+    camTo('wall', reduceMotion ? 1 : 900); kick();
+    toast('벽을 찾았습니다 · 그림을 눌러 고르세요', 2200);
+  },
   // 카메라에서 정답을 고른 뒤: 벽으로 돌아와 그 그림이 앞으로 나오고 → 메달이 날아와 앉고 → 금빛 → 결과 화면
   async award(i) {
     window.__salonGuideH = 96;

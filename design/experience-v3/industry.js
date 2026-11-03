@@ -1,9 +1,11 @@
-// v3 사무실 — 생라자르 입장(v2) → 사무실 자료(v2 시트에 11/02 기획안 내용) → "화가들을 밖으로 이끈 것은?" → 기차표 스캔
-//   → 안내판 글자판이 넘어가며 지도 · 르아브르까지 노선이 그려지고 → v2 발권 연출(표가 쿵 · 날인 탁) → 이야기 → 끝 줄
+// v3 사무실(11/03 미팅: 단순하게) — 생라자르 입장(v2) → "화가들을 밖으로 이끈 것은?" → 기차표 스캔
+//   → 안내판 글자판이 넘어가며 지도 · 르아브르까지 노선이 그려지고 → v2 발권 연출(표가 쿵 · 날인 탁) → 표가 수집함으로 → 끝 줄 [목록으로 | 다음 미션]
+//   체험 더보기(메인 미션 뒤): 르아브르 이야기(그 자리 사진 · 거기서 그린 그림) · 사무실 자료
 import { ZONES } from './data.js';
 import { openCam, closeCam } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
+import { collect, endRow } from './done.js';
 
 const $ = (s) => document.querySelector(s);
 const zone = ZONES.find((z) => z.id === 'industry'), task = zone.tasks[0];
@@ -22,11 +24,9 @@ const ASK = {
   title: task.title,
   sub: IOS_UL ? '책상 위에서 노르망디행 기차표를 찾아\n휴대폰 윗부분을 대 보세요\n화면 위에 알림이 뜨면 눌러 주세요' : '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
   buttons: [{ label: '기차표 찾기', cam: true, on: scan }],
-  link: { label: '사무실 다시 살펴보기', on: () => $('#openClues').click() },
 };
 $('#introGo').addEventListener('click', () => {
   window.intro.finish();
-  $('#openClues').click();
   document.body.classList.add('asked');
   setTimeout(() => guide.show(ASK), 300);
 });
@@ -67,8 +67,13 @@ async function win() {
   // 기획안 해설을 이야기 앞에
   $('#story').insertAdjacentHTML('beforebegin', `<p class="tk-plan"></p><p class="tk-after"></p>`);
   $('.tk-plan').textContent = task.successBody; $('.tk-after').textContent = task.after;
-  $('#today .btns').insertAdjacentHTML('afterend', `<a class="to-next" href="${V3 + task.next.href}">${task.next.label}</a>`);
+  // 끝 줄 — 해설 바로 아래. 이야기는 체험 더보기로
+  const more = () => { document.body.classList.add('more'); requestAnimationFrame(() => $('#story').scrollIntoView({ behavior: 'smooth', block: 'start' })); };
+  $('.tk-after').insertAdjacentElement('afterend', endRow('industry', { light: true, item: task.item, moreLabel: '체험 더보기 · 르아브르 이야기 · 사무실 자료', more }));
+  $('#story').insertAdjacentHTML('afterend', '<button class="more-clues" type="button">사무실 자료 살펴보기</button>');
+  $('.more-clues').onclick = () => $('#openClues').click();
   window.flow.issue();
-  if (store.saved(task.id)) { const b = $('#save'); b.disabled = true; b.textContent = '수집함에 담았어요'; }
+  // 표가 바 자리에 붙고 나면 그대로 수집함으로 날아간다(v2 저장 연출) — 수집품은 저절로
+  collect(task.id);
+  setTimeout(() => $('#save').click(), 2600);
 }
-$('#save').addEventListener('click', () => store.save(task.id));

@@ -1,2 +1,7 @@
 /* v3 모네 전시관 */
 .scan-txt small{display:none}
+
+/* 11/03: 끝 줄은 done.js 공통 — v2 단추 줄 · 연작 링크 · 출구 링크는 숨기고, 연작은 체험 더보기로 */
+.sun-acts{display:none!important}
+.sun-endrow{margin-top:16px}
+body:not(.more) .series-link,body:not(.more) .exit-link{visibility:hidden!important;pointer-events:none}

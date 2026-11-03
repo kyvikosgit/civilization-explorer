@@ -6,6 +6,7 @@ import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
+import { collect, mountEnd } from './done.js';
 
 const task = ZONES.find((z) => z.id === 'monet').tasks[0];
 const V3 = '../../experience-v3/';
@@ -204,4 +205,10 @@ async function handoff(rect) {
   await bg.animate([{ opacity: 0.92 }, { opacity: 0 }], move).finished;
   await el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).finished;
   el.remove();
+  finishMission();
+}
+// 11/03: 영상 ↔ 그림 전환이 한 바퀴 돌면 수집품 — 끝 줄 [목록으로 | 다음 미션(출구)] · 체험 더보기(연작 보기)
+function finishMission() {
+  collect(task.id);
+  mountEnd(document.getElementById('sunEndRow'), 'monet', { item: task.item, moreLabel: '체험 더보기 · 연작 보기', more: () => { document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); } });
 }

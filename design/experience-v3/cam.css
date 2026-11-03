@@ -164,10 +164,9 @@
 .v3-cam .t-ok.on{opacity:1;transform:translate(-50%,0)}
 .v3-cam .t-ok i{width:16px;height:16px;border-radius:50%;background:#E9C77A;position:relative;flex:none}
 .v3-cam .t-ok i::after{content:"";position:absolute;left:5px;top:3px;width:4px;height:7px;border:solid #1a0d08;border-width:0 2px 2px 0;transform:rotate(45deg)}
-.v3-cam .t-bub{--tail:50%;position:absolute;z-index:2;left:0;top:0;width:max-content;max-width:min(270px,76vw);padding:12px 15px;border-radius:14px;background:#F7F0DF;color:#2A2119;font-size:15.5px;font-weight:600;line-height:1.45;box-shadow:0 10px 28px rgba(0,0,0,.5);opacity:0;will-change:transform}
-.v3-cam .t-bub::after{content:"";position:absolute;left:var(--tail);bottom:-8px;width:16px;height:16px;margin-left:-8px;background:#F7F0DF;transform:rotate(45deg);border-radius:2px}
-.v3-cam .t-bub.below::after{bottom:auto;top:-8px}
-.v3-cam .t-bub.on{opacity:1;animation:v3bub .4s cubic-bezier(.2,.9,.3,1.2)}
+/* 자막(11/03): 영상 아래쪽 가운데, 꼬리 없는 반투명 띠 — 천천히 떠오른다 */
+.v3-cam .t-bub{position:absolute;z-index:2;left:0;top:0;width:max-content;max-width:min(340px,calc(100vw - 40px));padding:8px 14px;border-radius:6px;background:rgba(10,8,7,.62);color:#FFF7EA;font-size:15.5px;font-weight:600;line-height:1.5;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.6);word-break:keep-all;opacity:0;transition:opacity .6s ease;will-change:transform}
+.v3-cam .t-bub.on{opacity:1}
 @keyframes v3bub{from{opacity:0}}
 
 /* 프로토타입 뷰파인더 — 카메라 없이, 벽 · 그림이 눈앞에 있는 것처럼 */

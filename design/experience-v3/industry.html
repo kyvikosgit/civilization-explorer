@@ -989,6 +989,7 @@ async function prepDissolve(photo, paint) {
   try { await $('#pairPaint').decode(); } catch (e) { /* noop */ }
   if (tk !== disToken || !a || !b) { cv.hidden = true; return; }
   const box = cv.parentElement, dpr = Math.min(2, devicePixelRatio || 1);
+  if (!box.clientWidth || !box.clientHeight) { cv.hidden = true; return; }   // v3: 이야기가 체험 더보기로 접혀 있으면 그림만
   cv.width = Math.round(box.clientWidth * dpr); cv.height = Math.round(box.clientHeight * dpr);
   coverDraw(cv.getContext('2d'), a, cv.width, cv.height);
   disImgs = [a, b]; disIO.observe($('.pf.paint'));

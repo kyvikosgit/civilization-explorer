@@ -7,4 +7,7 @@
 
 /* 안내가 뜨면 도입 글은 물러난다 */
 body.asked .intro-copy{opacity:0;pointer-events:none;transition:opacity .4s}
-.to-next{display:flex;align-items:center;justify-content:center;height:52px;margin-top:10px;border-radius:8px;background:#E9C77A;color:#1a0d08;font-weight:800;font-size:16px;text-decoration:none}
+.v3-end{margin:26px auto 10px;padding:0 20px}
+/* 11/03: 이야기 · 끝 단추 판은 체험 더보기로 — 누르면(body.more) 이야기만 드러난다 */
+body:not(.more) #story,body:not(.more) .more-clues,#today{display:none!important}
+.more-clues{display:block;margin:18px auto 40px;padding:12px 18px;border-radius:10px;background:none;border:1px solid rgba(127,127,127,.4);color:inherit;font:inherit;font-size:15px;font-weight:700}

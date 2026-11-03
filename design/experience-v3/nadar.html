@@ -63,7 +63,7 @@
         <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="4" width="22" height="24" rx="1"/><rect x="9" y="8" width="14" height="10"/><path d="M17 21h3v3h-3zM22 21h1M22 24h1M9 21h5v3H9z"/></svg></span><b>액자에 걸린 사진의<br>QR 을 스캔하세요</b></li>
       </ol>
       <button class="btn white ask-btn" id="scanQR" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V5h4M16 5h4v4M20 15v4h-4M8 19H4v-4M8 9h3v3H8zM13 9h3M13 12h3v3M8 15h3"/></svg>QR 스캔하고 사진 받기</button>
-      <p class="shoot-note">사진은 그 시대 사진관의 화풍으로 바뀌어 벽 액자에 걸립니다</p>
+      <p class="shoot-note">사진은 그 시대 사진관의 화풍으로 바뀌어 벽 액자에 약 10초 동안 걸립니다<br>그동안 QR 을 스캔해 받으세요</p>
       <!-- 기존 코드(c4.js 사본)가 찾는 요소 — 쓰지 않으니 숨겨 둔다 -->
       <div hidden><p id="wHint"></p><div id="wCap"><button id="capX" type="button"></button><b id="capName"></b><span id="capNow"></span><span id="capOther"></span></div><div id="seg"><button type="button" data-m="paint"></button><button type="button" data-m="photo"></button></div><button id="toQ" type="button"></button></div>
     </div>
@@ -153,6 +153,7 @@
   </div>
 </main>
 
+<script>if (new URLSearchParams(location.search).has('more')) document.body.classList.add('more');</script>
 <script type="module" src="../../experience-v3/nadar.js"></script>
 </body>
 </html>
