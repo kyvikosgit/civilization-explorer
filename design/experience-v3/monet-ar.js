@@ -22,7 +22,7 @@ const INFO = {
   coach: { img: V3 + 'img/hero_sunrise.jpg', kind: 'gilt', land: true },
   title: '“그냥 인상에 지나지 않는다”',
   sub: '1874년, 비평가를 화나게 한 그림을 찾아 비춰 보세요',
-  buttons: [{ label: '카메라 켜기', cam: true, on: start }],
+  buttons: [{ label: '그림 찾기', cam: true, on: start }],
 };
 function showGuide() { if (!guide.shown && window.__c5sun.state === 'scan') guide.show(INFO); }
 setTimeout(showGuide, 3200);                     // 조명이 다 켜진 뒤

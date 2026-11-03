@@ -15,13 +15,13 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 $('#clueRow').insertAdjacentHTML('beforebegin', `<p class="clue-lead">${zone.wall.lead}</p>`);
 // 기차표 찾기: 카메라로 비추거나, 앱(NFC 가능)이면 기차표 태그에 폰을 대도 된다(camui.js)
 //   아이폰 앱(빌드 9, 유니버설 링크): 카메라를 켜면 아이폰이 태그를 스스로 읽지 않는다 — 그래서 이 안내 화면(카메라 꺼짐)에서 태그를 대게 한다.
-//   대면 아이폰이 화면 위에 알림을 띄우고, 누르면 앱이 이 페이지에 넘긴다(window.__m100tag). 카메라는 [카메라로 찾기]를 누를 때만
+//   대면 아이폰이 화면 위에 알림을 띄우고, 누르면 앱이 이 페이지에 넘긴다(window.__m100tag). 카메라는 [기차표 찾기]를 누를 때만
 const IOS_UL = !!(window.__m100app?.ul && window.ReactNativeWebView);
 const ASK = {
   coach: { img: V3 + 'img/t_ticket.png', kind: 'ticket' },
   title: task.title,
   sub: IOS_UL ? '책상 위에서 노르망디행 기차표를 찾아\n휴대폰 윗부분을 대 보세요\n화면 위에 알림이 뜨면 눌러 주세요' : '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
-  buttons: [{ label: IOS_UL ? '카메라로 찾기' : '카메라 켜기', cam: true, on: scan }],
+  buttons: [{ label: '기차표 찾기', cam: true, on: scan }],
   link: { label: '사무실 다시 살펴보기', on: () => $('#openClues').click() },
 };
 $('#introGo').addEventListener('click', () => {

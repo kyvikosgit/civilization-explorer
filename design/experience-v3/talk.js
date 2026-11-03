@@ -4,7 +4,7 @@
 // 영상이 없는 벽은 창 불빛 · 말풍선만
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// 소리: 폰은 사용자가 누른 순간에만 재생을 허락한다 — [카메라 켜기]에서 같은 Audio 를 한 번 열어 둔다
+// 소리: 폰은 사용자가 누른 순간에만 재생을 허락한다 — [대화 엿듣기]에서 같은 Audio 를 한 번 열어 둔다
 const voice = new Audio();
 voice.playsInline = true;
 export function unlockAudio(firstSrc) {

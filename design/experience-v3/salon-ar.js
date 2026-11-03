@@ -61,13 +61,13 @@ async function win() {
   window.__salon.award(WIN);
 }
 
-// ── 벽 앞 안내 → [카메라 켜기] → 허용을 기다리는 동안 장면은 그대로 → 다 켜지면 벽으로 다가가며 파인더 자리에 진짜 카메라 창이 열린다
+// ── 벽 앞 안내 → [후보작 심사하기] → 허용을 기다리는 동안 장면은 그대로 → 다 켜지면 벽으로 다가가며 파인더 자리에 진짜 카메라 창이 열린다
 const guide = makeGuide();
 const INFO = {
   coach: { img: V3 + 'img/m_cartridges.jpg', kind: 'gilt' },
   title: '벽에 걸린 진짜 그림을\n카메라로 비춰 보세요',
   sub: '특별한 액자의 다섯 점 가운데 1873년 수상작이 있습니다',
-  buttons: [{ label: '카메라 켜기', cam: true, on: begin }],
+  buttons: [{ label: '후보작 심사하기', cam: true, on: begin }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
 };
 let shownOnce = false;

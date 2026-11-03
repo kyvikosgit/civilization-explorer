@@ -149,7 +149,7 @@ if (q && BY[q]) { document.body.classList.add('no-intro'); setTimeout(() => reve
 
 // ── 스캔: [소품 비추기] → 카메라 → 소품을 알아보면 카메라가 닫히고 그 칸이 드러나 카드가 열린다
 const scanBtn = $('#scanBtn');
-if (IOS_UL) { scanBtn.lastChild.textContent = '카메라로 찾기'; setTimeout(() => toast(TAG_MSG), 2600); }
+if (IOS_UL) { scanBtn.lastChild.textContent = '소품 찾기'; setTimeout(() => toast(TAG_MSG), 2600); }
 else if (APP_NFC) scanBtn.lastChild.textContent = '소품에 폰 대기';
 document.body.classList.add('can-scan');
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다

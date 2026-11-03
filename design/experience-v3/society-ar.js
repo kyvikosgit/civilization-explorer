@@ -18,7 +18,7 @@ const PEOPLE = {
   coach: { img: V3 + people.wall.img, kind: 'photo' },
   title: '카페 게르부아 벽면을 비춰 보세요',
   sub: '창 안에서 그 시대 사람들의 이야기가 들립니다',
-  buttons: [{ label: '카메라 켜기', cam: true, on: openPeople }],
+  buttons: [{ label: '대화 엿듣기', cam: true, on: openPeople }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
   link: { label: people.skip, on: toColumn },
 };
@@ -60,7 +60,7 @@ const FLYER = {
   coach: { img: V3 + 'img/fl_bonmarche.jpg', kind: 'paper' },
   title: '그 모임 이름이 뭐였더라?',
   sub: '카페 게르부아에 매주 모이는 예술가들 이야기,\n칼럼의 전단지를 찾아 비춰 보세요',
-  buttons: [{ label: '카메라 켜기', cam: true, on: openFlyer }],
+  buttons: [{ label: '전단지 찾기', cam: true, on: openFlyer }],
 };
 function openFlyer() {
   guide.busy('카메라를 켜는 중');
