@@ -93,6 +93,8 @@ export function openCam(o) {
 
   const found = (i) => {
     if (me.shown === i) clearTimeout(me.lostT);                   // 잠깐 놓쳤다가 다시 잡힘 — 그대로 둔다
+    // 나란히 걸린 그림에서 다른 그림으로 바로 옮겨 감 — 보던 해설을 닫고 새 그림으로
+    else if (o.releaseOnLost && me.locked && cur === me) { clearTimeout(me.lostT); ui.release(); }
     if (cur !== me || me.locked) return;
     me.shown = i;
     clearTimeout(me.hintT);
@@ -174,7 +176,7 @@ export function openCam(o) {
 
   if (o.mind) {
     startScan($('.ar'), o.mind, (o.targets || []).length, {
-      setup: o.fx ? (ctx) => (me.fx = o.fx(ctx)) : null,
+      setup: o.fx ? (ctx) => (me.fx = o.fx(ctx)) : null, center: !!o.center,
       onFound: found,
       onLost: (i) => {
         me.fx?.lost?.(i);

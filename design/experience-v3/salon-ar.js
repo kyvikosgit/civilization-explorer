@@ -84,7 +84,7 @@ function begin() {
     find: '벽에 걸린 진짜 그림을 비춰 보세요\n특별한 액자의 다섯 점입니다',
     hint: '그림이 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
     mind: V3 + 'mind/salon.mind',
-    targets, demo: store.demo(), fx, onFound, hold: true, releaseOnLost: true,   // 그림이 화면에서 벗어나면 다시 찾는 화면으로
+    targets, demo: store.demo(), fx, onFound, hold: true, releaseOnLost: true, center: true,   // 그림이 화면에서 벗어나면 다시 찾는 화면으로
     onEnter: () => { guide.hide(); window.__salon.to('near', 1600); },
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => { guide.reset(); window.__salon.to('wall', 900); },

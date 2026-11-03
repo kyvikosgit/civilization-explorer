@@ -66,7 +66,7 @@ function openFlyer() {
   guide.busy('카메라를 켜는 중');
   openCam({
     title: '시민사회 · 모리스 칼럼', find: flyer.find, hint: '전단지가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
-    mind: V3 + flyer.mind, targets, demo: store.demo(), hold: true,
+    mind: V3 + flyer.mind, targets, demo: store.demo(), hold: true, center: true,
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => guide.reset(),

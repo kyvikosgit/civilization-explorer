@@ -39,7 +39,7 @@ function start() {
   openCam({
     title: '모네 전시관 · 비평가가 본 그림 찾기', find: '비평가를 화나게 한 그림에\n카메라를 비춰 보세요',
     hint: '그림이 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
-    mind: V3 + task.mind, targets, demo: store.demo(), hold: true, fx: sunFx,
+    mind: V3 + task.mind, targets, demo: store.demo(), hold: true, fx: sunFx, center: true,
     onFail: (msg) => { closeCam(); guide.reset(); guide.fail(msg); },
     onClose: () => guide.reset(),
     onFound: async (i, ui) => {
