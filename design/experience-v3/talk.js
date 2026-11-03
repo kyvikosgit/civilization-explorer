@@ -33,18 +33,21 @@ function playFromStart(v) { try { v.pause(); v.currentTime = 0; } catch {} v.pla
 const ended = (v, max) => new Promise((r) => { if (!v || v.ended || v.paused) return r(); const t = setTimeout(r, max); v.addEventListener('ended', () => { clearTimeout(t); r(); }, { once: true }); });
 
 // three 장면: 창 불빛 + 창 영상(벽 위 그 창 자리에 겹친 판, 유리 자리만 보이게)
+//   walls = 같은 벽의 인식 대상들(벽 전체 · 창 하나씩) — k 번째 사람은 어느 대상에서나 같은 사람. 영상은 사람마다 하나를 같이 쓰고,
+//   지금 잡힌 대상(maxTrack 1 이라 하나) 위에 그린다. 창 하나로 시작했다가 옆 창으로 옮겨 가도 이어진다
 export function talkFx(walls) {
   return ({ THREE, mindar, anchors }) => {
     const v3 = new THREE.Vector3();
     const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 4, 64, 64, 64); g.addColorStop(0, 'rgba(255,190,110,.9)'); g.addColorStop(1, 'rgba(255,170,80,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new THREE.CanvasTexture(c); })();
-    const glows = [], vids = [];
+    const glows = [], vids = [], shared = new Map();
+    const vidOf = (src) => { if (!shared.has(src)) { const v = winVideo(src); shared.set(src, { v, tex: new THREE.VideoTexture(v) }); } return shared.get(src); };
     walls.forEach((w, i) => {
       w.spots.forEach((s, k) => {
         if (s.video) {
-          const v = winVideo(s.video), [cx, cy, cw, ch] = s.clip, [gx, gy, gw, gh] = s.glass;
+          const { v, tex } = vidOf(s.video), [cx, cy, cw, ch] = s.clip, [gx, gy, gw, gh] = s.glass;
           const mat = new THREE.ShaderMaterial({
             transparent: true, depthWrite: false,
-            uniforms: { map: { value: new THREE.VideoTexture(v) }, g: { value: new THREE.Vector4(gx, 1 - gy - gh, gx + gw, 1 - gy) }, f: { value: 0.025 }, on: { value: 0 } },
+            uniforms: { map: { value: tex }, g: { value: new THREE.Vector4(gx, 1 - gy - gh, gx + gw, 1 - gy) }, f: { value: 0.025 }, on: { value: 0 } },
             vertexShader: 'varying vec2 q; void main(){ q = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
             fragmentShader: 'uniform sampler2D map; uniform vec4 g; uniform float f, on; varying vec2 q; void main(){ float a = smoothstep(g.x, g.x + f, q.x) * (1. - smoothstep(g.z - f, g.z, q.x)) * smoothstep(g.y, g.y + f, q.y) * (1. - smoothstep(g.w - f, g.w, q.y)); gl_FragColor = vec4(texture2D(map, q).rgb, a * on); }',
           });
@@ -56,26 +59,30 @@ export function talkFx(walls) {
         glow.position.set(s.x - 0.5, (0.5 - s.y) * w.ratio, 0.0005); anchors[i].group.add(glow); glows.push({ m: glow, i, k });
       });
     });
-    let active = { i: -1, k: -1 };
+    let active = -1;
     return {
-      setActive(k, i = -1) {
-        active = { i, k };
-        vids.forEach((o) => { if (o.i === i && o.k === k) playFromStart(o.v); });
+      setActive(k) {
+        active = k;
+        const o = vids.find((o) => o.k === k); if (o) playFromStart(o.v);
       },
-      video(i, k) { return vids.find((o) => o.i === i && o.k === k)?.v || null; },
+      video(k) { return vids.find((o) => o.k === k)?.v || null; },
       tick(t) {
-        const now = t || 0;
+        const now = t || 0, live = new Set();
         vids.forEach((o) => {
-          const on = anchors[o.i].group.visible && active.i === o.i && active.k === o.k, u = o.m.material.uniforms;
+          const on = anchors[o.i].group.visible && active === o.k, u = o.m.material.uniforms;
           u.on.value += ((on ? 1 : 0) - u.on.value) * (on ? 0.25 : 0.08);
-          if (!on && u.on.value < 0.01 && !o.v.paused) o.v.pause();
+          if (on || u.on.value >= 0.01) live.add(o.v);
         });
-        glows.forEach((o) => { o.m.material.opacity = (active.i === o.i && active.k === o.k ? 0.62 : 0.28) + 0.05 * Math.sin(now * 2.4 + o.k); });
+        vids.forEach((o) => { if (!live.has(o.v) && active !== o.k && !o.v.paused) o.v.pause(); });
+        glows.forEach((o) => { o.m.material.opacity = (active === o.k ? 0.62 : 0.28) + 0.05 * Math.sin(now * 2.4 + o.k); });
       },
-      project(i, s) {
-        const w = walls[i], c = mindar.container;
-        v3.set(s.x - 0.5, (0.5 - s.y) * w.ratio, 0).applyMatrix4(anchors[i].group.matrixWorld).project(mindar.camera);
-        return anchors[i].group.visible ? { x: (v3.x * 0.5 + 0.5) * c.clientWidth, y: (1 - (v3.y * 0.5 + 0.5)) * c.clientHeight } : null;
+      // k 번째 사람의 화면 자리 — 지금 잡혀 있는 대상 기준
+      project(k) {
+        const i = anchors.findIndex((a) => a.group.visible);
+        if (i < 0) return null;
+        const s = walls[i].spots[k], c = mindar.container;
+        v3.set(s.x - 0.5, (0.5 - s.y) * walls[i].ratio, 0).applyMatrix4(anchors[i].group.matrixWorld).project(mindar.camera);
+        return { x: (v3.x * 0.5 + 0.5) * c.clientWidth, y: (1 - (v3.y * 0.5 + 0.5)) * c.clientHeight };
       },
     };
   };
@@ -111,7 +118,7 @@ export function startTalk(ui, wall, { base, onHeard }) {
         const W = r.r - r.l, H = r.b - r.t, [cx, cy, cw, ch] = s.clip;
         Object.assign(wins[k].style, { left: `${r.l + cx * W}px`, top: `${r.t + cy * H}px`, width: `${cw * W}px`, height: `${ch * H}px` });
       }
-      const p = sim ? (r ? { x: r.l + s.x * (r.r - r.l), y: r.t + s.y * (r.b - r.t) } : null) : ui.fx.project(wall.index, s);
+      const p = sim ? (r ? { x: r.l + s.x * (r.r - r.l), y: r.t + s.y * (r.b - r.t) } : null) : ui.fx.project(k);
       if (p) pos[k] = sim ? p : (pos[k] ? { x: pos[k].x + (p.x - pos[k].x) * 0.2, y: pos[k].y + (p.y - pos[k].y) * 0.2 } : p);
       if (pos[k]) hits[k].style.transform = `translate(${pos[k].x}px, ${pos[k].y}px)`;
     });
@@ -157,7 +164,7 @@ export function startTalk(ui, wall, { base, onHeard }) {
     const my = ++run;
     stopVoice(); tip.classList.add('off');
     wins.forEach((v, j) => { if (v && j !== k) { v.classList.remove('on'); v.pause(); } });
-    active = k; ui.fx?.setActive?.(k, wall.index);
+    active = k; ui.fx?.setActive?.(k);
     const s = wall.spots[k];
     if (wins[k]) { zoomTo(s); playFromStart(wins[k]); wins[k].classList.add('on'); }
     else if (!s.video) glow.classList.add('on');            // 창 영상이 없는 벽은 그 자리에 불빛만
@@ -165,7 +172,7 @@ export function startTalk(ui, wall, { base, onHeard }) {
     await speak(base + s.audio, s.line.length);
     if (my !== run || token.dead) return;
     bub.classList.remove('on');
-    await ended(wins[k] || ui.fx?.video?.(wall.index, k), 1500);   // 영상이 조금 남았으면 마저 보고
+    await ended(wins[k] || ui.fx?.video?.(k), 1500);   // 영상이 조금 남았으면 마저 보고
     if (my !== run || token.dead) return;
     wins[k]?.classList.remove('on'); glow.classList.remove('on'); unzoom();
     active = -1; ui.fx?.setActive?.(-1);

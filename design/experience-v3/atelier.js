@@ -160,7 +160,7 @@ scanBtn.addEventListener('click', () => {
   closeAll(true);
   // 앱(NFC 가능): 소품 태그에 대기만 하면 그 소품 — 카메라 인식 대신
   if (APP_NFC) {
-    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, nfcMsg: '소품에 휴대폰 윗부분을 가까이 대세요', onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
+    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, nfcMsg: '소품에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '소품에 폰 대기', nfcAuto: true, onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
     return;
   }
   openDetect({

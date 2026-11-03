@@ -55,24 +55,18 @@ export const ZONES = [
     tasks: [
       // 카페 게르부아 · 박람회 벽면 인물 대화 — 체험장치 기획서(260928) 22–25쪽의 인물 자리와 대사 그대로.
       //   창 영상: 기획서 카페 벽(260928 22쪽 원본)의 창 하나씩을 잘라 만든 영상(Kling 3.0 Pro · 첫 장면 = 그 창 · 카메라 고정) — 누른 사람의 창만 움직인다.
-      //   기획서 카페 벽만 통과. 11/02 정면(연회복 차림 — 고증 탈락) · 박람회(줌인 · 깨진 글자 · 1880년대 복식 — 탈락)는 없음 인식 파일 순서: 11/02 카페 정면 · 260928 카페 벽면 · 박람회 벽면
+      //   전시장에는 카페 벽면 하나뿐(11/03) — 거리 정면 · 박람회 벽은 뺐다
+      //   인식: 벽 전체 + 창 하나씩(가까이 서서 창 하나만 비춰도 잡히게). 창 그림 = 260928 22쪽 원본에서 그 창 자리(= 창 영상 첫 장면)
+      //   인식 파일 순서: 카페 벽 전체 · 창 1 · 창 2 · 창 3 (mind/guerbois.mind)
       {
         id: 'people', title: '카페 게르부아', kind: 'talk',
         find: '카페 게르부아 벽면을 카메라로 비춰 보세요',
         mind: 'mind/guerbois.mind',
-        walls: [
-          { index: 0, place: '카페 게르부아', img: 'img/cafe_facade.jpg', ratio: 726 / 1080, windows: { w: 0.26, h: 0.2 }, spots: CAFE({ x: 0.78, y: 0.52 }, { x: 0.46, y: 0.52 }, { x: 0.22, y: 0.52 }) },
-          { index: 1, place: '카페 게르부아', img: 'img/cafe_plan.jpg', ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE(
-            { x: 0.276, y: 0.524, video: 'video/cafe_w1.mp4', clip: [0.174, 0.3572, 0.2044, 0.2725], glass: [0.1959, 0.0203, 0.6081, 0.9527] },
-            { x: 0.477, y: 0.524, video: 'video/cafe_w2.mp4', clip: [0.375, 0.3572, 0.2044, 0.2725], glass: [0.2669, 0.0203, 0.4662, 0.9527] },
-            { x: 0.676, y: 0.524, video: 'video/cafe_w3.mp4', clip: [0.5745, 0.3572, 0.2044, 0.2725], glass: [0.2027, 0.0203, 0.5912, 0.9527] }) },
-          { index: 2, place: '파리 만국 박람회', img: 'img/expo_wall.jpg', ratio: 1024 / 1536, spots: [
-            { x: 0.83, y: 0.63, audio: 'audio/expo1.m4a', line: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
-            { x: 0.57, y: 0.58, audio: 'audio/expo2.m4a', line: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
-            { x: 0.43, y: 0.53, audio: 'audio/expo3.m4a', line: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
-            { x: 0.33, y: 0.68, audio: 'audio/expo4.m4a', line: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' },
-          ] },
-        ],
+        wall: { place: '카페 게르부아', img: 'img/cafe_plan.jpg', ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE(
+          { x: 0.276, y: 0.524, video: 'video/cafe_w1.mp4', clip: [0.174, 0.3572, 0.2044, 0.2725], glass: [0.1959, 0.0203, 0.6081, 0.9527] },
+          { x: 0.477, y: 0.524, video: 'video/cafe_w2.mp4', clip: [0.375, 0.3572, 0.2044, 0.2725], glass: [0.2669, 0.0203, 0.4662, 0.9527] },
+          { x: 0.676, y: 0.524, video: 'video/cafe_w3.mp4', clip: [0.5745, 0.3572, 0.2044, 0.2725], glass: [0.2027, 0.0203, 0.5912, 0.9527] }) },
+        parts: [{ img: 'img/cafe_win1.jpg', rect: [0.174, 0.3572, 0.2044, 0.2725] }, { img: 'img/cafe_win2.jpg', rect: [0.375, 0.3572, 0.2044, 0.2725] }, { img: 'img/cafe_win3.jpg', rect: [0.5745, 0.3572, 0.2044, 0.2725] }],
         skip: '건너뛰고 칼럼으로 가기',
       },
       {
@@ -105,8 +99,7 @@ export const ZONES = [
       id: 'ticket', collect: true, title: '화가들을 밖으로 이끈 것은?',
       question: '책상 위에 놓인 물건들 사이에서, 생라자르역에서 노르망디로 향하는 기차표를 찾으세요.',
       find: '기차표에 카메라를 비추세요',
-      mind: null, // 기차표 실물 인쇄면으로 타깃 생성 예정
-      pending: '기차표 실물(또는 인쇄 파일)을 받으면 인식 타깃을 만듭니다',
+      mind: 'mind/ticket.mind', // img/t_ticket.png 로 만든 인식 파일 — 실물 인쇄면이 다르면 그걸로 다시 만든다
       targets: [{ id: 't4', title: '노르망디행 기차표', img: 'img/t_ticket.png', correct: true }],
       direct: true, // 정답 하나 — 비추면 바로 열린다
       successTitle: '정답입니다',

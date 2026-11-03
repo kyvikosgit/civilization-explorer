@@ -40,7 +40,8 @@ export function openCam(o) {
   const [cap, ...rest] = String(o.title || '').split(' · ');
   $('.cap').textContent = rest.length ? cap : ''; $('.t').textContent = rest.length ? rest.join(' · ') : cap;
   // 찾은 개수 — 대상이 여럿일 때만, 회색 → 금색 두 단계
-  const n = (o.targets || []).length, seen = new Set();
+  //   o.pick: 카메라 없이 고르기에 내놓을 대상 수(앞에서부터) — 같은 벽을 부분으로 나눈 인식 대상은 고르기에 안 보인다
+  const n = o.pick ?? (o.targets || []).length, seen = new Set();
   $('.dots').innerHTML = n > 1 ? '<i></i>'.repeat(n) : '';
   const markSeen = (i) => { seen.add(i); $('.dots').children[i]?.classList.add('on'); el.querySelectorAll('.strip button')[i]?.classList.add('seen'); };
   el.querySelector('.finder').removeAttribute('style');
@@ -57,7 +58,7 @@ export function openCam(o) {
   const ui = {
     // 도슨트 레이어 채우기. buttons: [{ label, cls, on }]
     show({ html, golden = false, buttons = [] }) {
-      me.locked = true;
+      me.locked = true; me.nfcStop?.();
       el.classList.add('locked'); el.classList.toggle('golden', golden);
       const d = $('.docent');
       d.innerHTML = html + (buttons.length ? `<div class="btns">${buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('')}</div>` : '');
@@ -66,7 +67,7 @@ export function openCam(o) {
       return d;
     },
     // 다시 찾기 — 파인더로
-    release() { me.locked = false; me.snapTo = null; el.classList.remove('locked', 'golden', 'snap'); $('.finder').removeAttribute('style'); me.fx?.release?.(); armHint(); },
+    release() { me.locked = false; me.snapTo = null; el.classList.remove('locked', 'golden', 'snap'); $('.finder').removeAttribute('style'); me.fx?.release?.(); armHint(); me.nfcRe?.(); },
     close() { closeCam(); },
     get el() { return el; },
     // 프로토타입: 뷰파인더에 보이는 그림의 화면 자리
@@ -103,7 +104,7 @@ export function openCam(o) {
   };
 
   // ── 예비: 카메라를 쓸 수 없을 때만 — 아래 [카메라 없이 고르기]를 눌러 펼치고, 사람이 직접 눌러야 그 대상을 비춘 것처럼 된다(자동으로 고르지 않는다)
-  const strip = $('.strip'), art = $('.sim-art'), finder = $('.finder'), targets = o.targets || [];
+  const strip = $('.strip'), art = $('.sim-art'), finder = $('.finder'), targets = (o.targets || []).slice(0, n);
   strip.innerHTML = targets.map((t, i) => `<button data-i="${i}" aria-label="${esc(t.title)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<span class="ph">${esc(t.title)}</span>`}</button>`).join('');
   const btns = [...strip.querySelectorAll('button')];
   art.removeAttribute('src');
@@ -127,25 +128,41 @@ export function openCam(o) {
   };
   btns.forEach((b, i) => { b.onclick = () => aim(i); });
   $('.pick-open').hidden = !btns.length;
-  // ── 앱(NFC 가능, exp/[id].tsx 가 __m100app.nfc 를 알려 준다): 화면이 열리면 바로 태그 읽기 — 폰을 대기만 하면 그 대상으로(링크로 넘어가지 않음)
-  //    o.nfc = { 태그 키: 대상 번호 } · 태그 주소 …/n/?t=키
+  // ── 앱(NFC 가능, exp/[id].tsx 가 __m100app.nfc 를 알려 준다): 카메라와 함께 — 비추든 태그에 대든 그 대상으로(링크로 넘어가지 않음)
+  //    안드로이드: 시스템 창 없이 뒤에서 태그를 기다린다 — 안내만 보이고, 대면 바로
+  //    아이폰: 앱이 태그를 읽으면 시스템 창('스캔 준비 완료')이 반드시 뜬다(애플 규칙, 끌 수 없음) — 그래서 저절로 띄우지 않고
+  //      [태그로 찍기]를 누른 사람에게만. o.nfcAuto: '폰 대기'를 눌러 들어온 화면(아틀리에)이면 바로
+  //    o.nfc = { 태그 키: 대상 번호 } · 태그 주소 …/n/?t=키 · o.nfcFind: 안드로이드에서 위 안내(비추거나 대거나)
   const appNfc = !!(window.__m100app && window.__m100app.nfc && o.nfc && window.ReactNativeWebView);
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const quiet = appNfc && !ios, nb = $('.nfc-again');
   const nfcRead = () => {
-    if (!appNfc || cur !== me || me.locked) return;
-    el.classList.add('nfc-wait');
+    if (!appNfc || cur !== me || me.locked || me.nfcOn) return;
+    me.nfcOn = true; el.classList.add('nfc-wait');
     window.__m100nfc = (url) => {
-      el.classList.remove('nfc-wait');
-      if (cur !== me) return;
+      me.nfcOn = false; el.classList.remove('nfc-wait');
+      if (cur !== me || me.locked) return;
       let key = null;
       try { const u = new URL(url, location.href); key = u.searchParams.get('t') || u.searchParams.get('o'); } catch { key = url; }
       const i = url && key != null ? o.nfc[key] : undefined;
-      if (i != null) found(i);
-      else $('.nfc-again').textContent = url ? '이 태그가 아닙니다 · 다시 대기' : '태그에 폰 대기';
+      if (i != null) return found(i);
+      if (!quiet) { nb.textContent = url ? '이 태그가 아닙니다 · 다시 찍기' : o.nfcBtn || '태그로 찍기'; return; }
+      if (!url) return;                                           // 안드로이드 NFC 꺼짐 등 — 카메라로만
+      clearTimeout(me.hintT); $('.msg').textContent = '이 태그가 아닙니다';
+      me.hintT = setTimeout(() => { if (cur === me && !me.locked) armHint(); }, 2200);
+      setTimeout(nfcRead, 1200);                                  // 다른 태그를 다시 기다린다
     };
     window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'nfc', msg: o.nfcMsg }));   // msg: 아이폰 시스템 창 문구
   };
-  if (appNfc) { $('.nfc-again').hidden = false; $('.nfc-again').textContent = '태그에 폰 대기'; $('.nfc-again').onclick = nfcRead; setTimeout(nfcRead, o.hold ? 1700 : 300); }
-  else $('.nfc-again').hidden = true;
+  // 카메라로 찾았거나 닫힐 때 — 기다리던 태그 읽기를 거둔다(안드로이드는 계속 기다리고 있다)
+  me.nfcStop = () => { if (me.nfcOn) { me.nfcOn = false; el.classList.remove('nfc-wait'); window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'nfc-cancel' })); } };
+  me.nfcRe = () => { if (quiet) setTimeout(nfcRead, 300); };
+  nb.hidden = !appNfc || quiet;
+  if (appNfc) {
+    nb.textContent = o.nfcBtn || '태그로 찍기'; nb.onclick = nfcRead;
+    if (quiet) { if (o.nfcFind) { o = { ...o, find: o.nfcFind }; me.o = o; $('.msg').textContent = o.find; } setTimeout(nfcRead, o.hold ? 1700 : 300); }
+    else if (o.nfcAuto) setTimeout(nfcRead, 300);
+  }
   me.nfcRead = nfcRead;
 
   // 카메라를 아예 못 쓰면(권한 거부 · 카메라 없음 · 인식 타깃 준비 전) 고르기를 바로 펼친다
@@ -175,7 +192,7 @@ export function openCam(o) {
 export async function closeCam(fade) {
   if (!cur) return;
   const me0 = cur;
-  clearTimeout(cur.hintT);
+  clearTimeout(cur.hintT); cur.nfcStop?.();
   cur = null;
   clearTimeout(me0.aimT); clearTimeout(me0.snapT);
   // 뒤 장면(3D)이 무거워 프레임이 밀려도 닫힘이 멈추지 않게 시간으로도 끊는다

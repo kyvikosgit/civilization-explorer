@@ -13,13 +13,12 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // 벽면 자료 — 도슨트 원고 한 문단 + v2 현장 자료 네 장
 $('#clueRow').insertAdjacentHTML('beforebegin', `<p class="clue-lead">${zone.wall.lead}</p>`);
-// 앱(NFC 가능)에선 기차표 태그에 폰을 대면 바로 — 카메라 대신
-const APP_NFC = !!(window.__m100app?.nfc && window.ReactNativeWebView);
+// 기차표 찾기: 카메라로 비추거나, 앱(NFC 가능)이면 기차표 태그에 폰을 대도 된다 — 둘 다 같은 화면에서(camui.js)
 const ASK = {
   coach: { img: V3 + 'img/t_ticket.png', kind: 'ticket' },
   title: task.title,
-  sub: APP_NFC ? '책상 위에서 노르망디행 기차표를 찾아\n휴대폰 윗부분을 대 보세요' : '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
-  buttons: [APP_NFC ? { label: '기차표에 폰 대기', on: scan } : { label: '카메라 켜기', cam: true, on: scan }],
+  sub: '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
+  buttons: [{ label: '카메라 켜기', cam: true, on: scan }],
   link: { label: '사무실 다시 살펴보기', on: () => $('#openClues').click() },
 };
 $('#introGo').addEventListener('click', () => {
@@ -33,7 +32,8 @@ function scan() {
   openCam({
     title: '사업가의 사무실 · 기차표 찾기', find: task.find, hint: '기차표가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
     mind: task.mind ? V3 + task.mind : null, pending: task.pending,
-    targets: task.targets.map((t) => ({ ...t, img: V3 + t.img })), hold: true, nfc: { ticket: 0, c2: 0 }, nfcMsg: '기차표에 휴대폰 윗부분을 가까이 대세요',
+    targets: task.targets.map((t) => ({ ...t, img: V3 + t.img })), hold: true,
+    nfc: { ticket: 0, c2: 0 }, nfcMsg: '기차표에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '기차표 태그로 찍기', nfcFind: '기차표를 비추거나 휴대폰을 대 보세요',
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => guide.reset(),

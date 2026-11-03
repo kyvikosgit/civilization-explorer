@@ -15,21 +15,28 @@ let stage = 'people', ended = false;
 
 // ── 벽의 사람들
 const PEOPLE = {
-  coach: { img: V3 + 'img/cafe_facade.jpg', kind: 'photo' },
+  coach: { img: V3 + people.wall.img, kind: 'photo' },
   title: '카페 게르부아 벽면을 비춰 보세요',
   sub: '창 안에서 그 시대 사람들의 이야기가 들립니다',
   buttons: [{ label: '카메라 켜기', cam: true, on: openPeople }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
   link: { label: people.skip, on: toColumn },
 };
-const walls = people.walls.map((w) => ({ ...w, img: V3 + w.img, spots: w.spots.map((s) => (s.video ? { ...s, video: V3 + s.video } : s)) }));
+// 인식 대상 = 벽 전체(0) + 창 하나씩(1–3). 창 대상은 같은 벽을 그 창 기준 좌표로 옮긴 것 — 창 하나만 비춰도 옆 창 자리까지 그대로 이어진다
+const wall0 = { ...people.wall, index: 0, img: V3 + people.wall.img, spots: people.wall.spots.map((s) => ({ ...s, video: V3 + s.video })) };
+const part = ({ img, rect: [rx, ry, rw, rh] }, index) => ({
+  ...wall0, index, img: V3 + img, ratio: (wall0.ratio * rh) / rw,
+  windows: { w: wall0.windows.w / rw, h: wall0.windows.h / rh },
+  spots: wall0.spots.map((s) => ({ ...s, x: (s.x - rx) / rw, y: (s.y - ry) / rh, clip: [(s.clip[0] - rx) / rw, (s.clip[1] - ry) / rh, s.clip[2] / rw, s.clip[3] / rh] })),
+});
+const walls = [wall0, ...people.parts.map((p, n) => part(p, n + 1))];
 let stopTalk = null;
 function openPeople() {
   guide.busy('카메라를 켜는 중');
   unlockAudio(V3 + walls[0].spots[0].audio);          // 누른 순간에 소리를 열어 둔다
   openCam({
-    title: '시민사회 · 카페 게르부아', find: people.find, hint: '벽면이 화면에 가득 차도록\n조금 더 뒤로 물러나 보세요',
-    mind: V3 + people.mind, targets: walls.map((w) => ({ title: w.place, img: w.img })),
+    title: '시민사회 · 카페 게르부아', find: people.find, hint: '벽 전체나 창 하나가\n화면에 꽉 차게 비춰 보세요',
+    mind: V3 + people.mind, targets: walls.map((w) => ({ title: w.place, img: w.img })), pick: 1,   // 카메라 없이 고르기는 벽 전체 하나만
     hold: true, fx: talkFx(walls),
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
