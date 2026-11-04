@@ -37,7 +37,11 @@ function style() {
 }
 
 // 수집품 받기 — 정답 순간에 저절로
-export function collect(taskId) { store.save(taskId); navigator.vibrate?.(16); }
+//   앱 웹뷰 안이면 앱 수집함에도(exp/[id].tsx 가 {type:'collect'} 를 받아 이 페이지의 수집품으로 담는다 — 저장 단추가 없어졌으므로)
+export function collect(taskId) {
+  store.save(taskId); navigator.vibrate?.(16);
+  try { window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'collect', url: location.href })); } catch {}
+}
 
 // 끝 줄 하나. item: { name, img, contain } · more: 체험 더보기를 누르면(없으면 단추 없음) · light: 밝은 바탕 페이지
 export function endRow(zoneId, { item, more, moreLabel = '체험 더보기', light = false } = {}) {
