@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4EFE4">
+<title>입장 대기 접수</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="wait.css">
+<style>
+/* 현장 태블릿 — 가로 · 세로 모두. 인원 → 휴대폰 번호(숫자판) → 동의 → 접수 → 대기번호(10초 뒤 처음으로) */
+html,body{height:100%;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.wrap{height:100%;display:grid;grid-template-columns:1fr 1.1fr;gap:28px;padding:calc(28px + env(safe-area-inset-top)) 32px calc(24px + env(safe-area-inset-bottom))}
+.info{display:flex;flex-direction:column;justify-content:space-between;padding:8px 4px}
+.cap{font-size:15px;font-weight:700;color:var(--green);letter-spacing:.02em}
+.info h1{font-size:clamp(34px,4.4vw,52px);font-weight:800;line-height:1.2;margin-top:10px}
+.info .lead{margin-top:14px;font-size:18px;line-height:1.6;color:var(--sub)}
+.now{margin-top:28px;display:flex;gap:12px}
+.now div{flex:1;padding:18px 20px;border-radius:16px;background:var(--card);border:1px solid var(--line)}
+.now small{display:block;font-size:14px;color:var(--sub);font-weight:600}
+.now b{display:block;margin-top:4px;font-family:Paperlogy,sans-serif;font-size:36px;font-weight:800}
+.now b i{font-style:normal;font-size:18px;margin-left:2px}
+.steps{margin-top:24px;display:grid;gap:10px;font-size:16px;color:var(--sub)}
+.steps li{list-style:none;display:flex;gap:10px;align-items:center}
+.steps li span{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--green-l);color:var(--green);font-weight:800;font-size:14px;flex:none}
+.form{display:flex;flex-direction:column;gap:16px;padding:22px;border-radius:22px;background:var(--card);border:1px solid var(--line);box-shadow:0 20px 50px -30px rgba(40,30,20,.35);min-height:0}
+.lab{font-size:15px;font-weight:700;color:var(--sub)}
+.party{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px}
+.party button{height:58px;border-radius:12px;border:1.5px solid var(--line);font-size:22px;font-weight:800;background:#fff}
+.party button.on{background:var(--green);border-color:var(--green);color:#fff}
+.phone{margin-top:8px;height:64px;border-radius:12px;border:1.5px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-family:Paperlogy,sans-serif;font-size:30px;font-weight:700;letter-spacing:.04em}
+.phone.ok{border-color:var(--green)}
+.phone .ph{color:#BDB3A5}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1;min-height:0}
+.pad button{min-height:52px;border-radius:12px;background:#F5F1E9;font-size:26px;font-weight:700}
+.pad button:active{background:var(--line)}
+.pad .fn{font-size:17px;color:var(--sub)}
+.agree{display:flex;align-items:flex-start;gap:12px;text-align:left;padding:12px 14px;border-radius:12px;background:#F5F1E9;font-size:15px;line-height:1.5}
+.agree .box{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid #BDB3A5;display:grid;place-items:center;background:#fff;margin-top:1px}
+.agree.on .box{background:var(--green);border-color:var(--green)}
+.agree.on .box::after{content:"";width:10px;height:6px;border:solid #fff;border-width:0 0 3px 3px;transform:rotate(-45deg) translate(1px,-1px)}
+.agree small{display:block;color:var(--sub);font-size:13px;margin-top:2px}
+.go{width:100%;min-height:64px;font-size:21px}
+.err{min-height:20px;font-size:15px;font-weight:600;color:var(--warn);text-align:center}
+/* 접수 완료 */
+.done{position:fixed;inset:0;display:none;place-items:center;background:var(--bg);z-index:10;padding:24px;text-align:center}
+.done.on{display:grid;animation:fi .35s ease}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.done .cap{font-size:18px}
+.done .no{font-family:Paperlogy,sans-serif;font-size:clamp(96px,16vw,170px);font-weight:800;line-height:1;margin:16px 0 4px;color:var(--green)}
+.done .no i{font-style:normal;font-size:.35em;margin-left:6px;color:var(--ink)}
+.done h2{font-size:28px;font-weight:800}
+.done p{margin-top:14px;font-size:19px;line-height:1.6;color:var(--sub)}
+.done .btn{margin-top:30px;min-width:240px}
+.done .count{margin-top:12px;font-size:14px;color:var(--sub)}
+.closed{position:fixed;inset:0;display:none;place-items:center;background:var(--bg);z-index:9;text-align:center;padding:24px}
+.closed.on{display:grid}
+.closed h2{font-size:34px}
+.closed p{margin-top:12px;font-size:19px;color:var(--sub)}
+@media (max-width:820px),(orientation:portrait){
+  html,body{overflow:auto}
+  .wrap{grid-template-columns:1fr;height:auto;gap:18px;padding:22px 18px}
+  .info h1{font-size:34px}.now{margin-top:18px}.steps{display:none}
+  .pad button{min-height:60px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="info">
+    <div>
+      <p class="cap" id="cap">MONET 100</p>
+      <h1>입장 대기<br>접수</h1>
+      <p class="lead">번호를 남기시면 입장 차례에<br>카카오톡 알림톡으로 알려 드립니다.</p>
+      <div class="now"><div><small>지금 기다리는 팀</small><b><span id="teams">–</span><i>팀</i></b></div><div><small>대기 인원</small><b><span id="people">–</span><i>명</i></b></div></div>
+    </div>
+    <ol class="steps">
+      <li><span>1</span>인원과 휴대폰 번호를 입력해 주세요</li>
+      <li><span>2</span>알림톡으로 대기번호와 현황 링크가 옵니다</li>
+      <li><span>3</span>입장 차례 알림이 오면 입구로 와 주세요</li>
+    </ol>
+  </section>
+
+  <section class="form">
+    <div><p class="lab">인원</p><div class="party" id="party"></div></div>
+    <div><p class="lab">휴대폰 번호</p><div class="phone" id="phone"></div></div>
+    <div class="pad" id="pad"></div>
+    <button class="agree" id="agree" type="button" aria-pressed="false"><span class="box"></span><span>[필수] 개인정보 수집·이용에 동의합니다<small>항목: 휴대폰 번호 · 목적: 입장 순서 알림(알림톡·문자) · 보유: 당일 운영 종료 후 파기</small></span></button>
+    <p class="err" id="err"></p>
+    <button class="btn go" id="go" type="button" disabled>대기 접수</button>
+  </section>
+</div>
+
+<div class="done" id="done"><div>
+  <p class="cap">접수되었습니다</p>
+  <div class="no"><span id="dNo"></span><i>번</i></div>
+  <h2 id="dAhead"></h2>
+  <p>입장 차례가 되면 알림톡으로 알려 드립니다.<br>알림톡의 버튼에서 대기 현황을 보거나 취소할 수 있습니다.</p>
+  <button class="btn" id="dOk" type="button">확인</button>
+  <p class="count" id="dCount"></p>
+</div></div>
+<div class="closed" id="closed"><div><h2>지금은 대기 접수를 받지 않습니다</h2><p>현장 직원에게 문의해 주세요.</p></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { call, qs, say } from './wait.js';
+const $ = (id) => document.getElementById(id);
+const KEY = qs('k');
+let maxParty = 6, party = 2, digits = '010', agree = false, busy = false;
+
+function drawParty() {
+  $('party').style.gridTemplateColumns = `repeat(${Math.min(maxParty, 6)},1fr)`;
+  $('party').innerHTML = Array.from({ length: maxParty }, (_, i) => `<button type="button" data-n="${i + 1}" class="${i + 1 === party ? 'on' : ''}">${i + 1}${i + 1 === maxParty && maxParty >= 6 ? '+' : ''}</button>`).join('');
+}
+$('party').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; party = +b.dataset.n; drawParty(); check(); };
+const fmt = (d) => d.length <= 3 ? d : d.length <= 7 ? `${d.slice(0, 3)}-${d.slice(3)}` : `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+const okPhone = () => /^01[016789]\d{7,8}$/.test(digits);
+function drawPhone() { $('phone').innerHTML = digits.length > 3 ? fmt(digits) : `${fmt(digits)}<span class="ph">-0000-0000</span>`; $('phone').classList.toggle('ok', okPhone()); }
+$('pad').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '지움', '0', '←'].map((k) => `<button type="button" class="${k.length > 1 ? 'fn' : ''}" data-k="${k}">${k}</button>`).join('');
+$('pad').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b) return; const k = b.dataset.k;
+  if (k === '지움') digits = '010'; else if (k === '←') digits = digits.slice(0, -1); else if (digits.length < 11) digits += k;
+  drawPhone(); check();
+};
+$('agree').onclick = () => { agree = !agree; $('agree').classList.toggle('on', agree); $('agree').setAttribute('aria-pressed', agree); check(); };
+function check() { $('err').textContent = ''; $('go').disabled = !(okPhone() && agree && party >= 1); }
+
+let doneT = 0;
+function reset() { clearInterval(doneT); $('done').classList.remove('on'); party = 2; digits = '010'; agree = false; $('agree').classList.remove('on'); drawParty(); drawPhone(); check(); refresh(); }
+$('go').onclick = async () => {
+  if (busy) return; busy = true; $('go').disabled = true; $('go').textContent = '접수하는 중';
+  try {
+    const r = await call('join', { key: KEY, phone: digits, party, agree });
+    $('dNo').textContent = r.no;
+    $('dAhead').textContent = r.again ? `이미 접수된 번호입니다 · 내 앞 ${r.ahead}팀` : r.ahead ? `내 앞에 ${r.ahead}팀이 기다리고 있습니다` : '곧 입장하실 수 있습니다';
+    $('done').classList.add('on');
+    let n = 10; $('dCount').textContent = `${n}초 뒤 처음 화면으로`;
+    doneT = setInterval(() => { n--; $('dCount').textContent = `${n}초 뒤 처음 화면으로`; if (n <= 0) reset(); }, 1000);
+  } catch (e) {
+    $('err').textContent = say(e.code);
+    if (e.code === 'closed') $('closed').classList.add('on');
+  } finally { busy = false; $('go').textContent = '대기 접수'; check(); }
+};
+$('dOk').onclick = reset;
+
+async function refresh() {
+  try {
+    const s = await call('summary', { key: KEY });
+    $('cap').textContent = s.title; $('teams').textContent = s.teams; $('people').textContent = s.people;
+    $('closed').classList.toggle('on', !s.open);
+    if (s.max_party !== maxParty) { maxParty = s.max_party; party = Math.min(party, maxParty); drawParty(); }
+  } catch (e) { if (e.code === 'bad_key') { $('err').textContent = say('bad_key'); $('go').disabled = true; } }
+}
+drawParty(); drawPhone(); check(); refresh();
+setInterval(refresh, 15000);
+// 태블릿을 오래 켜 둔다 — 화면이 꺼지지 않게
+try { navigator.wakeLock?.request('screen'); document.addEventListener('visibilitychange', () => { if (!document.hidden) navigator.wakeLock?.request('screen').catch(() => {}); }); } catch {}
+</script>
+</body>
+</html>

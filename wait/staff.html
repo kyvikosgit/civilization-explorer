@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#F4EFE4">
+<title>대기 관리</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="wait.css">
+<style>
+/* 직원 화면 — 대기 순서대로 호출 · 입장 · 노쇼. 4초마다 새로. 폰 · 태블릿 · 노트북 */
+body{padding:calc(16px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));max-width:980px;margin:0 auto}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hd h1{font-size:24px;font-weight:800}
+.hd small{display:block;font-size:13px;color:var(--sub);font-weight:600}
+.open{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700}
+.sw{width:52px;height:30px;border-radius:999px;background:#CFC6B8;position:relative;transition:background .2s}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw.on{background:var(--green)}.sw.on::after{transform:translateX(22px)}
+.warnbar{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--warn-l);color:var(--warn);font-size:14px;font-weight:600;line-height:1.5}
+.stats{margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stats div{padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.stats small{font-size:13px;color:var(--sub);font-weight:600}
+.stats b{display:block;font-family:Paperlogy,sans-serif;font-size:26px;font-weight:800;margin-top:2px}
+.stats b i{font-style:normal;font-size:14px;color:var(--sub);margin-left:4px;font-family:Freesentation,sans-serif}
+.callbar{margin-top:14px;display:flex;gap:8px;align-items:stretch}
+.callbar .btn{flex:1;min-height:60px;font-size:19px}
+.stepper{display:flex;align-items:center;border:1.5px solid var(--line);border-radius:12px;background:#fff}
+.stepper button{width:46px;height:100%;font-size:24px;font-weight:700;color:var(--sub)}
+.stepper b{min-width:30px;text-align:center;font-size:20px}
+h2{margin:24px 0 8px;font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+h2 span{font-family:Freesentation,sans-serif;font-size:14px;color:var(--sub);font-weight:700}
+.list{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.row.called{border-color:var(--green);background:#F3F7F1}
+.row.late{border-color:var(--warn);background:#FBF1EC}
+.row .n{font-family:Paperlogy,sans-serif;font-size:28px;font-weight:800;text-align:center}
+.row .n small{display:block;font-family:Freesentation,sans-serif;font-size:12px;color:var(--sub);font-weight:700;margin-top:-2px}
+.row .b{min-width:0}
+.row .t{font-size:16px;font-weight:700}
+.row .m{margin-top:3px;font-size:13px;color:var(--sub);display:flex;flex-wrap:wrap;gap:4px 10px}
+.row .m .ok{color:var(--green)}.row .m .bad{color:var(--warn)}
+.row .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.row .acts .btn{min-height:42px;padding:0 14px;font-size:15px}
+.empty{padding:22px;text-align:center;color:var(--sub);font-size:15px;border:1.5px dashed var(--line);border-radius:14px}
+details{margin-top:24px}
+summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
+.set{margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.set label{display:block;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--sub);font-weight:600}
+.set input{display:block;width:100%;margin-top:6px;font:inherit;font-size:18px;font-weight:700;color:var(--ink);border:0;background:none;outline:none}
+.set .btn{min-height:46px}
+.links{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.6;word-break:break-all}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:52px 1fr}.row .acts{grid-column:1/-1;justify-content:stretch}.row .acts .btn{flex:1}}
+</style>
+</head>
+<body>
+<div class="hd">
+  <div><h1 id="title">대기 관리</h1><small id="day"></small></div>
+  <button class="open" id="openBtn" type="button"><span id="openTx">접수 중</span><i class="sw" id="sw"></i></button>
+</div>
+<div class="warnbar" id="warn" hidden>알림톡 연결 전입니다 — 접수 · 호출은 되지만 손님에게 알림이 가지 않습니다. 호출은 직접 불러 주세요.</div>
+<div class="stats">
+  <div><small>대기</small><b><span id="sW">0</span><i id="sWp"></i></b></div>
+  <div><small>호출됨</small><b><span id="sC">0</span><i id="sCp"></i></b></div>
+  <div><small>입장</small><b><span id="sE">0</span><i id="sEp"></i></b></div>
+  <div><small>노쇼 · 취소</small><b><span id="sX">0</span></b></div>
+</div>
+<div class="callbar">
+  <div class="stepper"><button type="button" id="minus" aria-label="한 팀 줄이기">−</button><b id="cnt">1</b><button type="button" id="plus" aria-label="한 팀 늘리기">+</button></div>
+  <button class="btn" id="callNext" type="button">다음 1팀 호출</button>
+</div>
+
+<h2>호출됨 <span id="hC"></span></h2>
+<div class="list" id="called"></div>
+<h2>대기 중 <span id="hW"></span></h2>
+<div class="list" id="waiting"></div>
+<details><summary>완료 <span id="hD"></span></summary><div class="list" id="done" style="margin-top:8px"></div></details>
+
+<details>
+  <summary>설정</summary>
+  <div class="set">
+    <label>전시명(알림톡 머리말)<input id="cTitle" maxlength="30"></label>
+    <label>한 팀 최대 인원<input id="cMax" type="number" min="1" max="20"></label>
+    <label>호출 뒤 입장까지(분)<input id="cMin" type="number" min="1" max="60"></label>
+    <label>'곧 차례' 알림 — 앞 팀이 이만큼 남으면<input id="cAhead" type="number" min="0" max="20"></label>
+    <button class="btn" id="cSave" type="button">설정 저장</button>
+  </div>
+  <p class="links">접수 태블릿 주소는 관리자에게 받으세요. 휴대폰 번호는 운영일이 지나면 자동으로 지워집니다.</p>
+</details>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { call, qs, esc, ago, say } from './wait.js';
+const $ = (id) => document.getElementById(id);
+const KEY = qs('k');
+let data = null, cnt = 1, busy = false;
+const toast = (t) => { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2200); };
+const MSG = { join: '접수', soon: '곧 차례', call: '호출' };
+const msgLine = (r) => r.msgs.slice(-2).map((m) => `<span class="${m.state === 'sent' ? 'ok' : m.state === 'failed' ? 'bad' : ''}">${MSG[m.kind] || m.kind} 알림 ${m.state === 'sent' ? '보냄' : m.state === 'failed' ? '실패' : '안 보냄'}</span>`).join('');
+
+function rowHTML(r, kind) {
+  const late = kind === 'called' && data && (Date.now() - new Date(r.called_at)) / 60000 > data.config.call_minutes;
+  const acts = kind === 'waiting' ? `<button class="btn" data-a="call" data-id="${r.id}">호출</button><button class="btn line" data-a="canceled" data-id="${r.id}">취소</button>`
+    : kind === 'called' ? `<button class="btn" data-a="entered" data-id="${r.id}">입장</button><button class="btn line" data-a="recall" data-id="${r.id}">다시 알림</button><button class="btn line" data-a="noshow" data-id="${r.id}">노쇼</button>`
+    : `<button class="btn line" data-a="waiting" data-id="${r.id}">대기로 되돌리기</button>`;
+  const when = kind === 'called' ? `호출 ${ago(r.called_at)} 전${late ? ' · 시간 지남' : ''}` : kind === 'waiting' ? `대기 ${ago(r.created_at)}` : { entered: '입장', noshow: '노쇼', canceled: '취소' }[r.status];
+  return `<div class="row ${kind}${late ? ' late' : ''}"><div class="n">${r.no}<small>번</small></div>
+    <div class="b"><div class="t">${r.party}명 · ${esc(r.phone || '번호 없음')}</div><div class="m"><span>${when}</span>${msgLine(r)}</div></div>
+    <div class="acts">${acts}</div></div>`;
+}
+function render() {
+  const rows = data.rows, by = (s) => rows.filter((r) => s.includes(r.status));
+  const W = by(['waiting']), C = by(['called']), E = by(['entered']), X = by(['noshow', 'canceled']);
+  const sum = (a) => a.reduce((x, r) => x + r.party, 0);
+  $('title').textContent = `${data.config.title} 대기 관리`; $('day').textContent = data.day;
+  $('sw').classList.toggle('on', data.config.open); $('openTx').textContent = data.config.open ? '접수 중' : '접수 마감';
+  $('warn').hidden = data.bizgo;
+  $('sW').textContent = W.length; $('sWp').textContent = `${sum(W)}명`; $('sC').textContent = C.length; $('sCp').textContent = `${sum(C)}명`; $('sE').textContent = E.length; $('sEp').textContent = `${sum(E)}명`; $('sX').textContent = X.length;
+  $('hC').textContent = `${C.length}팀`; $('hW').textContent = `${W.length}팀 · ${sum(W)}명`; $('hD').textContent = `${E.length + X.length}팀`;
+  $('called').innerHTML = C.map((r) => rowHTML(r, 'called')).join('') || '<div class="empty">호출한 팀이 없습니다</div>';
+  $('waiting').innerHTML = W.map((r) => rowHTML(r, 'waiting')).join('') || '<div class="empty">기다리는 팀이 없습니다</div>';
+  $('done').innerHTML = [...E, ...X].sort((a, b) => b.no - a.no).map((r) => rowHTML(r, 'done')).join('') || '<div class="empty">아직 없습니다</div>';
+  cnt = Math.max(1, Math.min(cnt, Math.max(1, W.length))); drawCnt();
+  if (document.activeElement?.closest?.('.set') == null) { $('cTitle').value = data.config.title; $('cMax').value = data.config.max_party; $('cMin').value = data.config.call_minutes; $('cAhead').value = data.config.notice_ahead; }
+}
+function drawCnt() { $('cnt').textContent = cnt; $('callNext').textContent = `다음 ${cnt}팀 호출`; $('callNext').disabled = !data || !data.rows.some((r) => r.status === 'waiting'); }
+async function load() { try { data = await call('list', { key: KEY }); render(); } catch (e) { if (e.code === 'bad_key') document.body.innerHTML = '<p style="padding:40px;text-align:center;font-size:17px">접속 주소가 올바르지 않습니다.</p>'; } }
+async function act(fn, ok) { if (busy) return; busy = true; try { await fn(); if (ok) toast(ok); await load(); } catch (e) { toast(say(e.code)); } finally { busy = false; } }
+
+$('minus').onclick = () => { cnt = Math.max(1, cnt - 1); drawCnt(); };
+$('plus').onclick = () => { cnt = Math.min(20, cnt + 1); drawCnt(); };
+$('callNext').onclick = () => act(async () => { const r = await call('call', { key: KEY, count: cnt }); toast(`${r.called.join(', ')}번 호출`); });
+$('openBtn').onclick = () => act(() => call('config', { key: KEY, patch: { open: !data.config.open } }), data.config.open ? '접수를 마감했습니다' : '접수를 열었습니다');
+$('cSave').onclick = () => act(() => call('config', { key: KEY, patch: { title: $('cTitle').value, max_party: +$('cMax').value, call_minutes: +$('cMin').value, notice_ahead: +$('cAhead').value } }), '설정을 저장했습니다');
+document.body.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a, id = b.dataset.id, no = b.closest('.row').querySelector('.n').firstChild.textContent;
+  if (a === 'call') return act(() => call('call', { key: KEY, ids: [id] }), `${no}번 호출`);
+  if (a === 'recall') return act(() => call('recall', { key: KEY, id }), `${no}번 다시 알림`);
+  if ((a === 'canceled' || a === 'noshow') && !confirm(`${no}번을 ${a === 'noshow' ? '노쇼' : '취소'} 처리할까요?`)) return;
+  act(() => call('mark', { key: KEY, id, status: a }), { entered: `${no}번 입장`, noshow: `${no}번 노쇼`, canceled: `${no}번 취소`, waiting: `${no}번 대기로` }[a]);
+});
+load(); setInterval(() => { if (!document.hidden && !busy) load(); }, 4000);
+</script>
+</body>
+</html>

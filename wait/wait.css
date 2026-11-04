@@ -1,0 +1,15 @@
+/* 현장 대기 접수 — 초대장 색(초록 · 크림)을 따른다 */
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css');
+@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
+:root{--bg:#F4EFE4;--card:#FFFDF8;--ink:#1F1A15;--sub:#6B6258;--line:#E2DACB;--green:#5E7F62;--green-d:#4A6A4F;--green-l:#E4ECE2;--warn:#B5533C;--warn-l:#F6E3DC;--gold:#B98A35}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:Freesentation,-apple-system,sans-serif;word-break:keep-all;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+h1,h2,.disp{font-family:Paperlogy,Freesentation,sans-serif}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:12px;font-size:17px;font-weight:800;background:var(--green);color:#fff;transition:background .15s,opacity .15s}
+.btn:active{background:var(--green-d)}
+.btn.line{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.warn{background:var(--warn)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);padding:12px 18px;border-radius:12px;background:var(--ink);color:#fff;font-size:15px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:90;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
