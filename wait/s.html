@@ -61,7 +61,7 @@ async function load(action = 'status') {
     $('upd').textContent = d.status === 'waiting' ? `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 기준 · 자동으로 새로 고칩니다` : '';
   } catch (e) { $('card').hidden = true; $('cancel').hidden = true; $('msg').hidden = false; $('msg').textContent = say(e.code); }
 }
-$('cancel').onclick = async () => { if (!confirm('대기를 취소할까요? 취소하면 대기번호가 사라집니다.')) return; await load('cancel'); };
+$('cancel').onclick = async () => { if (!confirm('대기를 취소할까요? 취소하면 접수번호가 사라집니다.')) return; await load('cancel'); };
 if (!T) { $('msg').textContent = say('not_found'); } else { load(); setInterval(() => { if (!document.hidden) load(); }, 15000); }
 </script>
 </body>
