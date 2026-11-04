@@ -80,7 +80,8 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
 <details>
   <summary>설정</summary>
   <div class="set">
-    <label>전시명(알림톡 머리말)<input id="cTitle" maxlength="30"></label>
+    <label>전시명(알림톡에 들어감)<input id="cTitle" maxlength="30"></label>
+    <label>전시 페이지 주소(civilization-explorer.vercel.app/ 뒤)<input id="cPath" maxlength="200" placeholder="monet100-web/"></label>
     <label>한 팀 최대 인원<input id="cMax" type="number" min="1" max="20"></label>
     <label>호출 뒤 입장까지(분)<input id="cMin" type="number" min="1" max="60"></label>
     <label>'곧 차례' 알림 — 앞 팀이 이만큼 남으면<input id="cAhead" type="number" min="0" max="20"></label>
@@ -122,7 +123,7 @@ function render() {
   $('waiting').innerHTML = W.map((r) => rowHTML(r, 'waiting')).join('') || '<div class="empty">기다리는 팀이 없습니다</div>';
   $('done').innerHTML = [...E, ...X].sort((a, b) => b.no - a.no).map((r) => rowHTML(r, 'done')).join('') || '<div class="empty">아직 없습니다</div>';
   cnt = Math.max(1, Math.min(cnt, Math.max(1, W.length))); drawCnt();
-  if (document.activeElement?.closest?.('.set') == null) { $('cTitle').value = data.config.title; $('cMax').value = data.config.max_party; $('cMin').value = data.config.call_minutes; $('cAhead').value = data.config.notice_ahead; }
+  if (document.activeElement?.closest?.('.set') == null) { $('cTitle').value = data.config.title; $('cMax').value = data.config.max_party; $('cMin').value = data.config.call_minutes; $('cAhead').value = data.config.notice_ahead; $('cPath').value = data.config.exhibit_path || ''; }
 }
 function drawCnt() { $('cnt').textContent = cnt; $('callNext').textContent = `다음 ${cnt}팀 호출`; $('callNext').disabled = !data || !data.rows.some((r) => r.status === 'waiting'); }
 async function load() { try { data = await call('list', { key: KEY }); render(); } catch (e) { if (e.code === 'bad_key') document.body.innerHTML = '<p style="padding:40px;text-align:center;font-size:17px">접속 주소가 올바르지 않습니다.</p>'; } }
@@ -132,7 +133,7 @@ $('minus').onclick = () => { cnt = Math.max(1, cnt - 1); drawCnt(); };
 $('plus').onclick = () => { cnt = Math.min(20, cnt + 1); drawCnt(); };
 $('callNext').onclick = () => act(async () => { const r = await call('call', { key: KEY, count: cnt }); toast(`${r.called.join(', ')}번 호출`); });
 $('openBtn').onclick = () => act(() => call('config', { key: KEY, patch: { open: !data.config.open } }), data.config.open ? '접수를 마감했습니다' : '접수를 열었습니다');
-$('cSave').onclick = () => act(() => call('config', { key: KEY, patch: { title: $('cTitle').value, max_party: +$('cMax').value, call_minutes: +$('cMin').value, notice_ahead: +$('cAhead').value } }), '설정을 저장했습니다');
+$('cSave').onclick = () => act(() => call('config', { key: KEY, patch: { title: $('cTitle').value, max_party: +$('cMax').value, call_minutes: +$('cMin').value, notice_ahead: +$('cAhead').value, exhibit_path: $('cPath').value } }), '설정을 저장했습니다');
 document.body.addEventListener('click', (e) => {
   const b = e.target.closest('[data-a]'); if (!b) return;
   const a = b.dataset.a, id = b.dataset.id, no = b.closest('.row').querySelector('.n').firstChild.textContent;
