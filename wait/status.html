@@ -53,7 +53,7 @@ async function load(action = 'status') {
     const st = $('st'); st.textContent = LABEL[d.status] || d.status; st.className = 'st' + (d.status === 'called' ? ' call' : ['entered', 'noshow', 'canceled'].includes(d.status) ? ' end' : '');
     const a = $('ahead'); a.className = 'ahead' + (d.status === 'called' ? ' call' : '');
     a.innerHTML = d.status === 'waiting' ? (d.ahead ? `내 앞에 <b>${d.ahead}</b>팀이 기다리고 있습니다` : '다음 차례입니다. 입구 근처에서 기다려 주세요')
-      : d.status === 'called' ? `입장 차례입니다<br><b>${d.call_minutes}</b>분 안에 전시장 입구로 와 주세요`
+      : d.status === 'called' ? `입장 차례입니다<br><b>${d.call_minutes}</b>분 안에 입구로 와 주십시오`
       : d.status === 'entered' ? '입장하셨습니다. 즐거운 관람 되세요'
       : d.status === 'noshow' ? '호출 시간이 지났습니다. 입구 직원에게 문의해 주세요'
       : '대기를 취소했습니다';
