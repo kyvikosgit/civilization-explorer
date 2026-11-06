@@ -19,7 +19,7 @@ import { $, $$, icons, sheet, toast, sleep, reduceMotion, haptic, saveChoice } f
 import { buildSalon, HALL } from './salon-intro.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
-import { collect, mountEnd } from './done.js';
+import { collect, mountEnd, showComplete } from './done.js';
 
 // 11/03: 벽 전체를 비춘 뒤(PICK) 벽에서 고르는 정답형. 정답 = data.js 의 correct(메르송 〈환상〉 = n 3)
 let PICK = false;
@@ -786,7 +786,7 @@ function sizeHero(w) {
   const iw = a > maxW / maxH ? maxW : maxH * a, ih = iw / a, img = $('#resImg');
   img.style.width = iw.toFixed(1) + 'px'; img.style.height = ih.toFixed(1) + 'px';
 }
-let resWork = null;
+let resWork = null, winDone = null;
 function fillResult(me) {
   const w = me.w; resWork = w;
   const t = ZONES.find((z) => z.id === 'salon').tasks[0];
@@ -802,6 +802,8 @@ function fillResult(me) {
   if (w.n === WIN_N) {
     collect('salon');
     mountEnd($('.res-btns'), 'salon', { item: t.item, more: () => window.dispatchEvent(new CustomEvent('salon:more')) });
+    // 11/06: 미션 완료는 구역 공통 화면 — 금빛이 번진 자리에서 이 판이 덮는다(toResult)
+    winDone = () => showComplete('salon', { item: t.item, title: `〈${w.title}〉 · ${[w.artist, w.year].filter(Boolean).join(', ')}`, body: `${t.successBody}\n\n${t.successVerdict}`, note: t.after, more: (d) => { d.hide(); window.dispatchEvent(new CustomEvent('salon:more')); } });
   }
 }
 window.addEventListener('resize', () => { if (resWork) sizeHero(resWork); });
@@ -815,6 +817,7 @@ function resIn() {
 }
 async function toResult(me, seq) {
   if (reduceMotion) {
+    if (winDone) { winDone(); winDone = null; return; }
     screenOn('s3', true); resIn();
     await res.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260 }).finished.catch(() => {});
     return;
@@ -836,7 +839,7 @@ async function toResult(me, seq) {
   await sleep(860);
   if (seq !== revSeq) { aDark.cancel(); aGold.cancel(); xf.classList.remove('on'); return; }
   // 금빛이 가라앉으며 결과 화면 — 그 빛은 액자 위 조명으로 남는다
-  screenOn('s3', true); resIn(); haptic(10);
+  if (winDone) { winDone(); winDone = null; haptic(10); } else { screenOn('s3', true); resIn(); haptic(10); }
   await xf.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 900, easing: 'cubic-bezier(.3,0,.2,1)' }).finished.catch(() => {});
   aDark.cancel(); aGold.cancel(); xf.classList.remove('on');
 }

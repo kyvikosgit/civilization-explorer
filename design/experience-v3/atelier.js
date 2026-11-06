@@ -19,7 +19,7 @@ import { openCam, closeCam } from './camui.js';
 import { openDetect, closeDetect } from './detect.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
-import { collect, endRow, mountEnd } from './done.js';
+import { collect, endRow, mountEnd, showComplete } from './done.js';
 
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -134,12 +134,9 @@ function choose(id) {
   }
   closeAll(true);
   store.solve(TASK.id); collect(TASK.id);
-  $('#ansImg').src = src('tube');
-  mountEnd($('#res .actions'), 'atelier', { item: TASK.item, more: browse });
-  const res = $('#res');
-  res.hidden = false; document.body.classList.add('result');
-  window.scrollTo(0, 0); res.scrollTop = 0;
-  requestAnimationFrame(() => requestAnimationFrame(() => res.classList.add('in')));
+  // 11/06: 미션 완료는 구역 공통 화면(done.js)
+  const [head, ...body] = TASK.successBody.split('\n\n');
+  showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), more: (d) => { d.hide(); browse(); } });
 }
 // 체험 더보기 — 결과를 닫고 소품 칸(둘러보기)으로. 밖으로 나가 칠하기도 여기
 function moreEnd() {

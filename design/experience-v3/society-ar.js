@@ -5,7 +5,7 @@ import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
 import { talkFx, startTalk, unlockAudio } from './talk.js';
-import { collect, endRow } from './done.js';
+import { collect, endRow, showComplete } from './done.js';
 
 const V3 = '../../experience-v3/', HUB = V3 + 'index.html';
 const zone = ZONES.find((z) => z.id === 'society');
@@ -92,9 +92,9 @@ async function win() {
 }
 // 끝 — 정답 해설 + 공통 끝 줄. 체험 더보기 = 카페 게르부아 벽면
 function showEnd() {
+  // 11/06: 미션 완료는 구역 공통 화면(done.js) — 벽면 대화(체험 더보기)에서 돌아와도 같은 화면
   const [name, , ...rest] = flyer.successBody.split('\n');
-  guide.show({ cap: flyer.successTitle, title: name, sub: rest.join('\n') });
-  guide.el.querySelector('.g-tx').appendChild(endRow('society', { item: flyer.item, more: openPeople }));
+  showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), more: (d) => { d.hide(); openPeople(); } });
 }
 
 // 끝난 뒤 뒤로 = 목록으로(옛 단계 — 칼럼 · 거리 — 로 되돌아가면 할 일이 없다)

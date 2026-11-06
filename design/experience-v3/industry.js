@@ -5,7 +5,7 @@ import { ZONES } from './data.js';
 import { openCam, closeCam } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
-import { collect, endRow } from './done.js';
+import { collect, endRow, showComplete } from './done.js';
 
 const $ = (s) => document.querySelector(s);
 const zone = ZONES.find((z) => z.id === 'industry'), task = zone.tasks[0];
@@ -64,28 +64,26 @@ function backToHub() {
 async function win() {
   if (won) return;
   won = true;
-  store.solve(task.id);
+  store.solve(task.id); collect(task.id);
   await closeCam(true);
   guide.hide();
-  window.intro.show(false);                      // 안내판 → 글자판 → 지도
-  await wait(1500);
-  window.pick('lehavre');                        // 생라자르 → 르아브르 노선이 그려진다
-  await wait(1700);
-  // 기획안 해설을 이야기 앞에
-  $('#story').insertAdjacentHTML('beforebegin', `<h3 class="tk-h"></h3><p class="tk-plan"></p><p class="tk-after"></p>`);
+  // 11/06: 미션 완료는 구역 공통 화면(done.js showComplete) — 지도 · 발권 연출은 체험 더보기에서만
   const [head, ...body] = task.successBody.split('\n\n');
-  $('.tk-h').textContent = head; $('.tk-plan').textContent = body.join('\n\n'); $('.tk-after').textContent = task.after;
-  // 끝 줄 — 해설 바로 아래. 이야기는 체험 더보기로
-  const more = () => { document.body.classList.add('more'); requestAnimationFrame(() => $('#story').scrollIntoView({ behavior: 'smooth', block: 'start' })); };
-  $('.tk-after').insertAdjacentElement('afterend', endRow('industry', { light: true, item: task.item, more }));
-  $('#story').insertAdjacentHTML('afterend', '<button class="more-clues" type="button">사무실 자료 살펴보기</button>');
-  $('.more-clues').onclick = () => $('#openClues').click();
-  // 더보기 끝에도 같은 두 단추 — 위로 다시 올라가지 않아도 되게
-  $('.more-clues').insertAdjacentElement('afterend', endRow('industry', { light: true }));
-  $('.more-clues').nextElementSibling.classList.add('more-end');
+  showComplete('industry', { item: task.item, title: head, body: body.join('\n\n'), note: task.after, more: (done) => { done.hide(); openMore(); } });
+}
+// 체험 더보기 — 예전 흐름: 안내판 → 지도 · 르아브르 노선 → 발권(표) → 르아브르 이야기 · 사무실 자료
+async function openMore() {
+  document.body.classList.add('more');
+  window.intro.show(false);
+  await wait(1500);
+  window.pick('lehavre');
+  await wait(1700);
   backToHub();
   window.flow.issue();
-  // 표가 바 자리에 붙고 나면 그대로 수집함으로 날아간다(v2 저장 연출) — 수집품은 저절로
-  collect(task.id);
-  setTimeout(() => $('#save').click(), 2600);
+  $('#story').insertAdjacentHTML('afterend', '<button class="more-clues" type="button">사무실 자료 살펴보기</button>');
+  $('.more-clues').onclick = () => $('#openClues').click();
+  $('.more-clues').insertAdjacentElement('afterend', endRow('industry', { light: true }));
+  $('.more-clues').nextElementSibling.classList.add('more-end');
+  setTimeout(() => $('#save').click(), 2600);   // 표가 보관함으로 — 예전 발권 연출 그대로(수집은 이미 끝)
+  requestAnimationFrame(() => setTimeout(() => $('#story').scrollIntoView({ behavior: 'smooth', block: 'start' }), 3600));
 }

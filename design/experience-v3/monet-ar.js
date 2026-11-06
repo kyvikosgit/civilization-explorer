@@ -6,7 +6,7 @@ import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
-import { collect, mountEnd } from './done.js';
+import { collect, mountEnd, showComplete } from './done.js';
 
 const task = ZONES.find((z) => z.id === 'monet').tasks[0];
 const V3 = '../../experience-v3/';
@@ -210,5 +210,7 @@ async function handoff(rect) {
 }
 // 11/03: 영상 ↔ 그림 전환이 한 바퀴 돌면 수집품 — 끝 줄 [목록으로 | 다음 미션(출구)] · 체험 더보기(연작 보기)
 function finishMission() {
-  mountEnd(document.getElementById('sunEndRow'), 'monet', { item: task.item, more: () => { document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); } });
+  // 11/06: 미션 완료는 구역 공통 화면(done.js) — 체험 더보기 = 연작 보기
+  const [head, ...body] = task.successBody.split('\n\n');
+  showComplete('monet', { item: task.item, title: head, body: body.join('\n\n'), more: (d) => { d.hide(); document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); setTimeout(() => b.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200); } });
 }
