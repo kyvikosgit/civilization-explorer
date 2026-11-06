@@ -1,279 +1,213 @@
-<!doctype html>
-<html lang="ko">
-<head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서비스 이름 제안</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <meta name="robots" content="noindex">
-<title>이름 후보 보드</title>
 <style>
-@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
-@import url('https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css');
-:root{--ink:#111111;--body:#3D3D3A;--sub:#6B6B68;--meta:#9A9A96;--line:#E5E4E0;--line-strong:#CFCFCA;--fill:#F5F5F3;--bg:#FFFFFF;
-  --cream:#F3ECDD;--ok:#2F6B3F;--ok-bg:#E8F1EA;--warn:#8A5A00;--warn-bg:#FBF1DC;--bad:#9B2C2C;--bad-bg:#F8E6E6;
-  --display:Paperlogy,Freesentation,-apple-system,sans-serif;--text:Freesentation,-apple-system,sans-serif;--max:1080px;--gut:32px}
-@media (max-width:860px){:root{--gut:16px}}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--fill);color:var(--ink);font-family:var(--text);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
-a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line-strong)}
-.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gut)}
-.top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--ink)}
-.top .wrap{display:flex;align-items:center;gap:20px;height:52px}
-.top-title{font-family:var(--display);font-weight:800;font-size:16px;white-space:nowrap}
-.top nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
-.top nav a{display:inline-flex;align-items:center;height:30px;padding:0 12px;border:1px solid var(--line-strong);font-size:13px;font-weight:700;white-space:nowrap;background:var(--bg)}
-@media (max-width:600px){.top-title{display:none}}
-header.intro{padding:44px 0 4px}
-.kicker{font-size:12.5px;font-weight:700;color:var(--sub)}
-h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,3.6vw,38px);line-height:1.25;margin-top:6px}
-.lead{margin-top:10px;color:var(--body);max-width:680px}
-section{padding:44px 0 4px}
-h2{font-family:var(--display);font-weight:800;font-size:23px;line-height:1.3}
-.note{margin-top:6px;font-size:13.5px;color:var(--sub);max-width:780px}
-/* 기준 */
-.rules{margin-top:14px;display:grid;gap:8px;list-style:none;counter-reset:r}
-.rules li{counter-increment:r;background:var(--bg);border:1px solid var(--line);padding:12px 14px 12px 46px;position:relative;font-weight:600}
-.rules li::before{content:counter(r);position:absolute;left:14px;top:12px;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
-/* 레퍼런스 */
-.takeaways{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-@media (max-width:860px){.takeaways{grid-template-columns:1fr}}
-.tk{background:var(--ink);color:var(--bg);padding:14px 16px}
-.tk b{display:block;font-family:var(--display);font-size:15px;font-weight:800;margin-bottom:4px}
-.tk span{font-size:13.5px;opacity:.82}
-.reftable{margin-top:12px;background:var(--bg);border:1px solid var(--line)}
-.rg{padding:14px 16px;border-top:1px solid var(--line)}
-.rg:first-child{border-top:0}
-.rg h3{font-size:13px;font-weight:800;color:var(--sub);margin-bottom:8px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;align-items:baseline;gap:6px;border:1px solid var(--line);padding:4px 9px;font-size:13.5px;background:var(--fill)}
-.chip b{font-weight:800}
-.chip i{font-style:normal;font-size:12px;color:var(--sub)}
-.rg p{margin-top:8px;font-size:13.5px;color:var(--body)}
-.src{margin-top:10px;font-size:12px;color:var(--meta)}
-.src a{color:var(--sub)}
-/* 후보 카드 */
-.cards{margin-top:16px;display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-@media (max-width:720px){.cards{grid-template-columns:1fr}}
-.card{background:var(--bg);border:1px solid var(--line);display:flex;flex-direction:column}
-.card.pick{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
-.mark{background:var(--ink);color:var(--bg);padding:20px 16px 16px;position:relative;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.mark b{font-family:var(--display);font-weight:800;font-size:36px;line-height:1}
-.mark .ko{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.2;opacity:.85}
-.mark .say{width:100%;font-size:12.5px;opacity:.6}
-.rank{position:absolute;top:12px;right:12px;font-size:11.5px;font-weight:800;background:var(--bg);color:var(--ink);padding:2px 8px}
-.body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
-.row{font-size:14px;color:var(--body)}
-.row .lb{display:block;font-size:11.5px;font-weight:800;color:var(--meta);margin-bottom:1px}
-.checks{margin-top:auto;border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px}
-.ck{display:grid;grid-template-columns:72px 1fr;gap:8px;font-size:13px;align-items:start}
-.ck>span:first-child{font-weight:700;color:var(--sub)}
-.st{font-style:normal;display:inline-block;font-size:11.5px;font-weight:800;padding:1px 6px;margin-right:4px;vertical-align:1px}
-.ok{background:var(--ok-bg);color:var(--ok)}
-.warn{background:var(--warn-bg);color:var(--warn)}
-.bad{background:var(--bad-bg);color:var(--bad)}
-.wk{font-size:13px;color:var(--sub);background:var(--fill);padding:8px 10px}
-/* 홈 화면 */
-.homes{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media (max-width:720px){.homes{grid-template-columns:1fr}}
-.screen{border-radius:28px;padding:26px 18px 22px;position:relative;overflow:hidden}
-.screen.light{background:linear-gradient(160deg,#ECEAE4,#D9D6CE)}
-.screen.dark{background:linear-gradient(160deg,#3A3934,#1C1B19)}
-.screen .cap{font-size:12px;font-weight:700;margin-bottom:16px}
-.screen.light .cap{color:#55544F}
-.screen.dark .cap{color:#BDBAB2}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 8px;justify-items:center}
-.app{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;min-width:0}
-.ic{width:62px;height:62px;border-radius:15px;background:radial-gradient(120% 120% at 25% 15%,#3E3A35 0%,#1A1715 55%,#121010 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,.18)}
-.ic span{font-family:var(--display);font-weight:800;color:var(--cream);line-height:1;white-space:nowrap}
-.ic.ghost{background:rgba(255,255,255,.35);box-shadow:none}
-.screen.dark .ic.ghost{background:rgba(255,255,255,.10)}
-.lbl{font-size:11.5px;line-height:1.2;max-width:76px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.screen.light .lbl{color:#1A1A1A}
-.screen.dark .lbl{color:#F2F2F2}
-@media (max-width:380px){.ic{width:54px;height:54px;border-radius:13px}.grid{gap:16px 4px}}
-/* 뺀 후보 */
-.drop{margin-top:14px;background:var(--bg);border:1px solid var(--line)}
-.dr{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:9px 16px;border-top:1px solid var(--line);font-size:13.5px}
-.dr:first-child{border-top:0}
-.dr b{font-weight:800}
-.dr span{color:var(--body)}
-@media (max-width:520px){.dr{grid-template-columns:1fr;gap:2px}}
-footer{padding:40px 0 48px;font-size:12px;color:var(--meta)}
-</style>
-</head>
-<body>
-<div class="top"><div class="wrap"><span class="top-title">이름 후보 보드</span><nav><a href="#rules">기준</a><a href="#refs">레퍼런스</a><a href="#cands">가닥 A 후보</a><a href="#home">홈 화면</a><a href="#filter">거른 과정</a><a href="#drop">접은 라운드</a></nav></div></div>
+/* 흑백 문서. 위에서 아래로: 왜 바꾸나 → 요즘 이름 → 기준 → 후보 순위 → 비교 → 다음 할 일 */
+@font-face{font-family:Paperlogy;font-weight:600;font-display:swap;src:url(fonts/Paperlogy-6SemiBold.woff2) format('woff2')}
+@font-face{font-family:Paperlogy;font-weight:800;font-display:swap;src:url(fonts/Paperlogy-8ExtraBold.woff2) format('woff2')}
+@font-face{font-family:Freesentation;font-weight:400;font-display:swap;src:url(fonts/Freesentation-4Regular.woff2) format('woff2')}
+@font-face{font-family:Freesentation;font-weight:600;font-display:swap;src:url(fonts/Freesentation-6SemiBold.woff2) format('woff2')}
+:root{
+  --bg:#FFFFFF; --panel:#F5F5F3; --ink:#111111; --body:#3A3A37; --sub:#6E6E6A; --line:#E4E3DF; --strong:#111111;
+  --good:#2F6B3F; --mid:#8A6A1F; --weak:#A33A2E;
+  --display:Paperlogy,Freesentation,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --text:Freesentation,-apple-system,"Apple SD Gothic Neo",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121212; --panel:#1C1C1B; --ink:#F4F4F1; --body:#D2D2CD; --sub:#9A9A95; --line:#2E2E2C; --strong:#F4F4F1;
+  --good:#7DBB8C; --mid:#D9B45F; --weak:#E88A7E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121212; --panel:#1C1C1B; --ink:#F4F4F1; --body:#D2D2CD; --sub:#9A9A95; --line:#2E2E2C; --strong:#F4F4F1;
+  --good:#7DBB8C; --mid:#D9B45F; --weak:#E88A7E; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--text);font-size:15.5px;line-height:1.65;word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-weight:800;margin:0;text-wrap:balance}
+p{margin:0}
+a{color:inherit;text-decoration:none;border-bottom:1px solid var(--line)}
+a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
-<main class="wrap">
-<header class="intro">
-  <p class="kicker">EXHIBITION COMPANION · 현재 이름 ‘문명탐험가’ · 2026-10-26 · 가닥 A</p>
-  <h1>가닥 A · 내 시선<br>같은 그림을 저마다 다르게 본다</h1>
-  <p class="lead">이름의 방향을 ‘내 시선’으로 정했습니다. 차분하고 넓어서 티켓·도슨트·작품 안내까지 하는 전시 앱 전체에 맞고, 다음 전시에도 그대로 씁니다. ‘고르는 재미’는 앱 이름이 아니라 체험 이름에 따로 담습니다. 아래는 이 가닥 안에서만 뽑은 후보입니다. 충돌(스토어·상표) 확인은 후보를 좁힌 뒤에 합니다.</p>
+header{padding-block:56px 36px;border-bottom:2px solid var(--strong)}
+.cap{font-size:13px;font-weight:600;color:var(--sub)}
+h1{font-size:clamp(30px,5vw,42px);line-height:1.2;margin-top:8px}
+.lead{margin-top:14px;color:var(--body);max-width:640px}
+.pick{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline}
+.pick b{font-family:var(--display);font-weight:800;font-size:clamp(34px,7vw,52px);line-height:1}
+.pick span{font-size:14px;color:var(--sub)}
+
+section{padding-block:48px 8px}
+h2{font-size:24px;line-height:1.3}
+.sub{margin-top:8px;color:var(--sub);font-size:14.5px;max-width:660px}
+
+.check{margin-top:20px;display:grid;gap:0;border-top:1px solid var(--line)}
+.check div{display:grid;grid-template-columns:150px 1fr;gap:16px;padding-block:14px;border-bottom:1px solid var(--line)}
+.check dt{font-weight:600}
+.check dd{margin:0;color:var(--body);min-width:0}
+@media (max-width:560px){.check div{grid-template-columns:1fr;gap:4px}}
+
+.tbl{margin-top:20px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:560px}
+th,td{text-align:left;padding:11px 12px 11px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--strong)}
+td:first-child{font-weight:600;white-space:nowrap}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.trend{margin-top:22px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.trend div{background:var(--panel);padding:16px}
+.trend b{display:block;font-family:var(--display);font-size:16px;margin-bottom:6px}
+.trend p{font-size:14px;color:var(--body)}
+@media (max-width:720px){.trend{grid-template-columns:1fr}}
+
+.rules{margin:20px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:0 28px}
+.rules li{padding-block:12px;border-bottom:1px solid var(--line)}
+.rules b{display:block}
+.rules span{font-size:14px;color:var(--sub)}
+@media (max-width:620px){.rules{grid-template-columns:1fr}}
+
+.cands{margin-top:24px;display:grid;gap:14px}
+.cand{display:grid;grid-template-columns:56px 1fr;gap:18px;padding:22px 22px 22px 0;border-top:2px solid var(--strong)}
+.cand .rk{font-family:var(--display);font-weight:800;font-size:15px;color:var(--sub);padding-top:8px}
+.cand .rk b{display:block;font-size:30px;color:var(--ink);line-height:1}
+.cand h3{font-size:clamp(28px,5vw,36px);line-height:1.1;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.cand h3 small{font-family:var(--text);font-weight:600;font-size:15px;color:var(--sub)}
+.cand .one{margin-top:8px;font-weight:600}
+.cand dl{margin:14px 0 0;display:grid;gap:8px}
+.cand dl div{display:grid;grid-template-columns:64px 1fr;gap:12px}
+.cand dt{font-size:13px;font-weight:600;color:var(--sub);padding-top:2px}
+.cand dd{margin:0;color:var(--body);min-width:0}
+.use{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.use span{font-size:13.5px;padding:6px 10px;background:var(--panel)}
+.cand.top{border-top-width:4px}
+@media (max-width:520px){.cand{grid-template-columns:1fr;gap:8px}.cand .rk{padding-top:0}.cand .rk b{display:inline;margin-right:6px}}
+
+.g{color:var(--good);font-weight:600}.m{color:var(--mid);font-weight:600}.w{color:var(--weak);font-weight:600}
+.cmp th:not(:first-child),.cmp td:not(:first-child){text-align:center}
+.cmp tr.cur td{background:var(--panel)}
+
+.pool{margin-top:22px;display:grid;gap:26px}
+.grp h3{font-size:18px;display:flex;gap:8px;align-items:baseline;padding-bottom:8px;border-bottom:1px solid var(--strong)}
+.grp h3 small{font-family:var(--text);font-size:13px;font-weight:600;color:var(--sub)}
+.gn{margin-top:6px;font-size:13px;color:var(--sub)}
+.grp ul{margin:12px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.grp li{background:var(--panel);padding:10px 12px;display:grid;gap:2px;min-width:0}
+.grp li b{font-family:var(--display);font-weight:800;font-size:17px;line-height:1.3}
+.grp li span{font-size:11.5px;font-weight:600;color:var(--sub);letter-spacing:.04em}
+.suf{margin-top:22px;background:var(--panel);padding:16px 18px}
+.suf h3{font-size:16px}
+.suf dl{margin:10px 0 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px 20px}
+.suf div{display:grid;grid-template-columns:110px 1fr;gap:10px;font-size:14px}
+.suf dt{font-weight:600}.suf dd{margin:0;color:var(--body);min-width:0}
+.gn{margin-top:8px;font-size:14px;color:var(--body);max-width:680px}
+.ex{margin-top:20px;font-size:13.5px;color:var(--sub)}
+.next{margin:20px 0 0;padding:0 0 0 20px;display:grid;gap:8px;color:var(--body)}
+footer{margin-top:56px;padding-block:24px 48px;border-top:1px solid var(--line);font-size:13px;color:var(--sub)}
+footer ul{margin:8px 0 0;padding:0 0 0 18px;display:grid;gap:4px}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="cap">큐비크스 · 전시 동반 앱 · 11월 3일 미팅</p>
+  <h1>서비스 이름 제안</h1>
+  <p class="lead">MONET 100에서 시작해 다음 전시까지 계속 쓸 앱 이름입니다. 현재 이름을 점검하고, 비슷한 서비스들의 이름 짜임을 본 뒤, 같은 결의 이름 후보를 넓게 모았습니다.</p>
 </header>
 
-<section id="rules">
-  <h2>기준</h2>
-  <p class="note">다섯 개를 모두 넘어야 남습니다. 앞 라운드에서 뺀 이름과 그 변형(번역 포함)은 처음부터 다시 쓰지 않았습니다. 다섯 관문을 넘은 이름은 마지막에 ‘다시 읽기’를 한 번 더 거칩니다.</p>
-  <ol class="rules">
-    <li>소리. 2~3음절(최대 4), 한글 표기가 하나, 다른 말로 읽히지 않는다(‘택일’, ‘라면’ 같은 것).</li>
-    <li>결. 백화점 전시에 내걸어도 부끄럽지 않다. 화장품·빵집·반려동물·투표·게임 이름처럼 들리지 않는다.</li>
-    <li>맞음. 설명 없이도 ‘내 선택·내 시선’이 느껴지고, 전시 앱 전체의 이름으로도 맞는다.</li>
-    <li>뜻. 이유가 쉬운 문장 하나로 끝난다. 뜻을 갖다 붙여야 하면 뺀다.</li>
-    <li>충돌. 앱스토어 KR·US, 구글플레이 KR, 상표(KIPRIS 9·41·42류), 도메인(.com·.kr·.co.kr). 비슷한 분야의 같은 이름 앱이나 같은 상표가 있으면 뺀다.</li>
+<section>
+  <h2>문명탐험가를 다시 보는 이유</h2>
+  <p class="sub">MONET 100 한 전시의 주제로는 어울립니다. 다만 앱 이름은 앞으로 열릴 전시·공연·체험이 모두 같이 씁니다.</p>
+  <dl class="check">
+    <div><dt>범위가 좁습니다</dt><dd>'문명'은 역사·문명사 전시를 떠올리게 합니다. 미디어아트, 사진전, 체험전, 공연이 들어오면 이름과 내용이 어긋납니다.</dd></div>
+    <div><dt>게임처럼 들립니다</dt><dd>'탐험가'는 게임이나 어린이 학습 앱에 흔한 말입니다. 국내에서 '문명'은 게임 시리즈 〈시드 마이어의 문명〉의 통칭으로도 널리 쓰여, 스토어에서 같이 묶이기 쉽습니다.</dd></div>
+    <div><dt>길고 무겁습니다</dt><dd>다섯 음절에 영문은 Civilization Explorer로 깁니다. 아래 비교 서비스 대부분은 2~3음절입니다.</dd></div>
+    <div><dt>문장에 넣기 어렵습니다</dt><dd>"문명탐험가로 입장하세요", "문명탐험가 수집함"처럼 화면 문구에 붙이면 매번 무게가 실립니다. 앱 이름은 버튼과 알림에 수없이 들어갑니다.</dd></div>
+  </dl>
+</section>
+
+<section>
+  <h2>비슷한 서비스는 이렇게 짓습니다</h2>
+  <p class="sub">전시·공연·티켓·문화 앱과 해외 미술관 앱의 이름 짜임입니다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>이름</th><th>하는 일</th><th>짜임</th><th>음절</th></tr></thead>
+    <tbody>
+      <tr><td>포도알 podo.r</td><td>공연 관람 기록·티켓북</td><td>관극 팬들이 좌석 표시를 부르는 말을 그대로</td><td class="n">3</td></tr>
+      <tr><td>큐피커 Qpicker</td><td>전시 티켓 예매와 오디오 가이드</td><td>짧은 조어</td><td class="n">3</td></tr>
+      <tr><td>아트맵 Artmap</td><td>전시 정보와 관람 기록</td><td>분야 말 + 쉬운 영단어</td><td class="n">3</td></tr>
+      <tr><td>디뮤지엄</td><td>전시 공간</td><td>한 글자 + 뮤지엄</td><td class="n">4</td></tr>
+      <tr><td>그라운드시소</td><td>전시 공간 브랜드(미디어앤아트), 연계 앱 '시소필름'</td><td>쉬운 영단어 둘</td><td class="n">5</td></tr>
+      <tr><td>NOL 놀</td><td>야놀자·인터파크 티켓·투어를 묶은 통합 브랜드</td><td>우리말 한 음절</td><td class="n">1</td></tr>
+      <tr><td>티켓스토리</td><td>영화·공연·전시 관람 기록</td><td>분야 말 + 쉬운 영단어</td><td class="n">5</td></tr>
+      <tr><td>Smartify</td><td>해외 미술관 작품 인식·가이드</td><td>영단어 + 접미사</td><td class="n">3</td></tr>
+    </tbody>
+  </table></div>
+  <div class="trend">
+    <div><b>분야 말이 들어 있다</b><p>전시·공연 앱은 이름만 들어도 무슨 앱인지 압니다. 아트, 뮤지엄, 티켓, 포도알처럼 그 분야 사람이 쓰는 말을 품고 있습니다.</p></div>
+    <div><b>짧다</b><p>두세 음절이 기본입니다. 한글 소리와 영문 철자가 하나로 맞아떨어집니다.</p></div>
+    <div><b>현장 말을 그대로 쓴다</b><p>포도알은 관극 팬들이 예매 좌석 표시를 부르는 말을 그대로 앱 이름으로 썼습니다. 설명 없이 그 세계 사람에게 바로 통합니다.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>고른 기준</h2>
+  <ul class="rules">
+    <li><b>문화 앱으로 들린다</b><span>전시·공연·체험을 즐기는 앱으로 바로 읽힐 것</span></li>
+    <li><b>어감이 가볍다</b><span>두세 음절, 소리 내 부르기 편할 것</span></li>
+    <li><b>전시·공연·체험을 다 담는다</b><span>미술, 해설 같은 한 분야 말에 묶이지 않을 것</span></li>
+    <li><b>과장하지 않는다</b><span>탐험·우주·마법 같은 센 말을 쓰지 않을 것</span></li>
+    <li><b>어원 설명이 필요 없다</b><span>낯선 외국어·상징어를 쓰지 않을 것</span></li>
+    <li><b>겹치지 않는다</b><span>같은 업계에 같은 이름·비슷한 이름이 없을 것</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>이름 후보 모음</h2>
+  <p class="sub">이름 짓는 방식을 넓혀 360개를 뽑았습니다. 위켄드처럼 때를 담은 이름, 무대 말, 장소 이름, 그라운드시소처럼 엉뚱한 결합, 큐피커처럼 새로 만든 말까지 넣었습니다. 전시·공연·체험·엔터테인먼트를 아우르는 말만 썼습니다. 순위 없이 짓는 방식별로 묶고, 묶음마다 문화 앱과 어떻게 이어지는지 적었습니다. 미팅에서 마음에 드는 것을 짚어 주시면 그 이름들만 겹침·상표를 확인합니다.</p>
+  <div class="suf"><h3>뒷말</h3><dl>
+    <div><dt>박스 · 모아</dt><dd>다녀온 전시와 수집품을 담는다</dd></div>
+    <div><dt>노트 · 로그 · 카드</dt><dd>관람을 기록으로 남긴다</dd></div>
+    <div><dt>패스 · 티켓</dt><dd>예매하고 입장한다</dd></div>
+    <div><dt>메이트 · 톡</dt><dd>관람 곁에서 같이 다닌다</dd></div>
+    <div><dt>키트 · 플레이</dt><dd>전시장에서 체험한다</dd></div>
+    <div><dt>픽</dt><dd>작품 앞에서 고르고 다른 관람객과 비교한다</dd></div>
+    <div><dt>데이 · 클럽 · 링크</dt><dd>전시 가는 날, 모임, 이어짐</dd></div>
+  </dl></div>
+  <div class="pool">
+    <div class="grp"><h3>때 · 나들이 <small>147 · 위켄드 결</small></h3><p class="gn">전시·공연은 쉬는 날 나들이로 갑니다. 언제 켜는 앱인지가 이름에 담깁니다.</p><ul><li><b>위켄드박스</b><span>WEEKEND BOX</span></li><li><b>위켄드패스</b><span>WEEKEND PASS</span></li><li><b>위켄드노트</b><span>WEEKEND NOTE</span></li><li><b>위켄드키트</b><span>WEEKEND KIT</span></li><li><b>마이위켄드</b><span>MY WEEKEND</span></li><li><b>위켄드티켓</b><span>WEEKEND TICKET</span></li><li><b>위켄드클럽</b><span>WEEKEND CLUB</span></li><li><b>위켄드플랜</b><span>WEEKEND PLAN</span></li><li><b>위켄드메이트</b><span>WEEKEND MATE</span></li><li><b>위켄더</b><span>WEEKENDER</span></li><li><b>굿위켄드</b><span>GOOD WEEKEND</span></li><li><b>롱위켄드</b><span>LONG WEEKEND</span></li><li><b>위켄드하우스</b><span>WEEKEND HOUSE</span></li><li><b>선데이박스</b><span>SUNDAY BOX</span></li><li><b>선데이패스</b><span>SUNDAY PASS</span></li><li><b>선데이클럽</b><span>SUNDAY CLUB</span></li><li><b>선데이씬</b><span>SUNDAY SCENE</span></li><li><b>선데이노트</b><span>SUNDAY NOTE</span></li><li><b>선데이티켓</b><span>SUNDAY TICKET</span></li><li><b>마이선데이</b><span>MY SUNDAY</span></li><li><b>새터데이클럽</b><span>SATURDAY CLUB</span></li><li><b>새터데이패스</b><span>SATURDAY PASS</span></li><li><b>홀리데이박스</b><span>HOLIDAY BOX</span></li><li><b>홀리데이패스</b><span>HOLIDAY PASS</span></li><li><b>홀리데이클럽</b><span>HOLIDAY CLUB</span></li><li><b>데이오프</b><span>DAY OFF</span></li><li><b>오프데이</b><span>OFF DAY</span></li><li><b>원데이패스</b><span>ONE DAY PASS</span></li><li><b>굿데이</b><span>GOOD DAY</span></li><li><b>데이아웃</b><span>DAY OUT</span></li><li><b>나잇아웃</b><span>NIGHT OUT</span></li><li><b>타임오프</b><span>TIME OFF</span></li><li><b>프리데이</b><span>FREE DAY</span></li><li><b>프리타임</b><span>FREE TIME</span></li><li><b>애프터눈</b><span>AFTERNOON</span></li><li><b>애프터눈클럽</b><span>AFTERNOON CLUB</span></li><li><b>브레이크타임</b><span>BREAK TIME</span></li><li><b>오늘의티켓</b><span>TODAY TICKET</span></li><li><b>오늘의씬</b><span>TODAY SCENE</span></li><li><b>오늘의큐</b><span>TODAY Q</span></li><li><b>주말박스</b><span>JUMAL BOX</span></li><li><b>주말패스</b><span>JUMAL PASS</span></li><li><b>주말티켓</b><span>JUMAL TICKET</span></li><li><b>주말클럽</b><span>JUMAL CLUB</span></li><li><b>주말씬</b><span>JUMAL SCENE</span></li><li><b>나들이박스</b><span>NADEURI BOX</span></li><li><b>나들이패스</b><span>NADEURI PASS</span></li><li><b>위켄드씬</b><span>WEEKEND SCENE</span></li><li><b>위켄드큐</b><span>WEEKEND Q</span></li><li><b>위켄드플레이</b><span>WEEKEND PLAY</span></li><li><b>위켄드모먼트</b><span>WEEKEND MOMENT</span></li><li><b>위켄드로그</b><span>WEEKEND LOG</span></li><li><b>위켄드링크</b><span>WEEKEND LINK</span></li><li><b>위켄드라운지</b><span>WEEKEND LOUNGE</span></li><li><b>위켄드스퀘어</b><span>WEEKEND SQUARE</span></li><li><b>위켄드투어</b><span>WEEKEND TOUR</span></li><li><b>해피위켄드</b><span>HAPPY WEEKEND</span></li><li><b>위켄드온</b><span>WEEKEND ON</span></li><li><b>위켄드북</b><span>WEEKEND BOOK</span></li><li><b>위켄드레터</b><span>WEEKEND LETTER</span></li><li><b>선데이플레이</b><span>SUNDAY PLAY</span></li><li><b>선데이모먼트</b><span>SUNDAY MOMENT</span></li><li><b>선데이라운지</b><span>SUNDAY LOUNGE</span></li><li><b>선데이스트롤</b><span>SUNDAY STROLL</span></li><li><b>레이지선데이</b><span>LAZY SUNDAY</span></li><li><b>선데이로그</b><span>SUNDAY LOG</span></li><li><b>새터데이씬</b><span>SATURDAY SCENE</span></li><li><b>새터데이플레이</b><span>SATURDAY PLAY</span></li><li><b>새터데이박스</b><span>SATURDAY BOX</span></li><li><b>새터데이티켓</b><span>SATURDAY TICKET</span></li><li><b>프라이데이</b><span>FRIDAY</span></li><li><b>프라이데이나잇</b><span>FRIDAY NIGHT</span></li><li><b>프라이데이클럽</b><span>FRIDAY CLUB</span></li><li><b>불금</b><span>BULGEUM</span></li><li><b>불금클럽</b><span>BULGEUM CLUB</span></li><li><b>불금티켓</b><span>BULGEUM TICKET</span></li><li><b>홀리데이씬</b><span>HOLIDAY SCENE</span></li><li><b>홀리데이티켓</b><span>HOLIDAY TICKET</span></li><li><b>홀리데이노트</b><span>HOLIDAY NOTE</span></li><li><b>데이오프클럽</b><span>DAY OFF CLUB</span></li><li><b>데이오프패스</b><span>DAY OFF PASS</span></li><li><b>오프데이클럽</b><span>OFF DAY CLUB</span></li><li><b>휴일박스</b><span>HYUIL BOX</span></li><li><b>휴일패스</b><span>HYUIL PASS</span></li><li><b>쉬는날</b><span>SWINEUNNAL</span></li><li><b>연차</b><span>YEONCHA</span></li><li><b>반차</b><span>BANCHA</span></li><li><b>반차클럽</b><span>BANCHA CLUB</span></li><li><b>칼퇴클럽</b><span>KALTOE CLUB</span></li><li><b>퇴근길</b><span>TOEGEUNGIL</span></li><li><b>애프터워크</b><span>AFTER WORK</span></li><li><b>애프터식스</b><span>AFTER SIX</span></li><li><b>식스오클락</b><span>SIX O'CLOCK</span></li><li><b>애프터눈티</b><span>AFTERNOON TEA</span></li><li><b>애프터눈씬</b><span>AFTERNOON SCENE</span></li><li><b>애프터눈패스</b><span>AFTERNOON PASS</span></li><li><b>골든아워</b><span>GOLDEN HOUR</span></li><li><b>선셋클럽</b><span>SUNSET CLUB</span></li><li><b>선셋티켓</b><span>SUNSET TICKET</span></li><li><b>이브닝</b><span>EVENING</span></li><li><b>이브닝클럽</b><span>EVENING CLUB</span></li><li><b>이브닝패스</b><span>EVENING PASS</span></li><li><b>미드나잇</b><span>MIDNIGHT</span></li><li><b>미드나잇씬</b><span>MIDNIGHT SCENE</span></li><li><b>투나잇</b><span>TONIGHT</span></li><li><b>투나잇티켓</b><span>TONIGHT TICKET</span></li><li><b>시즌패스</b><span>SEASON PASS</span></li><li><b>시즌티켓</b><span>SEASON TICKET</span></li><li><b>시즌클럽</b><span>SEASON CLUB</span></li><li><b>올시즌</b><span>ALL SEASON</span></li><li><b>봄나들이</b><span>BOMNADEURI</span></li><li><b>아웃팅</b><span>OUTING</span></li><li><b>아웃팅클럽</b><span>OUTING CLUB</span></li><li><b>데이트립</b><span>DAY TRIP</span></li><li><b>데이트립클럽</b><span>DAY TRIP CLUB</span></li><li><b>하프데이</b><span>HALF DAY</span></li><li><b>원데이</b><span>ONE DAY</span></li><li><b>원데이씬</b><span>ONE DAY SCENE</span></li><li><b>숏트립</b><span>SHORT TRIP</span></li><li><b>리틀트립</b><span>LITTLE TRIP</span></li><li><b>시티워크</b><span>CITY WALK</span></li><li><b>워크인</b><span>WALK-IN</span></li><li><b>드롭인</b><span>DROP-IN</span></li><li><b>드롭인클럽</b><span>DROP-IN CLUB</span></li><li><b>팝인</b><span>POP-IN</span></li><li><b>팝인패스</b><span>POP-IN PASS</span></li><li><b>스톱바이</b><span>STOP BY</span></li><li><b>스트롤</b><span>STROLL</span></li><li><b>스트롤클럽</b><span>STROLL CLUB</span></li><li><b>산책클럽</b><span>SANCHAEK CLUB</span></li><li><b>마실클럽</b><span>MASIL CLUB</span></li><li><b>외출박스</b><span>OECHUL BOX</span></li><li><b>나들이클럽</b><span>NADEURI CLUB</span></li><li><b>나들이티켓</b><span>NADEURI TICKET</span></li><li><b>플랜비</b><span>PLAN B</span></li><li><b>데이플랜</b><span>DAY PLAN</span></li><li><b>주말플랜</b><span>JUMAL PLAN</span></li><li><b>오늘의플랜</b><span>TODAY PLAN</span></li><li><b>오늘의플레이</b><span>TODAY PLAY</span></li><li><b>오늘의모먼트</b><span>TODAY MOMENT</span></li><li><b>데이트코스</b><span>DATE COURSE</span></li><li><b>이번주말</b><span>THIS WEEKEND</span></li><li><b>주말노트</b><span>JUMAL NOTE</span></li><li><b>주말메이트</b><span>JUMAL MATE</span></li><li><b>주말모먼트</b><span>JUMAL MOMENT</span></li><li><b>주말라운지</b><span>JUMAL LOUNGE</span></li><li><b>주말하우스</b><span>JUMAL HOUSE</span></li></ul></div>
+    <div class="grp"><h3>무대 · 공연장 말 <small>31</small></h3><p class="gn">공연장에서 쓰는 말이라 문화 앱으로 바로 들리고, 전시·체험에도 그대로 통합니다.</p><ul><li><b>커튼콜</b><span>CURTAIN CALL</span></li><li><b>커튼업</b><span>CURTAIN UP</span></li><li><b>레드커튼</b><span>RED CURTAIN</span></li><li><b>앙코르</b><span>ENCORE</span></li><li><b>앙코르박스</b><span>ENCORE BOX</span></li><li><b>앙코르클럽</b><span>ENCORE CLUB</span></li><li><b>프론트로우</b><span>FRONT ROW</span></li><li><b>퍼스트로우</b><span>FIRST ROW</span></li><li><b>백스테이지</b><span>BACKSTAGE</span></li><li><b>그린룸</b><span>GREEN ROOM</span></li><li><b>인터미션</b><span>INTERMISSION</span></li><li><b>오프닝나잇</b><span>OPENING NIGHT</span></li><li><b>매티니</b><span>MATINEE</span></li><li><b>매티니클럽</b><span>MATINEE CLUB</span></li><li><b>로비</b><span>LOBBY</span></li><li><b>로비박스</b><span>LOBBY BOX</span></li><li><b>박스오피스</b><span>BOX OFFICE</span></li><li><b>티켓부스</b><span>TICKET BOOTH</span></li><li><b>스테이지원</b><span>STAGE ONE</span></li><li><b>스테이지박스</b><span>STAGE BOX</span></li><li><b>스테이지패스</b><span>STAGE PASS</span></li><li><b>마이스테이지</b><span>MY STAGE</span></li><li><b>오픈스테이지</b><span>OPEN STAGE</span></li><li><b>넥스트스테이지</b><span>NEXT STAGE</span></li><li><b>큐시트</b><span>CUE SHEET</span></li><li><b>큐사인</b><span>CUE SIGN</span></li><li><b>씬체인지</b><span>SCENE CHANGE</span></li><li><b>넥스트씬</b><span>NEXT SCENE</span></li><li><b>하우스라이트</b><span>HOUSE LIGHT</span></li><li><b>콜타임</b><span>CALL TIME</span></li><li><b>리허설</b><span>REHEARSAL</span></li></ul></div>
+    <div class="grp"><h3>장소 <small>35</small></h3><p class="gn">들르면 볼 것, 할 것이 있는 곳이라는 공간 이름입니다. 앱이 하나의 문화 공간처럼 느껴집니다.</p><ul><li><b>컬처스퀘어</b><span>CULTURE SQUARE</span></li><li><b>컬처파크</b><span>CULTURE PARK</span></li><li><b>컬처하우스</b><span>CULTURE HOUSE</span></li><li><b>컬처라운지</b><span>CULTURE LOUNGE</span></li><li><b>컬처스트리트</b><span>CULTURE STREET</span></li><li><b>컬처타운</b><span>CULTURE TOWN</span></li><li><b>플레이파크</b><span>PLAY PARK</span></li><li><b>플레이스퀘어</b><span>PLAY SQUARE</span></li><li><b>플레이하우스</b><span>PLAYHOUSE</span></li><li><b>씬스트리트</b><span>SCENE STREET</span></li><li><b>씬하우스</b><span>SCENE HOUSE</span></li><li><b>씬라운지</b><span>SCENE LOUNGE</span></li><li><b>큐하우스</b><span>Q HOUSE</span></li><li><b>큐스퀘어</b><span>Q SQUARE</span></li><li><b>큐라운지</b><span>Q LOUNGE</span></li><li><b>큐파크</b><span>Q PARK</span></li><li><b>큐타운</b><span>Q TOWN</span></li><li><b>티켓라운지</b><span>TICKET LOUNGE</span></li><li><b>티켓하우스</b><span>TICKET HOUSE</span></li><li><b>선데이하우스</b><span>SUNDAY HOUSE</span></li><li><b>오픈하우스</b><span>OPEN HOUSE</span></li><li><b>코너하우스</b><span>CORNER HOUSE</span></li><li><b>사이드도어</b><span>SIDE DOOR</span></li><li><b>프론트도어</b><span>FRONT DOOR</span></li><li><b>레드도어</b><span>RED DOOR</span></li><li><b>그린도어</b><span>GREEN DOOR</span></li><li><b>옐로도어</b><span>YELLOW DOOR</span></li><li><b>블루도어</b><span>BLUE DOOR</span></li><li><b>라운지원</b><span>LOUNGE ONE</span></li><li><b>스퀘어원</b><span>SQUARE ONE</span></li><li><b>테라스씬</b><span>TERRACE SCENE</span></li><li><b>루프탑씬</b><span>ROOFTOP SCENE</span></li><li><b>파크사이드</b><span>PARKSIDE</span></li><li><b>모먼트하우스</b><span>MOMENT HOUSE</span></li><li><b>모먼트스퀘어</b><span>MOMENT SQUARE</span></li></ul></div>
+    <div class="grp"><h3>엉뚱한 결합 <small>40 · 그라운드시소 결</small></h3><p class="gn">뜻보다 소리와 그림으로 기억되는 이름입니다. 그라운드시소처럼 쓰다 보면 브랜드가 뜻이 됩니다.</p><ul><li><b>페이퍼문</b><span>PAPER MOON</span></li><li><b>문라이트박스</b><span>MOONLIGHT BOX</span></li><li><b>문박스</b><span>MOON BOX</span></li><li><b>썬박스</b><span>SUN BOX</span></li><li><b>문워크</b><span>MOONWALK</span></li><li><b>레몬티켓</b><span>LEMON TICKET</span></li><li><b>레몬트리</b><span>LEMON TREE</span></li><li><b>오렌지씬</b><span>ORANGE SCENE</span></li><li><b>오렌지하우스</b><span>ORANGE HOUSE</span></li><li><b>팝콘하우스</b><span>POPCORN HOUSE</span></li><li><b>팝콘박스</b><span>POPCORN BOX</span></li><li><b>체리티켓</b><span>CHERRY TICKET</span></li><li><b>체리박스</b><span>CHERRY BOX</span></li><li><b>민트티켓</b><span>MINT TICKET</span></li><li><b>바닐라씬</b><span>VANILLA SCENE</span></li><li><b>피치하우스</b><span>PEACH HOUSE</span></li><li><b>그린애플</b><span>GREEN APPLE</span></li><li><b>젤리티켓</b><span>JELLY TICKET</span></li><li><b>버블티켓</b><span>BUBBLE TICKET</span></li><li><b>코튼캔디</b><span>COTTON CANDY</span></li><li><b>페이퍼플레인</b><span>PAPER PLANE</span></li><li><b>페이퍼티켓</b><span>PAPER TICKET</span></li><li><b>핀볼하우스</b><span>PINBALL HOUSE</span></li><li><b>스트리트핀볼</b><span>STREET PINBALL</span></li><li><b>카이트하우스</b><span>KITE HOUSE</span></li><li><b>루프탑카이트</b><span>ROOFTOP KITE</span></li><li><b>벌룬티켓</b><span>BALLOON TICKET</span></li><li><b>블루벌룬</b><span>BLUE BALLOON</span></li><li><b>스윙박스</b><span>SWING BOX</span></li><li><b>스윙파크</b><span>SWING PARK</span></li><li><b>코너스윙</b><span>CORNER SWING</span></li><li><b>루프탑스윙</b><span>ROOFTOP SWING</span></li><li><b>슬라이드씬</b><span>SLIDE SCENE</span></li><li><b>가든씬</b><span>GARDEN SCENE</span></li><li><b>리버씬</b><span>RIVER SCENE</span></li><li><b>템포박스</b><span>TEMPO BOX</span></li><li><b>리듬하우스</b><span>RHYTHM HOUSE</span></li><li><b>핑퐁</b><span>PING PONG</span></li><li><b>요요클럽</b><span>YOYO CLUB</span></li><li><b>블루스푼</b><span>BLUE SPOON</span></li></ul></div>
+    <div class="grp"><h3>짧은 조어 <small>10 · 큐피커 결</small></h3><p class="gn">단어 둘을 줄이거나 붙여 새로 만든 이름입니다. 짧고 다른 데 없는 소리가 됩니다.</p><ul><li><b>씬피커</b><span>SCENE PICKER</span></li><li><b>티켓피커</b><span>TICKET PICKER</span></li><li><b>큐피크</b><span>Q PEAK</span></li><li><b>씬메이커</b><span>SCENE MAKER</span></li><li><b>큐메이커</b><span>Q MAKER</span></li><li><b>큐비</b><span>QUBI</span></li><li><b>티키</b><span>TIKI</span></li><li><b>컬티</b><span>CULTI</span></li><li><b>플리</b><span>PLI</span></li><li><b>큐토</b><span>QTO</span></li></ul></div>
+    <div class="grp"><h3>소리 말 <small>7</small></h3><p class="gn">무언가 열리고 시작되는 순간의 소리입니다. 짧고 친근해 부르기 쉽습니다.</p><ul><li><b>짜잔</b><span>TADA</span></li><li><b>짝짝</b><span>JJAKJJAK</span></li><li><b>띵동</b><span>DINGDONG</span></li><li><b>똑똑</b><span>TOKTOK</span></li><li><b>두근</b><span>DUGEUN</span></li><li><b>짠</b><span>JJAN</span></li><li><b>팡</b><span>PANG</span></li></ul></div>
+    <div class="grp"><h3>문화생활 말 <small>8 · 포도알 결</small></h3><p class="gn">관객들이 실제로 쓰는 말을 그대로 씁니다. 그 세계 사람에게 설명 없이 통합니다.</p><ul><li><b>직관</b><span>JIKGWAN</span></li><li><b>엔차</b><span>N-CHA</span></li><li><b>문화생활</b><span>MUNHWA</span></li><li><b>나들이</b><span>NADEURI</span></li><li><b>구경</b><span>GUGYEONG</span></li><li><b>마실</b><span>MASIL</span></li><li><b>외출</b><span>OECHUL</span></li><li><b>놀거리</b><span>NOLGEORI</span></li></ul></div>
+    <div class="grp"><h3>컬처 <small>12</small></h3><p class="gn">전시와 공연, 체험을 함께 담는 말입니다. 앞으로 공연·페스티벌·팝업으로 넓혀도 이름을 바꿀 필요가 없습니다.</p><ul><li><b>마이컬처</b><span>MY CULTURE</span></li><li><b>컬처박스</b><span>CULTURE BOX</span></li><li><b>컬처패스</b><span>CULTURE PASS</span></li><li><b>컬처노트</b><span>CULTURE NOTE</span></li><li><b>컬처키트</b><span>CULTURE KIT</span></li><li><b>컬처메이트</b><span>CULTURE MATE</span></li><li><b>컬처데이</b><span>CULTURE DAY</span></li><li><b>컬처픽</b><span>CULTURE PICK</span></li><li><b>컬처링크</b><span>CULTURE LINK</span></li><li><b>컬처온</b><span>CULTURE ON</span></li><li><b>컬처클럽</b><span>CULTURE CLUB</span></li><li><b>컬처플랜</b><span>CULTURE PLAN</span></li></ul></div>
+    <div class="grp"><h3>큐 <small>20</small></h3><p class="gn">큐레이션의 '큐'이자 공연·영상에서 시작 신호를 뜻하는 큐(cue)입니다. 무대의 막이 오르듯, 비추면 체험이 시작되는 앱의 쓰임과 맞습니다. 회사명 큐비크스와 앞소리가 같아 회사 브랜드와 이어지고, 영문 Q 한 글자로 로고를 만들기 좋습니다.</p><ul><li><b>큐박스</b><span>QBOX</span></li><li><b>큐노트</b><span>QNOTE</span></li><li><b>큐패스</b><span>QPASS</span></li><li><b>큐카드</b><span>QCARD</span></li><li><b>큐키트</b><span>QKIT</span></li><li><b>큐티켓</b><span>QTICKET</span></li><li><b>큐링크</b><span>QLINK</span></li><li><b>큐톡</b><span>QTALK</span></li><li><b>큐데이</b><span>QDAY</span></li><li><b>큐메이트</b><span>QMATE</span></li><li><b>큐스팟</b><span>QSPOT</span></li><li><b>큐핀</b><span>QPIN</span></li><li><b>큐북</b><span>QBOOK</span></li><li><b>큐로그</b><span>QLOG</span></li><li><b>큐클립</b><span>QCLIP</span></li><li><b>큐플레이</b><span>QPLAY</span></li><li><b>큐모아</b><span>QMOA</span></li><li><b>큐온</b><span>QON</span></li><li><b>큐클럽</b><span>Q CLUB</span></li><li><b>큐플랜</b><span>Q PLAN</span></li></ul></div>
+    <div class="grp"><h3>플레이 <small>10</small></h3><p class="gn">공연(play)과 놀이(play)를 한 단어로 가리킵니다. 보고 끝나는 게 아니라 직접 해 보는 체험형 전시와 공연을 함께 담습니다.</p><ul><li><b>마이플레이</b><span>MY PLAY</span></li><li><b>플레이박스</b><span>PLAY BOX</span></li><li><b>플레이패스</b><span>PLAY PASS</span></li><li><b>플레이노트</b><span>PLAY NOTE</span></li><li><b>플레이키트</b><span>PLAY KIT</span></li><li><b>플레이데이</b><span>PLAY DAY</span></li><li><b>플레이모아</b><span>PLAY MOA</span></li><li><b>플레이온</b><span>PLAY ON</span></li><li><b>플레이링크</b><span>PLAY LINK</span></li><li><b>플레이클럽</b><span>PLAY CLUB</span></li></ul></div>
+    <div class="grp"><h3>씬 <small>8</small></h3><p class="gn">장면이라는 뜻으로 전시의 한 장면, 공연의 한 장면을 모두 가리킵니다. 공간 전체를 장면으로 겪는 미디어아트·체험전과도 맞습니다.</p><ul><li><b>씬박스</b><span>SCENE BOX</span></li><li><b>씬노트</b><span>SCENE NOTE</span></li><li><b>씬키트</b><span>SCENE KIT</span></li><li><b>씬패스</b><span>SCENE PASS</span></li><li><b>씬카드</b><span>SCENE CARD</span></li><li><b>씬메이트</b><span>SCENE MATE</span></li><li><b>씬클럽</b><span>SCENE CLUB</span></li><li><b>마이씬</b><span>MY SCENE</span></li></ul></div>
+    <div class="grp"><h3>모먼트 <small>7</small></h3><p class="gn">그날 본 장면과 순간을 담는 앱이라는 뜻입니다. 전시·공연·체험 어디에나 붙습니다.</p><ul><li><b>마이모먼트</b><span>MY MOMENT</span></li><li><b>모먼트박스</b><span>MOMENT BOX</span></li><li><b>모먼트패스</b><span>MOMENT PASS</span></li><li><b>모먼트노트</b><span>MOMENT NOTE</span></li><li><b>모먼트카드</b><span>MOMENT CARD</span></li><li><b>모먼트키트</b><span>MOMENT KIT</span></li><li><b>모먼트클럽</b><span>MOMENT CLUB</span></li></ul></div>
+    <div class="grp"><h3>티켓 <small>9</small></h3><p class="gn">예매와 입장에서 시작하는 앱의 출발점이고, 앱 아이콘도 티켓 모양입니다. 전시·공연·체험·페스티벌에 똑같이 쓰입니다.</p><ul><li><b>마이티켓</b><span>MY TICKET</span></li><li><b>티켓박스</b><span>TICKET BOX</span></li><li><b>티켓노트</b><span>TICKET NOTE</span></li><li><b>티켓키트</b><span>TICKET KIT</span></li><li><b>티켓메이트</b><span>TICKET MATE</span></li><li><b>티켓모아</b><span>TICKET MOA</span></li><li><b>티켓플러스</b><span>TICKET PLUS</span></li><li><b>티켓데이</b><span>TICKET DAY</span></li><li><b>티켓클럽</b><span>TICKET CLUB</span></li></ul></div>
+    <div class="grp"><h3>뮤지엄 <small>16</small></h3><p class="gn">박물관과 미술관을 함께 가리키는 말로, 들르는 곳마다 다른 것을 보고 겪는 공간을 뜻합니다. 누구나 아는 말이라 설명이 필요 없습니다.</p><ul><li><b>마이뮤지엄</b><span>MY MUSEUM</span></li><li><b>포켓뮤지엄</b><span>POCKET MUSEUM</span></li><li><b>뮤지엄박스</b><span>MUSEUM BOX</span></li><li><b>뮤지엄키트</b><span>MUSEUM KIT</span></li><li><b>뮤지엄메이트</b><span>MUSEUM MATE</span></li><li><b>뮤지엄데이</b><span>MUSEUM DAY</span></li><li><b>뮤지엄톡</b><span>MUSEUM TALK</span></li><li><b>뮤지엄픽</b><span>MUSEUM PICK</span></li><li><b>뮤지엄노트</b><span>MUSEUM NOTE</span></li><li><b>뮤지엄카드</b><span>MUSEUM CARD</span></li><li><b>뮤지엄링크</b><span>MUSEUM LINK</span></li><li><b>뮤지엄클럽</b><span>MUSEUM CLUB</span></li><li><b>오픈뮤지엄</b><span>OPEN MUSEUM</span></li><li><b>데일리뮤지엄</b><span>DAILY MUSEUM</span></li><li><b>리틀뮤지엄</b><span>LITTLE MUSEUM</span></li><li><b>올뮤지엄</b><span>ALL MUSEUM</span></li></ul></div>
+  </div>
+  <p class="ex">이미 있는 브랜드라 뺀 이름: 쇼박스(영화 배급사), 쇼노트(공연 제작사). 플레이메이트는 성인 잡지 연상이 있어 뺐습니다.</p>
+</section>
+
+<section>
+  <h2>정한 다음 할 일</h2>
+  <ol class="next">
+    <li>미팅에서 후보 모음 중 마음에 드는 이름을 짚어 5개 안팎으로 좁힙니다.</li>
+    <li>특허청 상표 검색(키프리스): 앱(9류)과 전시·문화 서비스(41류)에서 같은 이름·비슷한 이름 확인.</li>
+    <li>도메인(.com · .kr · .app)과 앱스토어·구글 플레이 동명 앱 확인.</li>
+    <li>영문 표기 확정 후 앱 이름, 홈페이지, 스토어 등록 정보를 바꿉니다. 앱 고유 ID는 그대로 둡니다.</li>
   </ol>
 </section>
 
-<section id="refs">
-  <h2>레퍼런스</h2>
-  <p class="note">앱 이름은 2026-10-26 앱스토어(iTunes Search API)에 등록된 그대로입니다. 이름의 유래는 출처가 있는 것만 적었습니다.</p>
-
-  <div class="takeaways">
-    <div class="tk"><b>실제 영어 단어를 그대로</b><span>Toss, Fever, Triple, Melon, Zigzag. 뜻은 평범하고, 짧아서 브랜드가 된다. 한글로도 그대로 적는다(토스·트리플).</span></div>
-    <div class="tk"><b>철자를 살짝 비튼 영어</b><span>KREAM, Wavve, Artsy, Smartify. 읽는 소리는 일상어, 철자로 상표·검색을 확보한다.</span></div>
-    <div class="tk"><b>문화 앱은 외국어 한 단어도 흔하다</b><span>Fever, Magnus, Ostrovok(러시아어 ‘섬’), Tiqets. 한국 사용자에겐 뜻보다 소리와 생김새로 기억된다.</span></div>
-  </div>
-
-  <div class="reftable">
-    <div class="rg">
-      <h3>전시·미술·티켓 앱 (해외)</h3>
-      <div class="chips">
-        <span class="chip"><b>Smartify</b><i>smart + -ify 합성 · 평가 9.5천</i></span>
-        <span class="chip"><b>Artsy</b><i>art + -sy · 회사명 Art.sy</i></span>
-        <span class="chip"><b>Connects</b><i>Bloomberg Connects의 스토어 이름 ‘Connects: Arts+Culture’</i></span>
-        <span class="chip"><b>DailyArt</b><i>daily + art · 평가 3.7만</i></span>
-        <span class="chip"><b>Magnus</b><i>창업자 이름(라틴어 ‘큰’)</i></span>
-        <span class="chip"><b>Cuseum</b><i>기관용 B2B, 스토어엔 바코드 앱만</i></span>
-        <span class="chip"><b>MusA</b><i>밀라노대 접근성 앱, 라틴어 Musa</i></span>
-        <span class="chip"><b>Tiqets</b><i>tickets 철자 비틈 · 평가 3.6만</i></span>
-        <span class="chip"><b>Fever</b><i>영어 한 단어 · 평가 7.4만</i></span>
-        <span class="chip"><b>Ostrovok</b><i>러시아어 ‘섬’, 호텔 예약</i></span>
-        <span class="chip"><b>Letterboxd</b><i>letterbox + d, 영화 기록</i></span>
-      </div>
-      <p>미술 쪽은 ‘art’를 넣은 합성어가 많고, 예약·이벤트 쪽은 짧은 실제 단어(Fever)나 철자를 비튼 단어(Tiqets)가 많다. 라틴어·외국어 한 단어(Magnus, MusA, Ostrovok)도 문제없이 쓰인다.</p>
-      <p class="src">출처: 앱스토어 US(<a href="https://apps.apple.com/us/app/id1102736524">Smartify</a>, <a href="https://apps.apple.com/us/app/id703796080">Artsy</a>, <a href="https://apps.apple.com/us/app/id1476456847">Connects</a>, <a href="https://apps.apple.com/us/app/id547982045">DailyArt</a>, <a href="https://apps.apple.com/us/app/id1061967005">Magnus</a>, <a href="https://apps.apple.com/us/app/id6762161577">Cuseum</a>, <a href="https://apps.apple.com/us/app/id1212818451">Tiqets</a>, <a href="https://apps.apple.com/us/app/id497702817">Fever</a>, <a href="https://apps.apple.com/us/app/id564204730">Ostrovok</a>, <a href="https://apps.apple.com/us/app/id1054271011">Letterboxd</a>) · <a href="https://www.finestresullarte.info/en/news/musa-the-new-app-to-make-art-usable-for-all-through-augmented-reality">MusA(Finestre sull'Arte)</a> · <a href="https://venturebeat.com/business/with-25m-travel-site-ostrovok-emerges-as-leader-in-russian-market">Ostrovok 뜻(VentureBeat)</a></p>
-    </div>
-
-    <div class="rg">
-      <h3>한국에서 영어·조어 이름으로 성공한 앱</h3>
-      <div class="chips">
-        <span class="chip"><b>토스</b><i>Toss · 영어 단어</i></span>
-        <span class="chip"><b>트리플</b><i>Triple · 영어 단어</i></span>
-        <span class="chip"><b>멜론</b><i>Melon · 영어 단어</i></span>
-        <span class="chip"><b>지그재그</b><i>ZIGZAG · 영어 단어</i></span>
-        <span class="chip"><b>캐치테이블</b><i>catch + table</i></span>
-        <span class="chip"><b>크림</b><i>KREAM · cream 철자 비틈</i></span>
-        <span class="chip"><b>웨이브</b><i>Wavve · wave 철자 비틈</i></span>
-        <span class="chip"><b>에이블리</b><i>ABLY · 조어</i></span>
-        <span class="chip"><b>왓챠</b><i>WATCHA · 조어</i></span>
-        <span class="chip"><b>클룩</b><i>Klook · ‘Keep Looking’ 줄임</i></span>
-        <span class="chip"><b>무신사</b><i>‘무진장 신발 사진이 많은 곳’ 줄임</i></span>
-        <span class="chip"><b>번개장터</b><i>앱 표기는 그대로, 부를 땐 ‘번장’</i></span>
-        <span class="chip"><b>NOL</b><i>야놀자·인터파크 통합 이름(2025)</i></span>
-        <span class="chip"><b>인터파크</b><i>inter + park</i></span>
-      </div>
-      <p>한국 앱도 영어 단어나 조어가 흔하고, 홈 화면 라벨은 대부분 한글(토스·크림·멜론)이다. 2~4음절이 대부분이고, 영문 로고와 한글 라벨을 같이 쓴다.</p>
-      <p class="src">출처: 앱스토어 KR(<a href="https://apps.apple.com/kr/app/id839333328">토스</a>, <a href="https://apps.apple.com/kr/app/id1225499481">트리플</a>, <a href="https://apps.apple.com/kr/app/id415597317">멜론</a>, <a href="https://apps.apple.com/kr/app/id976131101">지그재그</a>, <a href="https://apps.apple.com/kr/app/id1485193566">캐치테이블</a>, <a href="https://apps.apple.com/kr/app/id1490580239">KREAM</a>, <a href="https://apps.apple.com/kr/app/id987782077">Wavve</a>, <a href="https://apps.apple.com/kr/app/id1084960428">에이블리</a>, <a href="https://apps.apple.com/kr/app/id1096493180">왓챠</a>, <a href="https://apps.apple.com/kr/app/id961850126">클룩</a>, <a href="https://apps.apple.com/kr/app/id1003139529">무신사</a>, <a href="https://apps.apple.com/kr/app/id395672275">번개장터</a>, <a href="https://apps.apple.com/kr/app/id436731843">NOL</a>) · 유래: <a href="https://campaignasia.com/article/klook-co-founder-shares-his-brand-building-recipe/455680">Klook(Campaign Asia)</a>, <a href="https://www.wikitree.co.kr/articles/1108299">무신사(위키트리)</a>, <a href="https://byline.network/2025/03/07_2918273">NOL(바이라인 2025.03)</a></p>
-    </div>
-  </div>
-</section>
-
-<section id="cands">
-  <h2>가닥 A 후보</h2>
-  <p class="note">순서는 추천 순입니다. 뜻은 사전 뜻 그대로만 적었습니다.</p>
-  <div class="cards">
-    <article class="card pick">
-      <div class="mark"><span class="rank">추천 1</span><b>시선집</b><span class="ko">視線集</span><span class="say">3음절. 차분하고 끝이 단정하다.</span></div>
-      <div class="body">
-        <div class="row"><span class="lb">느낌</span>내 시선을 모아 둔 곳. 오늘의집처럼 ‘집’으로 끝나 앱 이름으로 익숙하게 읽힌다.</div>
-        <p class="wk">약점: ‘시 선집’(시집)으로도 읽힌다.</p>
-      </div>
-    </article>
-    <article class="card pick">
-      <div class="mark"><span class="rank">추천 2</span><b>심미안</b><span class="ko">審美眼</span><span class="say">3음절. 또렷하고 고급스럽다.</span></div>
-      <div class="body">
-        <div class="row"><span class="lb">느낌</span>‘아름다움을 알아보는 눈’. 전시를 보는 사람 각자의 눈이라는 게 바로 전해진다.</div>
-        <p class="wk">약점: 조금 격식 있는 말이라 딱딱하게 느낄 수 있다.</p>
-      </div>
-    </article>
-    <article class="card pick">
-      <div class="mark"><span class="rank">추천 3</span><b>바라봄</b><span class="ko">바라봄</span><span class="say">3음절. 받침이 부드럽고 끝이 열려 있다.</span></div>
-      <div class="body">
-        <div class="row"><span class="lb">느낌</span>‘바라보다’의 명사형. 그림 앞에 서서 바라보는 그 순간이 이름이다. 가장 따뜻하다.</div>
-        <p class="wk">약점: 흔한 말이라 검색에 묻힐 수 있다.</p>
-      </div>
-    </article>
-    <article class="card">
-      <div class="mark"><span class="rank">추천 4</span><b>미감</b><span class="ko">美感</span><span class="say">2음절. 짧고 세련됐다.</span></div>
-      <div class="body">
-        <div class="row"><span class="lb">느낌</span>‘아름다움을 느끼는 감각’. 사람마다 다른 감각이라는 점이 그대로 담긴다.</div>
-        <p class="wk">약점: 화장품·패션 브랜드에서도 자주 쓰는 말이다.</p>
-      </div>
-    </article>
-    <article class="card">
-      <div class="mark"><span class="rank">추천 5</span><b>관조</b><span class="ko">觀照</span><span class="say">2음절. 조용하고 무게가 있다.</span></div>
-      <div class="body">
-        <div class="row"><span class="lb">느낌</span>‘고요히 바라보며 비추어 봄’. 미술을 대하는 태도 그 자체라 전시 앱 이름으로 품격이 있다.</div>
-        <p class="wk">약점: 어려운 말이라 젊은 관람객에게는 멀게 들릴 수 있다.</p>
-      </div>
-    </article>
-    <article class="card">
-      <div class="mark"><span class="rank">추천 6</span><b>관점</b><span class="ko">觀點</span><span class="say">2음절. 담백하다.</span></div>
-      <div class="body">
-        <div class="row"><span class="lb">느낌</span>‘같은 그림, 다른 관점’. 누구나 바로 이해하는 가장 쉬운 말.</div>
-        <p class="wk">약점: 너무 일상적이라 이름으로는 밋밋하다.</p>
-      </div>
-    </article>
-  </div>
-  <p class="note" style="margin-top:14px">이 가닥에서 뺀 말: 응시(‘노려본다’ 느낌), 혜안(예언처럼 거창함), 눈썰미(가벼움), 일가견(시선이 아니라 전문성), 시야·시점(시간·운전 쪽 뜻이 먼저 떠오름), Regard·Vue(외국어라 뜻이 안 전해짐).</p>
-</section>
-
-<section id="home">
-  <h2>홈 화면 미리보기</h2>
-  <p class="note">현재 앱 아이콘 색만 빌린 자리표시입니다. 옆 칸은 레퍼런스 앱 이름만 둔 빈 아이콘으로, 나란히 놓였을 때 어떻게 읽히는지 보는 용도입니다.</p>
-  <div class="homes">
-<div class="screen light"><p class="cap">밝은 배경화면</p><div class="grid"><div class="app"><div class="ic"><span style="font-size:18px">시선집</span></div><span class="lbl">시선집</span></div><div class="app"><div class="ic"><span style="font-size:18px">심미안</span></div><span class="lbl">심미안</span></div><div class="app"><div class="ic"><span style="font-size:18px">바라봄</span></div><span class="lbl">바라봄</span></div><div class="app"><div class="ic"><span style="font-size:20px">미감</span></div><span class="lbl">미감</span></div></div></div>
-<div class="screen dark"><p class="cap">어두운 배경화면</p><div class="grid"><div class="app"><div class="ic"><span style="font-size:18px">시선집</span></div><span class="lbl">시선집</span></div><div class="app"><div class="ic"><span style="font-size:18px">심미안</span></div><span class="lbl">심미안</span></div><div class="app"><div class="ic"><span style="font-size:18px">바라봄</span></div><span class="lbl">바라봄</span></div><div class="app"><div class="ic"><span style="font-size:20px">미감</span></div><span class="lbl">미감</span></div></div></div>  </div>
-</section>
-
-<section id="filter">
-  <h2>거른 과정</h2>
-  <p class="note">이번 라운드에 낸 165개가 관문마다 몇 개씩 빠졌는지와, 그럴듯해 보였는데 뺀 이름입니다. 한 이름은 처음 걸린 관문에서만 셌습니다.</p>
-  <div class="drop">
-    <div class="dr"><b>낸 이름 165</b><span>줄임말·한영 조합 54, 영어·프랑스어 47, 한자어 53, 앞 라운드 변형 11</span></div>
-    <div class="dr"><b>앞 라운드 −11</b><span>남은 154 · 시선픽·오늘의시선(시선 꼴), 아트결(결 꼴), 눈도장(도장 꼴), Taste(취향 번역), Accent(방점 번역), 최애(원픽 결) 등</span></div>
-    <div class="dr"><b>1 소리 −60</b><span>남은 94 · 나전(나전칠기), 내전시(내전), 각시·나시·고시처럼 줄였더니 다른 말이 된 것, 백미(흰쌀), 주관(전시 포스터의 ‘주최·주관’), Regard(르가르/리가드)</span></div>
-    <div class="dr"><b>2 결 −41</b><span>남은 53 · 아트픽·관픽(‘픽’이 투표 말투), POV(숏폼 밈), 화각(카메라 앱), 간택(‘고양이에게 간택’), 눈독(중고거래 앱), 일가견(칼럼 말투)</span></div>
-    <div class="dr"><b>3 맞음 −22</b><span>남은 31 · 여운·잔상·화집처럼 고르는 게 안 보이거나, 진가·압권처럼 정답이 있는 말</span></div>
-    <div class="dr"><b>4 뜻 −5</b><span>남은 26 · 픽처(pick+picture), 택미(take me), 모시(‘모두의 시선’ 줄임) 같은 말장난</span></div>
-    <div class="dr"><b>5 충돌 −23</b><span>남은 3 · 안목, 한점, 화첩, 큐픽, Muse, Frame, Stance 등</span></div>
-    <div class="dr"><b>다시 읽기 −2</b><span>남은 1 · 내색, 편애</span></div>
-  </div>
-
-  <h2 style="margin-top:28px;font-size:18px">그럴듯했는데 뺀 이름</h2>
-  <div class="drop">
-    <div class="dr"><b>내색</b><span>‘내 색’과 ‘내색하다’가 겹치고 스토어·상표도 비어 있었지만, 평소엔 ‘내색하지 않았다’처럼 숨긴다는 말로 쓰이고, ‘내 색’은 퍼스널컬러 진단 앱이 먼저 떠오른다.</span></div>
-    <div class="dr"><b>편애</b><span>‘내가 편애하는 그림’은 재치 있지만 본뜻이 ‘불공평하게 한쪽만 아낌’이라 이름으로 내걸기 어렵고, 이랜드리테일이 35·25류에 같은 상표를 갖고 있다.</span></div>
-    <div class="dr"><b>안목</b><span>짧고 고급스럽지만 ‘좋은 눈·나쁜 눈’이 있다는 말이고, 같은 이름 앱이 스토어 KR 양쪽에 있고 도메인도 다 쓰이고 있다.</span></div>
-    <div class="dr"><b>한점</b><span>‘작품 한 점’에서 고른 하나라는 뜻이 좋았지만 구글플레이에 ‘한 점 - 명화 갤러리’가 있고, 43류(음식점) 등록이 여럿이라 고깃집처럼도 들린다.</span></div>
-    <div class="dr"><b>화첩</b><span>그림을 모아 두는 책이라 수집함과 맞았지만 구글플레이에 ‘화첩 - 오늘의 그림’ 앱이 있다.</span></div>
-    <div class="dr"><b>큐픽</b><span>짧고 또렷했지만 티켓·오디오 가이드 앱 ‘큐피커’와 분야·소리가 겹친다.</span></div>
-    <div class="dr"><b>다시</b><span>‘다른 시선’을 줄이면 ‘다시 보다’가 되는 이름이지만, 이름만 보면 ‘다시’뿐이라 고르는 게 안 보이고 검색이 안 된다.</span></div>
-    <div class="dr"><b>각색</b><span>각자의 색이자 내 식으로 다시 쓰기라 맞았지만, ‘사실을 각색했다’(꾸며냄)로 읽혀 역사 전시엔 위험하다.</span></div>
-    <div class="dr"><b>Edition · Frame · Muse</b><span>영어 쪽에서 가장 고급스러웠지만 셋 다 같은 말이 들어간 앱이 수십 개이고, EDITION은 메리어트가 41류에 갖고 있다.</span></div>
-    <div class="dr"><b>Stance · Opt · Favori</b><span>‘내 입장·내 선택·내 최애’를 짧게 말하지만, 같은 이름 앱이나 상표가 있고 도메인이 모두 쓰이고 있다.</span></div>
-  </div>
-</section>
-
-<section id="drop">
-  <h2>접은 라운드</h2>
-  <div class="drop">
-    <div class="dr"><b>2차 · 순우리말만</b><span>저마다, 갈래, 너라면, 입장, 어느쪽, 물음, 각자, 선택지, 골똘 — 순우리말로만 몰아서 탈락</span></div>
-    <div class="dr"><b>3차 · 외래어만</b><span>Mostra, Admit, Visto, Carnet, Exibo, Stanza, Visita, Kurato, Galeo, Odeon — 외래어로만 몰고, 고르는 재미가 이름에 없어 탈락</span></div>
-    <div class="dr"><b>4차 · 택1·몽슈아·나라면</b><span>택1은 ‘택일’(날 잡기)로 읽히고, 몽슈아는 화장품·반려동물 브랜드 같은 소리에 뜻이 안 보이고, 나라면은 문구(캡션)이면서 ‘라면’으로 읽혀 탈락</span></div>
-    <div class="dr"><b>5차 · 보기나름·직관·방점</b><span>보기나름은 4음절 구절이라 “보기 나름이지 뭐” 하는 말투나 블로그·유튜브 채널 이름처럼 들리고 ‘나름’ 상표와 겹치고, 직관은 스토어에 야구·축구 ‘직관’ 앱이 10개 넘게 있고, 방점은 신문 칼럼 말투에 직방·다방 옆에선 방 구하는 앱처럼 보여 탈락</span></div>
-  </div>
-</section>
-</main>
-
-<footer class="wrap">제작 KYVIKOS · 내부 검토용 보드(검색 노출 안 함) · 검사 2026-10-26: 앱스토어 KR·US(iTunes Search API), 구글플레이 KR 검색, KIPRIS 상표 문자 검색(9·41·42류), whois(.com·.kr·.co.kr), 네이버 검색</footer>
-</body>
-</html>
+<footer>
+  출처
+  <ul>
+    <li><a href="https://apps.apple.com/us/app/id1594315823" target="_blank" rel="noopener">App Store, 포도알 – podo.r</a></li>
+    <li><a href="https://apps.apple.com/kr/app/id6503619368" target="_blank" rel="noopener">App Store, 티켓스토리</a></li>
+    <li><a href="https://apps.apple.com/kr/app/id1469376668" target="_blank" rel="noopener">App Store, 큐피커 – 티켓부터 오디오 가이드까지</a></li>
+    <li><a href="https://apps.apple.com/us/app/id1446240686" target="_blank" rel="noopener">App Store, 아트맵</a></li>
+    <li><a href="https://apps.apple.com/kr/app/id6708229893" target="_blank" rel="noopener">App Store, 시소필름 – 아티스트 필터 카메라</a></li>
+    <li><a href="https://byline.network/2025/03/07_2918273" target="_blank" rel="noopener">바이라인네트워크, 야놀자·인터파크티켓 플랫폼 브랜드 'NOL'로 전면 개편(2025.3)</a></li>
+  </ul>
+</footer>
+</div>

@@ -79,9 +79,35 @@ details[open] summary{border-color:var(--ink)}
 .log .who.c{color:#2F6FB0}.log .who.s{color:var(--green)}.log .who.m{color:var(--sub)}
 .log .bad{color:var(--warn);font-weight:700}.log .ok{color:var(--green);font-weight:700}
 .log small{display:block;color:var(--sub);font-size:12.5px}
+.lg{width:100%;border-collapse:collapse;table-layout:fixed}
+.lg th:nth-child(1){width:9%}.lg th:nth-child(2){width:17%}.lg th:nth-child(3),.lg th:nth-child(4),.lg th:nth-child(5){width:18%}
+.lg th{text-align:left;font-size:13px;color:var(--sub);font-weight:700;padding:11px 12px;border-bottom:1px solid var(--line);background:#FAF7F0;white-space:nowrap}
+.lg td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
+.lg tr:last-child td{border-bottom:0}
+.lg .no{font-family:Paperlogy,sans-serif;font-size:22px;font-weight:800;white-space:nowrap}
+.lg .who2{font-size:14px;font-weight:700;white-space:nowrap}.lg .who2 small{display:block;font-weight:600;color:var(--sub);font-size:12.5px;margin-top:2px}
+.st{min-width:96px}
+.st b{display:block;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.st i{display:inline-block;margin-top:3px;font-style:normal;font-size:12.5px;font-weight:700}
+.st i.ok{color:var(--green)}.st i.bad{color:var(--warn)}.st i.wait{color:var(--sub)}
+.st small{display:block;font-size:12px;color:var(--warn);margin-top:2px;line-height:1.35;word-break:break-all}
+.st.none b{color:#C9C1B3;font-weight:600}
+.res{display:inline-block;padding:5px 10px;border-radius:8px;font-size:14px;font-weight:800;white-space:nowrap}
+.res.entered{background:var(--green-l);color:var(--green)}.res.noshow{background:var(--warn-l);color:var(--warn)}.res.canceled{background:#EEE8DD;color:#6B6258}.res.waiting{background:#fff;color:var(--ink);border:1.5px solid var(--line)}.res.called{background:#FCEBD9;color:#B4651F}
+.res-t{display:block;margin-top:4px;font-size:12.5px;color:var(--sub);font-variant-numeric:tabular-nums}
+@media (max-width:700px){
+  #lOnly button{white-space:nowrap;padding-left:6px;padding-right:6px;font-size:14px}
+  .lg thead{display:none}
+  .lg tr{display:grid;grid-template-columns:auto 1fr auto;gap:6px 12px;padding:12px;border-bottom:1px solid var(--line)}
+  .lg td{padding:0;border:0}
+  .lg td.rc{grid-column:3;grid-row:1;text-align:right}
+  .lg td.st{grid-column:1/-1;display:grid;grid-template-columns:72px 1fr;align-items:baseline;min-width:0}
+  .lg td.st::before{content:attr(data-l);font-size:12.5px;color:var(--sub);font-weight:700}
+  .lg td.st b,.lg td.st i,.lg td.st small{grid-column:2}
+}
 .pager{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:700;color:var(--sub)}
 .pager .btn{min-height:40px;padding:0 14px;font-size:14px}
-@media (max-width:560px){.log th.who,.log td.who{display:none}}
+@media (max-width:560px){.log .x{display:none}}
 @media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:52px 1fr}.row .acts{grid-column:1/-1;justify-content:stretch}.row .acts .btn{flex:1}}
 </style>
 </head>
@@ -131,7 +157,7 @@ details[open] summary{border-color:var(--ink)}
 <section id="tabLog" hidden>
   <div class="log-bar">
     <input type="date" id="lDay" aria-label="날짜">
-    <div class="seg" id="lOnly" role="radiogroup" aria-label="보기"><button type="button" data-v="" class="on">전체</button><button type="button" data-v="customer">손님</button><button type="button" data-v="staff">직원</button><button type="button" data-v="msg">알림톡</button></div>
+    <div class="seg" id="lOnly" role="radiogroup" aria-label="보기"><button type="button" data-v="" class="on">전체</button><button type="button" data-v="active">진행 중</button><button type="button" data-v="entered">입장</button><button type="button" data-v="noshow">노쇼</button><button type="button" data-v="canceled">취소</button></div>
     <button class="btn line" id="lReload" type="button">새로고침</button>
   </div>
   <div class="log" id="log"></div>
@@ -193,25 +219,32 @@ document.body.addEventListener('click', (e) => {
   act(() => call('mark', { key: KEY, id, status: a }), { entered: `${no}번 입장`, noshow: `${no}번 노쇼`, canceled: `${no}번 취소`, waiting: `${no}번 대기로` }[a]);
 });
 // ── 기록: 누가(손님 · 직원) 언제 무엇을 했는지 + 알림톡 전달 결과. 최신부터 20건씩
-const EV = { join: '접수', join_again: '같은 번호로 다시 접수(기존 번호 안내)', call: '호출', recall: '다시 알림', entered: '입장', noshow: '노쇼', canceled: '취소', restore: '대기로 되돌림', open: '접수 열기', close: '접수 마감' };
-const WHO = { customer: ['c', '손님'], staff: ['s', '직원'] };
 let lPage = 1;
 const hhmm = (iso) => { const d = new Date(iso); return [d.getHours(), d.getMinutes(), d.getSeconds()].map((n) => String(n).padStart(2, '0')).join(':'); };
+// 단계 칸 — 시각 + 알림톡 전달 결과
+const tm = (iso) => iso ? hhmm(iso).slice(0, 5) : '';
+function msgTag(m) {
+  if (!m) return '';
+  const t = { delivered: ['ok', '카톡 전달'], sent: ['wait', '전달 확인 중'], failed: ['bad', '전달 실패'], skipped: ['wait', '안 보냄'] }[m.st] || ['wait', ''];
+  const why = m.st === 'failed' && m.why ? m.why : m.st === 'skipped' ? (m.why === 'no_phone' ? '번호 없음' : m.why === 'bizgo_not_configured' ? '알림톡 연결 전' : '') : '';
+  return `<i class="${t[0]}">${t[1]}${m.count > 1 ? ` · ${m.count}번` : ''}</i>${why ? `<small>${esc(why)}</small>` : ''}`;
+}
+const stCell = (label, at, msg, extra = '') => at || msg ? `<td class="st" data-l="${label}"><b>${tm(at || msg?.at)}${extra}</b>${msgTag(msg)}</td>` : `<td class="st none" data-l="${label}"><b>—</b></td>`;
+const RES = { waiting: '대기 중', called: '호출됨', entered: '입장', noshow: '노쇼', canceled: '취소' };
 function logRow(x) {
-  if (x.type === 'msg') {
-    const [c, t] = msgState(x), why = x.result && x.result !== 'delivered' ? x.result.replace(/^failed:\S*\s*/, '') : x.state !== 'sent' ? (x.detail === 'no_phone' ? '휴대폰 번호 없음' : x.detail === 'bizgo_not_configured' ? '알림톡 연결 전' : x.detail || '') : '';
-    return `<tr><td class="tm">${hhmm(x.at)}</td><td class="no">${x.no ?? ''}${x.no ? '번' : ''}</td><td>${MSG[x.kind] || x.kind} 알림톡 <span class="${c}">${t}</span>${why ? `<small>${esc(why)}</small>` : ''}</td><td class="who m">자동</td></tr>`;
-  }
-  const [wc, wt] = WHO[x.actor] || ['m', x.actor];
-  return `<tr><td class="tm">${hhmm(x.at)}</td><td class="no">${x.no ?? ''}${x.no ? '번' : ''}</td><td>${esc(EV[x.kind] || x.kind)}${x.kind === 'canceled' ? ` <b class="who ${wc}">(${wt}이 취소)</b>` : ''}${x.detail ? `<small>${esc(x.detail)}</small>` : ''}</td><td class="who ${wc}">${wt}</td></tr>`;
+  const res = x.status === 'canceled' ? (x.end.by === 'customer' ? '손님 취소' : x.end.by === 'staff' ? '직원 취소' : '취소') : RES[x.status] || x.status;
+  return `<tr><td class="no">${x.no}</td><td class="who2">${x.party}명<small>${esc(x.phone || '번호 없음')}</small></td>
+    ${stCell('접수', x.join.at, x.join.msg)}${stCell('곧 차례', null, x.soon.msg)}${stCell('호출', x.call.at, x.call.msg, x.call.times > 1 ? ` · ${x.call.times}회` : '')}
+    <td class="rc"><span class="res ${x.status}">${res}</span>${x.end.at ? `<span class="res-t">${tm(x.end.at)}${x.status === 'canceled' ? (x.call.at ? ' · 호출 뒤' : ' · 대기 중') : ''}</span>` : ''}</td></tr>`;
 }
 async function loadLog() {
   if (tab !== 'log') return;
   try {
     const r = await call('log', { key: KEY, day: $('lDay').value, page: lPage, only: lOnly });
     lPage = r.page; if (!$('lDay').value) $('lDay').value = r.day;
-    $('hL').textContent = `${r.total}건`;
-    $('log').innerHTML = r.items.length ? `<table><thead><tr><th>시각</th><th>번호</th><th>내용</th><th class="who">누가</th></tr></thead><tbody>${r.items.map(logRow).join('')}</tbody></table>` : '<div class="empty" style="border:0">기록이 없습니다</div>';
+    $('hL').textContent = `${r.counts.all}팀`;
+    const C = r.counts; $('lOnly').querySelectorAll('button').forEach((b) => { const n = { '': C.all, active: C.active, entered: C.entered, noshow: C.noshow, canceled: C.canceled }[b.dataset.v]; b.textContent = `${{ '': '전체', active: '진행 중', entered: '입장', noshow: '노쇼', canceled: '취소' }[b.dataset.v]} ${n}`; });
+    $('log').innerHTML = r.items.length ? `<table class="lg"><thead><tr><th>번호</th><th>인원 · 연락처</th><th>접수</th><th>곧 차례</th><th>호출</th><th>결과</th></tr></thead><tbody>${r.items.map(logRow).join('')}</tbody></table>` : '<div class="empty" style="border:0">기록이 없습니다</div>';
     $('pager').innerHTML = r.pages > 1 ? `<button class="btn line" type="button" data-p="${r.page - 1}" ${r.page <= 1 ? 'disabled' : ''}>이전</button><span>${r.page} / ${r.pages}</span><button class="btn line" type="button" data-p="${r.page + 1}" ${r.page >= r.pages ? 'disabled' : ''}>다음</button>` : '';
   } catch (e) { $('log').innerHTML = `<div class="empty" style="border:0">${esc(say(e.code))}</div>`; }
 }
