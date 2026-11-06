@@ -34,6 +34,7 @@ html,body{height:100%;overflow:hidden;touch-action:manipulation;user-select:none
 .phone{margin-top:calc(var(--s)*1);height:calc(var(--s)*8);border-radius:calc(var(--s)*1.5);border:1.5px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font-family:Paperlogy,sans-serif;font-size:calc(var(--s)*3.9);font-weight:700}
 .phone.ok{border-color:var(--green)}
 .phone .ph{color:#BDB3A5}
+.phone .dash{font-style:normal;margin:0 .22em}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:calc(var(--s)*1);min-height:0}
 .pad button{min-height:0;border-radius:calc(var(--s)*1.5);background:#F5F1E9;font-size:calc(var(--s)*3.3);font-weight:700}
 .pad button:active{background:var(--line)}
@@ -159,7 +160,9 @@ function drawParty() {
 $('party').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; party = +b.dataset.n; drawParty(); check(); };
 const fmt = (d) => d.length <= 3 ? d : d.length <= 7 ? `${d.slice(0, 3)}-${d.slice(3)}` : `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
 const okPhone = () => /^01[016789]\d{7,8}$/.test(digits);
-function drawPhone() { $('phone').innerHTML = digits.length > 3 ? fmt(digits) : `${fmt(digits)}<span class="ph">-0000-0000</span>`; $('phone').classList.toggle('ok', okPhone()); }
+// 대시 양옆을 조금 띄운다(010 - 1234 - 5678 처럼 읽히게)
+const dash = (t) => t.replace(/-/g, '<i class="dash">-</i>');
+function drawPhone() { $('phone').innerHTML = digits.length > 3 ? dash(fmt(digits)) : `${dash(fmt(digits))}<span class="ph">${dash('-0000-0000')}</span>`; $('phone').classList.toggle('ok', okPhone()); }
 $('pad').innerHTML = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '지움', '0', '←'].map((k) => `<button type="button" class="${k.length > 1 ? 'fn' : ''}" data-k="${k}">${k}</button>`).join('');
 $('pad').onclick = (e) => {
   const b = e.target.closest('button'); if (!b) return; const k = b.dataset.k;
