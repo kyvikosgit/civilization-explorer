@@ -91,6 +91,7 @@ details[open] summary{border-color:var(--ink)}
 .st i{display:inline-block;margin-top:3px;font-style:normal;font-size:12.5px;font-weight:700}
 .st i.ok{color:var(--green)}.st i.bad{color:var(--warn)}.st i.wait{color:var(--sub)}
 .st small{display:block;font-size:12px;color:var(--warn);margin-top:2px;line-height:1.35;word-break:break-all}
+.st .again{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:13px;font-weight:700;color:var(--ink)}.st .again i{margin:0 0 0 2px}
 .st.none b{color:#C9C1B3;font-weight:600}
 .res{display:inline-block;padding:5px 10px;border-radius:8px;font-size:14px;font-weight:800;white-space:nowrap}
 .res.entered{background:var(--green-l);color:var(--green)}.res.noshow{background:var(--warn-l);color:var(--warn)}.res.canceled{background:#EEE8DD;color:#6B6258}.res.waiting{background:#fff;color:var(--ink);border:1.5px solid var(--line)}.res.called{background:#FCEBD9;color:#B4651F}
@@ -227,14 +228,15 @@ function msgTag(m) {
   if (!m) return '';
   const t = { delivered: ['ok', '카톡 전달'], sent: ['wait', '전달 확인 중'], failed: ['bad', '전달 실패'], skipped: ['wait', '안 보냄'] }[m.st] || ['wait', ''];
   const why = m.st === 'failed' && m.why ? m.why : m.st === 'skipped' ? (m.why === 'no_phone' ? '번호 없음' : m.why === 'bizgo_not_configured' ? '알림톡 연결 전' : '') : '';
-  return `<i class="${t[0]}">${t[1]}${m.count > 1 ? ` · ${m.count}번` : ''}</i>${why ? `<small>${esc(why)}</small>` : ''}`;
+  const again = (m.again || []).map((a) => `<span class="again">다시 알림 ${tm(a.at)} · ${msgTag({ ...a, again: [] }).replace(/<small>.*<\/small>/, '')}</span>`).join('');
+  return `<i class="${t[0]}">${t[1]}</i>${why ? `<small>${esc(why)}</small>` : ''}${again}`;
 }
 const stCell = (label, at, msg, extra = '') => at || msg ? `<td class="st" data-l="${label}"><b>${tm(at || msg?.at)}${extra}</b>${msgTag(msg)}</td>` : `<td class="st none" data-l="${label}"><b>—</b></td>`;
 const RES = { waiting: '대기 중', called: '호출됨', entered: '입장', noshow: '노쇼', canceled: '취소' };
 function logRow(x) {
   const res = x.status === 'canceled' ? (x.end.by === 'customer' ? '손님 취소' : x.end.by === 'staff' ? '직원 취소' : '취소') : RES[x.status] || x.status;
   return `<tr><td class="no">${x.no}</td><td class="who2">${x.party}명<small>${esc(x.phone || '번호 없음')}</small></td>
-    ${stCell('접수', x.join.at, x.join.msg)}${stCell('곧 차례', null, x.soon.msg)}${stCell('호출', x.call.at, x.call.msg, x.call.times > 1 ? ` · ${x.call.times}회` : '')}
+    ${stCell('접수', x.join.at, x.join.msg)}${stCell('곧 차례', null, x.soon.msg)}${stCell('호출', x.call.at, x.call.msg)}
     <td class="rc"><span class="res ${x.status}">${res}</span>${x.end.at ? `<span class="res-t">${tm(x.end.at)}${x.status === 'canceled' ? (x.call.at ? ' · 호출 뒤' : ' · 대기 중') : ''}</span>` : ''}</td></tr>`;
 }
 async function loadLog() {
@@ -244,7 +246,7 @@ async function loadLog() {
     lPage = r.page; if (!$('lDay').value) $('lDay').value = r.day;
     $('hL').textContent = `${r.counts.all}팀`;
     const C = r.counts; $('lOnly').querySelectorAll('button').forEach((b) => { const n = { '': C.all, active: C.active, entered: C.entered, noshow: C.noshow, canceled: C.canceled }[b.dataset.v]; b.textContent = `${{ '': '전체', active: '진행 중', entered: '입장', noshow: '노쇼', canceled: '취소' }[b.dataset.v]} ${n}`; });
-    $('log').innerHTML = r.items.length ? `<table class="lg"><thead><tr><th>번호</th><th>인원 · 연락처</th><th>접수</th><th>곧 차례</th><th>호출</th><th>결과</th></tr></thead><tbody>${r.items.map(logRow).join('')}</tbody></table>` : '<div class="empty" style="border:0">기록이 없습니다</div>';
+    $('log').innerHTML = r.items.length ? `<table class="lg"><thead><tr><th>접수번호</th><th>인원 · 연락처</th><th>접수</th><th>곧 차례</th><th>호출</th><th>결과</th></tr></thead><tbody>${r.items.map(logRow).join('')}</tbody></table>` : '<div class="empty" style="border:0">기록이 없습니다</div>';
     $('pager').innerHTML = r.pages > 1 ? `<button class="btn line" type="button" data-p="${r.page - 1}" ${r.page <= 1 ? 'disabled' : ''}>이전</button><span>${r.page} / ${r.pages}</span><button class="btn line" type="button" data-p="${r.page + 1}" ${r.page >= r.pages ? 'disabled' : ''}>다음</button>` : '';
   } catch (e) { $('log').innerHTML = `<div class="empty" style="border:0">${esc(say(e.code))}</div>`; }
 }

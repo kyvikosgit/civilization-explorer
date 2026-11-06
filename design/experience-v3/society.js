@@ -51,7 +51,8 @@ function setStep(n) {
 const LAMPS = [   // 화면 비율 좌표 · 크기(px). 대로의 두 보도선을 따라 멀어진다
   [0.63, 0.47, 7], [0.70, 0.495, 8], [0.56, 0.50, 9], [0.79, 0.54, 11], [0.46, 0.545, 12], [0.90, 0.6, 15], [0.33, 0.6, 15], [0.18, 0.67, 19], [0.04, 0.75, 24],
 ];
-$('#lamps').innerHTML = LAMPS.map(([x, y, sz], i) => `<div class="lamp" style="--x:${x * 100}%;--y:${y * 100}%;--s:${sz}px;--fd:${(2.4 + (i * 0.37) % 1.6).toFixed(2)}s"><i class="halo"></i><i class="post"></i><i class="pool"></i><i class="core"></i></div>`).join('');
+// 11/06: 가스등 · 마차 불빛은 그림과 맞지 않아 뺀다(거리 그림만 천천히 다가옴)
+if (false) $('#lamps').innerHTML = LAMPS.map(([x, y, sz], i) => `<div class="lamp" style="--x:${x * 100}%;--y:${y * 100}%;--s:${sz}px;--fd:${(2.4 + (i * 0.37) % 1.6).toFixed(2)}s"><i class="halo"></i><i class="post"></i><i class="pool"></i><i class="core"></i></div>`).join('');
 // 마차 — 등불 두 개(마부석 양옆) + 젖은 포석에 번지는 반사. 원근: 같은 빠르기로 오면 화면에선 점점 빨라지고 커진다. 칼럼 뒤 먼 대로에서만
 const VP = [0.615, 0.468];
 const CARS = [   // 차선 끝점(화면 비율), 방향(1 다가옴 · -1 멀어짐), 걸리는 시간 s, 시작 지연 s
@@ -143,15 +144,12 @@ const waitFocus = (ms) => Promise.race([new Promise((r) => { focusWait = r; }), 
 
 let introDone = false;
 async function streetIntro() {
-  buildCars();
   if (reduceMotion) { $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; showStanding(); return; }
   document.body.classList.add('intro'); streetEl.classList.add('push');
   const lamps = $$('.lamp');
   const skip = () => { if (introDone) return; introDone = true; lamps.forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
   $('#stage').addEventListener('pointerdown', skip, { once: true });
-  await sleep(450);
-  for (const l of lamps) { if (introDone) return; l.classList.add('lit'); await sleep(380); }   // 11/06: 하나씩 천천히
-  await sleep(150);
+  await sleep(1800);   // 거리 그림이 다가오는 동안만
   skip();
 }
 streetIntro();
