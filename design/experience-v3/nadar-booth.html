@@ -26,7 +26,7 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}
 <div class="shot" id="shot"></div>
 <div class="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 화면이나 버튼(Space · Enter)으로 촬영</span></div>
 <script type="module">
-// 촬영 → 액자에 3·2·1 → 찍고 → 액자에 '현상 중' → 서버(Supabase 함수 nadar-photo · 나노바나나 2.1)가 1870년대 나다르 사진관 사진으로 → 액자로
+// 촬영 → 액자에 3·2·1 → 찍고 → 액자에 '현상 중' → 서버(Supabase 함수 nadar-photo · Seedream 5.0 Pro, 약 45초)가 1870년대 나다르 사진관 사진으로 → 액자로
 //   키: 이 기기 주소 ?k=촬영기키 (한 번 열면 이 기기에 기억). 키가 없거나 변환이 안 되면 기기 안 처리(booth/js/nadar.js) 사진을 보낸다
 //   OpenRouter 키는 서버에만 — 이 페이지에는 없다
 import { joinRoom, room } from './link.js';
@@ -47,7 +47,7 @@ const jpeg = (cv, w, q) => { const o = document.createElement('canvas'); o.width
 // 서버 변환 — 70초 안에 안 오면 포기
 async function aiPhoto(comp) {
   if (!KEY) throw new Error('no key');
-  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 70000);
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 110000);   // Seedream 5 는 45초 안팎 — 넉넉히
   try {
     const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, img: jpeg(comp, 900, 0.9) }), signal: ctl.signal });
     const d = await r.json(); if (!r.ok || !d.img) throw new Error(d.error || r.status);
