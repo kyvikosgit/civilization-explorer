@@ -150,7 +150,7 @@ async function streetIntro() {
   const skip = () => { if (introDone) return; introDone = true; lamps.forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
   $('#stage').addEventListener('pointerdown', skip, { once: true });
   await sleep(450);
-  for (const l of lamps) { if (introDone) return; l.classList.add('lit'); await sleep(170); }
+  for (const l of lamps) { if (introDone) return; l.classList.add('lit'); await sleep(380); }   // 11/06: 하나씩 천천히
   await sleep(150);
   skip();
 }

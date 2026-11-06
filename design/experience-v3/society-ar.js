@@ -53,7 +53,7 @@ function talk(i, ui) {
   panel(0);
   stopTalk = startTalk(ui, w, { base: V3, onHeard: (got) => panel(got) });
 }
-function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }
+function toColumn() { stage = 'walk'; document.body.classList.add('walked'); guide.hide(); c1().scan(); }
 
 // ── 칼럼의 전단지
 const FLYER = {
@@ -103,10 +103,16 @@ document.getElementById('backBtn')?.addEventListener('click', (e) => {
   e.stopImmediatePropagation(); location.href = HUB;
 }, true);
 let readyOnce = false;
-window.addEventListener('c1:ready', () => { if (readyOnce) return; readyOnce = true; setTimeout(() => { if (stage === 'start') guide.show(START); }, 1000); });
+// 가스등이 다 켜지고 첫 문장이 뜬 뒤(role-in)에 안내를 올린다 — 거리를 먼저 보게
+window.addEventListener('c1:ready', () => {
+  if (readyOnce) return; readyOnce = true;
+  const t0 = Date.now();
+  const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => guide.show(START), 1400); else setTimeout(go, 200); };
+  go();
+});
 window.addEventListener('c1:step', (e) => {
   if (ended) return;
   if (e.detail === 2) { stage = 'flyer'; setTimeout(() => guide.show(FLYER), 500); }   // 칼럼 앞에 도착
   else if (e.detail === 3) guide.hide();                                              // 포스터를 떼어 읽는 동안
-  else if (e.detail === 1 && stage !== 'start') { stage = 'start'; guide.show(START); }
+  else if (e.detail === 1 && stage !== 'start') { stage = 'start'; document.body.classList.remove('walked'); guide.show(START); }
 });

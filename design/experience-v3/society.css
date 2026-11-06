@@ -5,6 +5,13 @@
 body.ended .s3-bottom,body.ended #closeBtn{display:none!important}
 /* 11/04: v2 의 알약 안내("칼럼을 스캔하세요")는 v3 안내 시트가 대신한다 */
 #pillWrap{display:none!important}
-/* 끝: 떼어 낸 전단지가 아래 해설 · 끝 줄과 겹치지 않게 위로 조금 작게 */
-body.ended #mv{transform:translateY(-7vh) scale(.8);transform-origin:50% 22%;transition:transform .9s cubic-bezier(.3,.7,.2,1)}
 .v3-guide .v3-end{margin-top:18px}
+/* 11/06 도입: 이 구역의 주인공은 1874년 저녁 거리 — 칼럼은 현장에서 비추는 것이라 처음엔 숨기고 '칼럼으로 가기' 뒤에 나온다 */
+#camLoading{display:none!important}
+body:not(.walked) #mv{opacity:0!important;pointer-events:none}
+#mv{transition:opacity 1.2s ease}
+/* 거리를 또렷하게 — 어둡게 눌러 두던 그림을 저녁빛 그대로 밝힌다 */
+.st-img{filter:brightness(.82) saturate(.95) contrast(1.06) sepia(.12) hue-rotate(-10deg)!important}
+.street.push .st-img{animation:pushInV3 7s cubic-bezier(.25,.6,.3,1) both!important}
+@keyframes pushInV3{from{transform:scale(1.18) translateY(2%);filter:brightness(.15) saturate(.6) contrast(1.1) sepia(.15) hue-rotate(-12deg)}to{transform:scale(1.04);filter:brightness(.82) saturate(.95) contrast(1.06) sepia(.12) hue-rotate(-10deg)}}
+.st-sky{opacity:.7}
