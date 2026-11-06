@@ -51,7 +51,11 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
 .set input{display:block;width:100%;margin-top:6px;font:inherit;font-size:18px;font-weight:700;color:var(--ink);border:0;background:none;outline:none}
 .set .btn{min-height:46px}
 .links{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.6;word-break:break-all}
-.log-bar{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tabs{margin-top:14px;display:flex;border-bottom:1.5px solid var(--line)}
+.tabs button{flex:none;padding:12px 18px 11px;font-size:16px;font-weight:800;color:var(--sub);border-bottom:3px solid transparent;margin-bottom:-1.5px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs button span{font-size:13px;font-weight:700;color:var(--sub);margin-left:2px}
+.log-bar{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .log-bar input,.log-bar select{font:inherit;font-size:15px;font-weight:600;padding:0 12px;height:42px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
 .log-bar .btn{min-height:42px;padding:0 14px;font-size:15px}
 .log{margin-top:10px;border-radius:14px;background:var(--card);border:1px solid var(--line);overflow:hidden}
@@ -76,6 +80,11 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
   <div><h1 id="title">대기 관리</h1><small id="day"></small></div>
   <button class="open" id="openBtn" type="button"><span id="openTx">접수 중</span><i class="sw" id="sw"></i></button>
 </div>
+<nav class="tabs" role="tablist">
+  <button type="button" role="tab" data-tab="live" class="on">실시간 관리</button>
+  <button type="button" role="tab" data-tab="log">기록 <span id="hL"></span></button>
+</nav>
+<section id="tabLive">
 <div class="warnbar" id="warn" hidden>알림톡 연결 전입니다 — 접수 · 호출은 되지만 손님에게 알림이 가지 않습니다. 호출은 직접 불러 주세요.</div>
 <div class="stats">
   <div><small>대기</small><b><span id="sW">0</span><i id="sWp"></i></b></div>
@@ -94,16 +103,7 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
 <div class="list" id="waiting"></div>
 <details><summary>완료 <span id="hD"></span></summary><div class="list" id="done" style="margin-top:8px"></div></details>
 
-<details id="logBox">
-  <summary>기록 <span id="hL"></span></summary>
-  <div class="log-bar">
-    <input type="date" id="lDay" aria-label="날짜">
-    <select id="lOnly" aria-label="보기"><option value="">전체</option><option value="customer">손님이 한 것</option><option value="staff">직원이 한 것</option><option value="msg">알림톡</option></select>
-    <button class="btn line" id="lReload" type="button">새로고침</button>
-  </div>
-  <div class="log" id="log"></div>
-  <div class="pager" id="pager"></div>
-</details>
+
 
 <details>
   <summary>설정</summary>
@@ -117,6 +117,16 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
   </div>
   <p class="links">접수 태블릿 주소는 관리자에게 받으세요. 휴대폰 번호는 운영일이 지나면 자동으로 지워집니다.</p>
 </details>
+</section>
+<section id="tabLog" hidden>
+  <div class="log-bar">
+    <input type="date" id="lDay" aria-label="날짜">
+    <select id="lOnly" aria-label="보기"><option value="">전체</option><option value="customer">손님이 한 것</option><option value="staff">직원이 한 것</option><option value="msg">알림톡</option></select>
+    <button class="btn line" id="lReload" type="button">새로고침</button>
+  </div>
+  <div class="log" id="log"></div>
+  <div class="pager" id="pager"></div>
+</section>
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -186,7 +196,7 @@ function logRow(x) {
   return `<tr><td class="tm">${hhmm(x.at)}</td><td class="no">${x.no ?? ''}${x.no ? '번' : ''}</td><td>${esc(EV[x.kind] || x.kind)}${x.kind === 'canceled' ? ` <b class="who ${wc}">(${wt}이 취소)</b>` : ''}${x.detail ? `<small>${esc(x.detail)}</small>` : ''}</td><td class="who ${wc}">${wt}</td></tr>`;
 }
 async function loadLog() {
-  if (!$('logBox').open) return;
+  if (tab !== 'log') return;
   try {
     const r = await call('log', { key: KEY, day: $('lDay').value, page: lPage, only: $('lOnly').value });
     lPage = r.page; if (!$('lDay').value) $('lDay').value = r.day;
@@ -195,7 +205,14 @@ async function loadLog() {
     $('pager').innerHTML = r.pages > 1 ? `<button class="btn line" type="button" data-p="${r.page - 1}" ${r.page <= 1 ? 'disabled' : ''}>이전</button><span>${r.page} / ${r.pages}</span><button class="btn line" type="button" data-p="${r.page + 1}" ${r.page >= r.pages ? 'disabled' : ''}>다음</button>` : '';
   } catch (e) { $('log').innerHTML = `<div class="empty" style="border:0">${esc(say(e.code))}</div>`; }
 }
-$('logBox').addEventListener('toggle', () => { lPage = 1; loadLog(); });
+let tab = 'live';
+function showTab(t) {
+  tab = t; document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === t));
+  $('tabLive').hidden = t !== 'live'; $('tabLog').hidden = t !== 'log';
+  try { history.replaceState(null, '', t === 'log' ? '#log' : '#'); } catch {}
+  if (t === 'log') { lPage = 1; loadLog(); }
+}
+document.querySelector('.tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
 $('lDay').onchange = () => { lPage = 1; loadLog(); };
 $('lOnly').onchange = () => { lPage = 1; loadLog(); };
 $('lReload').onclick = () => loadLog();
@@ -203,7 +220,8 @@ $('pager').addEventListener('click', (e) => { const b = e.target.closest('[data-
 
 load(); setInterval(() => { if (!document.hidden && !busy) load(); }, 4000);
 // 기록은 열려 있고 첫 쪽(최신)을 보고 있을 때만 10초마다 새로
-setInterval(() => { if (!document.hidden && $('logBox').open && lPage === 1) loadLog(); }, 10000);
+setInterval(() => { if (!document.hidden && tab === 'log' && lPage === 1) loadLog(); }, 10000);
+if (location.hash === '#log') showTab('log');
 </script>
 </body>
 </html>
