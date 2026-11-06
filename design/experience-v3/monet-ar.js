@@ -22,7 +22,7 @@ const guide = makeGuide();
 const INFO = {
   coach: { img: V3 + 'img/hero_sunrise.jpg', kind: 'gilt', land: true },
   title: '“그냥 인상에 지나지 않는다”',
-  sub: '1874년, 비평가를 화나게 한 그림을 찾아 비춰 보세요',
+  sub: '모네 전시관의 〈인상, 해돋이〉에 카메라를 비춰 보세요',
   buttons: [{ label: '그림 찾기', cam: true, on: start }],
 };
 function showGuide() { if (!guide.shown && window.__c5sun.state === 'scan') guide.show(INFO); }
@@ -38,14 +38,15 @@ const CAP = '<div class="dc">1872년 11월 13일 아침, 르아브르</div><div 
 function start() {
   guide.hide();
   openCam({
-    title: '모네 전시관 · 비평가가 본 그림 찾기', find: '비평가를 화나게 한 그림에\n카메라를 비춰 보세요',
+    title: '모네 전시관 · 인상, 해돋이', find: '〈인상, 해돋이〉에\n카메라를 비춰 보세요',
     hint: '그림이 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
-    mind: V3 + task.mind, targets, demo: store.demo(), hold: true, fx: sunFx, center: true, dots: false,
+    mind: V3 + task.mind, targets, pick: 1, demo: store.demo(), hold: true, fx: sunFx, center: true, dots: false,   // 고르기 칸엔 해돋이 하나만
     onFail: (msg) => { closeCam(); guide.reset(); guide.fail(msg); },
     onClose: () => guide.reset(),
     onFound: async (i, ui) => {
       const t = targets[i];
-      if (!t.correct) return ui.show({ html: `<div class="dc">모네 전시관</div><div class="dt">${esc(t.title)}</div><div class="ds">${esc(t.sub)}</div><div class="fb">${esc(task.wrong)}</div>`, buttons: [{ label: ui.el.classList.contains('sim-on') ? '다른 그림 고르기' : '다른 그림 비추기', on: () => ui.release() }] });
+      // 11/06: 여러 그림 중 고르기가 아니다 — 다른 그림(인식 파일에 함께 들어 있는 연작)은 비춰도 반응하지 않는다
+      if (!t.correct) return ui.release();
       store.solve(task.id); collect(task.id);   // 정답과 함께 저절로 — 영상 중간에 나가도 수집품은 남는다
       const live = ui.fx?.play && !ui.el.classList.contains('sim-on');
       let skip = null;

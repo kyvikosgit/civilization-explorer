@@ -166,11 +166,15 @@ document.body.classList.add('can-scan');
 if (document.body.classList.contains('more')) scanBtn.lastChild.textContent = '소품 비추기';
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
 const MODEL = V3 + 'model/props.tflite';
-const pickFallback = (why) => openCam({
-  title: '에트르타 · 소품 찾기', find: '', mind: null, reason: why || '카메라 없이 직접 골라 봅니다', dots: false, labels: true,
-  targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })),
-  onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
-});
+// 11/06: 미션은 튜브물감 하나 찾기 — 다른 소품은 인식 · 고르기 대상이 아니다(둘러보기는 체험 더보기)
+const pickFallback = (why) => {
+  const more = document.body.classList.contains('more'), list = more ? OBJ : [BY.tube];   // 더보기(소품 둘러보기)에선 소품 넷 모두
+  openCam({
+    title: more ? '에트르타 · 소품 비추기' : '에트르타 · 튜브물감 찾기', find: '', mind: null, reason: why || '카메라 없이 직접 골라 봅니다', dots: false, labels: true,
+    targets: list.map((o) => ({ title: o.name, img: src(o.id) })),
+    onFound: (i) => { closeCam(); reveal(list[i].id); },
+  });
+};
 const NFC_KEYS = { easel: 0, pochade: 0, canvas: 1, stool: 2, tube: 3 };
 scanBtn.addEventListener('click', () => {
   closeAll(true);
@@ -180,10 +184,10 @@ scanBtn.addEventListener('click', () => {
     return;
   }
   openDetect({
-    title: '에트르타 · 소품 찾기',
-    find: '화가를 밖으로 이끌었다고 생각하는 소품에 카메라를 비추세요',
+    title: '에트르타 · 튜브물감 찾기',
+    find: '튜브물감이 든 화구 상자에 카메라를 비추세요',
     model: MODEL,
-    names: Object.fromEntries(OBJ.map((o) => [o.id, o.name])),
+    names: document.body.classList.contains('more') ? Object.fromEntries(OBJ.map((o) => [o.id, o.name])) : { tube: BY.tube.name },
     onFound: (id) => { closeDetect(); reveal(id); },
     onFallback: (why) => { closeDetect(); pickFallback(why); },
   });
