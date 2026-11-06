@@ -42,7 +42,7 @@
 
     <div class="gest" id="gest"><span class="pill">끌어서 돌려 보기 · 두 손가락으로 확대</span></div>
     <div class="fcap" id="fcap" aria-live="polite"><div class="fc-hd"><b id="fcT"></b><small id="fcM"></small></div><p id="fcD"></p></div>
-    <div class="dock" id="dock"><button class="btn dark-line other" id="otherBtn" type="button">다른 그림 보기</button><button class="btn white award" id="award"><span class="m" id="awardMedal"></span>이 그림에 메달</button></div>
+    <div class="dock" id="dock"><button class="btn dark-line other" id="otherBtn" type="button">다른 그림 보기</button><button class="btn white award" id="award"><span class="m" id="awardMedal"></span>이 그림을 당선작으로</button></div>
     <div class="intro-skip" aria-hidden="true">누르면 건너뜁니다</div>
     <a class="hub-back" href="../../experience-v3/index.html" aria-label="체험 목록으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
     <div class="fade" aria-hidden="true"></div>
@@ -55,7 +55,7 @@
   <div class="topbar dark res-top"><button class="icon-btn" id="back3" aria-label="다시 고르기"><i data-ic="back"></i></button><div class="tb-title">Salon de 1873</div><span></span></div>
   <div class="res-scroll" id="resScroll">
     <div class="res-hero">
-      <div class="res-kick">당신이 메달을 준 그림</div>
+      <div class="res-kick">당신이 고른 올해의 당선작</div>
       <div class="res-wall">
         <div class="gilt" id="resFrame"><div class="gilt-sight"><img alt="" id="resImg"></div><i class="gilt-sheen" aria-hidden="true"></i><div class="medal-pin" id="resMedal"><span class="m-svg"></span><i class="m-glint" aria-hidden="true"></i></div></div>
       </div>
@@ -81,7 +81,7 @@
         <div class="gilt card-frame" id="cardFrame"><div class="gilt-sight"><img alt="" id="cardImg"></div><div class="medal-pin"><span class="m-svg" id="cardMedal"></span></div></div>
       </div>
       <div class="card-body">
-        <div class="card-kick">Salon de 1873 · 내가 메달을 준 그림</div>
+        <div class="card-kick">Salon de 1873 · 내가 고른 당선작</div>
         <h3 id="cardTitle"></h3>
         <p id="cardMeta"></p>
         <div class="card-pos" id="cardPos"></div>
@@ -98,14 +98,14 @@
 <!-- 확인 시트 -->
 <div class="sheet" id="confirm">
   <div class="grip"></div>
-  <h3 id="cfTitle">이 그림에 올해의 메달을 줄까요?</h3>
-  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">메달 주기</button></div>
+  <h3 id="cfTitle">이 그림을 올해의 당선작으로 고를까요?</h3>
+  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">당선작으로 고르기</button></div>
 </div>
 
 <!-- 아닌 그림 — 그 그림의 심사평 -->
 <div class="sheet" id="wrong">
   <div class="grip"></div>
-  <p class="wr-k">메달을 받지 못한 그림</p>
+  <p class="wr-k">당선되지 못한 그림</p>
   <h3 id="wrT"></h3>
   <p class="wr-b" id="wrB"></p>
   <div class="btns one"><button class="btn" id="wrOk">다른 그림 고르기</button></div>

@@ -700,7 +700,7 @@ async function placeMedal() {
   hideGest(); resetView();
   chosen.glowT = 1; if (!reduceMotion) glintT0 = performance.now();
   haptic(14); kick();
-  $('#cfTitle').textContent = `〈${chosen.w.title}〉에 올해의 메달을 줄까요?`;
+  $('#cfTitle').textContent = `〈${chosen.w.title}〉, 올해의 당선작으로 고를까요?`;
   await sleep(reduceMotion ? 100 : 420);
   if (mode === 'placed') confirm.open();
 }
@@ -916,7 +916,7 @@ window.__salon = {
   // 11/03: 현장의 벽을 비춘 뒤 — 같은 벽이 화면에 그대로 있고, 여기서 한 점을 눌러 고른다
   pick() {
     PICK = true; window.__salonGuideH = 96; document.body.classList.add('pick');
-    $('#role .lead').innerHTML = '메달을 줄 그림을 눌러 고르세요. <button type="button" class="crit-link" id="critBtn2">살롱의 기준</button>';
+    $('#role .lead').innerHTML = '올해의 당선작을 눌러 고르세요. <button type="button" class="crit-link" id="critBtn2">살롱의 기준</button>';
     $('#critBtn2').addEventListener('click', () => $('#critBtn').click());
     camTo('wall', reduceMotion ? 1 : 900); kick();
   },

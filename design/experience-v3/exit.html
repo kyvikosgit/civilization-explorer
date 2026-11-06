@@ -28,6 +28,8 @@
 </div>
 <main class="page" id="page"></main>
 <script type="module">
+// 앱 웹 버전(iframe) 안이면 앱의 완주 엠블럼 화면으로(11/06 출구 · 엠블럼 합침)
+if (window.parent !== window && !window.ReactNativeWebView) { try { window.parent.postMessage({ m100: 'emblem' }, '*'); } catch {} }
 // 출구 — 다섯 가지를 모두 모았으면 직원에게 이 화면을 보여 준다. 직원이 단추를 길게 누르면 '수령 완료'(이 폰에서 한 번만)
 import { COLLECT_IDS, findTask, COMPLETE_MESSAGE } from './data.js';
 import { store } from './store.js';

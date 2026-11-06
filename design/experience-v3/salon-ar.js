@@ -39,7 +39,7 @@ const guide = makeGuide();
 const INFO = {
   coach: { img: WALL, kind: 'photo', land: true },
   title: '후보작 다섯 점이 걸린 벽 전체를\n카메라로 비춰 보세요',
-  sub: '벽이 화면에 뜨면, 그중 올해의 그림을 골라 메달을 주세요',
+  sub: '벽이 화면에 뜨면, 그중 올해의 당선작을 골라 주세요',
   buttons: [{ label: '후보작 심사하기', cam: true, on: begin }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
 };
@@ -75,7 +75,7 @@ function begin() {
 // ── 체험 더보기: 후보작을 하나씩 비추면 해설
 function head(i) {
   const t = targets[i];
-  return `<div class="dc${t.correct ? ' gold' : ''}">${t.correct ? '올해의 메달 · 1873년 살롱' : `아카데미 살롱 · 출품 제${i + 1}호`}</div>
+  return `<div class="dc${t.correct ? ' gold' : ''}">${t.correct ? '올해의 당선작 · 1873년 살롱' : `아카데미 살롱 · 출품 제${i + 1}호`}</div>
     <div class="dt">${esc(t.title)}</div><div class="ds">${esc(t.sub)}</div>`;
 }
 function more() {

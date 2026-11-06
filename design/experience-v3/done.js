@@ -13,7 +13,7 @@ const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').
 
 export function nextOf(zoneId) {
   const n = ORDER[ORDER.indexOf(zoneId) + 1];
-  return n ? { href: V3 + PAGE[n], title: ZONES.find((z) => z.id === n).title } : { href: V3 + 'exit.html', title: '출구 · 기념품 받기' };
+  return n ? { href: V3 + PAGE[n], title: ZONES.find((z) => z.id === n).title } : { href: V3 + 'exit.html', title: '완주 엠블럼 · 기념품' };
 }
 
 const CSS = `
