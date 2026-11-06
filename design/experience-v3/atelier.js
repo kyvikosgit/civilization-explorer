@@ -155,7 +155,9 @@ if (store.saved(TASK.id)) { document.body.classList.add('more'); moreEnd(); }
 // 11/06 도입 — 처음 들어올 때만(더보기 · 태그로 열림 · 동작 줄이기 제외). 누르면 끝 장면으로
 (() => {
   const b = document.body;
-  if (b.classList.contains('more') || b.classList.contains('no-intro') || REDUCED) { b.classList.add('et-ready'); return; }
+  // 11/06: 이미 모은 사람도 들어올 때마다 도입을 본다(태그로 열린 경우 · 동작 줄이기만 제외)
+  const qs = new URLSearchParams(location.search);
+  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); return; }
   b.classList.add('intro-run');
   const hint = document.createElement('p'); hint.className = 'et-skip'; hint.textContent = '누르면 건너뜁니다'; b.appendChild(hint);
   const end = () => { b.classList.remove('intro-run', 'intro-skip'); b.classList.add('et-ready'); hint.remove(); removeEventListener('pointerdown', skip, true); };
