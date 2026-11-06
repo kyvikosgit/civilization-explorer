@@ -34,7 +34,6 @@ window.addEventListener('c5:replay', () => {
   inPlace(frameRect(), () => document.getElementById('sunEnd').classList.add('on'));
 });
 
-const CAP = '<div class="dc">1872년 11월 13일 아침, 르아브르</div><div class="ds">날짜는 추정 · AI로 재현한 장면</div>';
 function start() {
   guide.hide();
   openCam({
@@ -50,7 +49,9 @@ function start() {
       store.solve(task.id); collect(task.id);   // 정답과 함께 저절로 — 영상 중간에 나가도 수집품은 남는다
       const live = ui.fx?.play && !ui.el.classList.contains('sim-on');
       let skip = null;
-      ui.show({ html: CAP, buttons: [{ label: '건너뛰기', cls: 'line', on: () => skip?.() }] });
+      // 11/06: 재생 중엔 글을 띄우지 않는다(날짜 · AI 안내 · 머리 제목 모두) — 건너뛰기 단추만
+      ui.el.querySelectorAll('.cap, .t').forEach((e) => { e.style.visibility = 'hidden'; });
+      ui.show({ html: '', buttons: [{ label: '건너뛰기', cls: 'line', on: () => skip?.() }] });
       navigator.vibrate?.([20, 60, 30]);
       if (live) {
         // 카메라 화면 속 그림 위에서 재생 → 끝나면 그림으로(겹친 영상이 걷히면 카메라에 비친 진짜 그림)
