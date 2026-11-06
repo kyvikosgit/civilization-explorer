@@ -19,13 +19,13 @@ let stage = 'start', ended = false;
 const START = {
   coach: { img: V3 + 'img/fl_bonmarche.jpg', kind: 'paper' },
   title: '모리스 칼럼의 전단지를 찾아 보세요',
-  sub: '카페 게르부아에 매주 모이는 예술가들 — 그 모임 이름이\n칼럼의 전단지에 적혀 있습니다',
+  sub: '카페 게르부아에 매주 모이는 예술가들의 모임 이름이\n거리의 모리스 칼럼 전단지에 적혀 있습니다',
   buttons: [{ label: '칼럼으로 가기', on: () => toColumn() }],
 };
 // 인식 대상 = 벽 전체(0) + 창 하나씩(1–3). 창 대상은 같은 벽을 그 창 기준 좌표로 옮긴 것 — 창 하나만 비춰도 옆 창 자리까지 그대로 이어진다
 const wall0 = { ...people.wall, index: 0, img: V3 + people.wall.img, spots: people.wall.spots.map((s) => ({ ...s, video: V3 + s.video })) };
 const part = ({ img, rect: [rx, ry, rw, rh] }, index) => ({
-  ...wall0, index, focus: index - 1, img: V3 + img,   // focus: 이 창 대상이 가리키는 사람(창 1 → 0번) ratio: (wall0.ratio * rh) / rw,
+  ...wall0, index, focus: index - 1, img: V3 + img, ratio: (wall0.ratio * rh) / rw,   // focus: 이 창 대상이 가리키는 사람(창 1 → 0번)
   windows: { w: wall0.windows.w / rw, h: wall0.windows.h / rh },
   spots: wall0.spots.map((s) => ({ ...s, x: (s.x - rx) / rw, y: (s.y - ry) / rh, clip: [(s.clip[0] - rx) / rw, (s.clip[1] - ry) / rh, s.clip[2] / rw, s.clip[3] / rh] })),
 });
@@ -59,14 +59,14 @@ function toColumn() { stage = 'walk'; guide.hide(); c1().scan(); }
 const FLYER = {
   coach: { img: V3 + 'img/fl_bonmarche.jpg', kind: 'paper' },
   title: '그 모임 이름이 뭐였더라?',
-  sub: '카페 게르부아에 매주 모이는 예술가들 이야기,\n칼럼의 전단지를 찾아 비춰 보세요',
+  sub: '칼럼에 붙은 전단지 가운데\n그 모임 이름이 적힌 것을 찾아 비춰 보세요',
   buttons: [{ label: '전단지 찾기', cam: true, on: openFlyer }],
 };
 function openFlyer() {
   guide.busy('카메라를 켜는 중');
   openCam({
     title: '시민사회 · 모리스 칼럼', find: flyer.find, hint: '전단지가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
-    mind: V3 + flyer.mind, targets, demo: store.demo(), hold: true, center: true,
+    mind: V3 + flyer.mind, targets, demo: store.demo(), hold: true, center: true, dots: false,
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => guide.reset(),
@@ -94,9 +94,14 @@ async function win() {
 function showEnd() {
   const [name, , ...rest] = flyer.successBody.split('\n');
   guide.show({ cap: flyer.successTitle, title: name, sub: rest.join('\n') });
-  guide.el.querySelector('.g-tx').appendChild(endRow('society', { item: flyer.item, moreLabel: '체험 더보기 · 카페 게르부아 벽면 비춰 보기', more: openPeople }));
+  guide.el.querySelector('.g-tx').appendChild(endRow('society', { item: flyer.item, more: openPeople }));
 }
 
+// 끝난 뒤 뒤로 = 목록으로(옛 단계 — 칼럼 · 거리 — 로 되돌아가면 할 일이 없다)
+document.getElementById('backBtn')?.addEventListener('click', (e) => {
+  if (!ended) return;
+  e.stopImmediatePropagation(); location.href = HUB;
+}, true);
 let readyOnce = false;
 window.addEventListener('c1:ready', () => { if (readyOnce) return; readyOnce = true; setTimeout(() => { if (stage === 'start') guide.show(START); }, 1000); });
 window.addEventListener('c1:step', (e) => {

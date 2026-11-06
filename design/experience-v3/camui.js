@@ -42,7 +42,8 @@ export function openCam(o) {
   // 찾은 개수 — 대상이 여럿일 때만, 회색 → 금색 두 단계
   //   o.pick: 카메라 없이 고르기에 내놓을 대상 수(앞에서부터) — 같은 벽을 부분으로 나눈 인식 대상은 고르기에 안 보인다
   const n = o.pick ?? (o.targets || []).length, seen = new Set();
-  $('.dots').innerHTML = n > 1 ? '<i></i>'.repeat(n) : '';
+  // o.dots === false: 대상이 여럿이어도 정답은 하나(아틀리에 소품) — '다 찾아야' 하는 것처럼 보이지 않게 점을 그리지 않는다
+  $('.dots').innerHTML = n > 1 && o.dots !== false ? '<i></i>'.repeat(n) : '';
   const markSeen = (i) => { seen.add(i); $('.dots').children[i]?.classList.add('on'); el.querySelectorAll('.strip button')[i]?.classList.add('seen'); };
   el.querySelector('.finder').removeAttribute('style');
   $('.msg').textContent = o.find || '';
@@ -109,7 +110,9 @@ export function openCam(o) {
 
   // ── 예비: 카메라를 쓸 수 없을 때만 — 아래 [카메라 없이 고르기]를 눌러 펼치고, 사람이 직접 눌러야 그 대상을 비춘 것처럼 된다(자동으로 고르지 않는다)
   const strip = $('.strip'), art = $('.sim-art'), finder = $('.finder'), targets = (o.targets || []).slice(0, n);
-  strip.innerHTML = targets.map((t, i) => `<button data-i="${i}" aria-label="${esc(t.title)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<span class="ph">${esc(t.title)}</span>`}</button>`).join('');
+  // o.labels: 사진만으론 서로 비슷한 대상(소품)은 이름을 사진 밑에
+  strip.classList.toggle('labeled', !!o.labels);
+  strip.innerHTML = targets.map((t, i) => `<button data-i="${i}" aria-label="${esc(t.title)}">${t.img ? `<img src="${esc(t.img)}" alt="">` : `<span class="ph">${esc(t.title)}</span>`}${o.labels ? `<em>${esc(t.title)}</em>` : ''}</button>`).join('');
   const btns = [...strip.querySelectorAll('button')];
   art.removeAttribute('src');
   const openPick = (why) => { el.classList.add('picking'); $('.demo p').textContent = why || '비출 곳을 고르세요'; };
@@ -193,7 +196,8 @@ export function openCam(o) {
       },
     });
   } else {
-    camless(appNfc ? '태그에 폰 윗부분을 대세요' : (o.pending ? '인식 준비 전이라 직접 골라 봅니다' : ''));
+    // o.reason: 카메라를 못 쓰게 된 실제 이유(예: 인식기가 넘긴 '카메라 권한이 없…') — 있으면 그걸 그대로
+    camless(appNfc ? '태그에 폰 윗부분을 대세요' : (o.reason || (o.pending ? '인식 준비 전이라 직접 골라 봅니다' : '')));
   }
   return ui;
 }

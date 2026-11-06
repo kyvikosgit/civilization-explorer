@@ -3,3 +3,8 @@
 #pill:empty{display:none}
 .s1-bottom,.s2-bottom{display:none!important}
 body.ended .s3-bottom,body.ended #closeBtn{display:none!important}
+/* 11/04: v2 의 알약 안내("칼럼을 스캔하세요")는 v3 안내 시트가 대신한다 */
+#pillWrap{display:none!important}
+/* 끝: 떼어 낸 전단지가 아래 해설 · 끝 줄과 겹치지 않게 위로 조금 작게 */
+body.ended #mv{transform:translateY(-7vh) scale(.8);transform-origin:50% 22%;transition:transform .9s cubic-bezier(.3,.7,.2,1)}
+.v3-guide .v3-end{margin-top:18px}

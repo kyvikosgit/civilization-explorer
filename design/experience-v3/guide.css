@@ -85,3 +85,6 @@
 .v3-bloom .bl-cap small{font-size:13px;opacity:.8}
 .v3-bloom .bl-skip{position:absolute;right:calc(18px + env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));font:inherit;font-size:13px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:6px 14px;opacity:0;transition:opacity .6s}
 .v3-bloom.open .bl-skip{opacity:1}
+
+/* 11/04: 한글 자간 금지 — v2 h3 규칙(-0.02em)을 받지 않게 */
+.v3-guide .g-title{letter-spacing:0}

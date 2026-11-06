@@ -200,7 +200,7 @@
   </header>
   <div class="intro-copy">
     <p class="intro-credit ln">클로드 모네 〈생라자르역〉 1877 · 오르세 미술관 · 퍼블릭 도메인</p>
-    <div class="eyebrow ln">Gare Saint-Lazare · 1870년대</div>
+    <div class="eyebrow ln">Gare Saint-Lazare · <span class="ko">1870년대</span></div>
     <ul class="intro-lines">
       <li class="ln">생라자르역은 노르망디로 가는 서부철도의 파리 출발역이었습니다.</li>
       <li class="ln">파리–루앙(1843), 루앙–르아브르(1847) 철길이 열려, 파리 사람들은 하루 만에 바닷가에 닿을 수 있게 되었습니다.</li>
@@ -1025,7 +1025,7 @@ function issue() {
   $('#tkWhy').innerHTML = `<b>${d.year}년</b> ${WHY[p.id]}. 오늘 날짜에 그 해를 붙여 찍었습니다.${d.prix ? ' 운임은 1874년 안내서의 2등 값입니다.' : ' 이 구간의 운임은 찾지 못해 비워 두었습니다.'}`;
   // 이야기 — 그 자리의 사진 + 거기서 그린 그림 한 점
   const n = NARR[p.id], pl = window.PLACES[p.id];
-  $('#stK').textContent = `${p.fr} · ${p.year}`; $('#stH').textContent = n.h;
+  $('#stK').innerHTML = `${p.fr} · <span class="ko">${p.year}</span>`; $('#stH').textContent = n.h;
   $('#pairPhoto').src = pl.img; $('#pairPhoto').alt = pl.name; $('#pairPlace').textContent = `${pl.name} · 지금`; $('#pairPlaceT').textContent = n.place; $('#pairPlaceCr').textContent = `사진 ${pl.credit} · Wikimedia Commons`;
   $('#pairPaint').src = n.paint.img; $('#pairPaint').alt = n.paint.cap; $('#pairTitle').textContent = `〈${n.paint.cap}〉`; $('#pairPaintT').textContent = n.paint.t; $('#pairMeta').textContent = n.paint.meta;
   $('#pair').classList.remove('in'); io.observe($('#pair'));

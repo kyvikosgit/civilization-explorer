@@ -8,12 +8,20 @@
 body:not(.pick) .stage .dock,body:not(.pick) .stage .gest,body:not(.pick) .stage #back2{display:none!important}
 /* 11/03: 벽 전체를 비춘 뒤(body.pick) 화면의 벽에서 고른다 — 그림 앞 단추를 다시 쓴다 */
 .wr-b{margin-top:10px;font-size:15px;line-height:1.6;white-space:pre-line;color:var(--ink-2,#555)}
-#s3 .res-btns{display:block;padding-top:34px}
+#s3 .res-btns{display:block;padding-top:34px;background:linear-gradient(180deg,rgba(23,8,6,0),rgba(23,8,6,.97) 30px,#170806 56px)}
 #s3 .res-btns .v3-end{--ve-fill:#E2B565;--ve-on:#2A1806;--ve-ink:#F3DDB0}
-#s3 .res-scroll{padding-bottom:calc(190px + var(--safe-b))}
+#s3 .res-scroll{padding-bottom:calc(250px + var(--safe-b))}
 .res-split,.res-links,#s3 .res-top{display:none!important}
 .res-line.plan{white-space:pre-line}
 .res-verdict{margin:14px 20px 0;padding:12px 14px;border-left:3px solid #E9C77A;font-size:15px;line-height:1.55;color:rgba(255,247,234,.9);white-space:pre-line}
 .res-after{margin:14px 20px 0;font-size:14px;line-height:1.55;color:rgba(255,247,234,.65);white-space:pre-line}
 /* 작은 폰: 안내 위로 벽이 작아지면 이름표끼리 겹친다 — 이름표를 뺀다 */
 @media (max-height:700px){.stage[data-mode="wall"] .labels{opacity:0!important}}
+/* 11/04: 오답 시트 — 틀렸다는 것을 먼저 */
+.wr-k{margin:2px 0 4px;font-size:13px;font-weight:700;color:#C0533A}
+/* 글자 링크에 밑줄 금지 — 살롱의 기준은 금색 글자 + 꺾쇠 */
+.crit-link{text-decoration:none!important;display:inline-flex;align-items:center;gap:3px}
+.crit-link::after{content:"";width:5px;height:5px;border-right:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg)}
+/* 결과 머리말: 한글 자간 · 양옆 장식 선 빼기 */
+.res-kick{letter-spacing:0!important}
+.res-kick::before,.res-kick::after{display:none!important}

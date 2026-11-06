@@ -19,7 +19,7 @@ import { openCam, closeCam } from './camui.js';
 import { openDetect, closeDetect } from './detect.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
-import { collect, mountEnd } from './done.js';
+import { collect, endRow, mountEnd } from './done.js';
 
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -105,7 +105,7 @@ function open(id, from) {
   $('#dCredit').textContent = CREDIT[id] || '';
   // 고르기 단추는 쓰지 않는다 — 메인 미션 중엔 아닌 소품에 한 줄, 더보기에선 설명만
   const w = $('#dWhy'), mission = !store.saved(TASK.id) && id !== 'tube';
-  w.hidden = !mission; if (mission) w.textContent = `이 소품이 아니에요. ${o.why}`;
+  w.hidden = !mission; if (mission) w.textContent = `이 소품이 아닙니다. ${o.why}\n닫고 다른 소품을 찾아 비춰 보세요.`;
   $('#dPick').hidden = true;
   show(detail);
 }
@@ -128,27 +128,33 @@ $('#dPick').addEventListener('click', () => { if (cur) choose(cur); });
 function choose(id) {
   pick = id; const o = BY[id];
   if (id !== 'tube') {                                  // 정답이 아니면 카드 안에서 그 물건의 한 줄
-    const w = $('#dWhy'); w.textContent = `정답이 아니에요. ${o.why}`; w.hidden = false;
+    const w = $('#dWhy'); w.textContent = `정답이 아닙니다. ${o.why}`; w.hidden = false;
     $('#dPick').hidden = true;
     return;
   }
   closeAll(true);
   store.solve(TASK.id); collect(TASK.id);
   $('#ansImg').src = src('tube');
-  mountEnd($('#res .actions'), 'atelier', { item: TASK.item, moreLabel: '체험 더보기 · 에트르타 소품 둘러보기', more: browse });
+  mountEnd($('#res .actions'), 'atelier', { item: TASK.item, more: browse });
   const res = $('#res');
   res.hidden = false; document.body.classList.add('result');
   window.scrollTo(0, 0); res.scrollTop = 0;
   requestAnimationFrame(() => requestAnimationFrame(() => res.classList.add('in')));
 }
 // 체험 더보기 — 결과를 닫고 소품 칸(둘러보기)으로. 밖으로 나가 칠하기도 여기
+function moreEnd() {
+  if ($('.more-end')) return;
+  const el = endRow('atelier'); el.classList.add('more-end');
+  $('.more-go').insertAdjacentElement('afterend', el);
+}
 function browse() {
+  moreEnd();
   const res = $('#res'); res.classList.remove('in'); document.body.classList.remove('result');
   setTimeout(() => { res.hidden = true; }, REDUCED ? 0 : 260);
   document.body.classList.add('more'); scanBtn.lastChild.textContent = '소품 비추기';
   window.scrollTo(0, 0);
 }
-if (store.saved(TASK.id)) document.body.classList.add('more');   // 이미 모았으면 둘러보기로 연다
+if (store.saved(TASK.id)) { document.body.classList.add('more'); moreEnd(); }   // 이미 모았으면 둘러보기로 연다(끝 줄은 맨 아래에)
 function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; }
 
 // ── NFC: 태그로 열린 경우(?o=물건 — 아이폰 알림 · 다른 기기) 그 칸을 드러낸다
@@ -164,7 +170,7 @@ if (document.body.classList.contains('more')) scanBtn.lastChild.textContent = '�
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
 const MODEL = V3 + 'model/props.tflite';
 const pickFallback = (why) => openCam({
-  title: '에트르타 · 소품 비추기', find: '', mind: null, pending: why,
+  title: '에트르타 · 소품 찾기', find: '', mind: null, reason: why || '카메라 없이 직접 골라 봅니다', dots: false, labels: true,
   targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })),
   onFound: (i) => { closeCam(); reveal(OBJ[i].id); },
 });
@@ -177,8 +183,8 @@ scanBtn.addEventListener('click', () => {
     return;
   }
   openDetect({
-    title: '에트르타 · 소품 비추기',
-    find: '방 안의 소품에 카메라를 비추세요',
+    title: '에트르타 · 소품 찾기',
+    find: '화가를 밖으로 이끌었다고 생각하는 소품에 카메라를 비추세요',
     model: MODEL,
     names: Object.fromEntries(OBJ.map((o) => [o.id, o.name])),
     onFound: (id) => { closeDetect(); reveal(id); },

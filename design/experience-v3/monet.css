@@ -4,4 +4,7 @@
 /* 11/03: 끝 줄은 done.js 공통 — v2 단추 줄 · 연작 링크 · 출구 링크는 숨기고, 연작은 체험 더보기로 */
 .sun-acts{display:none!important}
 .sun-endrow{margin-top:16px}
-body:not(.more) .series-link,body:not(.more) .exit-link{visibility:hidden!important;pointer-events:none}
+body:not(.more) .series-link{visibility:hidden!important;pointer-events:none}
+/* 출구는 끝 줄의 [다음 미션으로 · 출구]가 맡는다 — 옛 '오늘의 관람객 보기' 링크는 늘 숨김 */
+.exit-link{display:none!important}
+.paused{letter-spacing:0!important}

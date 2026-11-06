@@ -36,11 +36,11 @@ const page = document.getElementById('page');
 const fmt = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 function render() {
   const got = COLLECT_IDS.filter((id) => store.saved(id)), all = got.length === COLLECT_IDS.length, red = store.redeemed();
-  let h = `<p class="cap">4F · 출구</p><h1>기념품 받기</h1>`;
+  let h = `<h1>기념품 받기</h1>`;
   if (all) {
     h += red
       ? `<div class="goods got"><div class="big">수령 완료</div><p>${fmt(red)} · 이 폰으로는 한 번만 받을 수 있습니다</p></div>`
-      : `<div class="goods"><div class="big">5 / 5</div><p>직원에게 이 화면을 보여 주세요</p>
+      : `<div class="goods"><div class="big">${COLLECT_IDS.length} / ${COLLECT_IDS.length}</div><p>직원에게 이 화면을 보여 주세요</p>
           <button class="btn hold" id="hold"><i></i><span>직원 확인 · 길게 누르기</span></button></div>`;
     h += `<p class="lead" style="margin-top:22px;color:var(--ink)">${esc(COMPLETE_MESSAGE)}</p>`;
   } else {

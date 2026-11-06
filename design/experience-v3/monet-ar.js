@@ -40,13 +40,13 @@ function start() {
   openCam({
     title: '모네 전시관 · 비평가가 본 그림 찾기', find: '비평가를 화나게 한 그림에\n카메라를 비춰 보세요',
     hint: '그림이 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
-    mind: V3 + task.mind, targets, demo: store.demo(), hold: true, fx: sunFx, center: true,
+    mind: V3 + task.mind, targets, demo: store.demo(), hold: true, fx: sunFx, center: true, dots: false,
     onFail: (msg) => { closeCam(); guide.reset(); guide.fail(msg); },
     onClose: () => guide.reset(),
     onFound: async (i, ui) => {
       const t = targets[i];
-      if (!t.correct) return ui.show({ html: `<div class="dc">모네 전시관</div><div class="dt">${esc(t.title)}</div><div class="ds">${esc(t.sub)}</div><div class="fb">${esc(task.wrong)}</div>`, buttons: [{ label: '다른 그림 비추기', on: () => ui.release() }] });
-      store.solve(task.id);
+      if (!t.correct) return ui.show({ html: `<div class="dc">모네 전시관</div><div class="dt">${esc(t.title)}</div><div class="ds">${esc(t.sub)}</div><div class="fb">${esc(task.wrong)}</div>`, buttons: [{ label: ui.el.classList.contains('sim-on') ? '다른 그림 고르기' : '다른 그림 비추기', on: () => ui.release() }] });
+      store.solve(task.id); collect(task.id);   // 정답과 함께 저절로 — 영상 중간에 나가도 수집품은 남는다
       const live = ui.fx?.play && !ui.el.classList.contains('sim-on');
       let skip = null;
       ui.show({ html: CAP, buttons: [{ label: '건너뛰기', cls: 'line', on: () => skip?.() }] });
@@ -58,7 +58,8 @@ function start() {
         await wait(250);
         handoff(ui.fx.rect(WIN) || ui.simRect?.());
       } else {
-        // 카메라 없이 고르기: 화면에 보이는 그 그림 자리에서
+        // 카메라 없이 고르기: 화면에 보이는 그 그림 자리에서 — 해설 판이 뜨면 그림이 위로 올라가며 작아진다(cam.css .locked, .45초). 다 옮겨 간 뒤에 잰다
+        await wait(500);
         const r = ui.simRect?.();
         await new Promise((done) => inPlace(r, done, (f) => { skip = f; }));
         handoff(r);
@@ -209,6 +210,5 @@ async function handoff(rect) {
 }
 // 11/03: 영상 ↔ 그림 전환이 한 바퀴 돌면 수집품 — 끝 줄 [목록으로 | 다음 미션(출구)] · 체험 더보기(연작 보기)
 function finishMission() {
-  collect(task.id);
-  mountEnd(document.getElementById('sunEndRow'), 'monet', { item: task.item, moreLabel: '체험 더보기 · 연작 보기', more: () => { document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); } });
+  mountEnd(document.getElementById('sunEndRow'), 'monet', { item: task.item, more: () => { document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); } });
 }

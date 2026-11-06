@@ -32,7 +32,7 @@
 
 <div class="topbar">
   <a class="icon-btn" id="back" href="../../experience-v3/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
-  <div class="tb-title">C4 · 나다르 사진관</div>
+  <div class="tb-title">C-4 · 나다르 사진관</div>
   <span></span>
 </div>
 
@@ -60,10 +60,11 @@
       <ol class="shoot-steps">
         <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 4v12M23 4v12M9 9h14M8 16h16l-1 5H9zM10 21l-1 7M22 21l1 7"/></svg></span><b>의자에 앉아<br>렌즈를 바라보세요</b></li>
         <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="9" width="24" height="17" rx="2"/><circle cx="16" cy="17.5" r="5"/><path d="M11 9l2-3h6l2 3M23 5v2"/></svg></span><b>버튼을 누르면<br>3초 뒤 찍힙니다</b></li>
-        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="4" width="22" height="24" rx="1"/><rect x="9" y="8" width="14" height="10"/><path d="M17 21h3v3h-3zM22 21h1M22 24h1M9 21h5v3H9z"/></svg></span><b>액자에 걸린 사진의<br>QR 을 스캔하세요</b></li>
+        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="4" width="22" height="24" rx="1"/><rect x="9" y="8" width="14" height="10"/><path d="M17 21h3v3h-3zM22 21h1M22 24h1M9 21h5v3H9z"/></svg></span><b>액자에 걸린 사진의<br>QR을 스캔하세요</b></li>
       </ol>
       <button class="btn white ask-btn" id="scanQR" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V5h4M16 5h4v4M20 15v4h-4M8 19H4v-4M8 9h3v3H8zM13 9h3M13 12h3v3M8 15h3"/></svg>QR 스캔하고 사진 받기</button>
-      <p class="shoot-note">사진은 그 시대 사진관의 화풍으로 바뀌어 벽 액자에 약 10초 동안 걸립니다<br>그동안 QR 을 스캔해 받으세요</p>
+      <p class="shoot-note">사진은 그 시대 사진관의 화풍으로 바뀌어 벽 액자에 약 10초 동안 걸립니다<br>그동안 QR을 스캔해 받으세요</p>
+      <a class="skip-next" id="skipNext" href="../../experience-v3/monet.html">사진 없이 다음 미션으로</a>
       <!-- 기존 코드(c4.js 사본)가 찾는 요소 — 쓰지 않으니 숨겨 둔다 -->
       <div hidden><p id="wHint"></p><div id="wCap"><button id="capX" type="button"></button><b id="capName"></b><span id="capNow"></span><span id="capOther"></span></div><div id="seg"><button type="button" data-m="paint"></button><button type="button" data-m="photo"></button></div><button id="toQ" type="button"></button></div>
     </div>
@@ -144,13 +145,14 @@
   <div class="me-actions" id="meShoot" hidden>
     <button class="btn white" id="shoot" type="button">노출 4초 · 촬영</button>
   </div>
-  <!-- 끝 단추 공통: [처음으로 | 수집함에 저장], 아래에 다시 찍기(글자 링크) -->
+  <!-- 11/04: 끝 단추는 done.js 공통 [목록으로 돌아가기 | 다음 미션으로] — 수집함 저장 단추는 없다(#saveMe 는 기존 코드가 찾아서 숨겨 둔다) -->
   <div class="end-row me-end" id="meDone" hidden>
     <button class="btn white to-frame" id="toFrame" type="button">벽의 액자로 보내기</button>
     <p class="frame-st" id="frameSt"></p>
-    <a class="btn dark-line" href="../../experience-v3/index.html">처음으로</a><button class="btn dark-line" id="saveMe" type="button">수집함에 저장</button>
-    <div class="end-links"><button class="end-link" id="again2" type="button">다시 찍기</button></div>
+    <button class="btn dark-line again-me" id="again2" type="button">다시 찍기</button>
+    <button id="saveMe" type="button" hidden></button>
   </div>
+  <div id="meEnd"></div>
 </main>
 
 <script>if (new URLSearchParams(location.search).has('more')) document.body.classList.add('more');</script>

@@ -54,6 +54,13 @@ function byTag() {
 window.__m100tag = (url) => { if (url) byTag(); };
 if (new URLSearchParams(location.search).get('tag')) setTimeout(byTag, 900);
 
+function backToHub() {
+  const old = $('#flowBack'); if (!old) return;
+  const b = old.cloneNode(false); old.replaceWith(b);   // 지도로 가던 동작을 떼어 낸다
+  b.setAttribute('aria-label', '목록으로');
+  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+  b.onclick = () => { location.href = '../../experience-v3/index.html'; };
+}
 async function win() {
   if (won) return;
   won = true;
@@ -65,13 +72,18 @@ async function win() {
   window.pick('lehavre');                        // 생라자르 → 르아브르 노선이 그려진다
   await wait(1700);
   // 기획안 해설을 이야기 앞에
-  $('#story').insertAdjacentHTML('beforebegin', `<p class="tk-plan"></p><p class="tk-after"></p>`);
-  $('.tk-plan').textContent = task.successBody; $('.tk-after').textContent = task.after;
+  $('#story').insertAdjacentHTML('beforebegin', `<h3 class="tk-h"></h3><p class="tk-plan"></p><p class="tk-after"></p>`);
+  const [head, ...body] = task.successBody.split('\n\n');
+  $('.tk-h').textContent = head; $('.tk-plan').textContent = body.join('\n\n'); $('.tk-after').textContent = task.after;
   // 끝 줄 — 해설 바로 아래. 이야기는 체험 더보기로
   const more = () => { document.body.classList.add('more'); requestAnimationFrame(() => $('#story').scrollIntoView({ behavior: 'smooth', block: 'start' })); };
-  $('.tk-after').insertAdjacentElement('afterend', endRow('industry', { light: true, item: task.item, moreLabel: '체험 더보기 · 르아브르 이야기 · 사무실 자료', more }));
+  $('.tk-after').insertAdjacentElement('afterend', endRow('industry', { light: true, item: task.item, more }));
   $('#story').insertAdjacentHTML('afterend', '<button class="more-clues" type="button">사무실 자료 살펴보기</button>');
   $('.more-clues').onclick = () => $('#openClues').click();
+  // 더보기 끝에도 같은 두 단추 — 위로 다시 올라가지 않아도 되게
+  $('.more-clues').insertAdjacentElement('afterend', endRow('industry', { light: true }));
+  $('.more-clues').nextElementSibling.classList.add('more-end');
+  backToHub();
   window.flow.issue();
   // 표가 바 자리에 붙고 나면 그대로 수집함으로 날아간다(v2 저장 연출) — 수집품은 저절로
   collect(task.id);

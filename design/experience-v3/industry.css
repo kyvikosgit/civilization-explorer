@@ -1,13 +1,20 @@
 /* v3 산업혁명 — 행선지 고르기 · 관람객 비율 · 엽서는 쓰지 않는다 */
 .pick-panel,#chips,#openClues,#mapBack{visibility:hidden!important}
-#postcard,#today .crowd-cap,#today .crowd-line,#today .dep,#today .crowd-stamp,#again,#flowBack{display:none!important}
-.tk-plan{margin:18px 0 0;padding:0 20px;font-size:16px;line-height:1.65;white-space:pre-line}
-.tk-after{margin:12px 0 0;padding:0 20px;font-size:14px;line-height:1.6;opacity:.7;white-space:pre-line}
+#postcard,#today .crowd-cap,#today .crowd-line,#today .dep,#today .crowd-stamp,#again,#toast{display:none!important}
+/* 수집함 아이콘은 표가 날아드는 자리일 뿐 — 누를 곳이 아니다 */
+#coll{pointer-events:none}
+.tk-h{margin:20px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:700;line-height:1.4;letter-spacing:0}
+.tk-plan{margin:8px 0 0;font-size:16px;line-height:1.65;white-space:pre-line}
+.tk-after{margin:12px 0 0;font-size:14px;line-height:1.6;opacity:.7;white-space:pre-line}
 .clue-lead{margin:6px 0 12px;font-size:15px;line-height:1.6;opacity:.85}
 
 /* 안내가 뜨면 도입 글은 물러난다 */
 body.asked .intro-copy{opacity:0;pointer-events:none;transition:opacity .4s}
-.v3-end{margin:26px auto 10px;padding:0 20px}
+.v3-end{margin:26px auto 10px}
+.v3-end.more-end{margin:8px auto 48px}
+body:not(.more) .more-end{display:none}
+#story{scroll-margin-top:76px}
+.intro-copy .eyebrow .ko,#stK .ko{letter-spacing:0}
 /* 11/03: 이야기 · 끝 단추 판은 체험 더보기로 — 누르면(body.more) 이야기만 드러난다 */
 body:not(.more) #story,body:not(.more) .more-clues,#today{display:none!important}
-.more-clues{display:block;margin:18px auto 40px;padding:12px 18px;border-radius:10px;background:none;border:1px solid rgba(127,127,127,.4);color:inherit;font:inherit;font-size:15px;font-weight:700}
+.more-clues{display:block;margin:18px auto 20px;padding:12px 18px;border-radius:10px;background:none;border:1px solid rgba(127,127,127,.4);color:inherit;font:inherit;font-size:15px;font-weight:700}

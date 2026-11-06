@@ -17,7 +17,7 @@
 body{min-height:100dvh;background:radial-gradient(90% 60% at 50% 30%,#2a221c,#100c0a);color:#F2EDE2;font-family:Freesentation,sans-serif;display:flex;flex-direction:column;align-items:center;padding:calc(28px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));word-break:keep-all}
 .cap{font-size:13px;font-weight:700;color:#E9C77A}
 h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:24px;margin-top:4px;text-align:center}
-.ph{margin-top:22px;width:min(100%,360px);aspect-ratio:3/4;display:grid;place-items:center;border-radius:6px;background:rgba(242,237,226,.06);box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden}
+.ph{margin-top:22px;width:min(100%,360px,calc(56dvh * 3 / 4));aspect-ratio:3/4;display:grid;place-items:center;border-radius:6px;background:rgba(242,237,226,.06);box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .8s}
 .ph img.on{opacity:1}
 .ph p{font-size:14px;color:rgba(242,237,226,.6);text-align:center;padding:20px;white-space:pre-line}
@@ -49,10 +49,10 @@ const link = joinRoom({ img: (p) => {
   // 받은 사진이 곧 수집품 — 저절로 담는다
   try { localStorage.setItem('m100v3_nadar', JSON.stringify({ id, img: got, at: Date.now() })); } catch {}
   navigator.vibrate?.(16);
-  mountEnd($('end'), 'nadar', { item: { name: '나다르 사진관의 내 초상', img: got }, moreLabel: '체험 더보기 · 내 초상 찍어 보기', more: () => { location.href = 'nadar.html?more'; } });
+  mountEnd($('end'), 'nadar', { got: '사진을 받았습니다', item: { name: '나다르 사진관의 내 초상', img: got }, more: () => { location.href = 'nadar.html?more'; } });
 } });
 const ask = () => { if (!got) link.send('get', { id }).catch(() => {}); };
-if (!id) $('msg').textContent = 'QR 을 다시 스캔해 주세요.';
+if (!id) $('msg').textContent = 'QR을 다시 스캔해 주세요.';
 else { link.ready.then(ask); [2500, 5000, 8000].forEach((t) => setTimeout(ask, t)); setTimeout(() => { if (!got) $('msg').textContent = '액자와 연결되지 않았습니다.\n벽 액자에 사진이 걸려 있는 동안 다시 스캔해 주세요.'; }, 11000); }
 $('dl').onclick = async () => {
   const blob = await (await fetch(got)).blob(), file = new File([blob], `nadar_${id}.jpg`, { type: 'image/jpeg' });

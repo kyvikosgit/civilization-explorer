@@ -21,6 +21,7 @@ import * as P from '../experience-v2/proto/c4-paint.js';
 import { joinRoom, room } from './link.js';
 import { store } from './store.js';
 import { openQR } from './qrscan.js';
+import { mountEnd } from './done.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
@@ -658,6 +659,8 @@ $('#toFrame').addEventListener('click', async () => {
 });
 meState('idle');
 void loadImage; void room;
+// 더보기(내 초상)에도 공통 끝 줄 — 목록으로 · 다음 미션(모네 전시관)
+if (document.body.classList.contains('more')) mountEnd($('#meEnd'), 'nadar', {});
 $('#scanQR').addEventListener('click', () => openQR({ onUrl: (u) => { location.href = u; } }));
 // 검수용
 window.__c4 = { get stance() { return stance; }, get intro() { return introState; }, get people() { return PEOPLE.length; }, get view() { return view; }, get mode() { return mode; },

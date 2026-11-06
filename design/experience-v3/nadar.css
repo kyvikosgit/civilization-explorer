@@ -11,3 +11,10 @@ body:not(.more) .tabs,body:not(.more) #me,.w-cap,.seg{display:none!important}
 #scanQR{display:flex;align-items:center;justify-content:center;gap:8px}
 #scanQR svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .shoot-note{margin:0;text-align:center;font-size:12.5px;color:rgba(255,255,255,.55)}
+/* 11/04: 더보기(내 초상) 끝 — 액자로 보내기는 한 줄 가득, 다시 찍기는 그 아래, 공통 끝 줄은 맨 아래 */
+.me-end{grid-template-columns:1fr!important}
+.me-end .to-frame,.me-end .frame-st,.me-end .again-me{grid-column:1/-1}
+#meEnd{margin:22px 0 40px}
+body:not(.more) #meEnd{display:none}
+.skip-next{display:flex;align-items:center;justify-content:center;gap:2px;margin:-4px auto 0;padding:8px 12px;font-size:14px;font-weight:600;color:rgba(255,255,255,.6);text-decoration:none}
+.skip-next::after{content:"";width:7px;height:7px;margin-left:4px;border-right:1.6px solid currentColor;border-top:1.6px solid currentColor;transform:rotate(45deg)}

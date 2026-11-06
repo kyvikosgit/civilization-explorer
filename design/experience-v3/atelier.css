@@ -11,3 +11,8 @@ body.more .main-hint{display:none}
 .main-hint{margin:28px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.7);text-align:center}
 .more-go{display:flex;margin:26px 0 110px}
 #res .actions{display:block;margin-top:26px}
+/* 11/04: 서체는 Freesentation · Paperlogy 만 — v2 의 Gowun Batang 자리를 바꾼다 / 소품 안내 옆 NFC 전파 그림은 뺀다(카메라로 비춘다) */
+.tube .ans blockquote p{font-family:Freesentation,sans-serif;font-weight:500}
+.tube .ob .q{font-family:Paperlogy,Freesentation,sans-serif}
+.tube .foot-hint::before{display:none}
+#dWhy{white-space:pre-line}

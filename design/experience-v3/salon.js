@@ -737,7 +737,7 @@ function wrongPick(f) {
   confirm.close();
   const t = ZONES.find((z) => z.id === 'salon').tasks[0].targets[f.w.n - 1];
   $('#wrT').textContent = `〈${f.w.title}〉`;
-  $('#wrB').textContent = (t?.feedback || '').replace(/^심사평 — /, '');
+  $('#wrB').textContent = (t?.feedback || '').replace(/^심사평 — /, '').replace(/\n?다른 작품을 심사해보세요\.?\s*$/, '');   // 할 일은 아래 단추가 말한다
   wrongSheet.open(); haptic(8);
 }
 $('#wrOk').addEventListener('click', () => {
@@ -801,7 +801,7 @@ function fillResult(me) {
   // 11/03: 수집품은 정답과 함께 저절로 → 끝 줄 [목록으로 | 다음 미션] · 체험 더보기(후보작 하나씩 살펴보기)
   if (w.n === WIN_N) {
     collect('salon');
-    mountEnd($('.res-btns'), 'salon', { item: t.item, moreLabel: '체험 더보기 · 후보작 하나씩 살펴보기', more: () => window.dispatchEvent(new CustomEvent('salon:more')) });
+    mountEnd($('.res-btns'), 'salon', { item: t.item, more: () => window.dispatchEvent(new CustomEvent('salon:more')) });
   }
 }
 window.addEventListener('resize', () => { if (resWork) sizeHero(resWork); });
@@ -916,7 +916,6 @@ window.__salon = {
     $('#role .lead').innerHTML = '메달을 줄 그림을 눌러 고르세요. <button type="button" class="crit-link" id="critBtn2">살롱의 기준</button>';
     $('#critBtn2').addEventListener('click', () => $('#critBtn').click());
     camTo('wall', reduceMotion ? 1 : 900); kick();
-    toast('벽을 찾았습니다 · 그림을 눌러 고르세요', 2200);
   },
   // 카메라에서 정답을 고른 뒤: 벽으로 돌아와 그 그림이 앞으로 나오고 → 메달이 날아와 앉고 → 금빛 → 결과 화면
   async award(i) {
