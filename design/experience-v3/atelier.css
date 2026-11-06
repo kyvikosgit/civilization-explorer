@@ -38,7 +38,11 @@ body.intro-skip .room-bg .ph,body.intro-skip .room-bg .lamp,body.intro-skip .q-h
 body:not(.intro-run) .et-skip{opacity:0}
 
 /* 11/06: 모은 뒤 — 소품 칸 없이 같은 화면 + 아래에 밖으로 나가 칠하기 · 끝 줄 */
-body.got .more-go{display:flex!important;margin:30px 0 14px}
-body.got .main-hint{margin-bottom:8px}
-body.got .wrap{display:flex;flex-direction:column}
-body.got .more-go{order:5}body.got .more-end{order:6;margin-bottom:120px}
+
+/* 11/06: 본 화면 안내는 공통 안내(guide.js)로 — 페이지 안의 한 줄 · 흰 단추 · 완료 뒤 단추 줄은 숨김 */
+.main-hint,.scan-bar,.more-go,.more-end{display:none!important}
+html,body{overflow-x:hidden}
+/* 머리글 — 살롱 · 해돋이와 같은 짜임(금색 머리 한 줄 · 제목 한 줄 · 설명) */
+.q-hd .eyebrow{color:#E9C77A;font-weight:700;letter-spacing:.02em}
+.q-hd h1{font-size:27px;line-height:1.25}
+.q-hd .sub{font-size:14.5px;line-height:1.55;color:rgba(255,247,234,.72)}

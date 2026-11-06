@@ -20,6 +20,7 @@ import { openDetect, closeDetect } from './detect.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
 import { collect, endRow, mountEnd, showComplete } from './done.js';
+import { makeGuide } from './guide.js';
 
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -154,16 +155,17 @@ function browse() {
   window.scrollTo(0, 0);
 }
 // 11/06: 모은 뒤에도 같은 화면(튜브물감 찾기) — 소품 넷 둘러보기는 없앴다. 아래에 밖으로 나가 칠하기 · 끝 줄
-if (store.saved(TASK.id)) { document.body.classList.add('got'); moreEnd(); }
+if (store.saved(TASK.id)) document.body.classList.add('got');
 // 11/06 도입 — 처음 들어올 때만(더보기 · 태그로 열림 · 동작 줄이기 제외). 누르면 끝 장면으로
 (() => {
   const b = document.body;
   // 11/06: 이미 모은 사람도 들어올 때마다 도입을 본다(태그로 열린 경우 · 동작 줄이기만 제외)
   const qs = new URLSearchParams(location.search);
-  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); return; }
+  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); setTimeout(showGuide, 300); return; }
   b.classList.add('intro-run');
   const hint = document.createElement('p'); hint.className = 'et-skip'; hint.textContent = '누르면 건너뜁니다'; b.appendChild(hint);
-  const end = () => { b.classList.remove('intro-run', 'intro-skip'); b.classList.add('et-ready'); hint.remove(); removeEventListener('pointerdown', skip, true); };
+  let ended = false;
+  const end = () => { if (ended) return; ended = true; b.classList.remove('intro-run', 'intro-skip'); b.classList.add('et-ready'); hint.remove(); removeEventListener('pointerdown', skip, true); setTimeout(showGuide, 200); };
   const skip = () => { b.classList.add('intro-skip'); setTimeout(end, 60); };
   addEventListener('pointerdown', skip, true);
   setTimeout(end, 5200);
@@ -187,10 +189,26 @@ const pickFallback = (why) => {
     title: '에트르타 · 튜브물감 찾기', find: '', mind: null, reason: why || '카메라 없이 직접 골라 봅니다', dots: false, labels: true,
     targets: list.map((o) => ({ title: o.name, img: src(o.id) })),
     onFound: (i) => { closeCam(); reveal(list[i].id); },
+    onClose: () => showGuide(),
   });
 };
 const NFC_KEYS = { easel: 0, pochade: 0, canvas: 1, stool: 2, tube: 3 };
-scanBtn.addEventListener('click', () => {
+// 11/06: 살롱 · 시민사회 · 해돋이와 같은 장면 위 안내(폰이 다가가 비추는 동작 · 한 줄 · 금색 단추)
+const guide = makeGuide();
+function showGuide() {
+  if (guide.shown || document.body.classList.contains('modal')) return;
+  guide.show({
+    coach: { img: src('tube'), kind: 'photo' },
+    title: '튜브물감이 든 화구 상자를\n카메라로 비춰 보세요',
+    sub: '에트르타 공간 안에 놓여 있습니다',
+    buttons: [{ label: '튜브물감 찾기', cam: true, on: startScan }],
+    note: "카메라 권한을 물으면 '허용'을 눌러 주세요",
+    link: store.saved(TASK.id) ? { label: '튜브물감을 들고 밖으로 ›', on: () => { location.href = V3 + 'paint.html'; } } : null,
+  });
+}
+scanBtn.addEventListener('click', () => startScan());
+function startScan() {
+  guide.hide();
   closeAll(true);
   // 앱(NFC 가능): 소품 태그에 대기만 하면 그 소품 — 카메라 인식 대신
   if (APP_NFC && !IOS_UL) {   // 안드로이드: 창 없이 태그를 기다린다
@@ -204,8 +222,9 @@ scanBtn.addEventListener('click', () => {
     names: { tube: BY.tube.name },
     onFound: (id) => { closeDetect(); reveal(id); },
     onFallback: (why) => { closeDetect(); pickFallback(why); },
+    onClose: () => showGuide(),
   });
-});
+}
 
 // 태그 주소 → 물건: …/n/?t=bladder 또는 …/c3-tube.html?o=bladder
 function tagToObject(url) {
