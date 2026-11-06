@@ -509,7 +509,7 @@ async function camOn() {
     $('#camOff').hidden = true; still.hidden = true; video.hidden = false;
     source = 'cam'; meState('ready');
   } catch (e) {
-    $('#camMsg').textContent = `${cameraErrorText(e)} 아래 ‘데모 이미지로’를 눌러 이어갈 수 있습니다.`;
+    $('#camMsg').textContent = `${cameraErrorText(e)} 아래 ‘예시 사진으로 보기’를 눌러 이어갈 수 있습니다.`;
   }
 }
 async function demoOn() {
