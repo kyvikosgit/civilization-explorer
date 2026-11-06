@@ -44,20 +44,30 @@ h2 span{font-family:Freesentation,sans-serif;font-size:14px;color:var(--sub);fon
 .row .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .row .acts .btn{min-height:42px;padding:0 14px;font-size:15px}
 .empty{padding:22px;text-align:center;color:var(--sub);font-size:15px;border:1.5px dashed var(--line);border-radius:14px}
-details{margin-top:24px}
-summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
+details{margin-top:20px}
+summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-size:18px;font-weight:800;cursor:pointer;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary span{font-size:15px;color:var(--sub);font-weight:700;margin-left:6px;margin-right:auto}
+summary::after{content:"";flex:none;width:10px;height:10px;border-right:2.5px solid var(--sub);border-bottom:2.5px solid var(--sub);transform:rotate(45deg) translate(-3px,-3px);transition:transform .2s}
+details[open] summary::after{transform:rotate(225deg) translate(-3px,-3px)}
+details[open] summary{border-color:var(--ink)}
 .set{margin-top:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 .set label{display:block;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--sub);font-weight:600}
 .set input{display:block;width:100%;margin-top:6px;font:inherit;font-size:18px;font-weight:700;color:var(--ink);border:0;background:none;outline:none}
 .set .btn{min-height:46px}
 .links{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.6;word-break:break-all}
 .tabs{margin-top:14px;display:flex;border-bottom:1.5px solid var(--line)}
-.tabs button{flex:none;padding:12px 18px 11px;font-size:16px;font-weight:800;color:var(--sub);border-bottom:3px solid transparent;margin-bottom:-1.5px}
+.tabs button{flex:none;padding:14px 22px 12px;font-size:19px;font-weight:800;color:var(--sub);border-bottom:3px solid transparent;margin-bottom:-1.5px}
 .tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
-.tabs button span{font-size:13px;font-weight:700;color:var(--sub);margin-left:2px}
+.tabs button span{font-size:15px;font-weight:700;color:var(--sub);margin-left:2px}
 .log-bar{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .log-bar input,.log-bar select{font:inherit;font-size:15px;font-weight:600;padding:0 12px;height:42px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
-.log-bar .btn{min-height:42px;padding:0 14px;font-size:15px}
+.log-bar .btn{min-height:46px;padding:0 16px;font-size:16px}
+.log-bar input{height:46px;font-size:16px}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.seg button{min-width:72px;height:46px;padding:0 14px;font-size:16px;font-weight:700;color:var(--sub);border-left:1.5px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--ink);color:#fff}
 .log{margin-top:10px;border-radius:14px;background:var(--card);border:1px solid var(--line);overflow:hidden}
 .log table{width:100%;border-collapse:collapse;font-size:14px}
 .log th{text-align:left;font-size:12.5px;color:var(--sub);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line);background:#FAF7F0}
@@ -121,7 +131,7 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
 <section id="tabLog" hidden>
   <div class="log-bar">
     <input type="date" id="lDay" aria-label="날짜">
-    <select id="lOnly" aria-label="보기"><option value="">전체</option><option value="customer">손님이 한 것</option><option value="staff">직원이 한 것</option><option value="msg">알림톡</option></select>
+    <div class="seg" id="lOnly" role="radiogroup" aria-label="보기"><button type="button" data-v="" class="on">전체</button><button type="button" data-v="customer">손님</button><button type="button" data-v="staff">직원</button><button type="button" data-v="msg">알림톡</button></div>
     <button class="btn line" id="lReload" type="button">새로고침</button>
   </div>
   <div class="log" id="log"></div>
@@ -198,7 +208,7 @@ function logRow(x) {
 async function loadLog() {
   if (tab !== 'log') return;
   try {
-    const r = await call('log', { key: KEY, day: $('lDay').value, page: lPage, only: $('lOnly').value });
+    const r = await call('log', { key: KEY, day: $('lDay').value, page: lPage, only: lOnly });
     lPage = r.page; if (!$('lDay').value) $('lDay').value = r.day;
     $('hL').textContent = `${r.total}건`;
     $('log').innerHTML = r.items.length ? `<table><thead><tr><th>시각</th><th>번호</th><th>내용</th><th class="who">누가</th></tr></thead><tbody>${r.items.map(logRow).join('')}</tbody></table>` : '<div class="empty" style="border:0">기록이 없습니다</div>';
@@ -214,7 +224,8 @@ function showTab(t) {
 }
 document.querySelector('.tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab); });
 $('lDay').onchange = () => { lPage = 1; loadLog(); };
-$('lOnly').onchange = () => { lPage = 1; loadLog(); };
+let lOnly = '';
+$('lOnly').addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (!b) return; lOnly = b.dataset.v; $('lOnly').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); lPage = 1; loadLog(); });
 $('lReload').onclick = () => loadLog();
 $('pager').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (!b || b.disabled) return; lPage = +b.dataset.p; loadLog(); });
 
