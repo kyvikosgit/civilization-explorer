@@ -17,25 +17,27 @@ body.more .main-hint{display:none}
 .tube .foot-hint::before{display:none}
 #dWhy{white-space:pre-line}
 
-/* 11/06 도입 — 이젤 위 캔버스에서 시작해 카메라가 물러나며 실제 에트르타가 드러난다(그림은 휘거나 일렁이지 않는다: 밝기 · 확대 · 빛줄기만)
-   이어서 제목 · 문장 · 단추가 한 줄씩. 화면을 누르면 끝 장면으로 */
-.room-bg .lamp{display:block!important;animation:none;mix-blend-mode:screen;opacity:0;
+/* 11/06 도입(et-intro.js) — 빈 캔버스에 붓질로 에트르타가 그려지고, 카메라가 물러나면 그 캔버스가 이젤 위에 놓인 실제 바닷가.
+   그림은 휘거나 일렁이지 않는다(붓질로 드러남 · 확대 · 밝기 · 빛줄기만). 화면을 누르면 끝 장면으로 */
+.room-bg .lamp{display:block!important;animation:none;mix-blend-mode:screen;opacity:0;transition:opacity 1.2s ease;
   background:linear-gradient(118deg,rgba(255,236,196,0) 28%,rgba(255,236,196,.20) 40%,rgba(255,236,196,0) 52%),linear-gradient(112deg,rgba(255,226,180,0) 48%,rgba(255,226,180,.12) 58%,rgba(255,226,180,0) 68%)}
 body.et-ready .room-bg .lamp{opacity:.9}
-body.intro-run .room-bg .ph{transform-origin:69% 52%;animation:etPull 4.4s cubic-bezier(.3,.55,.2,1) both}
-@keyframes etPull{0%{transform:scale(2.4);filter:brightness(.06) saturate(.55)}30%{filter:brightness(.36) saturate(.8)}100%{transform:scale(1);filter:brightness(.62) saturate(.95)}}
-body.intro-run .room-bg .lamp{animation:etBeam 2.6s ease 1.6s both}
-@keyframes etBeam{from{opacity:0;transform:translateX(-6%)}to{opacity:.9;transform:none}}
-body.intro-run .q-hd>*,body.intro-run .main-hint,body.intro-run .scan-bar{opacity:0;animation:etUp .8s cubic-bezier(.2,.7,.2,1) both}
-body.intro-run .q-hd .eyebrow{animation-delay:2.3s}
-body.intro-run .q-hd h1{animation-delay:2.7s}
-body.intro-run .q-hd .sub{animation-delay:3.2s}
-body.intro-run .main-hint{animation-delay:3.7s}
-body.intro-run .scan-bar{animation-delay:4.1s}
-@keyframes etUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-body.intro-skip .room-bg .ph,body.intro-skip .room-bg .lamp,body.intro-skip .q-hd>*,body.intro-skip .main-hint,body.intro-skip .scan-bar{animation-duration:.01s!important;animation-delay:0s!important}
-.et-skip{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom));z-index:5;text-align:center;font-size:12px;color:rgba(255,255,255,.5);pointer-events:none;transition:opacity .4s}
-body:not(.intro-run) .et-skip{opacity:0}
+.q-hd>*{transition:opacity .7s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+body.intro-run .q-hd>*{opacity:0;transform:translateY(10px)}
+body.et-ready .q-hd .eyebrow{transition-delay:.05s}body.et-ready .q-hd h1{transition-delay:.15s}body.et-ready .q-hd .sub{transition-delay:.25s}
+#etIntro{position:fixed;z-index:60;background:#0b0907;overflow:hidden;transition:opacity .8s ease}
+#etIntro.out{opacity:0;pointer-events:none}
+#etIntro .ei-world{position:absolute;transform-origin:0 0;will-change:transform}
+#etIntro .ei-scene{position:absolute;inset:0;background:url(img/etretat_scene.jpg) 0 0/100% 100% no-repeat}
+#etIntro .ei-cv{position:absolute;display:block}
+#etIntro .ei-sun{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:0;
+  background:radial-gradient(ellipse 70% 45% at 78% 30%,rgba(255,232,190,.55),rgba(255,232,190,0) 70%),linear-gradient(118deg,rgba(255,236,196,0) 30%,rgba(255,236,196,.22) 42%,rgba(255,236,196,0) 54%)}
+#etIntro .ei-shade{position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(180deg,rgba(8,6,4,.72) 0%,rgba(8,6,4,.35) 30%,rgba(8,6,4,.55) 70%,rgba(8,6,4,.9) 100%)}
+#etIntro .ei-title{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top) + 9vh);text-align:center;color:#F4EBDA;pointer-events:none;opacity:0;transition:opacity 1s ease,transform 1.2s cubic-bezier(.2,.8,.2,1);transform:translateY(8px)}
+#etIntro .ei-title.on{opacity:1;transform:none}
+#etIntro .ei-title b{display:block;font:800 clamp(30px,9vw,48px)/1 Paperlogy,Freesentation,sans-serif;letter-spacing:.28em;padding-left:.28em;text-shadow:0 2px 24px rgba(0,0,0,.6)}
+#etIntro .ei-title small{display:block;margin-top:12px;font:600 11px/1 Freesentation,sans-serif;letter-spacing:.42em;color:#E9C77A;padding-left:.42em}
+#etIntro .et-skip{position:absolute;left:0;right:0;bottom:calc(28px + env(safe-area-inset-bottom));text-align:center;font-size:12px;color:rgba(255,255,255,.5)}
 
 /* 11/06: 모은 뒤 — 소품 칸 없이 같은 화면 + 아래에 밖으로 나가 칠하기 · 끝 줄 */
 

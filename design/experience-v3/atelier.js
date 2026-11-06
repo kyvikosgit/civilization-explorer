@@ -21,6 +21,7 @@ import { ZONES } from './data.js';
 import { store } from './store.js';
 import { collect, endRow, mountEnd, showComplete } from './done.js';
 import { makeGuide } from './guide.js';
+import { playIntro } from './et-intro.js';
 
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -156,20 +157,15 @@ function browse() {
 }
 // 11/06: 모은 뒤에도 같은 화면(튜브물감 찾기) — 소품 넷 둘러보기는 없앴다. 아래에 밖으로 나가 칠하기 · 끝 줄
 if (store.saved(TASK.id)) document.body.classList.add('got');
-// 11/06 도입 — 처음 들어올 때만(더보기 · 태그로 열림 · 동작 줄이기 제외). 누르면 끝 장면으로
-(() => {
-  const b = document.body;
-  // 11/06: 이미 모은 사람도 들어올 때마다 도입을 본다(태그로 열린 경우 · 동작 줄이기만 제외)
-  const qs = new URLSearchParams(location.search);
-  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); setTimeout(showGuide, 300); return; }
-  b.classList.add('intro-run');
-  const hint = document.createElement('p'); hint.className = 'et-skip'; hint.textContent = '누르면 건너뜁니다'; b.appendChild(hint);
-  let ended = false;
-  const end = () => { if (ended) return; ended = true; b.classList.remove('intro-run', 'intro-skip'); b.classList.add('et-ready'); hint.remove(); removeEventListener('pointerdown', skip, true); setTimeout(showGuide, 200); };
-  const skip = () => { b.classList.add('intro-skip'); setTimeout(end, 60); };
-  addEventListener('pointerdown', skip, true);
-  setTimeout(end, 5200);
-})();   // 이미 모았으면 둘러보기로 연다(끝 줄은 맨 아래에)
+// 11/06 도입(et-intro.js) — 빈 캔버스에 붓질로 에트르타가 그려지고 카메라가 물러나며 이젤 위 캔버스가 된다. 들어올 때마다(태그로 열림 · 동작 줄이기 제외)
+{
+  const b = document.body, qs = new URLSearchParams(location.search);
+  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); setTimeout(showGuide, 300); }
+  else {
+    b.classList.add('intro-run');
+    playIntro({ onDone: () => { b.classList.remove('intro-run'); b.classList.add('et-ready'); setTimeout(showGuide, 450); } });
+  }
+}
 function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; }
 
 // ── NFC: 태그로 열린 경우(?o=물건 — 아이폰 알림 · 다른 기기) 그 칸을 드러낸다
@@ -199,8 +195,8 @@ function showGuide() {
   if (guide.shown || document.body.classList.contains('modal')) return;
   guide.show({
     coach: { img: src('tube'), kind: 'photo' },
-    title: '튜브물감이 든 화구 상자를\n카메라로 비춰 보세요',
-    sub: '에트르타 공간 안에 놓여 있습니다',
+    title: '화가를 밖으로 이끈 것은?',
+    sub: IOS_UL ? '에트르타 작업 공간에서 튜브물감을 찾아\n휴대폰 윗부분을 대 보세요' : '에트르타 작업 공간에서 튜브물감을 찾아 비춰 보세요',
     buttons: [{ label: '튜브물감 찾기', cam: true, on: startScan }],
     note: "카메라 권한을 물으면 '허용'을 눌러 주세요",
     link: store.saved(TASK.id) ? { label: '튜브물감을 들고 밖으로 ›', on: () => { location.href = V3 + 'paint.html'; } } : null,
