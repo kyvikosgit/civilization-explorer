@@ -25,3 +25,5 @@ body:not(.pick) .stage .dock,body:not(.pick) .stage .gest,body:not(.pick) .stage
 /* 결과 머리말: 한글 자간 · 양옆 장식 선 빼기 */
 .res-kick{letter-spacing:0!important}
 .res-kick::before,.res-kick::after{display:none!important}
+/* 11/06: 메달 빼기 — 그림 앞 단추의 메달 아이콘도 숨긴다 */
+#awardMedal{display:none!important}

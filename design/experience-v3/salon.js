@@ -766,6 +766,8 @@ async function reveal(fromEl) {
   if (document.fonts) await Promise.race([document.fonts.load('700 40px Freesentation', '가'), sleep(300)]).catch(() => {});
   if (!me.tpFace.map) { me.tpFace.map = titleTex(me); me.tpFace.needsUpdate = true; }
   fillResult(me);
+  // 11/06: 메달이 날아와 앉는 연출은 뺀다(당선작 고르기) — 정답이면 바로 공통 완료 화면
+  if (winDone) { await sleep(reduceMotion ? 0 : 200); winDone(); winDone = null; haptic(10); return; }
   await flyMedal(fromEl);
   if (seq !== revSeq) return;
   await sleep(reduceMotion ? 0 : 240);
