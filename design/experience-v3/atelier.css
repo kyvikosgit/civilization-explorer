@@ -36,3 +36,9 @@ body.intro-run .scan-bar{animation-delay:4.1s}
 body.intro-skip .room-bg .ph,body.intro-skip .room-bg .lamp,body.intro-skip .q-hd>*,body.intro-skip .main-hint,body.intro-skip .scan-bar{animation-duration:.01s!important;animation-delay:0s!important}
 .et-skip{position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom));z-index:5;text-align:center;font-size:12px;color:rgba(255,255,255,.5);pointer-events:none;transition:opacity .4s}
 body:not(.intro-run) .et-skip{opacity:0}
+
+/* 11/06: 모은 뒤 — 소품 칸 없이 같은 화면 + 아래에 밖으로 나가 칠하기 · 끝 줄 */
+body.got .more-go{display:flex!important;margin:30px 0 14px}
+body.got .main-hint{margin-bottom:8px}
+body.got .wrap{display:flex;flex-direction:column}
+body.got .more-go{order:5}body.got .more-end{order:6;margin-bottom:120px}

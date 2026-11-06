@@ -82,7 +82,9 @@ paintSeen();
 // 드러내기: '?' 가 사라지며 사진이 떠오르고(0.7초), 이어서 카드
 function reveal(id) {
   if (!BY[id]) return;
-  if (id === 'tube' && !store.saved(TASK.id)) { markSeen(id); choose('tube'); return; }   // 메인 미션: 튜브물감을 비추면 바로 정답
+  // 11/06: 체험은 튜브물감 하나만 — 이미 모았어도 튜브물감을 비추면 완료 화면을 다시 본다. 다른 소품은 대상이 아니다
+  if (id !== 'tube') return;
+  markSeen(id); choose('tube'); return;
   const b = grid.querySelector(`.ob[data-id="${id}"]`);
   const fresh = !seen.has(id);
   markSeen(id);
@@ -133,10 +135,10 @@ function choose(id) {
     return;
   }
   closeAll(true);
-  store.solve(TASK.id); collect(TASK.id);
+  if (!store.saved(TASK.id)) { store.solve(TASK.id); collect(TASK.id); }
   // 11/06: 미션 완료는 구역 공통 화면(done.js)
   const [head, ...body] = TASK.successBody.split('\n\n');
-  showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), more: (d) => { d.hide(); browse(); } });
+  showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), more: () => { location.href = V3 + 'paint.html'; } });   // 체험 더보기 = 튜브물감을 들고 밖으로 나가 칠하기
 }
 // 체험 더보기 — 결과를 닫고 소품 칸(둘러보기)으로. 밖으로 나가 칠하기도 여기
 function moreEnd() {
@@ -151,7 +153,8 @@ function browse() {
   document.body.classList.add('more'); scanBtn.lastChild.textContent = '소품 비추기';
   window.scrollTo(0, 0);
 }
-if (store.saved(TASK.id)) { document.body.classList.add('more'); moreEnd(); }
+// 11/06: 모은 뒤에도 같은 화면(튜브물감 찾기) — 소품 넷 둘러보기는 없앴다. 아래에 밖으로 나가 칠하기 · 끝 줄
+if (store.saved(TASK.id)) { document.body.classList.add('got'); moreEnd(); }
 // 11/06 도입 — 처음 들어올 때만(더보기 · 태그로 열림 · 동작 줄이기 제외). 누르면 끝 장면으로
 (() => {
   const b = document.body;
@@ -169,21 +172,19 @@ function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c
 
 // ── NFC: 태그로 열린 경우(?o=물건 — 아이폰 알림 · 다른 기기) 그 칸을 드러낸다
 const q = new URLSearchParams(location.search).get('o') || new URLSearchParams(location.search).get('tag');
-if (q && BY[q]) { document.body.classList.add('no-intro'); setTimeout(() => reveal(q), REDUCED ? 0 : 450); }
+if (q === 'tube') { document.body.classList.add('no-intro'); setTimeout(() => reveal(q), REDUCED ? 0 : 450); }
 
 // ── 스캔: [소품 비추기] → 카메라 → 소품을 알아보면 카메라가 닫히고 그 칸이 드러나 카드가 열린다
 const scanBtn = $('#scanBtn');
-if (IOS_UL) { scanBtn.lastChild.textContent = '소품 찾기'; setTimeout(() => toast(TAG_MSG), 2600); }
-else if (APP_NFC) scanBtn.lastChild.textContent = '소품에 폰 대기';
+if (IOS_UL) setTimeout(() => toast('튜브물감 상자에 휴대폰 윗부분을 대 보세요 · 화면 위에 알림이 뜨면 눌러 주세요'), 2600);
 document.body.classList.add('can-scan');
-if (document.body.classList.contains('more')) scanBtn.lastChild.textContent = '소품 비추기';
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
 const MODEL = V3 + 'model/props.tflite';
 // 11/06: 미션은 튜브물감 하나 찾기 — 다른 소품은 인식 · 고르기 대상이 아니다(둘러보기는 체험 더보기)
 const pickFallback = (why) => {
-  const more = document.body.classList.contains('more'), list = more ? OBJ : [BY.tube];   // 더보기(소품 둘러보기)에선 소품 넷 모두
+  const list = [BY.tube];
   openCam({
-    title: more ? '에트르타 · 소품 비추기' : '에트르타 · 튜브물감 찾기', find: '', mind: null, reason: why || '카메라 없이 직접 골라 봅니다', dots: false, labels: true,
+    title: '에트르타 · 튜브물감 찾기', find: '', mind: null, reason: why || '카메라 없이 직접 골라 봅니다', dots: false, labels: true,
     targets: list.map((o) => ({ title: o.name, img: src(o.id) })),
     onFound: (i) => { closeCam(); reveal(list[i].id); },
   });
@@ -193,14 +194,14 @@ scanBtn.addEventListener('click', () => {
   closeAll(true);
   // 앱(NFC 가능): 소품 태그에 대기만 하면 그 소품 — 카메라 인식 대신
   if (APP_NFC && !IOS_UL) {   // 안드로이드: 창 없이 태그를 기다린다
-    openCam({ title: '에트르타 · 소품 찾기', find: '', mind: null, pending: '', targets: OBJ.map((o) => ({ title: o.name, img: src(o.id) })), nfc: NFC_KEYS, nfcAny: () => OBJ.findIndex((o) => o.id === nextObj()), nfcMsg: '소품에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '소품에 폰 대기', nfcAuto: true, onFound: (i) => { closeCam(); reveal(OBJ[i].id); } });
+    openCam({ title: '에트르타 · 튜브물감 찾기', find: '', mind: null, pending: '', targets: [{ title: BY.tube.name, img: src('tube') }], nfc: { tube: 0 }, nfcAny: () => 0, nfcMsg: '튜브물감 상자에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '튜브물감 상자에 폰 대기', nfcAuto: true, onFound: () => { closeCam(); reveal('tube'); } });
     return;
   }
   openDetect({
     title: '에트르타 · 튜브물감 찾기',
     find: '튜브물감이 든 화구 상자에 카메라를 비추세요',
     model: MODEL,
-    names: document.body.classList.contains('more') ? Object.fromEntries(OBJ.map((o) => [o.id, o.name])) : { tube: BY.tube.name },
+    names: { tube: BY.tube.name },
     onFound: (id) => { closeDetect(); reveal(id); },
     onFallback: (why) => { closeDetect(); pickFallback(why); },
   });
@@ -217,6 +218,6 @@ fetch(`${IMG}credits.json`).then((r) => (r.ok ? r.json() : {})).then((j) => { CR
 // 앱(빌드 9): 이 화면이 열려 있을 때 태그를 대면 아이폰 알림 → 앱이 넘겨준다
 // 시연용(11/03): 이 화면 소품 태그가 아니어도 읽히기만 하면 아직 안 본 다음 소품으로
 const nextObj = () => (OBJ.find((o) => !seen.has(o.id)) || OBJ[OBJ.length - 1]).id;
-window.__m100tag = (url) => { if (!url) return; const k = tagToObject(url) || nextObj(); closeCam(); reveal(k); };
+window.__m100tag = (url) => { if (!url) return; closeCam(); reveal('tube'); };   // 11/06: 어느 태그든 튜브물감
 
 window.__c3tube = { open, choose, closeAll, get seen() { return [...seen]; } };
