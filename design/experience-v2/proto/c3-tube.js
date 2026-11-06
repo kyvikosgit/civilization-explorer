@@ -55,7 +55,7 @@ if (new URLSearchParams(location.search).has('reset')) { try { localStorage.remo
 const seen = new Set((() => { try { return JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'); } catch (e) { return []; } })());
 function markSeen(id) { seen.add(id); try { localStorage.setItem(SEEN_KEY, JSON.stringify([...seen])); } catch (e) { /* noop */ } paintSeen(); }
 
-// NFC 를 읽을 수 있나: 앱(문명탐험가 — 네이티브 스캔을 웹뷰에 알려 준다) 또는 Android 크롬(Web NFC)
+// NFC 를 읽을 수 있나: 앱(잇다 — 네이티브 스캔을 웹뷰에 알려 준다) 또는 Android 크롬(Web NFC)
 const APP = window.__m100app || null;                 // 앱이 문서 시작 전에 넣는다: { nfc: true|false }
 const CAN_SCAN = !!(APP ? APP.nfc : 'NDEFReader' in window);
 

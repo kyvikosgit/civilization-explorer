@@ -471,7 +471,7 @@ export async function mountKeep(root) {
     vignette(g, 0, 0, Wd, Hd);
     g.fillStyle = 'rgba(255,236,214,.62)'; g.font = `600 30px ${DISP}`; g.fillText('가져가는 것', 80, 300);
     g.textAlign = 'right'; g.fillStyle = 'rgba(255,236,214,.42)'; g.font = `600 22px ${DISP}`; g.fillText('MONET 100 · The Next Impression', Wd - 80, 298); g.textAlign = 'left';
-    g.fillStyle = 'rgba(255,236,214,.4)'; g.font = `500 21px ${SANS}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, 80, Hd - 270);
+    g.fillStyle = 'rgba(255,236,214,.4)'; g.font = `500 21px ${SANS}`; g.fillText(`${stampLine(VISITORS)} · 잇다 앱 · 신세계 더 헤리티지`, 80, Hd - 270);
     return c;
   }
 

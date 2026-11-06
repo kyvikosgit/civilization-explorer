@@ -177,7 +177,7 @@ async function renderShare() {
     let ox = lx; const by = cy + 116;
     cd.line.forEach((part, k) => { g.fillStyle = k === 1 ? '#B4501F' : '#4A4A47'; g.font = `${k === 1 ? 700 : 500} 20px ${B}`; g.fillText(part, ox, by); ox += g.measureText(part).width; });
   }
-  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 21px ${B}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, ty + th + 46);
+  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 21px ${B}`; g.fillText(`${stampLine(VISITORS)} · 잇다 앱 · 신세계 더 헤리티지`, L, ty + th + 46);
   if (ty + th + 46 > Hd - 250) console.warn('[exit-e share] 아래 안전 여백 침범', ty + th + 46);
   return c;
 }

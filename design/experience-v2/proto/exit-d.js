@@ -156,7 +156,7 @@ async function renderShare() {
     g.fillStyle = '#fff'; g.font = `800 ${s.choice.length > 9 ? 32 : 38}px ${D}`; g.fillText(s.choice, x, yy + 52);
     const cw = g.measureText(s.choice).width; g.fillStyle = POINT; g.font = `800 30px ${D}`; g.fillText(`${s.opt.pct}%`, x + cw + 14, yy + 52);
   });
-  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${B}`; g.fillText(`${stampLine(N)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, 1610);
+  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${B}`; g.fillText(`${stampLine(N)} · 잇다 앱 · 신세계 더 헤리티지`, L, 1610);
   return c;
 }
 setupShare($('#share'), renderShare, 'monet100_오늘의관람객.png');

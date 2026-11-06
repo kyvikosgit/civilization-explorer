@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 문명탐험가 홈페이지 배포 헬퍼 — git push 한 번으로 Vercel 자동 배포.
+# 잇다 홈페이지 배포 헬퍼 — git push 한 번으로 Vercel 자동 배포.
 # 저장소 kyvikosgit/civilization-explorer, 브랜치 main. 푸시 계정만 보장하고 끝나면 복구.
 #   ./deploy.sh "커밋 메시지"   # add -A → commit(변경시) → push → 배포
 #   ./deploy.sh                 # 커밋 없이 현재 브랜치 푸시만

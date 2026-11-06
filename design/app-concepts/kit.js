@@ -73,7 +73,7 @@
   document.querySelectorAll('header.tb').forEach(function (el) {
     var L = el.dataset.left || '', T = el.dataset.title || '', R = el.dataset.right || '', href = el.dataset.href || HOME;
     var left = '';
-    if (L === 'brand') left += '<a class="tb-brand" href="' + HOME + '">문명탐험가</a>';
+    if (L === 'brand') left += '<a class="tb-brand" href="' + HOME + '">잇다</a>';
     if (L === 'back') left += '<a class="tb-back" href="' + href + '" aria-label="뒤로">' + I.back + '</a>';
     if (L === 'down') left += '<a class="tb-back" href="' + href + '" aria-label="닫기">' + I.down + '</a>';
     if (T) left += '<h1 class="tb-title">' + T + '</h1>';

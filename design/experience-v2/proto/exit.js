@@ -267,7 +267,7 @@ async function render() {
   g.fillStyle = 'rgba(255,255,255,.75)'; g.font = `600 ${f(12)}px ${DISP}`; g.fillText('네 곳 모두 나와 같은 쪽', L2.xT + f(34), L2.end.y + f(4));
   g.fillStyle = 'rgba(255,255,255,.5)'; g.font = `500 ${f(10.5)}px ${BODY}`; g.fillText(`오늘 ${fmt(sameN)}명`, L2.xT + f(34), L2.end.y + f(20));
   g.restore();
-  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${BODY}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, Lm, H - 250 - 20);
+  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 24px ${BODY}`; g.fillText(`${stampLine(VISITORS)} · 잇다 앱 · 신세계 더 헤리티지`, Lm, H - 250 - 20);
   shareBlob = await new Promise((r) => c.toBlob(r, 'image/png'));
   return c;
 }

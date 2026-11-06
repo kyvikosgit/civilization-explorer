@@ -126,7 +126,7 @@ async function render() {
   const by = gy[1] + gh + 4;
   g.fillStyle = 'rgba(255,255,255,.2)'; g.fillRect(L, by, W - L * 2, 2);
   g.fillStyle = 'rgba(255,255,255,.6)'; g.font = `600 26px ${B}`; g.fillText(`네 곳 모두 나와 같은 쪽 · 오늘 ${fmt(sameN)}명`, L, by + 48);
-  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 22px ${B}`; g.fillText(`${stampLine(VISITORS)} · 문명탐험가 앱 · 신세계 더 헤리티지`, L, by + 90);
+  g.fillStyle = 'rgba(255,255,255,.4)'; g.font = `500 22px ${B}`; g.fillText(`${stampLine(VISITORS)} · 잇다 앱 · 신세계 더 헤리티지`, L, by + 90);
   return c;
 }
 setupShare($('#share'), render, 'monet100_관람기록.png');

@@ -1,4 +1,4 @@
-// 문명탐험가 웹 시안 공통 컴포넌트 — GNB·푸터 마크업 단일 출처 (시안마다 스타일만 A.css/B.css/C.css로 다름)
+// 잇다 웹 시안 공통 컴포넌트 — GNB·푸터 마크업 단일 출처 (시안마다 스타일만 A.css/B.css/C.css로 다름)
 // 사용: <header class="gnb" data-current="exhibition|feature"></header> … <footer class="site-footer"></footer>
 //       <script src="kit.js" data-concept="A"></script>
 (function () {
@@ -16,7 +16,7 @@
     };
     g.innerHTML =
       '<div class="gnb-in">' +
-        '<a class="gnb-logo" href="' + HOME + '">문명탐험가</a>' +
+        '<a class="gnb-logo" href="' + HOME + '">잇다</a>' +
         '<nav class="gnb-menu" aria-label="주 메뉴">' +
           item('exhibition', '전시', HOME + '#now') +
           item('feature', '특징', HOME + '#features') +
@@ -39,7 +39,7 @@
     f.innerHTML =
       '<div class="foot-in">' +
         '<div class="foot-top">' +
-          '<a class="foot-logo" href="' + HOME + '">문명탐험가</a>' +
+          '<a class="foot-logo" href="' + HOME + '">잇다</a>' +
           '<nav class="foot-legal" aria-label="약관">' +
             '<a href="../monet100-web/terms.html">이용약관</a>' +
             '<a href="../monet100-web/privacy.html">개인정보처리방침</a>' +

@@ -27,7 +27,7 @@ const wait = (page, ms) => page.waitForTimeout(RM ? Math.min(ms, 250) : ms);
 async function fonts(page) {
   await page.evaluate(async () => {
     const want = ['400 16px Freesentation', '600 16px Freesentation', '700 16px Freesentation', '600 16px Paperlogy', '800 16px Paperlogy'];
-    await Promise.all(want.map((f) => document.fonts.load(f, '문명탐험가').catch(() => {})));
+    await Promise.all(want.map((f) => document.fonts.load(f, '잇다').catch(() => {})));
     await document.fonts.ready;
   });
 }
