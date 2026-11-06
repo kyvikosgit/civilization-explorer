@@ -31,7 +31,7 @@ body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;pad
 .upd{margin-top:14px;font-size:13px;color:var(--sub)}
 .cancel{margin-top:22px;width:100%;max-width:400px}
 [hidden]{display:none!important}
-.msg{margin-top:40px;font-size:17px;color:var(--sub);text-align:center;line-height:1.6}
+.msg{white-space:pre-line;margin-top:40px;font-size:17px;color:var(--sub);text-align:center;line-height:1.6}
 </style>
 </head>
 <body>
@@ -55,7 +55,7 @@ const LABEL = { waiting: '대기 중', called: '입장 차례', entered: '입장
 async function load(action = 'status') {
   try {
     const d = await call(action, { token: T });
-    if (['canceled', 'entered', 'noshow'].includes(d.status)) { ended(d.status, action === 'cancel'); return; }
+    if (d.canceled || ['canceled', 'entered', 'noshow'].includes(d.status)) { ended(d.status, action === 'cancel'); return; }
     $('msg').hidden = true; $('card').hidden = false;
     $('title').textContent = d.title;
     if (d.visual || d.logo) {
@@ -73,7 +73,7 @@ async function load(action = 'status') {
       : '대기를 취소했습니다';
     $('cancel').hidden = !(d.status === 'waiting' || d.status === 'called');
     $('upd').textContent = d.status === 'waiting' ? `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 기준 · 자동으로 새로 고칩니다` : '';
-  } catch (e) { $('card').hidden = true; $('cancel').hidden = true; $('msg').hidden = false; $('msg').textContent = say(e.code); }
+  } catch (e) { clearInterval(poll); $('hero').hidden = true; $('card').hidden = true; $('cancel').hidden = true; $('msg').hidden = false; $('msg').textContent = say(e.code); }
 }
 // 끝난 대기 — 이 링크로는 더 볼 것이 없다. 방금 취소했으면 그 한 줄만
 function ended(st, justNow) {

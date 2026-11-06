@@ -51,6 +51,23 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
 .set input{display:block;width:100%;margin-top:6px;font:inherit;font-size:18px;font-weight:700;color:var(--ink);border:0;background:none;outline:none}
 .set .btn{min-height:46px}
 .links{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.6;word-break:break-all}
+.log-bar{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.log-bar input,.log-bar select{font:inherit;font-size:15px;font-weight:600;padding:0 12px;height:42px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink)}
+.log-bar .btn{min-height:42px;padding:0 14px;font-size:15px}
+.log{margin-top:10px;border-radius:14px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.log table{width:100%;border-collapse:collapse;font-size:14px}
+.log th{text-align:left;font-size:12.5px;color:var(--sub);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line);background:#FAF7F0}
+.log td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+.log tr:last-child td{border-bottom:0}
+.log td.tm{white-space:nowrap;color:var(--sub);font-variant-numeric:tabular-nums}
+.log td.no{white-space:nowrap;font-weight:800}
+.log td.who{white-space:nowrap;font-weight:700}
+.log .who.c{color:#2F6FB0}.log .who.s{color:var(--green)}.log .who.m{color:var(--sub)}
+.log .bad{color:var(--warn);font-weight:700}.log .ok{color:var(--green);font-weight:700}
+.log small{display:block;color:var(--sub);font-size:12.5px}
+.pager{margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:700;color:var(--sub)}
+.pager .btn{min-height:40px;padding:0 14px;font-size:14px}
+@media (max-width:560px){.log th.who,.log td.who{display:none}}
 @media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:52px 1fr}.row .acts{grid-column:1/-1;justify-content:stretch}.row .acts .btn{flex:1}}
 </style>
 </head>
@@ -77,6 +94,17 @@ summary{font-size:16px;font-weight:800;cursor:pointer;padding:6px 0}
 <div class="list" id="waiting"></div>
 <details><summary>완료 <span id="hD"></span></summary><div class="list" id="done" style="margin-top:8px"></div></details>
 
+<details id="logBox">
+  <summary>기록 <span id="hL"></span></summary>
+  <div class="log-bar">
+    <input type="date" id="lDay" aria-label="날짜">
+    <select id="lOnly" aria-label="보기"><option value="">전체</option><option value="customer">손님이 한 것</option><option value="staff">직원이 한 것</option><option value="msg">알림톡</option></select>
+    <button class="btn line" id="lReload" type="button">새로고침</button>
+  </div>
+  <div class="log" id="log"></div>
+  <div class="pager" id="pager"></div>
+</details>
+
 <details>
   <summary>설정</summary>
   <div class="set">
@@ -98,7 +126,9 @@ const KEY = qs('k');
 let data = null, cnt = 1, busy = false;
 const toast = (t) => { const e = $('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 2200); };
 const MSG = { join: '접수', soon: '곧 차례', call: '호출' };
-const msgLine = (r) => r.msgs.slice(-2).map((m) => `<span class="${m.state === 'sent' ? 'ok' : m.state === 'failed' ? 'bad' : ''}">${MSG[m.kind] || m.kind} 알림 ${m.state === 'sent' ? '보냄' : m.state === 'failed' ? '실패' : '안 보냄'}</span>`).join('');
+// 알림톡 상태 — 비즈고가 받음(보냄) · 카톡 전달됨 · 전달 실패 · 안 보냄
+const msgState = (m) => m.state === 'sent' ? (m.result === 'delivered' ? ['ok', '전달됨'] : m.result ? ['bad', '전달 실패'] : ['', '보냄 · 전달 확인 중']) : m.state === 'failed' ? ['bad', '보내기 실패'] : ['', '안 보냄'];
+const msgLine = (r) => r.msgs.slice(-2).map((m) => { const [c, t] = msgState(m); return `<span class="${c}">${MSG[m.kind] || m.kind} 알림 ${t}</span>`; }).join('');
 
 function rowHTML(r, kind) {
   const late = kind === 'called' && data && (Date.now() - new Date(r.called_at)) / 60000 > data.config.call_minutes;
@@ -127,7 +157,7 @@ function render() {
 }
 function drawCnt() { $('cnt').textContent = cnt; $('callNext').textContent = `다음 ${cnt}팀 호출`; $('callNext').disabled = !data || !data.rows.some((r) => r.status === 'waiting'); }
 async function load() { try { data = await call('list', { key: KEY }); render(); } catch (e) { if (e.code === 'bad_key') document.body.innerHTML = '<p style="padding:40px;text-align:center;font-size:17px">접속 주소가 올바르지 않습니다.</p>'; } }
-async function act(fn, ok) { if (busy) return; busy = true; try { await fn(); if (ok) toast(ok); await load(); } catch (e) { toast(say(e.code)); } finally { busy = false; } }
+async function act(fn, ok) { if (busy) return; busy = true; try { await fn(); if (ok) toast(ok); await load(); if (lPage === 1) loadLog(); } catch (e) { toast(say(e.code)); } finally { busy = false; } }
 
 $('minus').onclick = () => { cnt = Math.max(1, cnt - 1); drawCnt(); };
 $('plus').onclick = () => { cnt = Math.min(20, cnt + 1); drawCnt(); };
@@ -142,7 +172,38 @@ document.body.addEventListener('click', (e) => {
   if ((a === 'canceled' || a === 'noshow') && !confirm(`${no}번을 ${a === 'noshow' ? '노쇼' : '취소'} 처리할까요?`)) return;
   act(() => call('mark', { key: KEY, id, status: a }), { entered: `${no}번 입장`, noshow: `${no}번 노쇼`, canceled: `${no}번 취소`, waiting: `${no}번 대기로` }[a]);
 });
+// ── 기록: 누가(손님 · 직원) 언제 무엇을 했는지 + 알림톡 전달 결과. 최신부터 20건씩
+const EV = { join: '접수', join_again: '같은 번호로 다시 접수(기존 번호 안내)', call: '호출', recall: '다시 알림', entered: '입장', noshow: '노쇼', canceled: '취소', restore: '대기로 되돌림', open: '접수 열기', close: '접수 마감' };
+const WHO = { customer: ['c', '손님'], staff: ['s', '직원'] };
+let lPage = 1;
+const hhmm = (iso) => { const d = new Date(iso); return [d.getHours(), d.getMinutes(), d.getSeconds()].map((n) => String(n).padStart(2, '0')).join(':'); };
+function logRow(x) {
+  if (x.type === 'msg') {
+    const [c, t] = msgState(x), why = x.result && x.result !== 'delivered' ? x.result.replace(/^failed:\S*\s*/, '') : x.state !== 'sent' ? (x.detail === 'no_phone' ? '휴대폰 번호 없음' : x.detail === 'bizgo_not_configured' ? '알림톡 연결 전' : x.detail || '') : '';
+    return `<tr><td class="tm">${hhmm(x.at)}</td><td class="no">${x.no ?? ''}${x.no ? '번' : ''}</td><td>${MSG[x.kind] || x.kind} 알림톡 <span class="${c}">${t}</span>${why ? `<small>${esc(why)}</small>` : ''}</td><td class="who m">자동</td></tr>`;
+  }
+  const [wc, wt] = WHO[x.actor] || ['m', x.actor];
+  return `<tr><td class="tm">${hhmm(x.at)}</td><td class="no">${x.no ?? ''}${x.no ? '번' : ''}</td><td>${esc(EV[x.kind] || x.kind)}${x.kind === 'canceled' ? ` <b class="who ${wc}">(${wt}이 취소)</b>` : ''}${x.detail ? `<small>${esc(x.detail)}</small>` : ''}</td><td class="who ${wc}">${wt}</td></tr>`;
+}
+async function loadLog() {
+  if (!$('logBox').open) return;
+  try {
+    const r = await call('log', { key: KEY, day: $('lDay').value, page: lPage, only: $('lOnly').value });
+    lPage = r.page; if (!$('lDay').value) $('lDay').value = r.day;
+    $('hL').textContent = `${r.total}건`;
+    $('log').innerHTML = r.items.length ? `<table><thead><tr><th>시각</th><th>번호</th><th>내용</th><th class="who">누가</th></tr></thead><tbody>${r.items.map(logRow).join('')}</tbody></table>` : '<div class="empty" style="border:0">기록이 없습니다</div>';
+    $('pager').innerHTML = r.pages > 1 ? `<button class="btn line" type="button" data-p="${r.page - 1}" ${r.page <= 1 ? 'disabled' : ''}>이전</button><span>${r.page} / ${r.pages}</span><button class="btn line" type="button" data-p="${r.page + 1}" ${r.page >= r.pages ? 'disabled' : ''}>다음</button>` : '';
+  } catch (e) { $('log').innerHTML = `<div class="empty" style="border:0">${esc(say(e.code))}</div>`; }
+}
+$('logBox').addEventListener('toggle', () => { lPage = 1; loadLog(); });
+$('lDay').onchange = () => { lPage = 1; loadLog(); };
+$('lOnly').onchange = () => { lPage = 1; loadLog(); };
+$('lReload').onclick = () => loadLog();
+$('pager').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (!b || b.disabled) return; lPage = +b.dataset.p; loadLog(); });
+
 load(); setInterval(() => { if (!document.hidden && !busy) load(); }, 4000);
+// 기록은 열려 있고 첫 쪽(최신)을 보고 있을 때만 10초마다 새로
+setInterval(() => { if (!document.hidden && $('logBox').open && lPage === 1) loadLog(); }, 10000);
 </script>
 </body>
 </html>
