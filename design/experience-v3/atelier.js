@@ -151,7 +151,18 @@ function browse() {
   document.body.classList.add('more'); scanBtn.lastChild.textContent = '소품 비추기';
   window.scrollTo(0, 0);
 }
-if (store.saved(TASK.id)) { document.body.classList.add('more'); moreEnd(); }   // 이미 모았으면 둘러보기로 연다(끝 줄은 맨 아래에)
+if (store.saved(TASK.id)) { document.body.classList.add('more'); moreEnd(); }
+// 11/06 도입 — 처음 들어올 때만(더보기 · 태그로 열림 · 동작 줄이기 제외). 누르면 끝 장면으로
+(() => {
+  const b = document.body;
+  if (b.classList.contains('more') || b.classList.contains('no-intro') || REDUCED) { b.classList.add('et-ready'); return; }
+  b.classList.add('intro-run');
+  const hint = document.createElement('p'); hint.className = 'et-skip'; hint.textContent = '누르면 건너뜁니다'; b.appendChild(hint);
+  const end = () => { b.classList.remove('intro-run', 'intro-skip'); b.classList.add('et-ready'); hint.remove(); removeEventListener('pointerdown', skip, true); };
+  const skip = () => { b.classList.add('intro-skip'); setTimeout(end, 60); };
+  addEventListener('pointerdown', skip, true);
+  setTimeout(end, 5200);
+})();   // 이미 모았으면 둘러보기로 연다(끝 줄은 맨 아래에)
 function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; }
 
 // ── NFC: 태그로 열린 경우(?o=물건 — 아이폰 알림 · 다른 기기) 그 칸을 드러낸다
