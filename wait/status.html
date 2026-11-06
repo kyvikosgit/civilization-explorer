@@ -30,6 +30,7 @@ body{min-height:100dvh;display:flex;flex-direction:column;align-items:center;pad
 .ahead.call b{color:#fff}
 .upd{margin-top:14px;font-size:13px;color:var(--sub)}
 .cancel{margin-top:22px;width:100%;max-width:400px}
+[hidden]{display:none!important}
 .msg{margin-top:40px;font-size:17px;color:var(--sub);text-align:center;line-height:1.6}
 </style>
 </head>
@@ -54,6 +55,7 @@ const LABEL = { waiting: '대기 중', called: '입장 차례', entered: '입장
 async function load(action = 'status') {
   try {
     const d = await call(action, { token: T });
+    if (['canceled', 'entered', 'noshow'].includes(d.status)) { ended(d.status, action === 'cancel'); return; }
     $('msg').hidden = true; $('card').hidden = false;
     $('title').textContent = d.title;
     if (d.visual || d.logo) {
@@ -73,8 +75,17 @@ async function load(action = 'status') {
     $('upd').textContent = d.status === 'waiting' ? `${new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} 기준 · 자동으로 새로 고칩니다` : '';
   } catch (e) { $('card').hidden = true; $('cancel').hidden = true; $('msg').hidden = false; $('msg').textContent = say(e.code); }
 }
+// 끝난 대기 — 이 링크로는 더 볼 것이 없다. 방금 취소했으면 그 한 줄만
+function ended(st, justNow) {
+  clearInterval(poll);
+  $('card').hidden = true; $('cancel').hidden = true; $('msg').hidden = false;
+  $('msg').innerHTML = justNow ? '대기를 취소했습니다.<br>다시 기다리시려면 현장 태블릿에서 새로 접수해 주세요.'
+    : st === 'entered' ? '입장이 끝난 대기입니다.<br>이 링크는 더 이상 쓰이지 않습니다.'
+    : '끝난 대기입니다. 이 링크는 더 이상 쓰이지 않습니다.<br>다시 기다리시려면 현장 태블릿에서 새로 접수해 주세요.';
+}
+let poll = 0;
 $('cancel').onclick = async () => { if (!confirm('대기를 취소할까요? 취소하면 접수번호가 사라집니다.')) return; await load('cancel'); };
-if (!T) { $('msg').textContent = say('not_found'); } else { load(); setInterval(() => { if (!document.hidden) load(); }, 15000); }
+if (!T) { $('msg').textContent = say('not_found'); } else { load(); poll = setInterval(() => { if (!document.hidden) load(); }, 15000); }
 </script>
 </body>
 </html>
