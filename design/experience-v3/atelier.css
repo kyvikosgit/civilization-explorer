@@ -30,6 +30,8 @@ body.et-ready .q-hd .eyebrow{transition-delay:.05s}body.et-ready .q-hd h1{transi
 /* 11/09: 3D 이젤 장면(et-intro.js)을 배경 자리에 깔고 그대로 남긴다 — 기획 장표 배경 그림은 쓰지 않음 */
 .room-bg canvas.et3d{position:absolute;inset:0;width:100%;height:100%;display:block}
 .room-bg .et-photo{position:absolute;inset:0;background-repeat:no-repeat;opacity:0;pointer-events:none}
+/* 앞 풀 판: 사진 대기 톤 · 흐림만 같게(뒤 사진과 이어지게) */
+.room-bg .et-fg::after{display:none}
 .room-bg .et-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(214,226,236,.14),rgba(236,226,206,.08) 55%,rgba(0,0,0,0))}   /* 옅은 대기 톤 */
 .room-bg .et-flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse 80% 60% at 30% 35%,rgba(255,246,228,.95),rgba(255,240,215,.35) 60%,rgba(255,240,215,0))}
 .room-bg.has3d .ph,.room-bg.has3d .lamp{display:none!important}
