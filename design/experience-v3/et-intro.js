@@ -136,7 +136,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
     const b2 = new T.Box3().setFromObject(o); o.position.y = -b2.min.y; const w = new T.Group(); w.add(o); w.userData.size = b2.getSize(new T.Vector3()); res(w);
   }, undefined, () => res(null)));
   const texReady = (t) => new Promise((ok) => { if (t.image) ok(); else { const i = setInterval(() => { if (t.image) { clearInterval(i); ok(); } }, 50); setTimeout(() => { clearInterval(i); ok(); }, 8000); } });
-  const MODELS = Promise.all([loadModel('WoodenTable_01', 0.78), loadModel('ceramic_vase_03', 0.24), loadModel('fancy_picture_frame_01', 0.52), loadModel('wooden_crate_01', 0.38), loadModel('folding_wooden_stool', 0.44), loadModel('grass_medium_01', 0.3)]);
+  const MODELS = Promise.all([loadModel('WoodenTable_01', 0.78), loadModel('ceramic_vase_03', 0.24), loadModel('fancy_picture_frame_01', 0.52), loadModel('wooden_crate_01', 0.38), loadModel('folding_wooden_stool', 0.44)]);
   const fade = [];                                        // 밖으로 나갈 때 걷히는 것(재료)
   const fadeMat = (m) => { m.transparent = true; fade.push(m); return m; };
 
@@ -187,10 +187,10 @@ export async function playIntro({ onDone, instant = false } = {}) {
   // ── 바깥 바닥: 절벽 위 풀밭(붓질로 칠한 질감) — 이젤 뒤 1.2m 쯤에서 끝나고, 가장자리 아래로 흰 백악 절벽면이 조금 보인다. 그 너머는 배경 그림(바다 · 바위)
   // 풀 질감 — 사진 앞쪽 마른 풀 색(금빛 · 올리브)으로 아주 가는 풀잎을 촘촘히. 무늬가 반복돼 보이지 않게 크게(2048)
   const tl = new T.TextureLoader();
-  const grassPaint = tl.load(`${V3}ph/withered_grass/diff.jpg`); grassPaint.encoding = T.sRGBEncoding; grassPaint.anisotropy = aniso;
-  const grassNor = tl.load(`${V3}ph/withered_grass/nor.jpg`); grassNor.wrapS = grassNor.wrapT = T.RepeatWrapping; grassNor.repeat.set(9, 9);
+  const grassPaint = tl.load(`${V3}ph/leafy_grass/diff.jpg`); grassPaint.encoding = T.sRGBEncoding; grassPaint.anisotropy = aniso;
+  const grassNor = tl.load(`${V3}ph/leafy_grass/nor.jpg`); grassNor.wrapS = grassNor.wrapT = T.RepeatWrapping; grassNor.repeat.set(9, 9);
   grassPaint.wrapS = grassPaint.wrapT = T.RepeatWrapping; grassPaint.repeat.set(9, 9);   // 2m 한 장
-  const groundMat = new T.MeshStandardMaterial({ map: grassPaint, normalMap: grassNor, roughness: 1, transparent: true, opacity: 0, color: 0x5A6A32, depthWrite: false });   // 마른 풀에 초록을 — 사진 앞쪽 풀빛에 맞춤
+  const groundMat = new T.MeshStandardMaterial({ map: grassPaint, normalMap: grassNor, roughness: 1, transparent: true, opacity: 0, color: 0x8A9468, depthWrite: false });   // 짧게 깎인 절벽 위 잔디(에트르타 아발 절벽 위는 지금도 짧은 풀밭)   // 마른 풀에 초록을 — 사진 앞쪽 풀빛에 맞춤
   // 가장자리는 칼로 자른 선이 아니라 풀이 성겨지며 사진 속으로 스며들게(뒤쪽 0.7m 동안 투명해짐)
   groundMat.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -329,7 +329,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
 
   // ── 붓질: 넓은 붓 여덟 번(사선, 왼쪽 위 모서리부터) — 화실 안이라 칙칙한 색으로. 밖으로 나가면 같은 그림이 원래 색으로
   // ── 모델 배치: 화실(작업대 · 화병 · 상자 · 벽 그림 — 밖으로 나가면 걷힘) / 이젤 왼쪽 앞 접이식 의자(상자를 얹음) / 바깥 풀포기(밖에서만)
-  mark('scene'); const [mTable, mVase, mFrame, mCrate, mStool, mGrass] = await MODELS; mark('models');
+  mark('scene'); const [mTable, mVase, mFrame, mCrate, mStool] = await MODELS; const mGrass = null;   // 11/09: 3D 풀포기는 징그러워 뺐다 — 짧은 잔디 질감만 mark('models');
   await Promise.all([texReady(grassPaint), texReady(grassNor)]);   // 풀 질감이 오기 전엔 바닥이 투명하게 그려진다
   const toFade = (o) => o && o.traverse((c) => { if (c.isMesh) fadeMat(c.material); });
   if (mTable) { mTable.position.set(-1.05, 0, -1.5); mTable.rotation.y = 0.2; room.add(mTable); toFade(mTable);
