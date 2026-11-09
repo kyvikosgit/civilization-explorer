@@ -7,6 +7,7 @@ const CV = { x: 508, y: 348, w: 244, h: 246 };
 const V3 = new URL('./', import.meta.url).href;
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v) => Math.max(0, Math.min(1, v));
+const easeIO = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 
 // 붓질 — 정해 둔 길이 아니라, 그림을 보고 화가처럼 칠한다(굵은 붓으로 큰 덩어리 → 점점 가는 붓으로 모양):
@@ -22,8 +23,9 @@ const LAYERS = [                            // 붓 반지름(계산 판 px) · �
 // 11/09: 작은 붓질 수천 개를 여기저기 빨리 찍으면 벌레 떼처럼 보인다 —
 //   눈에 보이는 붓질은 굵은 붓 한 겹만, 위에서 아래로 좌우를 오가며 한 획씩 그어지고(획은 길이를 따라 자란다),
 //   가는 붓 겹은 미리 다 칠해 둔 판을 천천히 겹쳐 그림이 또렷해지게
-const PAINT_AT = 1.0, BLOCK = 2.4, GROW = 0.3;            // 굵은 붓 겹: 시작 · 걸리는 시간 · 한 획이 자라는 시간
-const DET_AT = PAINT_AT + BLOCK - 0.1, DET = 1.6;           // 가는 붓 겹이 겹쳐지는 때 · 시간
+// 11/09(2): 그래도 정신없다 — 넓은 붓으로 일곱 번 슥슥(위에서 아래로, 좌우 번갈아). 붓이 지나간 자리에 칠해진 그림(위 방식으로 미리 다 칠한 판)이 묻어난다
+const PAINT_AT = 0.9, SWEEP = 0.5, GAP = 0.36, NS = 7;     // 한 번 긋는 시간 · 다음 획까지 · 횟수
+const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.5; // 붓 사이 빈틈을 채우는 마무리
 const PULL_AT = DET_AT + DET + 0.2, PULL = 2.4, OUT_AT = PULL_AT + PULL + 0.1;
 
 function planStrokes(img) {
@@ -75,7 +77,6 @@ function planStrokes(img) {
     if (li === 0) {   // 굵은 붓: 위 띠부터, 띠 안에서는 왼→오 · 오→왼 번갈아(화가가 캔버스를 쓸어 가듯)
       const band = L.r * 2.2;
       layer.sort((a, b) => { const ba = Math.floor(a.pts[0][1] / band), bb = Math.floor(b.pts[0][1] / band); if (ba !== bb) return ba - bb; return ba % 2 ? b.pts[0][0] - a.pts[0][0] : a.pts[0][0] - b.pts[0][0]; });
-      layer.forEach((st, i) => { st.at = PAINT_AT + (i / Math.max(1, layer.length)) * (BLOCK - GROW); });
     }
     out.push(...layer);
   });
@@ -140,11 +141,32 @@ export async function playIntro({ onDone } = {}) {
   // 가는 붓 겹까지 다 칠한 판(미리)
   const det = document.createElement('canvas'); det.width = W; det.height = H; const dg = det.getContext('2d');
   dg.drawImage(cv, 0, 0); for (const st of plan) drawStroke(st, 1, dg);
-  const block = plan.filter((st) => st.li === 0);
-  let next = 0, detA = 0; const growing = [];
+  // 넓은 붓 일곱 획 — 가로로 살짝 휘며 지나가고, 털 열여덟 가닥이 굵기 · 진하기 · 닿고 떨어지는 자리가 조금씩 달라 가장자리가 붓처럼 갈라진다
+  const pat = g.createPattern(det, 'no-repeat');
+  const BW = H * 0.2;
+  const sweeps = Array.from({ length: NS }, (_, i) => {
+    const y = H * (0.07 + i * (0.86 / (NS - 1))), dir = i % 2 ? -1 : 1, x0 = dir > 0 ? -W * 0.06 : W * 1.06, x1 = dir > 0 ? W * 1.06 : -W * 0.06;
+    const bend = (i % 3 - 1) * H * 0.025;
+    const path = Array.from({ length: 48 }, (_, k) => { const u = k / 47; return [x0 + (x1 - x0) * u, y + Math.sin(u * Math.PI) * bend + Math.sin(u * 7 + i) * H * 0.006]; });
+    const hairs = Array.from({ length: 18 }, (_, h) => ({ off: ((h / 17) - 0.5) * BW * (0.9 + Math.random() * 0.2), w: BW * (0.06 + Math.random() * 0.1), a: 0.6 + Math.random() * 0.4, s: Math.random() * 0.08, e: 1 - Math.random() * 0.1 }));
+    return { path, hairs, at: PAINT_AT + i * GAP, drawn: 0 };
+  });
+  function sweepTo(sw, u) {
+    const P = sw.path, n = Math.floor(u * (P.length - 1));
+    if (n <= sw.drawn) return;
+    g.save(); g.strokeStyle = pat; g.lineCap = 'round'; g.lineJoin = 'round';
+    for (const h of sw.hairs) {
+      const i0 = Math.max(Math.max(0, sw.drawn - 1), Math.ceil(h.s * (P.length - 1))), i1 = Math.min(n, Math.floor(h.e * (P.length - 1)));
+      if (i1 <= i0) continue;
+      g.globalAlpha = h.a; g.lineWidth = h.w; g.beginPath();
+      for (let i = i0; i <= i1; i++) { const x = P[i][0], y = P[i][1] + h.off; i === i0 ? g.moveTo(x, y) : g.lineTo(x, y); }
+      g.stroke();
+    }
+    g.restore(); sw.drawn = n;
+  }
+  let detA = 0;
   const paintTo = (t) => {
-    while (next < block.length && block[next].at <= t) growing.push(block[next++]);
-    for (let i = growing.length - 1; i >= 0; i--) { const st = growing[i], u = clamp((t - st.at) / GROW); drawStroke(st, u); if (u >= 1) growing.splice(i, 1); }
+    for (const sw of sweeps) { const u = (t - sw.at) / SWEEP; if (u > 0) sweepTo(sw, clamp(easeIO(clamp(u)))); }
     if (t > DET_AT) { const a = clamp((t - DET_AT) / DET); if (a > detA) { g.globalAlpha = (a - detA) / (1 - detA + 1e-6); g.drawImage(det, 0, 0); g.globalAlpha = 1; detA = a; } }
   };
   let done = false, skipped = false, raf = 0, glazed = 0;
