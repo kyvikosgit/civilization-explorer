@@ -13,7 +13,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const V3 = new URL('./', import.meta.url).href;
 const PAINTING = V3 + 'img/et_monet_cliffs.jpg';   // 모네 〈에트르타의 절벽〉 1885 · 클라크 미술관 · 퍼블릭 도메인 — 사진과 같은 배치(왼쪽 바늘바위 · 오른쪽 아발 아치)
-const OUTDOOR = V3 + 'img/et_outdoor.jpg', OUT_ASP = 2434 / 1757, HORIZON = 0.185, FOCUS_X = 0.2;   // 실사(살짝 흐림 · 채도 · 대비만 낮춤) · 수평선 높이 · 사진 가로 위치(바늘바위와 아치 사이)
+const OUTDOOR = V3 + 'img/et_outdoor_soft.jpg',   // 흐림 · 채도 · 대비를 미리 굽은 파일(매 장면 CSS 필터를 쓰면 끊김)
+      OUT_ASP = 2434 / 1757, HORIZON = 0.185, FOCUS_X = 0.2;   // 실사(살짝 흐림 · 채도 · 대비만 낮춤) · 수평선 높이 · 사진 가로 위치(바늘바위와 아치 사이)
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeIO = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -21,7 +22,8 @@ const load = (src) => new Promise((res, rej) => { const i = new Image(); i.cross
 function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 
 // 시간표(초) — 화실에서 칠하기 → 밖으로
-const PAINT_AT = 1.1, SWEEP = 0.5, GAP = 0.34, NS = 8;
+const OPEN = 1.7, PAINT_AT = 2.0,   // 여는 장면(어둠에서 화실이 드러나며 이젤로 다가감) 뒤에 붓질
+      SWEEP = 0.5, GAP = 0.34, NS = 8;
 const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.5;
 const OUT_GO = DET_AT + DET + 0.15, OUT_D = 2.2;              // 밖으로: 벽 · 바닥이 걷히고 빛 · 사진 · 그림 색
 const OUT_AT = OUT_GO + OUT_D + 0.2;
@@ -99,8 +101,9 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const photo = document.createElement('div'); photo.className = 'et-photo';
   const cv = document.createElement('canvas'); cv.className = 'et3d';
   const flash = document.createElement('div'); flash.className = 'et-flash';
+  const blackout = document.createElement('div'); blackout.className = 'et-black';
   const before = host.querySelector('.shade') || null;
-  host.insertBefore(photo, before); host.insertBefore(cv, before); host.insertBefore(flash, before);
+  host.insertBefore(photo, before); host.insertBefore(cv, before); host.insertBefore(flash, before); host.insertBefore(blackout, before);
   host.classList.add('has3d');
   const ui = document.createElement('div'); ui.id = 'etIntro'; ui.setAttribute('aria-hidden', 'true');
   ui.innerHTML = '<div class="ei-title" hidden></div><p class="et-skip">누르면 건너뜁니다</p>';   // 11/09: 제목 글씨 없음
@@ -121,7 +124,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   catch (e) { photo.style.opacity = '1'; cv.remove(); ui.remove(); onDone?.(); return; }
   renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);   // 11/09: 폰 부담 — 2배 → 1.5배
   renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.9;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap; renderer.shadowMap.autoUpdate = false;   // 11/09: 그림자는 처음에 한 번만 굽는다(아무것도 움직이지 않음)
   renderer.setClearColor(0x0d0b09, 1);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const scene = new T.Scene();
@@ -340,7 +343,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const key = new T.SpotLight(0xC9D4E0, 6, 9, 0.55, 0.75, 1.4); key.position.set(-2.4, 2.3, 0.6); key.target.position.set(0.1, 0.8, 0.1); scene.add(key, key.target);
   key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.camera.near = 0.5; key.shadow.camera.far = 10;
   const sun = new T.DirectionalLight(0xFFEBD0, 0); sun.position.set(-2.6, 6.0, 3.6); sun.target.position.set(0, 0.6, -0.4); scene.add(sun, sun.target);   // 앞 왼쪽 해 — 그림자가 이젤 뒤 풀밭(보이는 쪽)으로
-  sun.castShadow = false; sun.shadow.mapSize.set(1024, 1024);   // 그림자는 한 번에 한 빛만(화실=창빛, 밖=해) Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: 1, far: 20 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: 1, far: 20 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
   const skyCol = new T.Color(0xBFD6EE), roomSky = new T.Color(0x6f7680), roomGnd = new T.Color(0x1a120c), outGnd = new T.Color(0x7A7550);
 
   // ── 카메라: 사진의 수평선 높이에 맞춘 내려다보는 각(처음부터 끝까지 같음). 이젤은 화면 가로 62% · 다리 끝이 화면 84% 높이(풀밭)에 오게
@@ -356,9 +359,11 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const fwd = new T.Vector3(0, -Math.sin(pitch), -Math.cos(pitch));
   const dC = (CVS.W / 0.78 / 2) / tanH;
   const P0 = cvC.clone().addScaledVector(fwd, -dC).add(new T.Vector3(0, -0.04, 0));
+  const PS = P0.clone().addScaledVector(fwd, -1.1).add(new T.Vector3(-0.35, 0.12, 0));   // 여는 자리: 조금 뒤 왼쪽
   const pose = (t) => {
     const k = easeIO(clamp((t - OUT_GO + 0.2) / (OUT_D + 0.5)));
-    cam.position.lerpVectors(P0, P1, k);
+    const o = 1 - easeIO(clamp(t / OPEN));
+    cam.position.lerpVectors(P0, P1, k).addScaledVector(PS.clone().sub(P0), o);
     cam.rotation.set(-pitch, 0, 0);
   };
 
@@ -441,12 +446,10 @@ export async function playIntro({ onDone, instant = false } = {}) {
     for (const m of fade) m.opacity = 1 - w;
     renderer.setClearColor(0x0d0b09, 1 - w);
     photo.style.opacity = w.toFixed(3);
-    photo.style.filter = `blur(1.6px) brightness(${(0.55 + 0.45 * e).toFixed(3)}) saturate(${(0.6 + 0.26 * e).toFixed(3)}) contrast(.9) sepia(.08)`;   // 실사를 3D 와 어울리게 살짝만
     flash.style.opacity = (0.55 * Math.sin(Math.PI * clamp(u * 1.4))).toFixed(3);
+    blackout.style.opacity = (1 - easeIO(clamp(t / 1.1))).toFixed(3);   // 처음은 어둠에서
     key.intensity = 6 * (1 - w); winFill.intensity = 1.1 * (1 - w); sun.intensity = 2.6 * e;
     room.visible = floor.visible = w < 0.97; backWall.visible = leftWall.visible = w < 0.97;
-    // 밖에서는 이젤 · 의자만 그림자(화실 창틀 등이 풀밭에 그림자를 드리우지 않게)
-    if (w >= 0.97 && !outdoorShadows) { outdoorShadows = true; const keep = new Set(); [easel, stool].forEach((g) => g.traverse((c) => keep.add(c))); scene.traverse((c) => { if (c.isMesh && !keep.has(c)) c.castShadow = false; }); key.castShadow = false; key.visible = false; sun.castShadow = true; }   // 화실 창빛(스포트)도 그림자 계산에서 뺀다 — 안 그러면 풀밭 판 전체가 그 그늘로 어두워진다
     // 11/09: 땅은 흐릿하게 번져 나오지 않고 빛이 가장 환한 순간 한 번에 — 반쯤 투명한 땅 가장자리(둥근 끝)가 먼저 비쳐 보이던 것 없앰
     ground.visible = face.visible = u >= 0.34;
 
@@ -472,6 +475,16 @@ export async function playIntro({ onDone, instant = false } = {}) {
   if (instant) { toEnd(); finish(); return; }
   if (FREEZE != null) { window.__et = { cam, T, stool, box, scene }; const t = +FREEZE; paintTo(t); outTo(t); pose(t); render(); requestAnimationFrame(() => { title.classList.toggle('on', t <= PAINT_AT + 1.3); window.__etReady = true; }); return; }
 
+  // 그림자 굽기 — 이젤 · 의자 · 물감 상자만 그림자를 드리운다(화실 벽 · 가구가 바깥 땅에 그늘을 남기지 않게)
+  { const keep = new Set(); [easel, stool].forEach((g) => g.traverse((c) => keep.add(c))); scene.traverse((c) => { if (c.isMesh) c.castShadow = keep.has(c); }); }
+  // 처음 보이는 순간 끊기지 않게 — 땅 · 절벽 셰이더와 텍스처를 미리 올리고 그림자를 한 번 굽는다
+  { const was = [ground.visible, face.visible]; ground.visible = face.visible = true;
+    renderer.compile(scene, cam);
+    if (renderer.initTexture) scene.traverse((c) => { const m = c.material; if (!m) return; for (const k of ['map', 'normalMap', 'roughnessMap']) if (m[k]) renderer.initTexture(m[k]); });
+    if (renderer.initTexture) renderer.initTexture(grassTex);
+    renderer.shadowMap.needsUpdate = true; renderer.render(scene, cam);
+    ground.visible = was[0]; face.visible = was[1]; }
+  try { const pi = new Image(); pi.src = OUTDOOR; await pi.decode(); } catch (e) { /* 그냥 진행 */ }
   mark('start'); removeEventListener('pointerdown', earlyTap, true);
   if (early) { toEnd(); finish(); return; }
   outTo(0); pose(0); render();
