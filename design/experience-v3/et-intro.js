@@ -7,6 +7,7 @@
 //   그림은 휘거나 일렁이지 않는다(붓질로 칠해짐 · 빛 · 색만).
 //   playIntro({ onDone, instant }) — instant 면 끝 장면을 바로 그린다. 누르면 끝 장면으로
 import * as T from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 const V3 = new URL('./', import.meta.url).href;
 const PAINTING = V3 + 'img/et_monet_cliffs.jpg';   // 모네 〈에트르타의 절벽〉 1885 · 클라크 미술관 · 퍼블릭 도메인 — 사진과 같은 배치(왼쪽 바늘바위 · 오른쪽 아발 아치)
@@ -151,6 +152,48 @@ export async function playIntro({ onDone, instant = false } = {}) {
   winGlow.rotation.y = Math.PI / 2; winGlow.position.set(-2.59, 2.0, 0.6); scene.add(winGlow);
   const frameMat = fadeMat(new T.MeshStandardMaterial({ color: 0x2b241d, roughness: 0.8 }));
   for (const [w, h, y, z] of [[0.08, 1.8, 2.0, 0.05], [0.08, 1.8, 2.0, 1.15], [0.08, 1.8, 2.0, 0.6], [1.2, 0.08, 1.15, 0.6], [1.2, 0.08, 2.85, 0.6], [1.2, 0.05, 2.0, 0.6]]) { const b = new T.Mesh(new T.BoxGeometry(0.06, h, w), frameMat); b.position.set(-2.56, y, z); scene.add(b); }
+  // ── 화실 살림(밖으로 나갈 때 함께 걷힘): 뒷벽 북쪽 창 · 벽에 건 살롱 그림 두 점(금박 액자) · 벽에 기대 둔 캔버스 뒷면 · 작업대(붓 꽂은 단지 · 병 · 걸레) · 걸레받이
+  const room = new T.Group(); scene.add(room);
+  const rmat = (o) => fadeMat(new T.MeshStandardMaterial(o));
+  const rbox = (w, h, d, m, x, y, z, ry = 0, rx = 0, parent = room) => { const o = new T.Mesh(new RoundedBoxGeometry(w, h, d, 2, Math.min(w, h, d) * 0.2), m); o.position.set(x, y, z); o.rotation.set(rx, ry, 0); o.castShadow = o.receiveShadow = true; parent.add(o); return o; };
+  rbox(10, 0.14, 0.03, rmat({ color: 0x241a12, roughness: 0.7 }), 0, 0.07, -2.18);                                    // 걸레받이
+  { // 뒷벽 북쪽 창(높이 1.2~2.9, 이젤 왼쪽 뒤) — 바깥 흐린 하늘빛 + 창살 + 깊은 창틀
+    const wx = -1.25, wy = 2.05, ww = 1.15, wh = 1.7;
+    const glow = new T.Mesh(new T.PlaneGeometry(ww, wh), fadeMat(new T.MeshBasicMaterial({ color: 0x9aa9b6, fog: false, toneMapped: false }))); glow.position.set(wx, wy, -2.19); room.add(glow);
+    const fm = rmat({ color: 0x2e261e, roughness: 0.8 });
+    for (const [w, h, x, y] of [[ww + 0.12, 0.07, wx, wy + wh / 2], [ww + 0.12, 0.09, wx, wy - wh / 2], [0.07, wh, wx - ww / 2, wy], [0.07, wh, wx + ww / 2, wy], [0.04, wh, wx, wy], [ww, 0.035, wx, wy + wh / 6], [ww, 0.035, wx, wy - wh / 6]]) rbox(w, h, 0.07, fm, x, y, -2.15);
+    rbox(ww + 0.24, 0.05, 0.22, fm, wx, wy - wh / 2 - 0.05, -2.08);                                                  // 창턱
+  }
+  // 벽에 건 그림 두 점(살롱 시대 그림 · 퍼블릭 도메인, 살롱 체험의 채움 그림과 같은 파일) — 금박 액자, 어둑하게
+  const gilt = rmat({ color: 0x8a6a2e, roughness: 0.38, metalness: 0.75 });
+  const hang = (file, w, h, x, y) => {
+    const g = new T.Group(); g.position.set(x, y, -2.16); room.add(g);
+    rbox(w + 0.1, h + 0.1, 0.05, gilt, 0, 0, 0, 0, 0, g);
+    const m = fadeMat(new T.MeshStandardMaterial({ color: 0x9a9690, roughness: 0.8 })); const pic = new T.Mesh(new T.PlaneGeometry(w, h), m); pic.position.z = 0.027; g.add(pic);
+    new T.TextureLoader().load(V3 + '../experience-v2/proto/img/c0-fill/' + file, (t) => { t.encoding = T.sRGBEncoding; m.map = t; m.needsUpdate = true; });
+  };
+  hang('corot-mortefontaine.jpg', 0.6, 0.6 * 318 / 440, 0.55, 2.35);
+  hang('carolus-gant.jpg', 0.38, 0.38 * 440 / 307, 1.35, 2.2);
+  // 벽에 기대 둔 캔버스 — 나무틀이 보이는 뒷면 셋(겹쳐서)
+  const linenBack = rmat({ color: 0x5a4f3f, roughness: 1 }), stretcher = rmat({ color: 0x6b5236, roughness: 0.8 });
+  for (const [x, w, h, ry, lean] of [[0.55, 0.82, 1.0, 0.05, 0.2], [0.85, 0.6, 0.75, -0.12, 0.17], [-0.55, 0.55, 0.7, 0.18, 0.18]]) {
+    const g = new T.Group(); g.position.set(x, 0, -2.12 + Math.sin(lean) * h * 0.5); g.rotation.set(-lean, ry, 0); room.add(g);
+    const b = new T.Mesh(new T.PlaneGeometry(w, h), linenBack); b.position.set(0, h / 2, 0.035); b.receiveShadow = true; g.add(b);   // 아마천 뒷면이 이쪽을 보게(나무틀 앞)
+    for (const [bw, bh, bx, by] of [[w, 0.045, 0, 0.022], [w, 0.045, 0, h - 0.022], [0.045, h, -w / 2 + 0.022, h / 2], [0.045, h, w / 2 - 0.022, h / 2], [w - 0.09, 0.035, 0, h / 2]]) rbox(bw, bh, 0.03, stretcher, bx, by, 0.02, 0, 0, g);
+  }
+  { // 작업대(왼쪽 뒤) — 상판 · 다리 · 붓 꽂은 단지 둘 · 기름병 · 걸레
+    const tb = new T.Group(); tb.position.set(-1.0, 0, -1.25); tb.rotation.y = 0.25; room.add(tb);
+    const tw = rmat({ color: 0x4a3423, roughness: 0.75 });
+    rbox(0.9, 0.04, 0.5, tw, 0, 0.78, 0, 0, 0, tb);
+    for (const [x, z] of [[-0.4, -0.2], [0.4, -0.2], [-0.4, 0.2], [0.4, 0.2]]) rbox(0.045, 0.76, 0.045, tw, x, 0.38, z, 0, 0, tb);
+    const jar = rmat({ color: 0x6d7f86, roughness: 0.25, metalness: 0.1 });
+    for (const [x, z, n] of [[-0.25, 0.05, 7], [-0.08, -0.08, 5]]) {
+      const j = new T.Mesh(new T.CylinderGeometry(0.045, 0.04, 0.13, 18), jar); j.position.set(x, 0.865, z); j.castShadow = true; tb.add(j);
+      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2, b = new T.Mesh(new T.CylinderGeometry(0.004, 0.006, 0.32, 6), rmat({ color: [0x8a2a1e, 0x2a2622, 0xC9A27A, 0x3b4a5a][i % 4], roughness: 0.5 })); b.position.set(x + Math.cos(a) * 0.02, 0.98, z + Math.sin(a) * 0.02); b.rotation.set(Math.sin(a) * 0.18, 0, Math.cos(a) * 0.18); b.castShadow = true; tb.add(b); }
+    }
+    for (const [x, z, h, c] of [[0.12, 0.08, 0.2, 0x3d5a3a], [0.22, -0.05, 0.15, 0x6a4a2a]]) { const bt = new T.Mesh(new T.CylinderGeometry(0.03, 0.035, h, 14), rmat({ color: c, roughness: 0.15, metalness: 0.1 })); bt.position.set(x, 0.8 + h / 2, z); bt.castShadow = true; tb.add(bt); }
+    rbox(0.22, 0.03, 0.16, rmat({ color: 0xb9ad94, roughness: 1 }), 0.3, 0.815, 0.12, 0.4, 0, tb);   // 걸레
+  }
   // ── 바깥 바닥: 절벽 위 풀밭(붓질로 칠한 질감) — 이젤 뒤 1.2m 쯤에서 끝나고, 가장자리 아래로 흰 백악 절벽면이 조금 보인다. 그 너머는 배경 그림(바다 · 바위)
   // 풀 질감 — 사진 앞쪽 마른 풀 색(금빛 · 올리브)으로 아주 가는 풀잎을 촘촘히. 무늬가 반복돼 보이지 않게 크게(2048)
   const grassPaint = canvasTex(2048, 2048, (g, w, h) => {
@@ -199,18 +242,53 @@ export async function playIntro({ onDone, instant = false } = {}) {
     m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), B.clone().sub(A).normalize()); return m;
   };
 
-  // ── 야외용 이젤(삼각 다리 · 기둥 · 받침대 · 위 집게)
+  // ── 이젤(11/09 다시) — 모든 이음이 실제로 닿게 계산: 앞다리 둘이 머리 블록에서 만나고, 가운데 기둥은 앞다리 면 바로 뒤에서 아래 가로대 위에 서고 위는 머리 블록에 박힌다.
+  //   뒷다리는 머리 블록 뒷면 경첩에서 내려가고, 받침대는 기둥에 붙은 받침 블록 위, 캔버스는 받침대 위에서 기둥에 기댄다. 위 집게가 캔버스 윗변을 누른다. 이음마다 볼트 · 나비너트
   const easel = new T.Group(); scene.add(easel);
-  stick([-0.32, 0, 0.17], [-0.04, 1.95, 0.0], 0.03, wood, easel);
-  stick([0.32, 0, 0.17], [0.04, 1.95, 0.0], 0.03, wood, easel);
-  stick([0, 0, -0.66], [0, 1.8, -0.04], 0.028, wood, easel);
-  stick([0, 0.7, 0.03], [0, 2.06, 0.03], 0.026, wood, easel);
-  stick([-0.22, 0.45, 0.115], [0.22, 0.45, 0.115], 0.02, wood, easel);
-  const LEDGE_Y = 1.05;   // 서서 그리는 높이
-  add(new T.BoxGeometry(0.62, 0.026, 0.09), wood2, easel).position.set(0, LEDGE_Y, 0.085);
-  add(new T.BoxGeometry(0.62, 0.045, 0.011), wood2, easel).position.set(0, LEDGE_Y + 0.026, 0.126);
-  add(new T.BoxGeometry(0.11, 0.045, 0.06), wood2, easel).position.set(0, LEDGE_Y + 0.02 + CVS.H + 0.02, 0.07);
-  for (let i = 0; i < 3; i++) stick([-0.24 + i * 0.03, LEDGE_Y + 0.032, 0.105], [-0.04 + i * 0.03, LEDGE_Y + 0.045, 0.125], 0.007, new T.MeshStandardMaterial({ color: [0x8a2a1e, 0x22303a, 0xC9A27A][i], roughness: 0.5 }), easel);
+  const HEAD = 2.02, FOOT_X = 0.34, TOP_X = 0.04, FOOT_Z = 0.17, LT = 0.034, MT = 0.03;
+  const legX = (y) => FOOT_X - (FOOT_X - TOP_X) * (y / HEAD), legZ = (y) => FOOT_Z * (1 - y / HEAD);
+  const TILT = Math.atan(FOOT_Z / HEAD);
+  const mastZ = (y) => legZ(y) + (LT + MT) / 2;                           // 앞다리 바로 앞(캔버스가 다리 앞에서 기둥에 기댄다)
+  const rstick = (a, b, t, mat = wood, parent = easel, tz = t) => {
+    const A = new T.Vector3(...a), B = new T.Vector3(...b), L = A.distanceTo(B);
+    const m = add(new RoundedBoxGeometry(t, L, tz, 2, Math.min(t, tz) * 0.22), mat, parent); m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), B.clone().sub(A).normalize()); return m;
+  };
+  const bolt = (x, y, z, ax = 'z', parent = easel) => { const c = add(new T.CylinderGeometry(0.008, 0.008, 0.012, 12), metal, parent); c.position.set(x, y, z); if (ax === 'z') c.rotation.x = Math.PI / 2; else c.rotation.z = Math.PI / 2; return c; };
+  const wing = (x, y, z, parent = easel) => { const g = new T.Group(); g.position.set(x, y, z); parent.add(g); add(new T.CylinderGeometry(0.011, 0.011, 0.012, 12), metal, g).rotation.x = Math.PI / 2; for (const s of [-1, 1]) { const w = add(new RoundedBoxGeometry(0.03, 0.016, 0.004, 1, 0.002), metal, g); w.position.set(s * 0.02, 0.004, 0.004); w.rotation.z = s * 0.25; } return g; };
+  // 앞다리 둘(위로 갈수록 가늘게 보이게 두 토막)
+  for (const s of [-1, 1]) { rstick([s * FOOT_X, 0, FOOT_Z], [s * legX(HEAD - 0.02), HEAD - 0.02, legZ(HEAD - 0.02)], LT, wood, easel, LT * 1.15); }
+  // 머리 블록 — 앞다리 끝 둘을 감싼다
+  const headB = add(new RoundedBoxGeometry(0.15, 0.1, 0.1, 2, 0.012), wood2, easel); headB.position.set(0, HEAD - 0.01, legZ(HEAD) + 0.01); headB.rotation.x = -TILT;
+  bolt(-0.045, HEAD - 0.01, legZ(HEAD) + 0.065); bolt(0.045, HEAD - 0.01, legZ(HEAD) + 0.065);
+  // 아래 가로대(스프레더) — 두 앞다리 사이를 꼭 맞게, 끝은 다리 속으로 조금
+  const SPY = 0.44;
+  rstick([-legX(SPY) - 0.01, SPY, legZ(SPY)], [legX(SPY) + 0.01, SPY, legZ(SPY)], 0.036, wood2, easel, 0.024);
+  bolt(-legX(SPY), SPY, legZ(SPY) + 0.02); bolt(legX(SPY), SPY, legZ(SPY) + 0.02);
+  // 가운데 기둥 — 가로대 윗면에서 머리 블록 속까지
+  rstick([0, SPY - 0.02, mastZ(SPY - 0.02)], [0, HEAD - 0.04, mastZ(HEAD - 0.04)], MT, wood, easel, MT);   // 가로대 앞면 · 머리 블록 앞면에 볼트로
+  bolt(0, SPY, mastZ(SPY) + MT / 2 + 0.004);
+  // 뒷다리 — 머리 블록 뒷면 경첩에서 바닥으로
+  const hingeY = HEAD - 0.03, hingeZ = legZ(HEAD) - 0.045;
+  add(new T.CylinderGeometry(0.012, 0.012, 0.09, 14), metal, easel).position.set(0, hingeY, hingeZ); easel.children[easel.children.length - 1].rotation.z = Math.PI / 2;
+  rstick([0, hingeY - 0.01, hingeZ - 0.012], [0, 0, -0.78], 0.032, wood, easel, 0.028);
+  // 받침대 — 기둥에 붙은 받침 블록 + 앞으로 내민 쟁반(앞턱 · 물감 얼룩)
+  const LEDGE_Y = 1.05;
+  const ledZ = mastZ(LEDGE_Y);
+  const blk = add(new RoundedBoxGeometry(0.07, 0.14, 0.06, 2, 0.01), wood2, easel); blk.position.set(0, LEDGE_Y - 0.06, ledZ + 0.01); blk.rotation.x = -TILT;
+  wing(0, LEDGE_Y - 0.06, ledZ + 0.045);
+  const TRAY_D = 0.085, trayZ = ledZ + MT / 2 + TRAY_D / 2 - 0.005;
+  const trayTex = canvasTex(512, 64, (g, w, h) => { g.drawImage(woodTex.image, 0, 0, w, h); const r = rnd(66); for (let i = 0; i < 30; i++) { g.fillStyle = ['#2F5C9A', '#D9A32E', '#B0362A', '#F2EEE4', '#6E8E3E'][(r() * 5) | 0]; g.globalAlpha = 0.5 + r() * 0.4; g.beginPath(); g.ellipse(r() * w, r() * h, 2 + r() * 6, 1 + r() * 3, 0, 0, 7); g.fill(); } g.globalAlpha = 1; }, aniso);
+  const trayMat = new T.MeshStandardMaterial({ map: trayTex, roughness: 0.6, color: 0xC9A27A });
+  add(new RoundedBoxGeometry(0.68, 0.024, TRAY_D, 2, 0.006), trayMat, easel).position.set(0, LEDGE_Y, trayZ);
+  add(new RoundedBoxGeometry(0.68, 0.04, 0.012, 2, 0.004), wood2, easel).position.set(0, LEDGE_Y + 0.02, trayZ + TRAY_D / 2 - 0.006);
+  for (let i = 0; i < 3; i++) { const b = add(new T.CylinderGeometry(0.0045, 0.006, 0.26, 8), new T.MeshStandardMaterial({ color: [0x8a2a1e, 0x22303a, 0xC9A27A][i], roughness: 0.5 }), easel); b.position.set(-0.2 + i * 0.03, LEDGE_Y + 0.02, trayZ + 0.01); b.rotation.set(0, 0.2, Math.PI / 2 - 0.05 * i); }
+  // 위 집게 — 기둥을 감싸는 블록 + 캔버스 윗변을 누르는 턱
+  const CANVAS_Y0 = LEDGE_Y + 0.012, clampY = CANVAS_Y0 + CVS.H * Math.cos(TILT) + 0.022;
+  const clampZ = mastZ(clampY);
+  const cb = add(new RoundedBoxGeometry(0.07, 0.07, 0.06, 2, 0.01), wood2, easel); cb.position.set(0, clampY, clampZ + 0.005); cb.rotation.x = -TILT;
+  const lip = add(new RoundedBoxGeometry(0.1, 0.02, 0.05, 2, 0.006), wood2, easel); lip.position.set(0, clampY - 0.02, clampZ + MT / 2 + CVS.D + 0.01); lip.rotation.x = -TILT;
+  wing(0, clampY, clampZ + 0.04);
 
   // ── 캔버스: 아마천 옆면 + 앞면은 칠해지는 판
   const paintCv = document.createElement('canvas'); paintCv.width = TEX_W; paintCv.height = TEX_H;
@@ -221,7 +299,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const linen = new T.MeshStandardMaterial({ color: 0xD9CCB0, roughness: 0.95 });
   const front = new T.MeshStandardMaterial({ map: paintTex, roughness: 0.85, color: 0xB8B8B8 });
   const canvasMesh = add(new T.BoxGeometry(CVS.W, CVS.H, CVS.D), [linen, linen, linen, linen, front, linen], easel);
-  canvasMesh.position.set(0, LEDGE_Y + 0.02 + CVS.H / 2, 0.075); canvasMesh.rotation.x = -0.06;
+  { const yc = CANVAS_Y0 + (CVS.H / 2) * Math.cos(TILT); canvasMesh.position.set(0, yc, mastZ(yc) + MT / 2 + CVS.D / 2 + 0.002); canvasMesh.rotation.x = -TILT; }   // 받침대 위에서 기둥에 기댐
   easel.rotation.y = -0.12;
 
   // ── 접이식 의자 + 열린 화구 상자(금속 튜브물감 · 팔레트) — 이젤 왼쪽 앞
@@ -245,7 +323,8 @@ export async function playIntro({ onDone, instant = false } = {}) {
   });
 
   // ── 빛: 화실 — 왼쪽 창에서 흐린 빛 한 줄기(차갑게) · 옅은 바탕빛 / 바깥 — 왼쪽 앞 위 해(따뜻하게) · 하늘빛
-  const hemi = new T.HemisphereLight(0x6f7680, 0x1a120c, 0.22); scene.add(hemi);
+  const hemi = new T.HemisphereLight(0x6f7680, 0x1a120c, 0.4); scene.add(hemi);
+  const winFill = new T.PointLight(0xAFC0D0, 2.2, 5, 1.6); winFill.position.set(-1.25, 2.0, -1.7); scene.add(winFill);   // 뒷벽 창 둘레
   const key = new T.SpotLight(0xC9D4E0, 9, 9, 0.62, 0.7, 1.4); key.position.set(-2.4, 2.3, 0.6); key.target.position.set(0.1, 0.8, 0.1); scene.add(key, key.target);
   key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.camera.near = 0.5; key.shadow.camera.far = 10;
   const sun = new T.DirectionalLight(0xFFEBD0, 0); sun.position.set(-3.5, 6.5, 5); sun.target.position.set(0, 0.6, 0); scene.add(sun, sun.target);
@@ -309,8 +388,8 @@ export async function playIntro({ onDone, instant = false } = {}) {
     photo.style.opacity = w.toFixed(3);
     photo.style.filter = `blur(1.6px) brightness(${(0.55 + 0.45 * e).toFixed(3)}) saturate(${(0.6 + 0.26 * e).toFixed(3)}) contrast(.9) sepia(.08)`;   // 실사를 3D 와 어울리게 살짝만
     flash.style.opacity = (0.55 * Math.sin(Math.PI * clamp(u * 1.4))).toFixed(3);
-    key.intensity = 9 * (1 - w); sun.intensity = 2.6 * e; groundMat.opacity = w; cliffMat.opacity = w;
-    hemi.intensity = 0.22 + 0.7 * e; hemi.color.copy(roomSky).lerp(skyCol, e); hemi.groundColor.copy(roomGnd).lerp(outGnd, e);
+    key.intensity = 9 * (1 - w); winFill.intensity = 2.2 * (1 - w); sun.intensity = 2.6 * e; groundMat.opacity = w; cliffMat.opacity = w;
+    hemi.intensity = 0.4 + 0.52 * e; hemi.color.copy(roomSky).lerp(skyCol, e); hemi.groundColor.copy(roomGnd).lerp(outGnd, e);
     scene.fog.near = 4 + 60 * w; scene.fog.far = 11 + 160 * w;
     front.color.setScalar(0.72 + 0.12 * e);
     renderer.toneMappingExposure = 0.9 + 0.1 * e;

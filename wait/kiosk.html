@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#F4EFE4">
+<!-- 11/09: 홈 화면에 추가하면 사파리 주소창 · 탭 없이 전체 화면으로(주소의 ?k= 그대로 저장됨) -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="대기 접수">
+<link rel="apple-touch-icon" href="../monet100-web/img/logo_lockup.png">
 <title>입장 대기 접수</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="wait.css">
@@ -12,7 +18,8 @@
 /* 현장 태블릿 — 가로 · 세로 모두 스크롤 없이 한 화면. 크기는 화면 비율 단위(--s)로: 가로는 높이, 세로는 폭이 기준
    인원 → 휴대폰 번호(숫자판) → 동의 → 접수 → 접수번호(10초 뒤 처음으로) */
 :root{--s:min(1dvh,.75vw)}
-html,body{height:100%;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+html,body{height:100%;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+html,body{position:fixed;inset:0;width:100%}   /* 11/09: 끌어내림 · 튕김 막기 */
 .wrap{height:100dvh;display:grid;grid-template-columns:1fr 1.1fr;gap:calc(var(--s)*4);padding:calc(var(--s)*4.5 + env(safe-area-inset-top)) calc(var(--s)*5) calc(var(--s)*4 + env(safe-area-inset-bottom))}
 .info{display:flex;flex-direction:column;justify-content:space-between;min-height:0;padding:calc(var(--s)*1) 0}
 .cap{font-size:calc(var(--s)*2);font-weight:700;color:var(--green)}
@@ -211,6 +218,16 @@ drawParty(); drawPhone(); check(); refresh();
 setInterval(refresh, 15000);
 // 태블릿을 오래 켜 둔다 — 화면이 꺼지지 않게
 try { navigator.wakeLock?.request('screen'); document.addEventListener('visibilitychange', () => { if (!document.hidden) navigator.wakeLock?.request('screen').catch(() => {}); }); } catch {}
+</script>
+<script>
+// 11/09: 무인 태블릿 — 두 손가락 확대 · 두 번 탭 확대 · 길게 눌러 메뉴 · 화면 끌기(새로고침 · 튕김)를 막는다. 입력칸 · 단추 누르기는 그대로
+(() => {
+  const no = (e) => e.preventDefault();
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach((t) => document.addEventListener(t, no, { passive: false }));
+  document.addEventListener('contextmenu', no);
+  document.addEventListener('touchmove', (e) => { if (e.touches.length > 1 || !e.target.closest('[data-scroll]')) e.preventDefault(); }, { passive: false });
+  // 두 번 탭 확대는 touch-action:manipulation 으로 막는다(숫자 단추를 빠르게 눌러도 안 씹히게 touchend 는 건드리지 않음)
+})();
 </script>
 </body>
 </html>
