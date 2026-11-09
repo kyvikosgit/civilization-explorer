@@ -24,7 +24,7 @@ const LAYERS = [                            // 붓 반지름(계산 판 px) · �
 //   눈에 보이는 붓질은 굵은 붓 한 겹만, 위에서 아래로 좌우를 오가며 한 획씩 그어지고(획은 길이를 따라 자란다),
 //   가는 붓 겹은 미리 다 칠해 둔 판을 천천히 겹쳐 그림이 또렷해지게
 // 11/09(2): 그래도 정신없다 — 넓은 붓으로 일곱 번 슥슥(위에서 아래로, 좌우 번갈아). 붓이 지나간 자리에 칠해진 그림(위 방식으로 미리 다 칠한 판)이 묻어난다
-const PAINT_AT = 0.9, SWEEP = 0.5, GAP = 0.36, NS = 7;     // 한 번 긋는 시간 · 다음 획까지 · 횟수
+const PAINT_AT = 0.9, SWEEP = 0.5, GAP = 0.34, NS = 8;     // 한 번 긋는 시간 · 다음 획까지 · 횟수
 const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.5; // 붓 사이 빈틈을 채우는 마무리
 const PULL_AT = DET_AT + DET + 0.2, PULL = 2.4, OUT_AT = PULL_AT + PULL + 0.1;
 
@@ -144,10 +144,15 @@ export async function playIntro({ onDone } = {}) {
   // 넓은 붓 일곱 획 — 가로로 살짝 휘며 지나가고, 털 열여덟 가닥이 굵기 · 진하기 · 닿고 떨어지는 자리가 조금씩 달라 가장자리가 붓처럼 갈라진다
   const pat = g.createPattern(det, 'no-repeat');
   const BW = H * 0.2;
+  // 11/09: 사선으로 — 왼쪽 아래에서 오른쪽 위로 긋는 결(30도), 왼쪽 위 모서리부터 오른쪽 아래 모서리까지 차례로
+  const ANG = -Math.PI / 6, dx = Math.cos(ANG), dy = Math.sin(ANG), nx = -dy, ny = dx;
+  const projs = [[0, 0], [W, 0], [0, H], [W, H]].map(([x, y]) => (x - W / 2) * nx + (y - H / 2) * ny);
+  const pMin = Math.min(...projs) + BW * 0.35, pMax = Math.max(...projs) - BW * 0.35, half = Math.hypot(W, H) * 0.62;
   const sweeps = Array.from({ length: NS }, (_, i) => {
-    const y = H * (0.07 + i * (0.86 / (NS - 1))), dir = i % 2 ? -1 : 1, x0 = dir > 0 ? -W * 0.06 : W * 1.06, x1 = dir > 0 ? W * 1.06 : -W * 0.06;
-    const bend = (i % 3 - 1) * H * 0.025;
-    const path = Array.from({ length: 48 }, (_, k) => { const u = k / 47; return [x0 + (x1 - x0) * u, y + Math.sin(u * Math.PI) * bend + Math.sin(u * 7 + i) * H * 0.006]; });
+    const o = pMin + (pMax - pMin) * (i / (NS - 1)), dir = i % 2 ? -1 : 1;
+    const cx0 = W / 2 + nx * o, cy0 = H / 2 + ny * o, bend = (i % 3 - 1) * H * 0.025;
+    const path = Array.from({ length: 48 }, (_, k) => { const u = k / 47, a = (dir > 0 ? -1 + 2 * u : 1 - 2 * u) * half, w = Math.sin(u * Math.PI) * bend + Math.sin(u * 7 + i) * H * 0.006;
+      return [cx0 + dx * a + nx * w, cy0 + dy * a + ny * w]; });
     const hairs = Array.from({ length: 18 }, (_, h) => ({ off: ((h / 17) - 0.5) * BW * (0.9 + Math.random() * 0.2), w: BW * (0.06 + Math.random() * 0.1), a: 0.6 + Math.random() * 0.4, s: Math.random() * 0.08, e: 1 - Math.random() * 0.1 }));
     return { path, hairs, at: PAINT_AT + i * GAP, drawn: 0 };
   });
@@ -159,7 +164,7 @@ export async function playIntro({ onDone } = {}) {
       const i0 = Math.max(Math.max(0, sw.drawn - 1), Math.ceil(h.s * (P.length - 1))), i1 = Math.min(n, Math.floor(h.e * (P.length - 1)));
       if (i1 <= i0) continue;
       g.globalAlpha = h.a; g.lineWidth = h.w; g.beginPath();
-      for (let i = i0; i <= i1; i++) { const x = P[i][0], y = P[i][1] + h.off; i === i0 ? g.moveTo(x, y) : g.lineTo(x, y); }
+      for (let i = i0; i <= i1; i++) { const x = P[i][0] + nx * h.off, y = P[i][1] + ny * h.off; i === i0 ? g.moveTo(x, y) : g.lineTo(x, y); }
       g.stroke();
     }
     g.restore(); sw.drawn = n;
