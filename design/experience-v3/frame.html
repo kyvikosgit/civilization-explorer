@@ -35,14 +35,43 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 .dev small{display:block;margin-top:1.2vmin;font-size:max(12px,2vmin);opacity:.6}
 .dev i{display:block;width:12vmin;height:2px;margin:3vmin auto 0;background:linear-gradient(90deg,transparent,#E9C77A,transparent);background-size:200% 100%;animation:dv 1.6s linear infinite}
 @keyframes dv{from{background-position:100% 0}to{background-position:-100% 0}}
+/* 11/09 촬영 연출(글자 없음): 1873년 사진관 습판 촬영처럼 —
+   버튼 → 액자 속 초상이 검은 유리판(콜로디온 판)으로 바뀌고 가운데에 빛이 서서히 모임(노출 3초)
+   → 마그네슘 섬광(하얗게 터졌다 사그라짐) + 연기가 위로 피어오름
+   → 판 위에 방금 찍힌 모습이 은빛 음화로 비쳤다가 가운데부터 세피아 양화로 번지며 떠오름(현상)
+   → 완성 사진이 오면 판이 걷히고 사진 + QR */
+.plate{position:fixed;left:50%;top:50%;width:min(94vw,70.5vh);aspect-ratio:3/4;transform:translate(-50%,-50%);opacity:0;transition:opacity .7s ease;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 45%,#1a1714 0%,#0b0a09 70%,#050404 100%);box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.plate.on{opacity:1}
+.plate .rim{position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 0 1.2vmin rgba(160,150,135,.10),inset 0 0 4vmin rgba(190,180,160,.12);
+  -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='400'><filter id='f'><feTurbulence baseFrequency='.035' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.2 -.6'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>") center/100% 100%;
+          mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='400'><filter id='f'><feTurbulence baseFrequency='.035' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.2 -.6'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>") center/100% 100%}
+.plate .expo{position:absolute;inset:0;background:radial-gradient(50% 42% at 50% 42%,rgba(255,236,200,.42),rgba(255,236,200,0) 70%);opacity:0;transition:opacity 3s cubic-bezier(.4,0,.2,1)}
+.plate.expose .expo{opacity:1}
+.plate img{position:absolute;inset:4%;width:92%;height:92%;object-fit:cover;opacity:0}
+.plate .neg{filter:grayscale(1) invert(1) contrast(.85) brightness(.55) sepia(.15) hue-rotate(160deg);mix-blend-mode:screen;transition:opacity 2.4s ease}
+.plate.dev1 .neg{opacity:.75}
+.plate.dev2 .neg{opacity:0;transition:opacity 5s ease}
+.plate .pos{filter:grayscale(1) sepia(.75) contrast(1.1) brightness(.92);
+  -webkit-mask:radial-gradient(circle at 50% 44%,#000 calc(var(--r,0) * 1%),transparent calc(var(--r,0) * 1% + 18%));mask:radial-gradient(circle at 50% 44%,#000 calc(var(--r,0) * 1%),transparent calc(var(--r,0) * 1% + 18%))}
+.plate.dev2 .pos{opacity:1}
+.flash{position:fixed;inset:0;background:radial-gradient(circle at 50% 30%,#fff,#fff8e8 40%,rgba(255,244,220,.85));opacity:0;pointer-events:none}
+.flash.go{animation:fl 1.5s cubic-bezier(.1,.8,.3,1) forwards}
+@keyframes fl{0%{opacity:0}4%{opacity:1}100%{opacity:0}}
+.smoke{position:fixed;left:50%;top:0;width:60vmin;height:100vh;transform:translateX(-50%);pointer-events:none}
+.smoke i{position:absolute;bottom:62vh;width:22vmin;height:22vmin;border-radius:50%;background:radial-gradient(circle,rgba(235,230,220,.55),rgba(235,230,220,0) 70%);filter:blur(1.6vmin);opacity:0}
+.smoke.go i{animation:sm 5.5s ease-out forwards}
+@keyframes sm{0%{opacity:0;transform:translate(0,0) scale(.5)}12%{opacity:.85}100%{opacity:0;transform:translate(var(--dx),-55vh) scale(1.8)}}
 </style>
 </head>
 <body>
 <div class="stage"><img id="a" alt=""><img id="b" alt=""></div>
 <p class="hint" id="hint">화면을 한 번 누르면 전체 화면으로 바뀝니다</p>
 <i class="dot" id="dot" title="연결 상태"></i>
-<div class="count" id="count"></div>
-<div class="dev" id="dev"><div><b>사진을 현상하고 있습니다</b><small>나다르 사진관의 유리판에서 인화지로</small><i></i></div></div>
+<div class="plate" id="plate"><div class="expo"></div><img class="neg" id="neg" alt=""><img class="pos" id="pos" alt=""><div class="rim"></div></div>
+<div class="smoke" id="smoke"><i style="left:10%;--dx:-6vmin;animation-delay:0s"></i><i style="left:30%;--dx:4vmin;animation-delay:.15s"></i><i style="left:48%;--dx:-3vmin;animation-delay:.05s"></i><i style="left:62%;--dx:7vmin;animation-delay:.25s"></i><i style="left:76%;--dx:2vmin;animation-delay:.1s"></i></div>
+<div class="flash" id="flash"></div>
 <div class="qr" id="qr"><canvas id="qrc"></canvas><span><b>앱으로 QR을 찍어<br>사진을 받으세요</b><small>폰 카메라로 찍어도 받을 수 있습니다</small></span></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script type="module">
@@ -60,6 +89,26 @@ function drawQR(id) {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + pad) * k, (r + pad) * k, k, k);
 }
 const imgs = [document.getElementById('a'), document.getElementById('b')];
+const $ = (id) => document.getElementById(id), plate = $('plate');
+let devRaf = 0;
+function plateReset() { cancelAnimationFrame(devRaf); plate.classList.remove('expose', 'dev1', 'dev2'); $('pos').style.setProperty('--r', 0); }
+function startExposure() { plateReset(); plate.classList.add('on'); requestAnimationFrame(() => plate.classList.add('expose')); }
+function magnesium() {
+  plate.classList.remove('expose');
+  const f = $('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+  const s = $('smoke'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go');
+}
+function develop(preview) {   // 은빛 음화 → 가운데부터 세피아 양화로 번짐(약 9초), 그 뒤 완성 사진을 기다림
+  plate.classList.add('on');
+  if (!preview) return;
+  $('neg').src = preview; $('pos').src = preview;
+  plate.classList.add('dev1');
+  setTimeout(() => {
+    plate.classList.add('dev2'); const t0 = performance.now();
+    const step = (t) => { const k = Math.min(1, (t - t0) / 7000); $('pos').style.setProperty('--r', (k * k * (3 - 2 * k) * 80).toFixed(1)); if (k < 1) devRaf = requestAnimationFrame(step); };
+    devRaf = requestAnimationFrame(step);
+  }, 2200);
+}
 let front = 0, back = 0, devT = 0;
 function showSrc(src) {
   const next = imgs[1 - front];
@@ -70,15 +119,15 @@ showSrc(IDLE);
 const link = joinRoom({
   photo: (p) => {
     if (!p?.img) return;
-    clearTimeout(devT); document.getElementById('dev').classList.remove('on');
-    showSrc(p.img);
+    clearTimeout(devT);
+    showSrc(p.img); setTimeout(() => { plate.classList.remove('on'); setTimeout(plateReset, 800); }, 400);   // 판이 걷히고 완성 사진
     KEEP.set(p.id, p.img); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value);
     drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
     link.send('ack', { id: p.id });
     clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
   },
-  dev: () => { document.getElementById('dev').classList.add('on'); clearTimeout(devT); devT = setTimeout(() => document.getElementById('dev').classList.remove('on'), 90000); },
-  count: (p) => { const c = document.getElementById('count'); c.textContent = p?.n || ''; c.classList.toggle('on', !!p?.n); },
+  dev: (p) => { develop(p?.preview); clearTimeout(devT); devT = setTimeout(() => { plate.classList.remove('on'); plateReset(); }, 90000); },
+  count: (p) => { if (p?.n === 3) startExposure(); else if (p?.n === 0) magnesium(); },
   get: (p) => { const img = KEEP.get(p?.id); if (img) link.send('img', { id: p.id, img }); else link.send('img', { id: p?.id, missing: true }); },
 });
 link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});

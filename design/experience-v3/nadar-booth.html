@@ -63,9 +63,9 @@ async function shoot() {
   $('shot').classList.remove('go'); void $('shot').offsetWidth; $('shot').classList.add('go');
   const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight; c.getContext('2d').drawImage(video, 0, 0);
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-  link.send('dev', { id }).catch(() => {});                       // 액자: 현상 중
-  $('st').textContent = '사진 현상 중';
   let comp = c; try { comp = N.cropTo34(c); } catch {}
+  link.send('dev', { id, preview: jpeg(comp, 300, 0.6) }).catch(() => {});   // 액자: 유리판 위로 방금 찍힌 모습이 떠오름(작은 미리보기)
+  $('st').textContent = '사진 현상 중';
   let card, how = 'AI';
   try { card = await aiPhoto(comp); }
   catch (e) { console.warn('[ai]', e); how = '기기'; try { card = N.renderPhoto19(comp, null); } catch { try { card = N.quickPhoto(comp); } catch { card = comp; } } }
