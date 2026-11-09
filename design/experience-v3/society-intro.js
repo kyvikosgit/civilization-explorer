@@ -40,9 +40,9 @@ export function playSocietyIntro({ onDone } = {}) {
   let renderer;
   try { renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: false }); }
   catch (e) { root.remove(); onDone?.(); return; }
-  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);
+  renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);   // 11/09: 폰 부담 — 2배 → 1.5배
   renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.55;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap;
   const aniso = renderer.capabilities.getMaxAnisotropy();
 
   const scene = new T.Scene(); scene.background = new T.Color(0x07050a);

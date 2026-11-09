@@ -199,7 +199,7 @@ function showGuide() {
     sub: IOS_UL ? '에트르타 작업 공간에서 튜브물감을 찾아\n휴대폰 윗부분을 대 보세요' : '에트르타 작업 공간에서 튜브물감을 찾아 비춰 보세요',
     buttons: [{ label: '튜브물감 찾기', cam: true, on: startScan }],
     note: "카메라 권한을 물으면 '허용'을 눌러 주세요",
-    link: store.saved(TASK.id) ? { label: '튜브물감을 들고 밖으로 ›', on: () => { location.href = V3 + 'paint.html'; } } : null,
+    // 11/09: 밖으로 나가 칠하기 등 체험 더보기는 미션 완료 화면에서만(시작 화면에 내놓지 않음)
   });
 }
 scanBtn.addEventListener('click', () => startScan());

@@ -28,7 +28,7 @@ const OUT_AT = OUT_GO + OUT_D + 0.2;
 
 // 캔버스(그림) 크기 — 그림 비율 그대로(야외용 작은 캔버스)
 const CVS = { W: 0.52, H: 0.52 * 1279 / 1600, D: 0.022 };
-const TEX_W = 1024, TEX_H = Math.round(1024 * 1279 / 1600);
+const TEX_W = 768, TEX_H = Math.round(768 * 1279 / 1600);   // 칠하는 판 — 매 장면 GPU 로 올리므로 작게
 
 // ── 칠해진 그림 한 장(미리): 그림을 보고 굵은 붓 → 가는 붓으로 칠한 판(Hertzmann 1998 방식). 넓은 붓이 지나갈 때 이 판이 묻어난다
 function paintedVersion(img) {
@@ -119,9 +119,9 @@ export async function playIntro({ onDone, instant = false } = {}) {
   let renderer;
   try { renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true }); }
   catch (e) { photo.style.opacity = '1'; cv.remove(); ui.remove(); onDone?.(); return; }
-  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);
+  renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);   // 11/09: 폰 부담 — 2배 → 1.5배
   renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.9;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap;
   renderer.setClearColor(0x0d0b09, 1);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const scene = new T.Scene();
@@ -340,7 +340,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const key = new T.SpotLight(0xC9D4E0, 6, 9, 0.55, 0.75, 1.4); key.position.set(-2.4, 2.3, 0.6); key.target.position.set(0.1, 0.8, 0.1); scene.add(key, key.target);
   key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.camera.near = 0.5; key.shadow.camera.far = 10;
   const sun = new T.DirectionalLight(0xFFEBD0, 0); sun.position.set(-2.6, 6.0, 3.6); sun.target.position.set(0, 0.6, -0.4); scene.add(sun, sun.target);   // 앞 왼쪽 해 — 그림자가 이젤 뒤 풀밭(보이는 쪽)으로
-  sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: 1, far: 20 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  sun.castShadow = false; sun.shadow.mapSize.set(1024, 1024);   // 그림자는 한 번에 한 빛만(화실=창빛, 밖=해) Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: 1, far: 20 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
   const skyCol = new T.Color(0xBFD6EE), roomSky = new T.Color(0x6f7680), roomGnd = new T.Color(0x1a120c), outGnd = new T.Color(0x7A7550);
 
   // ── 카메라: 사진의 수평선 높이에 맞춘 내려다보는 각(처음부터 끝까지 같음). 이젤은 화면 가로 62% · 다리 끝이 화면 84% 높이(풀밭)에 오게
@@ -425,14 +425,14 @@ export async function playIntro({ onDone, instant = false } = {}) {
     }
     pg.restore(); sw.drawn = n; return true;
   }
-  let detA = 0, vivA = 0;
+  let detA = 0, vivA = 0, paintFrame = 0, pendingUp = false;
   const paintTo = (t) => {
     let ch = false;
     for (const sw of sweeps) { const u = (t - sw.at) / SWEEP; if (u > 0) ch = sweepTo(sw, clamp(easeIO(clamp(u)))) || ch; }
     if (t > DET_AT) { const a = clamp((t - DET_AT) / DET); if (a > detA) { pg.globalAlpha = (a - detA) / (1 - detA + 1e-6); pg.drawImage(det, 0, 0); pg.globalAlpha = 1; detA = a; ch = true; } }
     const v = easeIO(clamp((t - OUT_GO - 0.3) / (OUT_D * 0.8)));                // 같은 그림이 원래 색으로
     if (v > vivA) { pg.globalAlpha = (v - vivA) / (1 - vivA + 1e-6); pg.drawImage(vivid, 0, 0); pg.globalAlpha = 1; vivA = v; ch = true; }
-    if (ch) paintTex.needsUpdate = true;
+    if (ch && (paintFrame++ & 1) === 0) paintTex.needsUpdate = true; else if (ch) pendingUp = true; else if (pendingUp) { paintTex.needsUpdate = true; pendingUp = false; }
   };
   // 밖으로: 벽 · 바닥 · 창이 걷히고(투명), 바깥 사진이 드러나고, 해가 들고, 한 번 환해진다
   let outdoorShadows = false;
@@ -446,7 +446,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
     key.intensity = 6 * (1 - w); winFill.intensity = 1.1 * (1 - w); sun.intensity = 2.6 * e;
     room.visible = floor.visible = w < 0.97; backWall.visible = leftWall.visible = w < 0.97;
     // 밖에서는 이젤 · 의자만 그림자(화실 창틀 등이 풀밭에 그림자를 드리우지 않게)
-    if (w >= 0.97 && !outdoorShadows) { outdoorShadows = true; const keep = new Set(); [easel, stool].forEach((g) => g.traverse((c) => keep.add(c))); scene.traverse((c) => { if (c.isMesh && !keep.has(c)) c.castShadow = false; }); key.castShadow = false; key.visible = false; }   // 화실 창빛(스포트)도 그림자 계산에서 뺀다 — 안 그러면 풀밭 판 전체가 그 그늘로 어두워진다
+    if (w >= 0.97 && !outdoorShadows) { outdoorShadows = true; const keep = new Set(); [easel, stool].forEach((g) => g.traverse((c) => keep.add(c))); scene.traverse((c) => { if (c.isMesh && !keep.has(c)) c.castShadow = false; }); key.castShadow = false; key.visible = false; sun.castShadow = true; }   // 화실 창빛(스포트)도 그림자 계산에서 뺀다 — 안 그러면 풀밭 판 전체가 그 그늘로 어두워진다
     // 11/09: 땅은 흐릿하게 번져 나오지 않고 빛이 가장 환한 순간 한 번에 — 반쯤 투명한 땅 가장자리(둥근 끝)가 먼저 비쳐 보이던 것 없앰
     ground.visible = face.visible = u >= 0.34;
 
