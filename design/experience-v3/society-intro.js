@@ -3,6 +3,7 @@
 //   three.js(살롱 도입과 같은 방식). 단위 미터, 창은 z=0 벽에, 방은 +z, 바깥은 -z. 그림은 휘거나 일렁이지 않는다(문 · 커튼은 단단한 판으로 움직임).
 //   playSocietyIntro({ onDone }) — 누르면 끝 장면으로
 import * as T from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';   // 방 가구: Poly Haven(CC0) — ph/<이름>/
 
 const PAINT = new URL('../../booth/assets/img/morris_bg_capucines.jpg', import.meta.url).href;   // 모네 〈카퓌신 대로〉 1873 · 넬슨앳킨스 · 퍼블릭 도메인
 const PAINT_TINT = new T.Color(0.86, 0.8, 0.72);
@@ -28,7 +29,7 @@ export function playSocietyIntro({ onDone } = {}) {
   const root = document.createElement('div');
   root.id = 'scIntro'; root.setAttribute('aria-hidden', 'true');
   root.innerHTML = `<canvas class="sc-cv"></canvas>
-    <div class="sc-title"><small>PARIS · AVRIL 1874</small><b>BOULEVARD<br>DES CAPUCINES</b><i>35, boulevard des Capucines</i></div>
+    <div class="sc-title" hidden></div>
     <p class="sc-skip">누르면 건너뜁니다</p>`;
   document.body.appendChild(root);
   const cv = root.querySelector('.sc-cv'), title = root.querySelector('.sc-title');
@@ -85,7 +86,7 @@ export function playSocietyIntro({ onDone } = {}) {
     for (let x = 0; x < w; x += 6) { g.fillStyle = x % 12 ? '#B8924A' : '#7C5E2A'; g.fillRect(x, h - 24, 4, 24); }
   }, aniso);
   const curtMat = new T.MeshStandardMaterial({ map: curtTex, roughness: 0.95, metalness: 0, side: T.DoubleSide });
-  const woodMat = new T.MeshStandardMaterial({ color: 0xBFB49C, roughness: 0.72 });          // 창틀: 미색 칠(오스만 양식)
+  const woodMat = new T.MeshStandardMaterial({ color: 0x8F8574, roughness: 0.75 });          // 창틀: 미색 칠(오스만 양식)
   const ironMat = new T.MeshStandardMaterial({ color: 0x16130f, roughness: 0.5, metalness: 0.6 });
   const brassMat = new T.MeshStandardMaterial({ color: 0xB08A45, roughness: 0.35, metalness: 0.9 });
   const glassMat = new T.MeshStandardMaterial({ color: 0xcfe0ea, roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.12, depthWrite: false });
@@ -145,6 +146,20 @@ export function playSocietyIntro({ onDone } = {}) {
   // 그림 둘레(그림판보다 넓게 보이는 데) — 하늘빛으로 채움
   const sky = new T.Mesh(new T.PlaneGeometry(60, 40), new T.MeshBasicMaterial({ color: 0xc7d2dc, toneMapped: false })); sky.position.set(0, PY, PLANE.z - 0.1); scene.add(sky);
 
+  // ── 가구(모델): 창 왼쪽 벽 앞 콘솔 + 위 화병 · 오른쪽 안락의자 · 창 양옆 금박 액자
+  const V3 = new URL('./', import.meta.url).href, gl = new GLTFLoader();
+  const loadModel = (id, h) => new Promise((res) => gl.load(`${V3}ph/${id}/${id}.gltf`, (g) => {
+    const o = g.scene; o.traverse((c) => { if (c.isMesh) { c.castShadow = c.receiveShadow = true; } });
+    const b = new T.Box3().setFromObject(o), sz = b.getSize(new T.Vector3()); o.scale.setScalar(h / sz.y);
+    const b2 = new T.Box3().setFromObject(o); o.position.y = -b2.min.y; const w = new T.Group(); w.add(o); w.userData.size = b2.getSize(new T.Vector3()); res(w);
+  }, undefined, () => res(null)));
+  const furnished = Promise.all([loadModel('ClassicConsole_01', 0.86), loadModel('antique_ceramic_vase_01', 0.3), loadModel('ArmChair_01', 0.98)]).then(([con, vase, chair]) => {
+    if (con) { con.position.set(-1.28, 0, zW + 0.55); con.rotation.y = 0.12; scene.add(con); if (vase) { vase.position.set(-1.12, con.userData.size.y, zW + 0.5); scene.add(vase); } }   // 창 왼쪽, 커튼 앞
+    if (chair) { chair.position.set(1.0, 0, 2.3); chair.rotation.y = -2.2; scene.add(chair); }   // 오른쪽 앞 — 화면 가장자리에 걸쳐 방의 깊이
+  });
+  // 방 안 따뜻한 등잔빛(아주 약하게) — 벽지 · 가구가 어둠 속에 보이게
+  const lamp = new T.PointLight(0xFFB872, 1.4, 6, 1.8); lamp.position.set(-1.6, 1.4, 1.2); scene.add(lamp);
+
   // ── 빛: 방 안은 어둑 · 바깥 해가 창으로 들어와 바닥에 창살 그림자
   const amb = new T.HemisphereLight(0x8a8fa0, 0x1a120c, 0.12); scene.add(amb);
   const sun = new T.DirectionalLight(0xfff0d8, 0.0);
@@ -186,8 +201,8 @@ export function playSocietyIntro({ onDone } = {}) {
 
   // 그림 불러오기 — 오면 시작
   let done = false, skipped = false, raf = 0, t0 = 0;
-  new T.TextureLoader().load(PAINT, (tx) => { tx.encoding = T.sRGBEncoding; tx.anisotropy = aniso; paintMat.map = tx; paintMat.needsUpdate = true; start(); },
-    undefined, () => start());
+  new T.TextureLoader().load(PAINT, (tx) => { tx.encoding = T.sRGBEncoding; tx.anisotropy = aniso; paintMat.map = tx; paintMat.needsUpdate = true; furnished.then(start); },
+    undefined, () => furnished.then(start));
 
   function pose(t) {
     // 커튼: 바깥으로 모이며(폭이 줄고) 옆으로
