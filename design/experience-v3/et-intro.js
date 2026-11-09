@@ -91,6 +91,7 @@ function canvasTex(w, h, draw, aniso = 4, srgb = true) {
 
 
 export async function playIntro({ onDone, instant = false } = {}) {
+  const DBG = location.search.includes('etdbg'), T00 = performance.now(), mark = (n) => DBG && console.log('[et]', n, Math.round(performance.now() - T00));
   const host = document.querySelector('.room-bg') || document.body;
   const rb = host.getBoundingClientRect();
   const VW = rb.width || innerWidth, VH = rb.height || innerHeight;
@@ -106,6 +107,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   Object.assign(ui.style, { left: `${rb.left}px`, top: `${rb.top}px`, width: `${VW}px`, height: `${VH}px` });
   if (!instant) document.body.appendChild(ui);
   const title = ui.querySelector('.ei-title');
+  let early = false; const earlyTap = () => { early = true; }; if (!instant) addEventListener('pointerdown', earlyTap, true);   // 모델을 불러오는 동안 누르면 준비되자마자 끝 장면으로
 
   // 바깥 사진 구도 — 화면을 덮게. 세로 화면이면 높이를 맞추고 바늘바위와 아치 사이가 화면 왼쪽 30%에
   let IW, IH, PX, PY;
@@ -188,7 +190,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const grassPaint = tl.load(`${V3}ph/withered_grass/diff.jpg`); grassPaint.encoding = T.sRGBEncoding; grassPaint.anisotropy = aniso;
   const grassNor = tl.load(`${V3}ph/withered_grass/nor.jpg`); grassNor.wrapS = grassNor.wrapT = T.RepeatWrapping; grassNor.repeat.set(9, 9);
   grassPaint.wrapS = grassPaint.wrapT = T.RepeatWrapping; grassPaint.repeat.set(9, 9);   // 2m 한 장
-  const groundMat = new T.MeshStandardMaterial({ map: grassPaint, normalMap: grassNor, roughness: 1, transparent: true, opacity: 0, color: 0x8E9A55, depthWrite: false });   // 마른 풀에 초록을 — 사진 앞쪽 풀빛에 맞춤
+  const groundMat = new T.MeshStandardMaterial({ map: grassPaint, normalMap: grassNor, roughness: 1, transparent: true, opacity: 0, color: 0x5A6A32, depthWrite: false });   // 마른 풀에 초록을 — 사진 앞쪽 풀빛에 맞춤
   // 가장자리는 칼로 자른 선이 아니라 풀이 성겨지며 사진 속으로 스며들게(뒤쪽 0.7m 동안 투명해짐)
   groundMat.onBeforeCompile = (sh) => {
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -327,7 +329,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
 
   // ── 붓질: 넓은 붓 여덟 번(사선, 왼쪽 위 모서리부터) — 화실 안이라 칙칙한 색으로. 밖으로 나가면 같은 그림이 원래 색으로
   // ── 모델 배치: 화실(작업대 · 화병 · 상자 · 벽 그림 — 밖으로 나가면 걷힘) / 이젤 왼쪽 앞 접이식 의자(상자를 얹음) / 바깥 풀포기(밖에서만)
-  const [mTable, mVase, mFrame, mCrate, mStool, mGrass] = await MODELS;
+  mark('scene'); const [mTable, mVase, mFrame, mCrate, mStool, mGrass] = await MODELS; mark('models');
   await Promise.all([texReady(grassPaint), texReady(grassNor)]);   // 풀 질감이 오기 전엔 바닥이 투명하게 그려진다
   const toFade = (o) => o && o.traverse((c) => { if (c.isMesh) fadeMat(c.material); });
   if (mTable) { mTable.position.set(-1.05, 0, -1.5); mTable.rotation.y = 0.2; room.add(mTable); toFade(mTable);
@@ -338,30 +340,36 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const fadeIn = [];
   if (mGrass) {
     // 풀밭 — 풀포기 모델(Poly Haven grass_medium_01)을 땅 전체에 빽빽이(인스턴싱). 가장자리까지 덮어 땅 끝이 풀숲으로 끝나고 그 너머가 바다
-    const rg = rnd(91), spots = [], S = 0.17;
-    for (let z = -2.4; z < 2.6; z += S) for (let x = -2.8; x < 2.4; x += S) {
+    const rg = rnd(91), spots = [], S = 0.12;
+    for (let z = -2.0; z < 1.7; z += S) for (let x = -2.1; x < 1.7; x += S) {   // 화면에 보이는 땅만
       const px = x + (rg() - 0.5) * S, pz = z + (rg() - 0.5) * S, e = EDGE(px);
       if (pz < e + 0.12) continue;                                                     // 가장자리 바로 앞까지
       if (Math.hypot(px - 0.3, pz - 0.18) < 0.09 || Math.hypot(px + 0.3, pz - 0.18) < 0.09) continue;   // 이젤 발 둘레는 조금 비움
       const near = pz < e + 0.6 ? 1.25 : 1;                                             // 가장자리 쪽은 키 큰 풀
-      spots.push([px, pz, (0.55 + rg() * 0.55) * near, rg() * 6.28]);
+      spots.push([px, pz, (1.0 + rg() * 0.7) * near, rg() * 6.28]);
     }
+    // 모델 파일에는 풀포기 17가지가 가로로 늘어서 있다 — 자리마다 하나만 골라 쓴다(가벼운 small · mid · tall 일곱 가지)
+    const USE = /small_a|small_b|mid_b|mid_c/;   // 잎 넓은 tall 은 잡초처럼 보여 뺌
     const parts = []; mGrass.updateMatrixWorld(true);
-    mGrass.traverse((c) => { if (c.isMesh) parts.push(c); });
+    mGrass.traverse((c) => { if (c.isMesh && USE.test(c.name + (c.parent?.name || ''))) parts.push(c); });
+    if (!parts.length) mGrass.traverse((c) => { if (c.isMesh) parts.push(c); });
     const tint = new T.Color(0xF2EDB0), M4 = new T.Matrix4(), Q = new T.Quaternion(), E3 = new T.Euler();
-    for (const c of parts) {
+    const pick = spots.map(() => (rg() * parts.length) | 0);
+    parts.forEach((c, pi) => {
+      const mine = spots.filter((_, k) => pick[k] === pi); if (!mine.length) return;
+      const local = c.matrixWorld.clone(); const tp = new T.Vector3(), tq = new T.Quaternion(), ts = new T.Vector3(); local.decompose(tp, tq, ts); local.compose(new T.Vector3(0, tp.y, 0), tq, ts);   // 늘어선 자리(x)는 버린다
       const mat = c.material.clone(); mat.color.copy(tint); mat.transparent = false; mat.alphaTest = 0.45; mat.depthWrite = true; mat.side = T.DoubleSide;
-      const im = new T.InstancedMesh(c.geometry, mat, spots.length); im.receiveShadow = true; im.castShadow = false; im.visible = false; im.frustumCulled = false;
-      spots.forEach(([x, z, sc, ry], k) => { E3.set(0, ry, 0); Q.setFromEuler(E3); M4.compose(new T.Vector3(x, 0, z), Q, new T.Vector3(sc, sc * (0.85 + ((k * 7919) % 13) / 30), sc)).multiply(c.matrixWorld); im.setMatrixAt(k, M4); });
+      const im = new T.InstancedMesh(c.geometry, mat, mine.length); im.receiveShadow = true; im.castShadow = false; im.visible = false; im.frustumCulled = false;
+      mine.forEach(([x, z, sc, ry], k) => { E3.set(0, ry, 0); Q.setFromEuler(E3); M4.compose(new T.Vector3(x, 0, z), Q, new T.Vector3(sc, sc, sc)).multiply(local); im.setMatrixAt(k, M4); });
       scene.add(im); fadeIn.push(im);
-    }
+    });
   }
 
-  let img; try { img = await load(PAINTING); } catch (e) { img = null; }
+  mark('grass'); let img; try { img = await load(PAINTING); } catch (e) { img = null; } mark('img');
   const vivid = img ? paintedVersion(img) : paintCv;
   const det = document.createElement('canvas'); det.width = TEX_W; det.height = TEX_H;
   { const d = det.getContext('2d'); d.filter = 'saturate(.45) brightness(.82) sepia(.22)'; d.drawImage(vivid, 0, 0); }
-  const pat = pg.createPattern(det, 'no-repeat');
+  mark('painted'); const pat = pg.createPattern(det, 'no-repeat');
   const W = TEX_W, H = TEX_H, BW = H * 0.22;
   const ANG = -Math.PI / 6, dx = Math.cos(ANG), dy = Math.sin(ANG), nx = -dy, ny = dx;
   const projs = [[0, 0], [W, 0], [0, H], [W, H]].map(([x, y]) => (x - W / 2) * nx + (y - H / 2) * ny);
@@ -422,6 +430,8 @@ export async function playIntro({ onDone, instant = false } = {}) {
   if (instant) { toEnd(); finish(); return; }
   if (FREEZE != null) { window.__et = { groundMat, grassPaint, ground, cam, T }; const t = +FREEZE; paintTo(t); outTo(t); pose(t); render(); requestAnimationFrame(() => { title.classList.toggle('on', t <= PAINT_AT + 1.3); window.__etReady = true; }); return; }
 
+  mark('start'); removeEventListener('pointerdown', earlyTap, true);
+  if (early) { toEnd(); finish(); return; }
   outTo(0); pose(0); render();
   requestAnimationFrame(() => title.classList.add('on'));
   addEventListener('pointerdown', skip, true);
