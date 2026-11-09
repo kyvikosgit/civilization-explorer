@@ -312,9 +312,9 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const hemi = new T.HemisphereLight(0x6f7680, 0x1a120c, 0.16); scene.add(hemi);
   const winFill = new T.PointLight(0xAFC0D0, 1.1, 4.5, 1.8); winFill.position.set(-1.25, 2.0, -1.7); scene.add(winFill);   // 뒷벽 창 둘레
   const key = new T.SpotLight(0xC9D4E0, 6, 9, 0.55, 0.75, 1.4); key.position.set(-2.4, 2.3, 0.6); key.target.position.set(0.1, 0.8, 0.1); scene.add(key, key.target);
-  key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.camera.near = 0.5; key.shadow.camera.far = 10;
+  key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.camera.near = 0.5; key.shadow.camera.far = 10;
   const sun = new T.DirectionalLight(0xFFEBD0, 0); sun.position.set(-2.6, 6.0, 3.6); sun.target.position.set(0, 0.6, -0.4); scene.add(sun, sun.target);   // 앞 왼쪽 해 — 그림자가 이젤 뒤 풀밭(보이는 쪽)으로
-  sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: 1, far: 20 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024); Object.assign(sun.shadow.camera, { left: -2.5, right: 2.5, top: 2.5, bottom: -2.5, near: 1, far: 20 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
   const skyCol = new T.Color(0xBFD6EE), roomSky = new T.Color(0x6f7680), roomGnd = new T.Color(0x1a120c), outGnd = new T.Color(0x7A7550);
 
   // ── 카메라: 사진의 수평선 높이에 맞춘 내려다보는 각(처음부터 끝까지 같음). 이젤은 화면 가로 62% · 다리 끝이 화면 84% 높이(풀밭)에 오게
