@@ -190,7 +190,25 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const tl = new T.TextureLoader();
   const ptex = (id, f, rep, srgb) => { const t = tl.load(`${V3}ph/${id}/${f}.jpg`); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.anisotropy = aniso; if (srgb) t.encoding = T.sRGBEncoding; return t; };
   const GR = [4.5, 4.0];
-  const groundMat = new T.MeshStandardMaterial({ map: ptex('forrest_ground_01', 'diff', GR, true), normalMap: ptex('forrest_ground_01', 'nor', GR), roughnessMap: ptex('forrest_ground_01', 'rough', GR), normalScale: new T.Vector2(1.6, 1.6), color: 0x8F9870, transparent: true, opacity: 0 });
+  // 11/09: 절벽 위 땅 = 흰 백악 바위(marble_cliff_05) 위에 풀이 군데군데(leafy_grass) — 얼룩 모양은 땅 위치 노이즈로 섞음
+  const grassTex = ptex('leafy_grass', 'diff', GR, true);
+  const groundMat = new T.MeshStandardMaterial({ map: ptex('marble_cliff_05', 'diff', GR, true), normalMap: ptex('marble_cliff_05', 'nor', GR), roughnessMap: ptex('marble_cliff_05', 'rough', GR), normalScale: new T.Vector2(1.2, 1.2), color: 0xF4F0E6, transparent: true, opacity: 0 });
+  groundMat.onBeforeCompile = (sh) => {
+    sh.uniforms.grassMap = { value: grassTex };
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+      varying vec3 vWp; uniform sampler2D grassMap;
+      float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
+      float fbm(vec2 p) { return 0.55 * vn(p) + 0.3 * vn(p * 2.3 + 7.1) + 0.15 * vn(p * 5.7 + 3.3); }`)
+      .replace('#include <map_fragment>', `#ifdef USE_MAP
+        vec4 chalkC = texture2D(map, vUv);
+        vec4 grassC = texture2D(grassMap, vUv * 1.3) * vec4(0.95, 1.08, 0.85, 1.0);
+        float n = fbm(vWp.xz * 1.6);
+        float gm = smoothstep(0.42, 0.6, n + 0.12 * vn(vWp.xz * 14.0));   // 풀 덤불 · 사이사이 흰 바위
+        diffuseColor *= mix(chalkC, grassC, gm);
+      #endif`);
+  };
   const EDGE = (x) => -1.7 + Math.sin(x * 1.3 + 0.4) * 0.14 + Math.sin(x * 3.7 + 1) * 0.05;
   const ZF = 5.0;                                                             // 앞쪽 끝(카메라 뒤)
   const hAt = (x, z) => {                                                     // 땅 높이 — 잔 기복, 가장자리 0.55m 에서 둥글게 꺾여 내려감
