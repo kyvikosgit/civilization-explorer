@@ -1,0 +1,9 @@
+{
+  "name": "입장 대기 접수",
+  "short_name": "대기 접수",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#F4EFE4",
+  "theme_color": "#F4EFE4",
+  "icons": [{ "src": "kiosk-icon.png", "sizes": "512x512", "type": "image/png" }]
+}
