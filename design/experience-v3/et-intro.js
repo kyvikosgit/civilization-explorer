@@ -1,224 +1,327 @@
-// 에트르타 도입(11/06) — 빈 캔버스에 붓질로 에트르타가 그려지고, 카메라가 물러나면 그 캔버스가 이젤 위에 놓인 실제 바닷가가 된다.
-//   배경 그림(img/etretat_scene.jpg 903×879) 안 이젤 캔버스 자리 = (508, 348) 244×246 — img/et_canvas.jpg 가 그 자리를 잘라 키운 것(맞춰 봄 0.99)
-//   그림은 휘거나 일렁이지 않는다: 붓질로 드러남 · 확대 · 밝기 · 빛줄기만. 끝 장면은 .room-bg .ph 와 같은 구도(inset -2% · cover 40% 40%)
-//   playIntro({ onDone }) — 누르면 끝 장면으로
-const IMG_W = 903, IMG_H = 879;
-const CV = { x: 508, y: 348, w: 244, h: 246 };
+// 에트르타 도입(11/09 · 3D) — 에트르타 절벽 위 풀밭에 선 나무 이젤. 빈 캔버스에 넓은 붓이 사선으로 슥슥 지나가며 모네 〈에트르타의 마네포르트〉(1883)가 그려지고,
+//   카메라가 물러나며 이젤 · 튜브물감 상자 · 바다와 하늘이 드러난다. 그 장면이 그대로 이 화면의 배경으로 남는다(기획 장표의 배경 그림은 쓰지 않는다).
+//   three.js(살롱 · 시민사회 도입과 같은 방식). 단위 미터, 캔버스 앞면이 +z(카메라 쪽), 바다는 -z.
+//   그림은 휘거나 일렁이지 않는다(붓질로 칠해짐 · 카메라 이동 · 빛만).
+//   playIntro({ onDone, instant }) — instant 면 끝 장면을 바로 그린다. 누르면 끝 장면으로
+import * as T from 'three';
+
 const V3 = new URL('./', import.meta.url).href;
+const PAINTING = V3 + 'img/z_etretat.jpg';   // 모네 〈에트르타의 마네포르트〉 1883 · 메트로폴리탄 미술관 · 퍼블릭 도메인 (900×721)
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-const clamp = (v) => Math.max(0, Math.min(1, v));
 const easeIO = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+const clamp = (v) => Math.max(0, Math.min(1, v));
+const load = (src) => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = rej; i.src = src; });
+function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 
-// 붓질 — 정해 둔 길이 아니라, 그림을 보고 화가처럼 칠한다(굵은 붓으로 큰 덩어리 → 점점 가는 붓으로 모양):
-//   붓 크기마다 그림을 그만큼 흐리게 보고, 아직 덜 칠한 자리에서 시작해 색의 결(밝기 기울기의 직각)을 따라 한 획을 긋는다(Hertzmann 1998 방식).
-//   계산은 작은 판(M×M)에서 미리 하고, 화면에는 획마다 털 결 · 물감 두께(밝은 가장자리)를 얹어 큰 해상도로 그린다
-const M = 220;                              // 계산 판
-const LAYERS = [                            // 붓 반지름(계산 판 px) · 칠할 만큼 다른가(색 차이)
-  { r: 15, th: 26 },
-  { r: 8, th: 22 },
-  { r: 4.5, th: 20 },
-  { r: 2.5, th: 18 },
-];
-// 11/09: 작은 붓질 수천 개를 여기저기 빨리 찍으면 벌레 떼처럼 보인다 —
-//   눈에 보이는 붓질은 굵은 붓 한 겹만, 위에서 아래로 좌우를 오가며 한 획씩 그어지고(획은 길이를 따라 자란다),
-//   가는 붓 겹은 미리 다 칠해 둔 판을 천천히 겹쳐 그림이 또렷해지게
-// 11/09(2): 그래도 정신없다 — 넓은 붓으로 일곱 번 슥슥(위에서 아래로, 좌우 번갈아). 붓이 지나간 자리에 칠해진 그림(위 방식으로 미리 다 칠한 판)이 묻어난다
-const PAINT_AT = 0.9, SWEEP = 0.5, GAP = 0.34, NS = 8;     // 한 번 긋는 시간 · 다음 획까지 · 횟수
-const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.5; // 붓 사이 빈틈을 채우는 마무리
-const PULL_AT = DET_AT + DET + 0.2, PULL = 2.4, OUT_AT = PULL_AT + PULL + 0.1;
+// 시간표(초)
+const PAINT_AT = 1.0, SWEEP = 0.5, GAP = 0.34, NS = 8;
+const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.5;
+const PULL_AT = DET_AT + DET + 0.15, PULL = 2.6, OUT_AT = PULL_AT + PULL;
 
-function planStrokes(img) {
-  const c = document.createElement('canvas'); c.width = c.height = M;
+// 캔버스(그림) 크기 — 그림 비율 그대로
+const CVS = { W: 0.74, H: 0.74 * 721 / 900, D: 0.024 };
+const TEX_W = 1024, TEX_H = Math.round(1024 * 721 / 900);
+
+// ── 칠해진 그림 한 장(미리): 그림을 보고 굵은 붓 → 가는 붓으로 칠한 판(Hertzmann 1998 방식). 넓은 붓이 지나갈 때 이 판이 묻어난다
+function paintedVersion(img) {
+  const MX = 240, MY = Math.round(240 * TEX_H / TEX_W);
+  const c = document.createElement('canvas'); c.width = MX; c.height = MY;
   const x = c.getContext('2d', { willReadFrequently: true });
-  const cur = new Float32Array(M * M * 3).fill(0);
-  for (let i = 0; i < M * M; i++) { cur[i * 3] = 237; cur[i * 3 + 1] = 227; cur[i * 3 + 2] = 207; }   // 초벌칠 색
-  const rand = (() => { let k = 7; return () => { k = (k * 16807) % 2147483647; return (k - 1) / 2147483646; }; })();
-  const out = [];
-  LAYERS.forEach((L, li) => {
-    x.filter = `blur(${Math.max(0.5, L.r * 0.5)}px)`; x.clearRect(0, 0, M, M); x.drawImage(img, 0, 0, M, M); x.filter = 'none';
-    const ref = x.getImageData(0, 0, M, M).data;
-    const lum = new Float32Array(M * M); for (let i = 0; i < M * M; i++) lum[i] = 0.3 * ref[i * 4] + 0.59 * ref[i * 4 + 1] + 0.11 * ref[i * 4 + 2];
-    const at = (px, py) => { const X = Math.max(0, Math.min(M - 1, px | 0)), Y = Math.max(0, Math.min(M - 1, py | 0)); return Y * M + X; };
-    const diff = (k) => { const a = ref[k * 4] - cur[k * 3], b = ref[k * 4 + 1] - cur[k * 3 + 1], d = ref[k * 4 + 2] - cur[k * 3 + 2]; return Math.sqrt(a * a + b * b + d * d); };
-    const layer = [];
-    const step = Math.max(1, Math.round(L.r));
-    for (let gy = 0; gy < M; gy += step) for (let gx = 0; gx < M; gx += step) {
-      // 칸 안에서 가장 덜 칠한 자리
+  const cur = new Float32Array(MX * MY * 3);
+  for (let i = 0; i < MX * MY; i++) { cur[i * 3] = 237; cur[i * 3 + 1] = 227; cur[i * 3 + 2] = 207; }
+  const rand = rnd(7);
+  const det = document.createElement('canvas'); det.width = TEX_W; det.height = TEX_H;
+  const g = det.getContext('2d');
+  g.fillStyle = '#EDE3CF'; g.fillRect(0, 0, TEX_W, TEX_H);
+  const k = TEX_W / MX;
+  const sh = (c, f) => `rgb(${Math.min(255, c[0] * f) | 0},${Math.min(255, c[1] * f) | 0},${Math.min(255, c[2] * f) | 0})`;
+  for (const L of [{ r: 12, th: 24 }, { r: 7, th: 20 }, { r: 4, th: 18 }, { r: 2.2, th: 16 }]) {
+    x.filter = `blur(${Math.max(0.5, L.r * 0.5)}px)`; x.clearRect(0, 0, MX, MY); x.drawImage(img, 0, 0, MX, MY); x.filter = 'none';
+    const ref = x.getImageData(0, 0, MX, MY).data;
+    const lum = new Float32Array(MX * MY); for (let i = 0; i < MX * MY; i++) lum[i] = 0.3 * ref[i * 4] + 0.59 * ref[i * 4 + 1] + 0.11 * ref[i * 4 + 2];
+    const at = (px, py) => Math.max(0, Math.min(MY - 1, py | 0)) * MX + Math.max(0, Math.min(MX - 1, px | 0));
+    const diff = (q) => Math.hypot(ref[q * 4] - cur[q * 3], ref[q * 4 + 1] - cur[q * 3 + 1], ref[q * 4 + 2] - cur[q * 3 + 2]);
+    const layer = [], step = Math.max(1, Math.round(L.r));
+    for (let gy = 0; gy < MY; gy += step) for (let gx = 0; gx < MX; gx += step) {
       let best = -1, bk = 0, sum = 0, n = 0;
-      for (let yy = gy; yy < Math.min(M, gy + step); yy++) for (let xx = gx; xx < Math.min(M, gx + step); xx++) { const k = yy * M + xx, e = diff(k); sum += e; n++; if (e > best) { best = e; bk = k; } }
+      for (let yy = gy; yy < Math.min(MY, gy + step); yy++) for (let xx = gx; xx < Math.min(MX, gx + step); xx++) { const q = yy * MX + xx, e = diff(q); sum += e; n++; if (e > best) { best = e; bk = q; } }
       if (sum / n < L.th) continue;
-      let px = bk % M, py = (bk / M) | 0;
-      const k0 = bk, col = [ref[k0 * 4], ref[k0 * 4 + 1], ref[k0 * 4 + 2]];
-      const pts = [[px, py]]; let ldx = 0, ldy = 0;
-      const maxLen = L.r > 10 ? 5 : L.r > 5 ? 7 : 9;
-      for (let s = 1; s < maxLen; s++) {
-        const k = at(px, py);
-        if (s > 2) { const dc = Math.hypot(ref[k * 4] - col[0], ref[k * 4 + 1] - col[1], ref[k * 4 + 2] - col[2]), dn = Math.hypot(cur[k * 3] - col[0], cur[k * 3 + 1] - col[1], cur[k * 3 + 2] - col[2]); if (dc > dn) break; }
+      let px = bk % MX, py = (bk / MX) | 0;
+      const col = [ref[bk * 4], ref[bk * 4 + 1], ref[bk * 4 + 2]], pts = [[px, py]];
+      let ldx = 0, ldy = 0;
+      for (let s = 1; s < 8; s++) {
+        const q = at(px, py);
+        if (s > 2 && Math.hypot(ref[q * 4] - col[0], ref[q * 4 + 1] - col[1], ref[q * 4 + 2] - col[2]) > Math.hypot(cur[q * 3] - col[0], cur[q * 3 + 1] - col[1], cur[q * 3 + 2] - col[2])) break;
         const gx_ = lum[at(px + 1, py)] - lum[at(px - 1, py)], gy_ = lum[at(px, py + 1)] - lum[at(px, py - 1)];
-        if (Math.hypot(gx_, gy_) < 0.5) { if (!ldx && !ldy) { ldx = 1; ldy = 0.15 * (rand() - 0.5); } }   // 결이 없으면(하늘 · 바다) 가로로 길게
-        else if (!ldx && !ldy) { const l0 = Math.hypot(gx_, gy_); ldx = -gy_ / l0; ldy = gx_ / l0; }
-        else { let dx = -gy_, dy = gx_; const l = Math.hypot(dx, dy); dx /= l; dy /= l; if (ldx * dx + ldy * dy < 0) { dx = -dx; dy = -dy; } const sm = L.r > 6 ? 0.82 : 0.6; ldx = sm * ldx + (1 - sm) * dx; ldy = sm * ldy + (1 - sm) * dy; }   // 큰 붓일수록 곧게
+        if (Math.hypot(gx_, gy_) < 0.5) { if (!ldx && !ldy) { ldx = 1; ldy = 0.1 * (rand() - 0.5); } }
+        else { let dx = -gy_, dy = gx_; const l = Math.hypot(dx, dy); dx /= l; dy /= l; if (!ldx && !ldy) { ldx = dx; ldy = dy; } else { if (ldx * dx + ldy * dy < 0) { dx = -dx; dy = -dy; } ldx = 0.7 * ldx + 0.3 * dx; ldy = 0.7 * ldy + 0.3 * dy; } }
         const ll = Math.hypot(ldx, ldy) || 1; px += (ldx / ll) * L.r; py += (ldy / ll) * L.r;
-        if (px < -L.r || py < -L.r || px > M + L.r || py > M + L.r) break;
         pts.push([px, py]);
       }
-      // 계산 판에도 칠한다(다음 획 · 다음 층이 본다)
-      for (const [qx, qy] of pts) {
-        const R = Math.ceil(L.r);
-        for (let yy = -R; yy <= R; yy++) for (let xx = -R; xx <= R; xx++) {
-          if (xx * xx + yy * yy > L.r * L.r) continue;
-          const X = (qx + xx) | 0, Y = (qy + yy) | 0; if (X < 0 || Y < 0 || X >= M || Y >= M) continue;
-          const k = Y * M + X; cur[k * 3] = col[0]; cur[k * 3 + 1] = col[1]; cur[k * 3 + 2] = col[2];
-        }
-      }
-      layer.push({ pts, col, r: L.r, seed: rand(), li });
+      for (const [qx, qy] of pts) { const R = Math.ceil(L.r); for (let yy = -R; yy <= R; yy++) for (let xx = -R; xx <= R; xx++) { if (xx * xx + yy * yy > L.r * L.r) continue; const X = (qx + xx) | 0, Y = (qy + yy) | 0; if (X < 0 || Y < 0 || X >= MX || Y >= MY) continue; const q = Y * MX + X; cur[q * 3] = col[0]; cur[q * 3 + 1] = col[1]; cur[q * 3 + 2] = col[2]; } }
+      layer.push({ pts, col, r: L.r, seed: rand() });
     }
-    if (li === 0) {   // 굵은 붓: 위 띠부터, 띠 안에서는 왼→오 · 오→왼 번갈아(화가가 캔버스를 쓸어 가듯)
-      const band = L.r * 2.2;
-      layer.sort((a, b) => { const ba = Math.floor(a.pts[0][1] / band), bb = Math.floor(b.pts[0][1] / band); if (ba !== bb) return ba - bb; return ba % 2 ? b.pts[0][0] - a.pts[0][0] : a.pts[0][0] - b.pts[0][0]; });
+    for (let i = layer.length - 1; i > 0; i--) { const j = (rand() * (i + 1)) | 0; [layer[i], layer[j]] = [layer[j], layer[i]]; }
+    for (const st of layer) {
+      const P = st.pts.map(([a, b]) => [a * k, b * k]), w = st.r * 2 * k;
+      const line = (off, lw, color, alpha) => { g.globalAlpha = alpha; g.strokeStyle = color; g.lineWidth = lw; g.beginPath(); P.forEach(([a, b], i) => { const p0 = P[Math.max(0, i - 1)], p1 = P[Math.min(P.length - 1, i + 1)], dx = p1[0] - p0[0], dy = p1[1] - p0[1], l = Math.hypot(dx, dy) || 1; const X = a - (dy / l) * off, Y = b + (dx / l) * off; i ? g.lineTo(X, Y) : g.moveTo(X, Y); }); if (P.length === 1) g.lineTo(P[0][0] + w * 0.3, P[0][1]); g.stroke(); };
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      line(0, w, sh(st.col, 1), 0.95);
+      let sd = st.seed * 1000; const r = () => { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; };
+      for (let i = 0; i < 3; i++) line((r() - 0.5) * w * 0.8, Math.max(0.6, w * (0.06 + r() * 0.08)), sh(st.col, r() < 0.5 ? 0.86 : 1.12), 0.35);
+      line(-w * 0.32, Math.max(0.6, w * 0.12), sh(st.col, 1.2), 0.16);
     }
-    out.push(...layer);
-  });
-  return out;
+  }
+  g.globalAlpha = 1;
+  return det;
 }
 
-export async function playIntro({ onDone } = {}) {
-  const root = document.createElement('div');
-  root.id = 'etIntro'; root.setAttribute('aria-hidden', 'true');
-  root.innerHTML = `<div class="ei-world"><div class="ei-scene"></div><canvas class="ei-cv"></canvas></div><div class="ei-sun"></div><div class="ei-shade"></div>
-    <div class="ei-title"><b>ÉTRETAT</b><small>EN PLEIN AIR</small></div><p class="et-skip">누르면 건너뜁니다</p>`;
-  document.body.appendChild(root);
-  const world = root.querySelector('.ei-world'), scene = root.querySelector('.ei-scene'), cv = root.querySelector('.ei-cv'), sun = root.querySelector('.ei-sun'), shade = root.querySelector('.ei-shade'), title = root.querySelector('.ei-title');
-  let img;
-  try { img = await load(V3 + 'img/et_canvas.jpg'); } catch (e) { root.remove(); onDone?.(); return; }
+function canvasTex(w, h, draw, aniso = 4, srgb = true) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h);
+  const t = new T.CanvasTexture(c); if (srgb) t.encoding = T.sRGBEncoding; t.anisotropy = aniso; return t;
+}
 
-  // 끝 장면 구도 = .room-bg .ph(화면보다 4% 큰 상자에 cover 40% 40%)
-  const rb = document.querySelector('.room-bg')?.getBoundingClientRect() || { left: 0, top: 0, width: innerWidth, height: innerHeight };
-  // 도입 화면은 .room-bg 와 같은 칸(태블릿에선 가운데 480) — 좌표는 그 칸 기준
-  Object.assign(root.style, { left: `${rb.left}px`, top: `${rb.top}px`, width: `${rb.width}px`, height: `${rb.height}px` });
-  const vw = rb.width, vh = rb.height, bw = vw * 1.04, bh = vh * 1.04;
-  const s = Math.max(bw / IMG_W, bh / IMG_H), dw = IMG_W * s, dh = IMG_H * s;
-  const left = -vw * 0.02 + (bw - dw) * 0.4, top = -vh * 0.02 + (bh - dh) * 0.4;
-  Object.assign(world.style, { left: `${left}px`, top: `${top}px`, width: `${dw}px`, height: `${dh}px` });
-  const cx = (CV.x + CV.w / 2) * s, cy = (CV.y + CV.h / 2) * s, cw = CV.w * s, ch = CV.h * s;
-  Object.assign(cv.style, { left: `${CV.x * s}px`, top: `${CV.y * s}px`, width: `${cw}px`, height: `${ch}px` });
-  // 시작: 캔버스가 화면 가로 84%(태블릿은 세로 기준으로 제한)
-  const Z0 = Math.min((vw * 0.84) / cw, (vh * 0.56) / ch);
-  const startC = [vw / 2, vh * 0.52], endC = [left + cx, top + cy];
-  const R = Math.min(1100, Math.round(cw * Z0 * Math.min(2, devicePixelRatio || 1)));
-  cv.width = R; cv.height = Math.round((R * ch) / cw);
-  const g = cv.getContext('2d'), g0 = g;
-  const W = cv.width, H = cv.height;
-  // 끝에 겹쳐 드러낼 원본(물러날 때 배경 그림과 그대로 이어지게)
-  const off = document.createElement('canvas'); off.width = W; off.height = H; off.getContext('2d').drawImage(img, 0, 0, W, H);
-  // 초벌칠(젯소) — 크림 바탕 + 아주 옅은 결
-  g.fillStyle = '#EDE3CF'; g.fillRect(0, 0, W, H);
-  for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(120,100,70,${Math.random() * 0.05})`; g.fillRect(Math.random() * W, Math.random() * H, 1 + Math.random() * 3, 1); }
-  const plan = planStrokes(img);
-  const k = W / M;
-  const shade_ = (c, f) => `rgb(${Math.min(255, Math.max(0, c[0] * f)) | 0},${Math.min(255, Math.max(0, c[1] * f)) | 0},${Math.min(255, Math.max(0, c[2] * f)) | 0})`;
-  // 한 획: 몸통(제 색) → 털 결(조금 어둡고 밝은 가는 줄 몇 가닥) → 물감 두께(위쪽 가장자리에 옅은 하이라이트)
-  function drawStroke(st, u = 1, g = g0) {
-    let P = st.pts.map(([x, y]) => [x * k, y * k]); const w = st.r * 2 * k;
-    if (u < 1) { const n = Math.max(1, Math.ceil(u * P.length)); P = P.slice(0, n); }
-    const line = (off, lw, color, alpha) => {
-      g.globalAlpha = alpha; g.strokeStyle = color; g.lineWidth = lw; g.beginPath();
-      P.forEach(([x, y], i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L; const X = x + nx * off, Y = y + ny * off; i ? g.lineTo(X, Y) : g.moveTo(X, Y); });
-      if (P.length === 1) g.lineTo(P[0][0] + w * 0.35, P[0][1]);
-      g.stroke();
-    };
-    g.lineCap = st.li === 0 ? 'butt' : 'round'; g.lineJoin = 'round';   // 굵은 붓은 납작붓 끝(소시지처럼 둥글지 않게)
-    line(0, w, shade_(st.col, 1), u < 1 ? 1 : 0.95);
-    if (u < 1) { g.globalAlpha = 1; return; }
-    let sd = st.seed * 1000;
-    const r = () => { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; };
-    const hairs = st.r > 6 ? 5 : 3;
-    for (let i = 0; i < hairs; i++) line((r() - 0.5) * w * 0.8, Math.max(0.6, w * (0.06 + r() * 0.08)), shade_(st.col, r() < 0.5 ? 0.86 : 1.12), 0.35);
-    line(-w * 0.32, Math.max(0.6, w * 0.12), shade_(st.col, 1.22), 0.18);
-    g.globalAlpha = 1;
+export async function playIntro({ onDone, instant = false } = {}) {
+  const host = document.querySelector('.room-bg') || document.body;
+  const rb = host.getBoundingClientRect();
+  const VW = rb.width || innerWidth, VH = rb.height || innerHeight;
+  // 3D 판은 배경 자리(.room-bg)에 깔고 그대로 남긴다. 제목 · 건너뛰기 안내만 위에
+  const cv = document.createElement('canvas'); cv.className = 'et3d';
+  host.insertBefore(cv, host.querySelector('.shade') || null);
+  host.classList.add('has3d');
+  const ui = document.createElement('div'); ui.id = 'etIntro'; ui.setAttribute('aria-hidden', 'true');
+  ui.innerHTML = '<div class="ei-title"><b>ÉTRETAT</b><small>EN PLEIN AIR</small></div><p class="et-skip">누르면 건너뜁니다</p>';
+  Object.assign(ui.style, { left: `${rb.left}px`, top: `${rb.top}px`, width: `${VW}px`, height: `${VH}px` });
+  if (!instant) document.body.appendChild(ui);
+  const title = ui.querySelector('.ei-title');
+
+  let renderer;
+  try { renderer = new T.WebGLRenderer({ canvas: cv, antialias: true }); }
+  catch (e) { cv.remove(); host.classList.remove('has3d'); ui.remove(); onDone?.(); return; }
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);
+  renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+  const aniso = renderer.capabilities.getMaxAnisotropy();
+  const scene = new T.Scene();
+  const portrait = VW / VH < 0.8;
+  const cam = new T.PerspectiveCamera(portrait ? 58 : 46, VW / VH, 0.05, 3000);
+  const R = rnd(5);
+
+  // ── 하늘(위는 맑은 파랑 → 수평선은 옅은 크림) · 엷은 구름
+  const skyTex = canvasTex(64, 512, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, '#5E8FC4'); gr.addColorStop(0.32, '#8DB4DA'); gr.addColorStop(0.47, '#CFDDE6'); gr.addColorStop(0.5, '#EDE6D6'); gr.addColorStop(1, '#C9D4D8');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+  const sky = new T.Mesh(new T.SphereGeometry(1500, 32, 16), new T.MeshBasicMaterial({ map: skyTex, side: T.BackSide, fog: false, toneMapped: false }));
+  scene.add(sky);
+  const cloudTex = canvasTex(1024, 256, (g, w, h) => {
+    const r = rnd(9);
+    for (let i = 0; i < 70; i++) { const x = r() * w, y = h * (0.35 + r() * 0.45), rx = 30 + r() * 110, ry = rx * (0.25 + r() * 0.2); const gr = g.createRadialGradient(x, y, 0, x, y, rx); gr.addColorStop(0, `rgba(255,252,244,${0.35 + r() * 0.3})`); gr.addColorStop(1, 'rgba(255,252,244,0)'); g.fillStyle = gr; g.save(); g.translate(x, y); g.scale(1, ry / rx); g.translate(-x, -y); g.beginPath(); g.arc(x, y, rx, 0, Math.PI * 2); g.fill(); g.restore(); }
+  });
+  cloudTex.wrapS = T.RepeatWrapping;
+  const clouds = new T.Mesh(new T.CylinderGeometry(1200, 1200, 520, 48, 1, true, Math.PI * 0.6, Math.PI * 0.8), new T.MeshBasicMaterial({ map: cloudTex, transparent: true, side: T.BackSide, depthWrite: false, fog: false, toneMapped: false }));
+  clouds.position.y = 330; scene.add(clouds);
+  scene.fog = new T.Fog(0xE6E6DE, 120, 1400);
+
+  // ── 바다: 절벽 아래 멀리. 잔잔한 반짝임은 무늬로만(움직이지 않음)
+  const seaTex = canvasTex(1024, 1024, (g, w, h) => {
+    g.fillStyle = '#3E7A9A'; g.fillRect(0, 0, w, h);
+    const r = rnd(3);
+    for (let i = 0; i < 9000; i++) { g.fillStyle = r() < 0.6 ? `rgba(160,205,220,${r() * 0.18})` : `rgba(20,60,85,${r() * 0.2})`; g.fillRect(r() * w, r() * h, 6 + r() * 26, 1 + r() * 1.5); }
+  }, aniso);
+  seaTex.wrapS = seaTex.wrapT = T.RepeatWrapping; seaTex.repeat.set(40, 40);
+  const sea = new T.Mesh(new T.PlaneGeometry(6000, 6000), new T.MeshStandardMaterial({ map: seaTex, roughness: 0.35, metalness: 0.1, color: 0xD8E8EC }));
+  sea.rotation.x = -Math.PI / 2; sea.position.y = -70; scene.add(sea);
+
+  // ── 절벽 위 풀밭 — 바다 쪽 가장자리는 들쭉날쭉, 그 아래로 흰 백악 절벽면
+  const grassTex = canvasTex(1024, 1024, (g, w, h) => {
+    g.fillStyle = '#5E7034'; g.fillRect(0, 0, w, h);
+    const r = rnd(11);
+    for (let i = 0; i < 60000; i++) { const v = r(); g.fillStyle = v < 0.45 ? `rgba(40,58,20,${0.12 + r() * 0.2})` : v < 0.9 ? `rgba(120,140,60,${0.1 + r() * 0.15})` : `rgba(170,165,100,${0.08 + r() * 0.1})`; g.fillRect(r() * w, r() * h, 1, 2 + r() * 3); }
+  }, aniso);
+  grassTex.wrapS = grassTex.wrapT = T.RepeatWrapping; grassTex.repeat.set(16, 16);
+  const EDGE_Z = -2.6;
+  // 바닥 판: x · z 를 바로 잡아 만든다(가장자리 = 바다 쪽 -z)
+  const gPts = [[-14, 14], [14, 14]];
+  for (let x = 14; x >= -14; x -= 0.5) gPts.push([x, EDGE_Z + Math.sin(x * 0.7) * 0.35 + (R() - 0.5) * 0.25 + (x < -3 ? (x + 3) * 0.35 : 0)]);
+  const shp = new T.Shape(gPts.map(([x, z]) => new T.Vector2(x, -z)));
+  const ground = new T.Mesh(new T.ShapeGeometry(shp, 1), new T.MeshStandardMaterial({ map: grassTex, roughness: 0.95 }));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  // 풀잎 — 카메라 가까운 풀밭에 가는 잎을 흩어 심는다(움직이지 않음)
+  {
+    const blade = new T.PlaneGeometry(0.012, 0.11, 1, 2); blade.translate(0, 0.055, 0);
+    const bp = blade.attributes.position; for (let i = 0; i < bp.count; i++) { const y = bp.getY(i); bp.setX(i, bp.getX(i) * (1 - y / 0.13)); }
+    const N = 16000, inst = new T.InstancedMesh(blade, new T.MeshLambertMaterial({ color: 0x5E7A30, side: T.DoubleSide }), N);
+    const m4 = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), col = new T.Color();
+    for (let i = 0; i < N; i++) {
+      const x = -4 + R() * 8, z = EDGE_Z + 0.4 + R() * 7.5; if (Math.abs(x) < 0.5 && Math.abs(z) < 0.5 && R() < 0.6) continue;
+      e.set((R() - 0.5) * 0.5, R() * Math.PI, (R() - 0.5) * 0.5); q.setFromEuler(e);
+      const sc = 0.6 + R() * 0.9; m4.compose(new T.Vector3(x, 0, z), q, new T.Vector3(sc, sc * (0.7 + R() * 0.8), sc)); inst.setMatrixAt(i, m4);
+      col.setHSL(0.15 + R() * 0.1, 0.2 + R() * 0.3, 0.45 + R() * 0.35); inst.setColorAt(i, col);
+    }
+    inst.receiveShadow = true; scene.add(inst);
   }
-  // 가는 붓 겹까지 다 칠한 판(미리)
-  const det = document.createElement('canvas'); det.width = W; det.height = H; const dg = det.getContext('2d');
-  dg.drawImage(cv, 0, 0); for (const st of plan) drawStroke(st, 1, dg);
-  // 넓은 붓 일곱 획 — 가로로 살짝 휘며 지나가고, 털 열여덟 가닥이 굵기 · 진하기 · 닿고 떨어지는 자리가 조금씩 달라 가장자리가 붓처럼 갈라진다
-  const pat = g.createPattern(det, 'no-repeat');
-  const BW = H * 0.2;
-  // 11/09: 사선으로 — 왼쪽 아래에서 오른쪽 위로 긋는 결(30도), 왼쪽 위 모서리부터 오른쪽 아래 모서리까지 차례로
+  const chalk = new T.MeshStandardMaterial({ color: 0xE8E2D2, roughness: 1 });
+  // 백악 절벽면 — 가장자리 아래로 울퉁불퉁 내려가는 흰 벽(가로 줄무늬 지층)
+  const chalkTex = canvasTex(512, 1024, (g, w, h) => { g.fillStyle = '#E9E3D4'; g.fillRect(0, 0, w, h); const r = rnd(8); for (let y = 0; y < h; y += 14 + r() * 30) { g.fillStyle = `rgba(110,100,80,${0.08 + r() * 0.12})`; g.fillRect(0, y, w, 1 + r() * 3); } for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(90,80,60,${r() * 0.08})`; g.fillRect(r() * w, r() * h, 2 + r() * 8, 1 + r() * 4); } }, aniso);
+  chalkTex.wrapS = chalkTex.wrapT = T.RepeatWrapping; chalkTex.repeat.set(6, 4);
+  const faceGeo = new T.PlaneGeometry(40, 72, 80, 60); const fp = faceGeo.attributes.position;
+  for (let i = 0; i < fp.count; i++) { const x = fp.getX(i), y = fp.getY(i); fp.setZ(i, Math.sin(x * 0.9) * 0.6 + Math.sin(x * 2.3 + y * 0.4) * 0.3 + (y < 30 ? (30 - y) * 0.06 : 0)); }
+  faceGeo.computeVertexNormals();
+  const face = new T.Mesh(faceGeo, new T.MeshStandardMaterial({ map: chalkTex, roughness: 1 })); face.position.set(0, -36, EDGE_Z - 0.2); scene.add(face);
+  // 왼쪽 멀리 이어지는 해안 절벽(흐릿한 덩어리) — 수평선에 땅이 하나도 없으면 바다 위에 떠 있는 느낌이라
+  const coast = new T.Mesh(new T.BoxGeometry(260, 70, 40), new T.MeshStandardMaterial({ color: 0xDCD6C6, roughness: 1 }));
+  coast.position.set(-330, -38, -520); coast.rotation.y = 0.5; scene.add(coast);
+  const coastTop = new T.Mesh(new T.BoxGeometry(262, 6, 42), new T.MeshStandardMaterial({ color: 0x7E8C4E, roughness: 1 }));
+  coastTop.position.set(-330, -0.5, -520); coastTop.rotation.y = 0.5; scene.add(coastTop);
+
+  // ── 나무 재료
+  const woodTex = canvasTex(256, 1024, (g, w, h) => {
+    g.fillStyle = '#9A6B40'; g.fillRect(0, 0, w, h);
+    const r = rnd(4);
+    for (let i = 0; i < 160; i++) { g.strokeStyle = `rgba(${r() < 0.5 ? '40,22,10' : '160,110,70'},${0.12 + r() * 0.2})`; g.lineWidth = 1 + r() * 3; g.beginPath(); const x = r() * w; g.moveTo(x, 0); g.bezierCurveTo(x + (r() - 0.5) * 20, h * 0.3, x + (r() - 0.5) * 20, h * 0.7, x + (r() - 0.5) * 14, h); g.stroke(); }
+  }, aniso);
+  const wood = new T.MeshStandardMaterial({ map: woodTex, roughness: 0.7 });
+  const wood2 = new T.MeshStandardMaterial({ map: woodTex, roughness: 0.6, color: 0xC9A27A });
+  const metal = new T.MeshStandardMaterial({ color: 0xBFC3C6, roughness: 0.3, metalness: 0.85 });
+  const add = (geo, mat, parent = scene) => { const m = new T.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; parent.add(m); return m; };
+  // 두 점을 잇는 각목
+  const stick = (a, b, t, mat = wood, parent = scene) => {
+    const A = new T.Vector3(...a), B = new T.Vector3(...b), L = A.distanceTo(B);
+    const m = add(new T.BoxGeometry(t, L, t), mat, parent); m.position.copy(A).add(B).multiplyScalar(0.5);
+    m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), B.clone().sub(A).normalize()); return m;
+  };
+
+  // ── 이젤(삼각 다리 + 가운데 기둥 + 받침대 + 위 집게)
+  const easel = new T.Group(); scene.add(easel);
+  stick([-0.36, 0, 0.16], [-0.05, 1.86, 0.0], 0.035, wood, easel);
+  stick([0.36, 0, 0.16], [0.05, 1.86, 0.0], 0.035, wood, easel);
+  stick([0, 0, -0.72], [0, 1.7, -0.04], 0.032, wood, easel);
+  stick([0, 0.62, 0.03], [0, 2.02, 0.03], 0.03, wood, easel);                                    // 기둥
+  stick([-0.25, 0.42, 0.11], [0.25, 0.42, 0.11], 0.022, wood, easel);                            // 가로대
+  const LEDGE_Y = 0.9;
+  const ledge = add(new T.BoxGeometry(0.84, 0.03, 0.1), wood2, easel); ledge.position.set(0, LEDGE_Y, 0.09);
+  add(new T.BoxGeometry(0.84, 0.05, 0.012), wood2, easel).position.set(0, LEDGE_Y + 0.03, 0.135);
+  const clamp_ = add(new T.BoxGeometry(0.12, 0.05, 0.07), wood2, easel); clamp_.position.set(0, LEDGE_Y + 0.02 + CVS.H + 0.02, 0.07);
+
+  // ── 캔버스: 아마천 옆면 + 앞면은 칠해지는 판(CanvasTexture)
+  const paintCv = document.createElement('canvas'); paintCv.width = TEX_W; paintCv.height = TEX_H;
+  const pg = paintCv.getContext('2d');
+  pg.fillStyle = '#EDE3CF'; pg.fillRect(0, 0, TEX_W, TEX_H);
+  for (let i = 0; i < 2600; i++) { pg.fillStyle = `rgba(120,100,70,${Math.random() * 0.05})`; pg.fillRect(Math.random() * TEX_W, Math.random() * TEX_H, 1 + Math.random() * 3, 1); }
+  const paintTex = new T.CanvasTexture(paintCv); paintTex.encoding = T.sRGBEncoding; paintTex.anisotropy = aniso;
+  const linen = new T.MeshStandardMaterial({ color: 0xD9CCB0, roughness: 0.95 });
+  const front = new T.MeshStandardMaterial({ map: paintTex, roughness: 0.85, color: 0xA4A4A4 });   // 해를 정면으로 받아도 하얗게 날지 않게
+  const canvasMesh = add(new T.BoxGeometry(CVS.W, CVS.H, CVS.D), [linen, linen, linen, linen, front, linen], easel);
+  canvasMesh.position.set(0, LEDGE_Y + 0.02 + CVS.H / 2, 0.08); canvasMesh.rotation.x = -0.06;
+  easel.rotation.y = 0.08;
+
+  // ── 접이식 의자 + 그 위 열린 화구 상자(금속 튜브물감 · 팔레트)
+  const stool = new T.Group(); stool.position.set(-0.5, 0, 0.95); stool.rotation.y = 0.35; scene.add(stool);   // 열린 상자가 카메라 쪽을 보게
+  for (const sx of [-1, 1]) { stick([sx * 0.17, 0, -0.16], [sx * 0.17, 0.44, 0.16], 0.022, wood, stool); stick([sx * 0.17, 0, 0.16], [sx * 0.17, 0.44, -0.16], 0.022, wood, stool); }
+  const seat = add(new T.BoxGeometry(0.4, 0.02, 0.36), new T.MeshStandardMaterial({ color: 0x6B4A2E, roughness: 0.9 }), stool); seat.position.y = 0.45;
+  const box = new T.Group(); box.position.set(0, 0.47, 0); stool.add(box);
+  const bw = 0.36, bd = 0.25, bh = 0.06;
+  add(new T.BoxGeometry(bw, 0.01, bd), wood2, box).position.y = 0.005;
+  for (const [w, d, x, z] of [[bw, 0.012, 0, bd / 2], [bw, 0.012, 0, -bd / 2], [0.012, bd, bw / 2, 0], [0.012, bd, -bw / 2, 0]]) add(new T.BoxGeometry(w, bh, d), wood2, box).position.set(x, bh / 2, z);
+  const lid = new T.Group(); lid.position.set(0, bh, -bd / 2); lid.rotation.x = -2.05; box.add(lid);
+  add(new T.BoxGeometry(bw, 0.012, bd), wood2, lid).position.set(0, 0, bd / 2);
+  // 팔레트(뚜껑 안쪽) — 물감 몇 점
+  const palTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#B98B5B'; g.fillRect(0, 0, w, h); const cols = ['#F2EEE4', '#2F5C9A', '#D9A32E', '#B0362A', '#6E8E3E', '#E7D9B8']; cols.forEach((c, i) => { g.fillStyle = c; g.beginPath(); g.ellipse(40 + i * 36, 60 + (i % 2) * 20, 16, 12, 0.3, 0, 7); g.fill(); }); });
+  const pal = add(new T.PlaneGeometry(bw * 0.9, bd * 0.85), new T.MeshStandardMaterial({ map: palTex, roughness: 0.6 }), lid); pal.rotation.x = Math.PI / 2; pal.position.set(0, -0.007, bd / 2);   // 뚜껑 안쪽(열면 카메라 쪽)
+  const TUBE_COLS = [0xF2EEE4, 0x2F5C9A, 0xD9A32E, 0xB0362A, 0x6E8E3E, 0x7A4A8A, 0xE7C28A];
+  TUBE_COLS.forEach((c, i) => {
+    const tube = new T.Group(); tube.position.set(-0.14 + i * 0.045, 0.024, 0.02 + (i % 2) * 0.02); tube.rotation.set(0, 0.05 * (i - 3), Math.PI / 2); box.add(tube);
+    add(new T.CylinderGeometry(0.011, 0.013, 0.1, 14), metal, tube);
+    const band = add(new T.CylinderGeometry(0.0132, 0.0132, 0.04, 14), new T.MeshStandardMaterial({ color: c, roughness: 0.5 }), tube); band.position.y = 0.005;
+    const cap = add(new T.CylinderGeometry(0.006, 0.006, 0.014, 10), new T.MeshStandardMaterial({ color: 0x1b1b1b, roughness: 0.4 }), tube); cap.position.y = 0.057;
+    const crimp = add(new T.BoxGeometry(0.026, 0.008, 0.004), metal, tube); crimp.position.y = -0.053;
+  });
+  // 붓 몇 자루(받침대 위)
+  for (let i = 0; i < 3; i++) stick([-0.3 + i * 0.03, LEDGE_Y + 0.035, 0.11], [-0.04 + i * 0.03, LEDGE_Y + 0.05, 0.13], 0.008, new T.MeshStandardMaterial({ color: [0x8a2a1e, 0x22303a, 0xC9A27A][i], roughness: 0.5 }), easel);
+
+  // ── 빛: 늦은 오후 해(왼쪽 뒤 높이) · 하늘빛
+  const hemi = new T.HemisphereLight(0xC9DCF0, 0x5A6A30, 0.75); scene.add(hemi);
+  const sun = new T.DirectionalLight(0xFFE8C8, 2.0); sun.position.set(-5, 6.5, 6); sun.target.position.set(0, 0.8, -0.3); scene.add(sun, sun.target);
+  sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 1, far: 30 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+
+  // ── 카메라: 캔버스 정면 가까이(그림이 화면 폭의 86%) → 뒤로 물러나 왼쪽으로 돌며 이젤 · 상자 · 바다가 다 보이게
+  scene.updateMatrixWorld(true);
+  const cvW = new T.Vector3(); canvasMesh.getWorldPosition(cvW);
+  const tanH = Math.tan(T.MathUtils.degToRad(cam.fov / 2)) * cam.aspect;
+  const d0 = (CVS.W / 0.86 / 2) / tanH;
+  const P0 = cvW.clone().add(new T.Vector3(Math.sin(0.08) * d0, 0.0, Math.cos(0.08) * d0));
+  const L0 = cvW.clone();
+  const P1 = portrait ? new T.Vector3(-0.85, 1.32, 2.75) : new T.Vector3(-1.25, 1.4, 2.6);
+  const L1 = portrait ? new T.Vector3(0.32, 0.98, -0.9) : new T.Vector3(0.25, 0.95, -0.9);
+  const pose = (p) => {
+    const e = ease(p);
+    cam.position.lerpVectors(P0, P1, e); cam.position.y += Math.sin(Math.PI * e) * 0.25;   // 곧장 뒤로가 아니라 살짝 호를 그리며
+    cam.lookAt(new T.Vector3().lerpVectors(L0, L1, e));
+  };
+
+  // ── 붓질: 넓은 붓 여덟 번(사선, 왼쪽 위 모서리부터) — 붓이 지나간 자리에 칠한 판(det)이 묻어난다
+  let img; try { img = await load(PAINTING); } catch (e) { img = null; }
+  const det = img ? paintedVersion(img) : paintCv;
+  const pat = pg.createPattern(det, 'no-repeat');
+  const W = TEX_W, H = TEX_H, BW = H * 0.22;
   const ANG = -Math.PI / 6, dx = Math.cos(ANG), dy = Math.sin(ANG), nx = -dy, ny = dx;
   const projs = [[0, 0], [W, 0], [0, H], [W, H]].map(([x, y]) => (x - W / 2) * nx + (y - H / 2) * ny);
   const pMin = Math.min(...projs) + BW * 0.35, pMax = Math.max(...projs) - BW * 0.35, half = Math.hypot(W, H) * 0.62;
   const sweeps = Array.from({ length: NS }, (_, i) => {
-    const o = pMin + (pMax - pMin) * (i / (NS - 1)), dir = i % 2 ? -1 : 1;
-    const cx0 = W / 2 + nx * o, cy0 = H / 2 + ny * o, bend = (i % 3 - 1) * H * 0.025;
-    const path = Array.from({ length: 48 }, (_, k) => { const u = k / 47, a = (dir > 0 ? -1 + 2 * u : 1 - 2 * u) * half, w = Math.sin(u * Math.PI) * bend + Math.sin(u * 7 + i) * H * 0.006;
-      return [cx0 + dx * a + nx * w, cy0 + dy * a + ny * w]; });
-    const hairs = Array.from({ length: 18 }, (_, h) => ({ off: ((h / 17) - 0.5) * BW * (0.9 + Math.random() * 0.2), w: BW * (0.06 + Math.random() * 0.1), a: 0.6 + Math.random() * 0.4, s: Math.random() * 0.08, e: 1 - Math.random() * 0.1 }));
+    const o = pMin + (pMax - pMin) * (i / (NS - 1)), dir = i % 2 ? -1 : 1, cx0 = W / 2 + nx * o, cy0 = H / 2 + ny * o, bend = (i % 3 - 1) * H * 0.025;
+    const path = Array.from({ length: 48 }, (_, k) => { const u = k / 47, a = (dir > 0 ? -1 + 2 * u : 1 - 2 * u) * half, w = Math.sin(u * Math.PI) * bend + Math.sin(u * 7 + i) * H * 0.006; return [cx0 + dx * a + nx * w, cy0 + dy * a + ny * w]; });
+    const hairs = Array.from({ length: 18 }, (_, h) => ({ off: ((h / 17) - 0.5) * BW * (0.9 + R() * 0.2), w: BW * (0.06 + R() * 0.1), a: 0.6 + R() * 0.4, s: R() * 0.08, e: 1 - R() * 0.1 }));
     return { path, hairs, at: PAINT_AT + i * GAP, drawn: 0 };
   });
   function sweepTo(sw, u) {
-    const P = sw.path, n = Math.floor(u * (P.length - 1));
-    if (n <= sw.drawn) return;
-    g.save(); g.strokeStyle = pat; g.lineCap = 'round'; g.lineJoin = 'round';
+    const P = sw.path, n = Math.floor(u * (P.length - 1)); if (n <= sw.drawn) return false;
+    pg.save(); pg.strokeStyle = pat; pg.lineCap = 'round'; pg.lineJoin = 'round';
     for (const h of sw.hairs) {
-      const i0 = Math.max(Math.max(0, sw.drawn - 1), Math.ceil(h.s * (P.length - 1))), i1 = Math.min(n, Math.floor(h.e * (P.length - 1)));
-      if (i1 <= i0) continue;
-      g.globalAlpha = h.a; g.lineWidth = h.w; g.beginPath();
-      for (let i = i0; i <= i1; i++) { const x = P[i][0] + nx * h.off, y = P[i][1] + ny * h.off; i === i0 ? g.moveTo(x, y) : g.lineTo(x, y); }
-      g.stroke();
+      const i0 = Math.max(Math.max(0, sw.drawn - 1), Math.ceil(h.s * (P.length - 1))), i1 = Math.min(n, Math.floor(h.e * (P.length - 1))); if (i1 <= i0) continue;
+      pg.globalAlpha = h.a; pg.lineWidth = h.w; pg.beginPath();
+      for (let i = i0; i <= i1; i++) { const x = P[i][0] + nx * h.off, y = P[i][1] + ny * h.off; i === i0 ? pg.moveTo(x, y) : pg.lineTo(x, y); }
+      pg.stroke();
     }
-    g.restore(); sw.drawn = n;
+    pg.restore(); sw.drawn = n; return true;
   }
   let detA = 0;
   const paintTo = (t) => {
-    for (const sw of sweeps) { const u = (t - sw.at) / SWEEP; if (u > 0) sweepTo(sw, clamp(easeIO(clamp(u)))); }
-    if (t > DET_AT) { const a = clamp((t - DET_AT) / DET); if (a > detA) { g.globalAlpha = (a - detA) / (1 - detA + 1e-6); g.drawImage(det, 0, 0); g.globalAlpha = 1; detA = a; } }
+    let ch = false;
+    for (const sw of sweeps) { const u = (t - sw.at) / SWEEP; if (u > 0) ch = sweepTo(sw, clamp(easeIO(clamp(u)))) || ch; }
+    if (t > DET_AT) { const a = clamp((t - DET_AT) / DET); if (a > detA) { pg.globalAlpha = (a - detA) / (1 - detA + 1e-6); pg.drawImage(det, 0, 0); pg.globalAlpha = 1; detA = a; ch = true; } }
+    if (ch) paintTex.needsUpdate = true;
   };
-  let done = false, skipped = false, raf = 0, glazed = 0;
-  const GL0 = PULL_AT + 0.3, GL = 1.3;   // 물러나면서 원본 그림으로 덮어 배경과 이어지게
-  function place(t) {   // 0 = 캔버스 확대, 1 = 끝 장면
-    const e = ease(t), Z = Math.exp(Math.log(Z0) * (1 - e));
-    const c = [startC[0] + (endC[0] - startC[0]) * e, startC[1] + (endC[1] - startC[1]) * e];
-    world.style.transform = `translate(${c[0] - left - Z * cx}px,${c[1] - top - Z * cy}px) scale(${Z})`;
-    scene.style.filter = `brightness(${(0.16 + 0.46 * clamp(e * 1.2)).toFixed(3)}) saturate(.95)`;
-    cv.style.filter = `brightness(${(1 - 0.38 * e).toFixed(3)}) saturate(${(1 - 0.05 * e).toFixed(3)})`;
-    shade.style.opacity = e.toFixed(3);
-  }
-  place(0);
-  cv.style.opacity = '0'; cv.style.transition = 'opacity .9s ease';
-  requestAnimationFrame(() => { cv.style.opacity = '1'; title.classList.add('on'); });
 
+  const render = () => renderer.render(scene, cam);
+  let done = false, raf = 0;
   function finish() {
     if (done) return; done = true; cancelAnimationFrame(raf);
     removeEventListener('pointerdown', skip, true);
-    root.classList.add('out'); onDone?.();
-    setTimeout(() => root.remove(), 900);
+    ui.classList.add('out'); host.classList.add('et3d-done'); onDone?.();
+    setTimeout(() => ui.remove(), 900);
+    addEventListener('resize', () => { const r = host.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); cam.aspect = r.width / r.height; cam.updateProjectionMatrix(); render(); });
   }
-  function skip() {
-    if (done || skipped) return; skipped = true;
-    g.globalAlpha = 1; g.drawImage(off, 0, 0); place(1); sun.style.opacity = '.35'; title.classList.remove('on');
-    setTimeout(finish, 80);
-  }
-  const FREEZE = new URLSearchParams(location.search).get('etT');
-  if (FREEZE != null) {
-    const t = +FREEZE; cv.style.transition = 'none'; cv.style.opacity = '1'; paintTo(t); if (t > GL0) { g.globalAlpha = clamp((t - GL0) / GL); g.drawImage(off, 0, 0); g.globalAlpha = 1; }
-    place(clamp((t - PULL_AT) / PULL)); requestAnimationFrame(() => requestAnimationFrame(() => { title.classList.toggle('on', t <= PAINT_AT + 1.3); window.__etReady = true; })); return;
-  }
-  addEventListener('pointerdown', skip, true);
+  function toEnd() { paintTo(99); pose(1); render(); }
+  function skip() { if (done) return; title.classList.remove('on'); toEnd(); setTimeout(finish, 60); }
 
-  function tick(now) {
-    if (done || skipped) return;
+  const FREEZE = new URLSearchParams(location.search).get('etT');
+  if (instant) { toEnd(); finish(); return; }
+  if (FREEZE != null) { window.__et = { cam, stool, T, scene }; const t = +FREEZE; paintTo(t); pose(clamp((t - PULL_AT) / PULL)); render(); requestAnimationFrame(() => { title.classList.toggle('on', t <= PAINT_AT + 1.3); window.__etReady = true; }); return; }
+
+  pose(0); render();
+  requestAnimationFrame(() => title.classList.add('on'));
+  addEventListener('pointerdown', skip, true);
+  const T0 = performance.now();
+  const tick = (now) => {
+    if (done) return;
     const t = (now - T0) / 1000;
     paintTo(t);
-    if (t > GL0) { const a = clamp((t - GL0) / GL); if (a > glazed) { g.globalAlpha = (a - glazed) / (1 - glazed + 1e-6); g.drawImage(off, 0, 0); g.globalAlpha = 1; glazed = a; } }
     if (t > PAINT_AT + 1.3) title.classList.remove('on');
-    // 물러나기 — 캔버스가 이젤 위 자리로, 둘레에 바닷가가 밝아진다
-    const p = clamp((t - PULL_AT) / PULL);
-    place(p);
-    sun.style.opacity = (p < 0.6 ? 0.55 * clamp(p / 0.6) : 0.55 - 0.2 * clamp((p - 0.6) / 0.4)).toFixed(3);
+    pose(clamp((t - PULL_AT) / PULL)); render();
     if (t >= OUT_AT) return finish();
     raf = requestAnimationFrame(tick);
-  }
-  const T0 = performance.now();
+  };
   raf = requestAnimationFrame(tick);
 }

@@ -157,10 +157,10 @@ function browse() {
 }
 // 11/06: 모은 뒤에도 같은 화면(튜브물감 찾기) — 소품 넷 둘러보기는 없앴다. 아래에 밖으로 나가 칠하기 · 끝 줄
 if (store.saved(TASK.id)) document.body.classList.add('got');
-// 11/06 도입(et-intro.js) — 빈 캔버스에 붓질로 에트르타가 그려지고 카메라가 물러나며 이젤 위 캔버스가 된다. 들어올 때마다(태그로 열림 · 동작 줄이기 제외)
+// 11/09 도입(et-intro.js · 3D) — 절벽 위 이젤의 빈 캔버스에 붓질로 에트르타가 그려지고 카메라가 물러나며 바다가 드러난다(그 장면이 배경으로 남음). 들어올 때마다(태그로 열림 · 동작 줄이기 제외)
 {
   const b = document.body, qs = new URLSearchParams(location.search);
-  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); setTimeout(showGuide, 300); }
+  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); playIntro({ instant: true }); setTimeout(showGuide, 300); }
   else {
     b.classList.add('intro-run');
     playIntro({ onDone: () => { b.classList.remove('intro-run'); b.classList.add('et-ready'); setTimeout(showGuide, 450); } });
