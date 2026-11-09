@@ -13,15 +13,18 @@ const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onloa
 //   붓 크기마다 그림을 그만큼 흐리게 보고, 아직 덜 칠한 자리에서 시작해 색의 결(밝기 기울기의 직각)을 따라 한 획을 긋는다(Hertzmann 1998 방식).
 //   계산은 작은 판(M×M)에서 미리 하고, 화면에는 획마다 털 결 · 물감 두께(밝은 가장자리)를 얹어 큰 해상도로 그린다
 const M = 220;                              // 계산 판
-const LAYERS = [                            // 붓 반지름(계산 판 px) · 이 층이 칠해지는 시간(초) · 칠할 만큼 다른가(색 차이)
-  { r: 12, dur: 0.85, th: 26 },
-  { r: 8, dur: 0.95, th: 22 },
-  { r: 4.5, dur: 1.05, th: 20 },
-  { r: 2.5, dur: 0.95, th: 18 },
+const LAYERS = [                            // 붓 반지름(계산 판 px) · 칠할 만큼 다른가(색 차이)
+  { r: 15, th: 26 },
+  { r: 8, th: 22 },
+  { r: 4.5, th: 20 },
+  { r: 2.5, th: 18 },
 ];
-const PAINT_AT = 1.0;
-const PAINT_END = PAINT_AT + LAYERS.reduce((a, l) => a + l.dur, 0);
-const PULL_AT = PAINT_END + 0.35, PULL = 2.4, OUT_AT = PULL_AT + PULL + 0.1;
+// 11/09: 작은 붓질 수천 개를 여기저기 빨리 찍으면 벌레 떼처럼 보인다 —
+//   눈에 보이는 붓질은 굵은 붓 한 겹만, 위에서 아래로 좌우를 오가며 한 획씩 그어지고(획은 길이를 따라 자란다),
+//   가는 붓 겹은 미리 다 칠해 둔 판을 천천히 겹쳐 그림이 또렷해지게
+const PAINT_AT = 1.0, BLOCK = 2.4, GROW = 0.3;            // 굵은 붓 겹: 시작 · 걸리는 시간 · 한 획이 자라는 시간
+const DET_AT = PAINT_AT + BLOCK - 0.1, DET = 1.6;           // 가는 붓 겹이 겹쳐지는 때 · 시간
+const PULL_AT = DET_AT + DET + 0.2, PULL = 2.4, OUT_AT = PULL_AT + PULL + 0.1;
 
 function planStrokes(img) {
   const c = document.createElement('canvas'); c.width = c.height = M;
@@ -30,8 +33,7 @@ function planStrokes(img) {
   for (let i = 0; i < M * M; i++) { cur[i * 3] = 237; cur[i * 3 + 1] = 227; cur[i * 3 + 2] = 207; }   // 초벌칠 색
   const rand = (() => { let k = 7; return () => { k = (k * 16807) % 2147483647; return (k - 1) / 2147483646; }; })();
   const out = [];
-  let tAt = PAINT_AT;
-  for (const L of LAYERS) {
+  LAYERS.forEach((L, li) => {
     x.filter = `blur(${Math.max(0.5, L.r * 0.5)}px)`; x.clearRect(0, 0, M, M); x.drawImage(img, 0, 0, M, M); x.filter = 'none';
     const ref = x.getImageData(0, 0, M, M).data;
     const lum = new Float32Array(M * M); for (let i = 0; i < M * M; i++) lum[i] = 0.3 * ref[i * 4] + 0.59 * ref[i * 4 + 1] + 0.11 * ref[i * 4 + 2];
@@ -68,13 +70,15 @@ function planStrokes(img) {
           const k = Y * M + X; cur[k * 3] = col[0]; cur[k * 3 + 1] = col[1]; cur[k * 3 + 2] = col[2];
         }
       }
-      layer.push({ pts, col, r: L.r, seed: rand() });
+      layer.push({ pts, col, r: L.r, seed: rand(), li });
     }
-    // 층 안에서는 섞어서(여기저기서 붓이 오가는 것처럼), 층의 시간 안에 고르게
-    for (let i = layer.length - 1; i > 0; i--) { const j = (rand() * (i + 1)) | 0; [layer[i], layer[j]] = [layer[j], layer[i]]; }
-    layer.forEach((st, i) => { st.at = tAt + (i / Math.max(1, layer.length)) * L.dur; out.push(st); });
-    tAt += L.dur;
-  }
+    if (li === 0) {   // 굵은 붓: 위 띠부터, 띠 안에서는 왼→오 · 오→왼 번갈아(화가가 캔버스를 쓸어 가듯)
+      const band = L.r * 2.2;
+      layer.sort((a, b) => { const ba = Math.floor(a.pts[0][1] / band), bb = Math.floor(b.pts[0][1] / band); if (ba !== bb) return ba - bb; return ba % 2 ? b.pts[0][0] - a.pts[0][0] : a.pts[0][0] - b.pts[0][0]; });
+      layer.forEach((st, i) => { st.at = PAINT_AT + (i / Math.max(1, layer.length)) * (BLOCK - GROW); });
+    }
+    out.push(...layer);
+  });
   return out;
 }
 
@@ -103,7 +107,7 @@ export async function playIntro({ onDone } = {}) {
   const startC = [vw / 2, vh * 0.52], endC = [left + cx, top + cy];
   const R = Math.min(1100, Math.round(cw * Z0 * Math.min(2, devicePixelRatio || 1)));
   cv.width = R; cv.height = Math.round((R * ch) / cw);
-  const g = cv.getContext('2d');
+  const g = cv.getContext('2d'), g0 = g;
   const W = cv.width, H = cv.height;
   // 끝에 겹쳐 드러낼 원본(물러날 때 배경 그림과 그대로 이어지게)
   const off = document.createElement('canvas'); off.width = W; off.height = H; off.getContext('2d').drawImage(img, 0, 0, W, H);
@@ -114,16 +118,18 @@ export async function playIntro({ onDone } = {}) {
   const k = W / M;
   const shade_ = (c, f) => `rgb(${Math.min(255, Math.max(0, c[0] * f)) | 0},${Math.min(255, Math.max(0, c[1] * f)) | 0},${Math.min(255, Math.max(0, c[2] * f)) | 0})`;
   // 한 획: 몸통(제 색) → 털 결(조금 어둡고 밝은 가는 줄 몇 가닥) → 물감 두께(위쪽 가장자리에 옅은 하이라이트)
-  function drawStroke(st) {
-    const P = st.pts.map(([x, y]) => [x * k, y * k]), w = st.r * 2 * k;
+  function drawStroke(st, u = 1, g = g0) {
+    let P = st.pts.map(([x, y]) => [x * k, y * k]); const w = st.r * 2 * k;
+    if (u < 1) { const n = Math.max(1, Math.ceil(u * P.length)); P = P.slice(0, n); }
     const line = (off, lw, color, alpha) => {
       g.globalAlpha = alpha; g.strokeStyle = color; g.lineWidth = lw; g.beginPath();
       P.forEach(([x, y], i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L; const X = x + nx * off, Y = y + ny * off; i ? g.lineTo(X, Y) : g.moveTo(X, Y); });
-      if (P.length === 1) g.lineTo(P[0][0] + 0.1, P[0][1]);
+      if (P.length === 1) g.lineTo(P[0][0] + w * 0.35, P[0][1]);
       g.stroke();
     };
-    g.lineCap = 'round'; g.lineJoin = 'round';
-    line(0, w, shade_(st.col, 1), 0.95);
+    g.lineCap = st.li === 0 ? 'butt' : 'round'; g.lineJoin = 'round';   // 굵은 붓은 납작붓 끝(소시지처럼 둥글지 않게)
+    line(0, w, shade_(st.col, 1), u < 1 ? 1 : 0.95);
+    if (u < 1) { g.globalAlpha = 1; return; }
     let sd = st.seed * 1000;
     const r = () => { sd = (sd * 9301 + 49297) % 233280; return sd / 233280; };
     const hairs = st.r > 6 ? 5 : 3;
@@ -131,8 +137,16 @@ export async function playIntro({ onDone } = {}) {
     line(-w * 0.32, Math.max(0.6, w * 0.12), shade_(st.col, 1.22), 0.18);
     g.globalAlpha = 1;
   }
-  let next = 0;
-  const paintTo = (t) => { while (next < plan.length && plan[next].at <= t) drawStroke(plan[next++]); };
+  // 가는 붓 겹까지 다 칠한 판(미리)
+  const det = document.createElement('canvas'); det.width = W; det.height = H; const dg = det.getContext('2d');
+  dg.drawImage(cv, 0, 0); for (const st of plan) drawStroke(st, 1, dg);
+  const block = plan.filter((st) => st.li === 0);
+  let next = 0, detA = 0; const growing = [];
+  const paintTo = (t) => {
+    while (next < block.length && block[next].at <= t) growing.push(block[next++]);
+    for (let i = growing.length - 1; i >= 0; i--) { const st = growing[i], u = clamp((t - st.at) / GROW); drawStroke(st, u); if (u >= 1) growing.splice(i, 1); }
+    if (t > DET_AT) { const a = clamp((t - DET_AT) / DET); if (a > detA) { g.globalAlpha = (a - detA) / (1 - detA + 1e-6); g.drawImage(det, 0, 0); g.globalAlpha = 1; detA = a; } }
+  };
   let done = false, skipped = false, raf = 0, glazed = 0;
   const GL0 = PULL_AT + 0.3, GL = 1.3;   // 물러나면서 원본 그림으로 덮어 배경과 이어지게
   function place(t) {   // 0 = 캔버스 확대, 1 = 끝 장면
@@ -161,7 +175,7 @@ export async function playIntro({ onDone } = {}) {
   const FREEZE = new URLSearchParams(location.search).get('etT');
   if (FREEZE != null) {
     const t = +FREEZE; cv.style.transition = 'none'; cv.style.opacity = '1'; paintTo(t); if (t > GL0) { g.globalAlpha = clamp((t - GL0) / GL); g.drawImage(off, 0, 0); g.globalAlpha = 1; }
-    place(clamp((t - PULL_AT) / PULL)); requestAnimationFrame(() => requestAnimationFrame(() => { title.classList.toggle('on', t <= PAINT_AT + 1.6); window.__etReady = true; })); return;
+    place(clamp((t - PULL_AT) / PULL)); requestAnimationFrame(() => requestAnimationFrame(() => { title.classList.toggle('on', t <= PAINT_AT + 1.3); window.__etReady = true; })); return;
   }
   addEventListener('pointerdown', skip, true);
 
@@ -170,7 +184,7 @@ export async function playIntro({ onDone } = {}) {
     const t = (now - T0) / 1000;
     paintTo(t);
     if (t > GL0) { const a = clamp((t - GL0) / GL); if (a > glazed) { g.globalAlpha = (a - glazed) / (1 - glazed + 1e-6); g.drawImage(off, 0, 0); g.globalAlpha = 1; glazed = a; } }
-    if (t > PAINT_AT + 1.6) title.classList.remove('on');
+    if (t > PAINT_AT + 1.3) title.classList.remove('on');
     // 물러나기 — 캔버스가 이젤 위 자리로, 둘레에 바닷가가 밝아진다
     const p = clamp((t - PULL_AT) / PULL);
     place(p);
