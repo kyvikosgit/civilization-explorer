@@ -192,7 +192,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const GR = [4.5, 4.0];
   // 11/09: 절벽 위 땅 = 흰 백악 바위(marble_cliff_05) 위에 풀이 군데군데(leafy_grass) — 얼룩 모양은 땅 위치 노이즈로 섞음
   const grassTex = ptex('leafy_grass', 'diff', GR, true);
-  const groundMat = new T.MeshStandardMaterial({ map: ptex('marble_cliff_05', 'diff', GR, true), normalMap: ptex('marble_cliff_05', 'nor', GR), roughnessMap: ptex('marble_cliff_05', 'rough', GR), normalScale: new T.Vector2(1.2, 1.2), color: 0xF4F0E6, transparent: true, opacity: 0 });
+  const groundMat = new T.MeshStandardMaterial({ map: ptex('marble_cliff_05', 'diff', GR, true), normalMap: ptex('marble_cliff_05', 'nor', GR), roughnessMap: ptex('marble_cliff_05', 'rough', GR), normalScale: new T.Vector2(1.2, 1.2), color: 0xF4F0E6 });
   groundMat.onBeforeCompile = (sh) => {
     sh.uniforms.grassMap = { value: grassTex };
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -224,11 +224,11 @@ export async function playIntro({ onDone, instant = false } = {}) {
     }
     for (let iz = 0; iz < NZ; iz++) for (let ix = 0; ix < NX; ix++) { const a = iz * (NX + 1) + ix, b = a + 1, c = a + NX + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
     const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-    var ground = new T.Mesh(geo, groundMat); ground.receiveShadow = true; scene.add(ground);
+    var ground = new T.Mesh(geo, groundMat); ground.receiveShadow = true; ground.visible = false; scene.add(ground);
   }
   // 백악 절벽면 — 가장자리 바로 아래에서 바다까지(위쪽은 풀이 흘러내린 자국)
   const CR = [3, 4];
-  const cliffMat = new T.MeshStandardMaterial({ map: ptex('marble_cliff_05', 'diff', CR, true), normalMap: ptex('marble_cliff_05', 'nor', CR), roughnessMap: ptex('marble_cliff_05', 'rough', CR), color: 0xF2EEE2, transparent: true, opacity: 0, side: T.DoubleSide });
+  const cliffMat = new T.MeshStandardMaterial({ map: ptex('marble_cliff_05', 'diff', CR, true), normalMap: ptex('marble_cliff_05', 'nor', CR), roughnessMap: ptex('marble_cliff_05', 'rough', CR), color: 0xF2EEE2, side: T.DoubleSide });
   {
     const NX = 150, NY = 40, pos = [], uv = [], idx = [];
     for (let iy = 0; iy <= NY; iy++) for (let ix = 0; ix <= NX; ix++) {
@@ -237,7 +237,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
     }
     for (let iy = 0; iy < NY; iy++) for (let ix = 0; ix < NX; ix++) { const a = iy * (NX + 1) + ix, b = a + 1, c = a + NX + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
     const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-    const face = new T.Mesh(geo, cliffMat); face.receiveShadow = true; scene.add(face);
+    var face = new T.Mesh(geo, cliffMat); face.receiveShadow = true; face.visible = false; scene.add(face);
   }
 
   // ── 나무 재료
@@ -447,7 +447,8 @@ export async function playIntro({ onDone, instant = false } = {}) {
     room.visible = floor.visible = w < 0.97; backWall.visible = leftWall.visible = w < 0.97;
     // 밖에서는 이젤 · 의자만 그림자(화실 창틀 등이 풀밭에 그림자를 드리우지 않게)
     if (w >= 0.97 && !outdoorShadows) { outdoorShadows = true; const keep = new Set(); [easel, stool].forEach((g) => g.traverse((c) => keep.add(c))); scene.traverse((c) => { if (c.isMesh && !keep.has(c)) c.castShadow = false; }); key.castShadow = false; key.visible = false; }   // 화실 창빛(스포트)도 그림자 계산에서 뺀다 — 안 그러면 풀밭 판 전체가 그 그늘로 어두워진다
-    groundMat.opacity = w; cliffMat.opacity = w; if (w >= 1) { groundMat.transparent = cliffMat.transparent = false; }
+    // 11/09: 땅은 흐릿하게 번져 나오지 않고 빛이 가장 환한 순간 한 번에 — 반쯤 투명한 땅 가장자리(둥근 끝)가 먼저 비쳐 보이던 것 없앰
+    ground.visible = face.visible = u >= 0.34;
 
     for (const g of fadeIn) g.visible = w > 0.35;
     hemi.intensity = 0.16 + 1.0 * e; hemi.color.copy(roomSky).lerp(skyCol, e); hemi.groundColor.copy(roomGnd).lerp(outGnd, e);
