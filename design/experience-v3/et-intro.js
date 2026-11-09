@@ -99,7 +99,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   host.insertBefore(photo, before); host.insertBefore(cv, before); host.insertBefore(flash, before);
   host.classList.add('has3d');
   const ui = document.createElement('div'); ui.id = 'etIntro'; ui.setAttribute('aria-hidden', 'true');
-  ui.innerHTML = '<div class="ei-title"><b>ÉTRETAT</b><small>EN PLEIN AIR</small></div><p class="et-skip">누르면 건너뜁니다</p>';
+  ui.innerHTML = '<div class="ei-title" hidden></div><p class="et-skip">누르면 건너뜁니다</p>';   // 11/09: 제목 글씨 없음
   Object.assign(ui.style, { left: `${rb.left}px`, top: `${rb.top}px`, width: `${VW}px`, height: `${VH}px` });
   if (!instant) document.body.appendChild(ui);
   const title = ui.querySelector('.ei-title');
