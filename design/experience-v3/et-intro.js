@@ -100,8 +100,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const cv = document.createElement('canvas'); cv.className = 'et3d';
   const flash = document.createElement('div'); flash.className = 'et-flash';
   const before = host.querySelector('.shade') || null;
-  const fgGrass = document.createElement('div'); fgGrass.className = 'et-photo et-fg';   // 사진 앞쪽 풀만 오려 낸 판 — 이젤 · 의자 다리 앞을 풀잎이 가린다(땅에 선 것처럼)
-  host.insertBefore(photo, before); host.insertBefore(cv, before); host.insertBefore(fgGrass, before); host.insertBefore(flash, before);
+  host.insertBefore(photo, before); host.insertBefore(cv, before); host.insertBefore(flash, before);
   host.classList.add('has3d');
   const ui = document.createElement('div'); ui.id = 'etIntro'; ui.setAttribute('aria-hidden', 'true');
   ui.innerHTML = '<div class="ei-title" hidden></div><p class="et-skip">누르면 건너뜁니다</p>';   // 11/09: 제목 글씨 없음
@@ -115,7 +114,6 @@ export async function playIntro({ onDone, instant = false } = {}) {
   if (VW / VH < OUT_ASP) { IH = VH; IW = VH * OUT_ASP; PX = Math.min(0, Math.max(VW - IW, VW * 0.26 - IW * FOCUS_X)); PY = 0; }   // 바늘바위 · 아치가 이젤 왼쪽에 보이게
   else { IW = VW; IH = VW / OUT_ASP; PX = 0; PY = (VH - IH) * 0.5; }
   Object.assign(photo.style, { backgroundImage: `url("${OUTDOOR}")`, backgroundSize: `${IW}px ${IH}px`, backgroundPosition: `${PX}px ${PY}px` });
-  Object.assign(fgGrass.style, { backgroundImage: `url("${V3}img/et_outdoor_fg.png")`, backgroundSize: `${IW}px ${IH * 0.28}px`, backgroundPosition: `${PX}px ${PY + IH * 0.72}px` });   // 사진 아래 28%
   const hy = (PY + IH * HORIZON) / VH;                     // 화면에서 수평선 높이(0 위 ~ 1 아래)
 
   let renderer;
@@ -186,32 +184,42 @@ export async function playIntro({ onDone, instant = false } = {}) {
     const b = new T.Mesh(new T.PlaneGeometry(w, h), linenBack); b.position.set(0, h / 2, 0.035); b.receiveShadow = true; g.add(b);   // 아마천 뒷면이 이쪽을 보게(나무틀 앞)
     for (const [bw, bh, bx, by] of [[w, 0.045, 0, 0.022], [w, 0.045, 0, h - 0.022], [0.045, h, -w / 2 + 0.022, h / 2], [0.045, h, w / 2 - 0.022, h / 2], [w - 0.09, 0.035, 0, h / 2]]) rbox(bw, bh, 0.03, stretcher, bx, by, 0.02, 0, 0, g);
   }
-  // ── 바깥 바닥: 절벽 위 풀밭(붓질로 칠한 질감) — 이젤 뒤 1.2m 쯤에서 끝나고, 가장자리 아래로 흰 백악 절벽면이 조금 보인다. 그 너머는 배경 그림(바다 · 바위)
-  // 풀 질감 — 사진 앞쪽 마른 풀 색(금빛 · 올리브)으로 아주 가는 풀잎을 촘촘히. 무늬가 반복돼 보이지 않게 크게(2048)
+  // ── 바깥 땅(11/09 다시): 진짜 3D 절벽 위 풀밭 — 실사 질감(Poly Haven forrest_ground_01 · CC0) + 노멀 · 거칠기, 완만한 기복,
+  //   이젤 뒤 약 1.7m 에서 둥글게 꺾여 흰 백악 절벽면(marble_cliff_05)으로 떨어진다. 그 너머가 배경 사진(바다 · 아치).
+  //   이젤 · 의자는 이 땅 위에 서고, 해 그림자가 땅에 진다. 밖으로 나갈 때 나타남
   const tl = new T.TextureLoader();
-  const grassPaint = null;   // 11/09: 3D 땅은 그리지 않는다(사진 속 풀밭 + 그림자 판)
-     // 2m 한 장
-  const groundMat = new T.MeshStandardMaterial({  roughness: 1, transparent: true, opacity: 0, color: 0x8A9468, depthWrite: false });   // 짧게 깎인 절벽 위 잔디(에트르타 아발 절벽 위는 지금도 짧은 풀밭)   // 마른 풀에 초록을 — 사진 앞쪽 풀빛에 맞춤
-  // 가장자리는 칼로 자른 선이 아니라 풀이 성겨지며 사진 속으로 스며들게(뒤쪽 0.7m 동안 투명해짐)
-  groundMat.onBeforeCompile = (sh) => {
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <alphatest_fragment>', '#include <alphatest_fragment>\nfloat edgeZ = -1.25 + sin(vWp.x * 1.7) * 0.12 + sin(vWp.x * 4.3 + 1.0) * 0.05;\nfloat nz = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));\ndiffuseColor.a *= smoothstep(edgeZ, edgeZ + 0.22, vWp.z + (nz - 0.35) * 0.3);   // 밝은 풀잎이 먼저 남고 어두운 데가 먼저 비어 — 풀 끝이 들쭉날쭉');
+  const ptex = (id, f, rep, srgb) => { const t = tl.load(`${V3}ph/${id}/${f}.jpg`); t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(rep[0], rep[1]); t.anisotropy = aniso; if (srgb) t.encoding = T.sRGBEncoding; return t; };
+  const GR = [4.5, 4.0];
+  const groundMat = new T.MeshStandardMaterial({ map: ptex('forrest_ground_01', 'diff', GR, true), normalMap: ptex('forrest_ground_01', 'nor', GR), roughnessMap: ptex('forrest_ground_01', 'rough', GR), normalScale: new T.Vector2(1.6, 1.6), color: 0x8F9870, transparent: true, opacity: 0 });
+  const EDGE = (x) => -1.7 + Math.sin(x * 1.3 + 0.4) * 0.14 + Math.sin(x * 3.7 + 1) * 0.05;
+  const ZF = 5.0;                                                             // 앞쪽 끝(카메라 뒤)
+  const hAt = (x, z) => {                                                     // 땅 높이 — 잔 기복, 가장자리 0.55m 에서 둥글게 꺾여 내려감
+    let y = 0.035 * Math.sin(x * 1.9 + z * 0.8) + 0.025 * Math.sin(x * 4.1 - z * 3.3) + 0.015 * Math.sin(x * 9.0 + z * 7.0);
+    const d = z - EDGE(x); if (d < 0.55) y -= Math.pow((0.55 - d) / 0.55, 2.2) * 0.42;
+    return y;
   };
-  const EDGE = (x) => -1.25 + Math.sin(x * 1.7) * 0.12 + Math.sin(x * 4.3 + 1) * 0.05;
-  const gPts = [[-9, 9], [9, 9]]; for (let x = 9; x >= -9; x -= 0.12) gPts.push([x, EDGE(x)]);
-  const ground = new T.Mesh(new T.ShapeGeometry(new T.Shape(gPts.map(([x, z]) => new T.Vector2(x, -z))), 1), groundMat);
-  ground.rotation.x = -Math.PI / 2; ground.position.y = 0.002; ground.receiveShadow = true;   // 11/09: 3D 풀밭은 그리지 않는다 — 사진 속 풀밭에 세우고 그림자만
-  const shadowMat = new T.ShadowMaterial({ opacity: 0, color: 0x2a2410 });
-  const catcher = new T.Mesh(new T.PlaneGeometry(6, 2.2), shadowMat); catcher.rotation.x = -Math.PI / 2; catcher.position.set(0, 0.001, 0.15);   // (그림자 판은 쓰지 않음 — 판 전체가 어두워짐) 대신 아래 발밑 그늘   // 이젤 발 앞뒤만(사진 속 바다 위로 그림자가 지지 않게)
-  { // 가장자리 아래 백악 절벽면 — 가장자리를 따라 내려가는 띠
-    const chalkPaint = canvasTex(1024, 256, (g, w, h) => { g.fillStyle = '#e9e1cd'; g.fillRect(0, 0, w, h); const r = rnd(41); g.lineCap = 'round'; for (let i = 0; i < 1400; i++) { g.strokeStyle = ['#d8cfb8', '#f4eedd', '#bdb39a', '#cfc6ae'][(r() * 4) | 0]; g.globalAlpha = 0.5; g.lineWidth = 2 + r() * 6; const x = r() * w, y = r() * h; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 30, y + 6 + r() * 14); g.stroke(); } g.globalAlpha = 1; const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(70,80,40,.55)'); gr.addColorStop(0.18, 'rgba(70,80,40,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }, aniso);
-    chalkPaint.wrapS = T.RepeatWrapping; chalkPaint.repeat.set(6, 1);
-    const xs = []; for (let x = -9; x <= 9; x += 0.12) xs.push(x);
-    const pos = [], uv = [], idx = [];
-    xs.forEach((x, i) => { const z = EDGE(x); pos.push(x, 0.002, z, x, -0.9, z - 0.18 - Math.abs(Math.sin(x * 3)) * 0.08); uv.push(i / (xs.length - 1), 0, i / (xs.length - 1), 1); if (i) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } });
+  {
+    const NX = 150, NZ = 120, pos = [], uv = [], idx = [];
+    for (let iz = 0; iz <= NZ; iz++) for (let ix = 0; ix <= NX; ix++) {
+      const x = -4.5 + 9 * (ix / NX), e = EDGE(x), v = iz / NZ, z = e + (ZF - e) * Math.pow(v, 1.6);   // 가장자리 쪽을 촘촘히
+      pos.push(x, hAt(x, z), z); uv.push((x + 4.5) / 9, 1 - (z + 2) / 7);
+    }
+    for (let iz = 0; iz < NZ; iz++) for (let ix = 0; ix < NX; ix++) { const a = iz * (NX + 1) + ix, b = a + 1, c = a + NX + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
     const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-    var cliffMat = new T.MeshStandardMaterial({ map: chalkPaint, roughness: 1, side: T.DoubleSide, transparent: true, opacity: 0 });
-    // 절벽면 띠는 사진과 겹쳐 어색해 그리지 않는다(재료만 둠)
+    var ground = new T.Mesh(geo, groundMat); ground.receiveShadow = true; scene.add(ground);
+  }
+  // 백악 절벽면 — 가장자리 바로 아래에서 바다까지(위쪽은 풀이 흘러내린 자국)
+  const CR = [3, 4];
+  const cliffMat = new T.MeshStandardMaterial({ map: ptex('marble_cliff_05', 'diff', CR, true), normalMap: ptex('marble_cliff_05', 'nor', CR), roughnessMap: ptex('marble_cliff_05', 'rough', CR), color: 0xF2EEE2, transparent: true, opacity: 0, side: T.DoubleSide });
+  {
+    const NX = 150, NY = 40, pos = [], uv = [], idx = [];
+    for (let iy = 0; iy <= NY; iy++) for (let ix = 0; ix <= NX; ix++) {
+      const x = -4.5 + 9 * (ix / NX), u = iy / NY, drop = u * 9, e = EDGE(x);
+      pos.push(x, hAt(x, e) - drop, e - 0.02 - drop * 0.12 + Math.sin(x * 2.3 + u * 6) * 0.08 * u); uv.push(ix / NX * 3, u * 4);
+    }
+    for (let iy = 0; iy < NY; iy++) for (let ix = 0; ix < NX; ix++) { const a = iy * (NX + 1) + ix, b = a + 1, c = a + NX + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
+    const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+    const face = new T.Mesh(geo, cliffMat); face.receiveShadow = true; scene.add(face);
   }
 
   // ── 나무 재료
@@ -325,9 +333,6 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const sx = (2 * 0.57 - 1) * tanH;                             // 이젤을 화면 오른쪽으로
   // 끝 자리(P1): 사진 속 수평선 · 풀밭에 맞춘 높은 자리. 화실에서는 같은 각도로 캔버스 가까이(P0, 캔버스가 화면 폭 78%) — 밖으로 나가며 물러난다
   const P1 = new T.Vector3(-sx * D1, CH, D1);
-  // 11/09: 앞 풀 판이 풀밭 전체를 덮으면 이젤이 풀숲 '뒤'(=절벽 너머 허공)에 선 것처럼 보인다 — 발 바로 둘레 띠만 남겨 풀잎이 발목을 가리게.
-  //   그 위쪽 풀밭은 이젤 뒤에 그대로 보여 땅이 이어진다
-  { const a = (FOOT - 0.06) * 100, b = (FOOT - 0.025) * 100, m = `linear-gradient(to bottom, transparent ${a}%, #000 ${b}%)`; fgGrass.style.webkitMaskImage = m; fgGrass.style.maskImage = m; }
   scene.updateMatrixWorld(true);
   const cvC = new T.Vector3(); canvasMesh.getWorldPosition(cvC);
   const fwd = new T.Vector3(0, -Math.sin(pitch), -Math.cos(pitch));
@@ -376,15 +381,6 @@ export async function playIntro({ onDone, instant = false } = {}) {
     });
   }
 
-  // ── 발밑 그늘(접지 그림자) — 이젤 · 의자 발마다 부드러운 어두운 얼룩 + 이젤 아래 옅은 그늘. 밖에서만
-  const blobTex = canvasTex(128, 128, (g) => { const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(18,14,6,.85)'); gr.addColorStop(0.45, 'rgba(18,14,6,.35)'); gr.addColorStop(1, 'rgba(18,14,6,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); });
-  const blobMat = new T.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, opacity: 0, toneMapped: false });
-  const blob = (x, z, sx, sz) => { const m = new T.Mesh(new T.PlaneGeometry(sx, sz), blobMat); m.rotation.x = -Math.PI / 2; m.position.set(x, 0.004, z); m.renderOrder = 1; scene.add(m); };
-  easel.updateMatrixWorld(true); stool.updateMatrixWorld(true);
-  for (const [x, z] of [[-0.34, 0.17], [0.34, 0.17], [0, -0.52]]) { const v = new T.Vector3(x, 0, z).applyMatrix4(easel.matrixWorld); blob(v.x, v.z, 0.16, 0.16); }
-  { const v = new T.Vector3(0, 0, -0.25).applyMatrix4(easel.matrixWorld); blob(v.x, v.z, 0.95, 1.3); }
-  for (const [x, z] of [[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]]) { const v = new T.Vector3(x, 0, z).applyMatrix4(stool.matrixWorld); blob(v.x, v.z, 0.12, 0.12); }
-  { const v = new T.Vector3(0, 0, 0).applyMatrix4(stool.matrixWorld); blob(v.x + 0.08, v.z - 0.12, 0.6, 0.6); }
   mark('grass'); let img; try { img = await load(PAINTING); } catch (e) { img = null; } mark('img');
   const vivid = img ? paintedVersion(img) : paintCv;
   const det = document.createElement('canvas'); det.width = TEX_W; det.height = TEX_H;
@@ -428,14 +424,13 @@ export async function playIntro({ onDone, instant = false } = {}) {
     renderer.setClearColor(0x0d0b09, 1 - w);
     photo.style.opacity = w.toFixed(3);
     photo.style.filter = `blur(1.6px) brightness(${(0.55 + 0.45 * e).toFixed(3)}) saturate(${(0.6 + 0.26 * e).toFixed(3)}) contrast(.9) sepia(.08)`;   // 실사를 3D 와 어울리게 살짝만
-    fgGrass.style.filter = `blur(.6px) brightness(${(0.55 + 0.45 * e).toFixed(3)}) saturate(${(0.6 + 0.26 * e).toFixed(3)}) contrast(.9) sepia(.08)`;   // 앞 풀은 덜 흐리게(가까이)
     flash.style.opacity = (0.55 * Math.sin(Math.PI * clamp(u * 1.4))).toFixed(3);
-    key.intensity = 6 * (1 - w); winFill.intensity = 1.1 * (1 - w); sun.intensity = 2.6 * e; shadowMat.opacity = 0.5 * e;
+    key.intensity = 6 * (1 - w); winFill.intensity = 1.1 * (1 - w); sun.intensity = 2.6 * e;
     room.visible = floor.visible = w < 0.97; backWall.visible = leftWall.visible = w < 0.97;
     // 밖에서는 이젤 · 의자만 그림자(화실 창틀 등이 풀밭에 그림자를 드리우지 않게)
     if (w >= 0.97 && !outdoorShadows) { outdoorShadows = true; const keep = new Set(); [easel, stool].forEach((g) => g.traverse((c) => keep.add(c))); scene.traverse((c) => { if (c.isMesh && !keep.has(c)) c.castShadow = false; }); key.castShadow = false; key.visible = false; }   // 화실 창빛(스포트)도 그림자 계산에서 뺀다 — 안 그러면 풀밭 판 전체가 그 그늘로 어두워진다
-    fgGrass.style.opacity = w.toFixed(3); cliffMat.opacity = w;
-    blobMat.opacity = 0.75 * e;
+    groundMat.opacity = w; cliffMat.opacity = w; if (w >= 1) { groundMat.transparent = cliffMat.transparent = false; }
+
     for (const g of fadeIn) g.visible = w > 0.35;
     hemi.intensity = 0.16 + 1.0 * e; hemi.color.copy(roomSky).lerp(skyCol, e); hemi.groundColor.copy(roomGnd).lerp(outGnd, e);
     scene.fog.near = 4 + 60 * w; scene.fog.far = 11 + 160 * w;
