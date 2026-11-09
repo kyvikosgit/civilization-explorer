@@ -10,7 +10,7 @@ import * as T from 'three';
 
 const V3 = new URL('./', import.meta.url).href;
 const PAINTING = V3 + 'img/et_monet_cliffs.jpg';   // 모네 〈에트르타의 절벽〉 1885 · 클라크 미술관 · 퍼블릭 도메인 — 사진과 같은 배치(왼쪽 바늘바위 · 오른쪽 아발 아치)
-const OUTDOOR = V3 + 'img/et_outdoor.jpg', OUT_ASP = 2434 / 1757, HORIZON = 0.185, FOCUS_X = 0.2;   // 바깥 사진 · 수평선 높이 · 화면 왼쪽 30%에 둘 사진 가로 위치(바늘바위와 아치 사이)
+const OUTDOOR = V3 + 'img/et_outdoor.jpg', OUT_ASP = 2434 / 1757, HORIZON = 0.185, FOCUS_X = 0.2;   // 실사(살짝 흐림 · 채도 · 대비만 낮춤) · 수평선 높이 · 사진 가로 위치(바늘바위와 아치 사이)
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const easeIO = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const clamp = (v) => Math.max(0, Math.min(1, v));
@@ -151,9 +151,37 @@ export async function playIntro({ onDone, instant = false } = {}) {
   winGlow.rotation.y = Math.PI / 2; winGlow.position.set(-2.59, 2.0, 0.6); scene.add(winGlow);
   const frameMat = fadeMat(new T.MeshStandardMaterial({ color: 0x2b241d, roughness: 0.8 }));
   for (const [w, h, y, z] of [[0.08, 1.8, 2.0, 0.05], [0.08, 1.8, 2.0, 1.15], [0.08, 1.8, 2.0, 0.6], [1.2, 0.08, 1.15, 0.6], [1.2, 0.08, 2.85, 0.6], [1.2, 0.05, 2.0, 0.6]]) { const b = new T.Mesh(new T.BoxGeometry(0.06, h, w), frameMat); b.position.set(-2.56, y, z); scene.add(b); }
-  // 바깥 바닥: 그림자만 받는 판(사진 위에 이젤 · 상자 그림자)
-  const shadowMat = new T.ShadowMaterial({ opacity: 0 });
-  const catcher = new T.Mesh(new T.PlaneGeometry(20, 20), shadowMat); catcher.rotation.x = -Math.PI / 2; catcher.position.y = 0.001; catcher.receiveShadow = true; scene.add(catcher);
+  // ── 바깥 바닥: 절벽 위 풀밭(붓질로 칠한 질감) — 이젤 뒤 1.2m 쯤에서 끝나고, 가장자리 아래로 흰 백악 절벽면이 조금 보인다. 그 너머는 배경 그림(바다 · 바위)
+  // 풀 질감 — 사진 앞쪽 마른 풀 색(금빛 · 올리브)으로 아주 가는 풀잎을 촘촘히. 무늬가 반복돼 보이지 않게 크게(2048)
+  const grassPaint = canvasTex(2048, 2048, (g, w, h) => {
+    g.fillStyle = '#7d7a45'; g.fillRect(0, 0, w, h);
+    { const r0 = rnd(5); for (let i = 0; i < 140; i++) { const x = r0() * w, y = r0() * h, rr = 60 + r0() * 260, gr = g.createRadialGradient(x, y, 0, x, y, rr); gr.addColorStop(0, r0() < 0.5 ? 'rgba(60,66,28,.45)' : 'rgba(190,170,100,.4)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - rr, y - rr, rr * 2, rr * 2); } }   // 덤불 · 마른 풀 얼룩
+    const r = rnd(77), cols = ['#5d6330', '#8a8445', '#a69a58', '#c2b06c', '#6f7838', '#4d5428', '#b7a466', '#949055', '#d1c088'];
+    g.lineCap = 'round';
+    for (let i = 0; i < 140000; i++) { const x = r() * w, y = r() * h, l = 8 + r() * 26, a = -Math.PI / 2 + (r() - 0.5) * 0.9; g.strokeStyle = cols[(r() * cols.length) | 0]; g.globalAlpha = 0.35 + r() * 0.5; g.lineWidth = 0.8 + r() * 1.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke(); }
+    g.globalAlpha = 1;
+  }, aniso);
+  grassPaint.wrapS = grassPaint.wrapT = T.RepeatWrapping; grassPaint.repeat.set(1.6, 1.6);
+  const groundMat = new T.MeshStandardMaterial({ map: grassPaint, roughness: 1, transparent: true, opacity: 0, color: 0xE6E0CC, depthWrite: false });
+  // 가장자리는 칼로 자른 선이 아니라 풀이 성겨지며 사진 속으로 스며들게(뒤쪽 0.7m 동안 투명해짐)
+  groundMat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWp;').replace('#include <alphatest_fragment>', '#include <alphatest_fragment>\nfloat edgeZ = -1.25 + sin(vWp.x * 1.7) * 0.12 + sin(vWp.x * 4.3 + 1.0) * 0.05;\nfloat nz = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));\ndiffuseColor.a *= smoothstep(edgeZ, edgeZ + 0.55, vWp.z + (nz - 0.35) * 0.9);   // 밝은 풀잎이 먼저 남고 어두운 데가 먼저 비어 — 풀 끝이 들쭉날쭉');
+  };
+  const EDGE = (x) => -1.25 + Math.sin(x * 1.7) * 0.12 + Math.sin(x * 4.3 + 1) * 0.05;
+  const gPts = [[-9, 9], [9, 9]]; for (let x = 9; x >= -9; x -= 0.12) gPts.push([x, EDGE(x)]);
+  const ground = new T.Mesh(new T.ShapeGeometry(new T.Shape(gPts.map(([x, z]) => new T.Vector2(x, -z))), 1), groundMat);
+  ground.rotation.x = -Math.PI / 2; ground.position.y = 0.002; ground.receiveShadow = true; scene.add(ground);
+  { // 가장자리 아래 백악 절벽면 — 가장자리를 따라 내려가는 띠
+    const chalkPaint = canvasTex(1024, 256, (g, w, h) => { g.fillStyle = '#e9e1cd'; g.fillRect(0, 0, w, h); const r = rnd(41); g.lineCap = 'round'; for (let i = 0; i < 1400; i++) { g.strokeStyle = ['#d8cfb8', '#f4eedd', '#bdb39a', '#cfc6ae'][(r() * 4) | 0]; g.globalAlpha = 0.5; g.lineWidth = 2 + r() * 6; const x = r() * w, y = r() * h; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 30, y + 6 + r() * 14); g.stroke(); } g.globalAlpha = 1; const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(70,80,40,.55)'); gr.addColorStop(0.18, 'rgba(70,80,40,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }, aniso);
+    chalkPaint.wrapS = T.RepeatWrapping; chalkPaint.repeat.set(6, 1);
+    const xs = []; for (let x = -9; x <= 9; x += 0.12) xs.push(x);
+    const pos = [], uv = [], idx = [];
+    xs.forEach((x, i) => { const z = EDGE(x); pos.push(x, 0.002, z, x, -0.9, z - 0.18 - Math.abs(Math.sin(x * 3)) * 0.08); uv.push(i / (xs.length - 1), 0, i / (xs.length - 1), 1); if (i) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } });
+    const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+    var cliffMat = new T.MeshStandardMaterial({ map: chalkPaint, roughness: 1, side: T.DoubleSide, transparent: true, opacity: 0 });
+    // 절벽면 띠는 사진과 겹쳐 어색해 그리지 않는다(재료만 둠)
+  }
 
   // ── 나무 재료
   const woodTex = canvasTex(256, 1024, (g, w, h) => {
@@ -279,9 +307,9 @@ export async function playIntro({ onDone, instant = false } = {}) {
     for (const m of fade) m.opacity = 1 - w;
     renderer.setClearColor(0x0d0b09, 1 - w);
     photo.style.opacity = w.toFixed(3);
-    photo.style.filter = `brightness(${(0.55 + 0.45 * e).toFixed(3)}) saturate(${(0.6 + 0.4 * e).toFixed(3)})`;
+    photo.style.filter = `blur(1.6px) brightness(${(0.55 + 0.45 * e).toFixed(3)}) saturate(${(0.6 + 0.26 * e).toFixed(3)}) contrast(.9) sepia(.08)`;   // 실사를 3D 와 어울리게 살짝만
     flash.style.opacity = (0.55 * Math.sin(Math.PI * clamp(u * 1.4))).toFixed(3);
-    key.intensity = 9 * (1 - w); sun.intensity = 2.6 * e; shadowMat.opacity = 0.38 * e;
+    key.intensity = 9 * (1 - w); sun.intensity = 2.6 * e; groundMat.opacity = w; cliffMat.opacity = w;
     hemi.intensity = 0.22 + 0.7 * e; hemi.color.copy(roomSky).lerp(skyCol, e); hemi.groundColor.copy(roomGnd).lerp(outGnd, e);
     scene.fog.near = 4 + 60 * w; scene.fog.far = 11 + 160 * w;
     front.color.setScalar(0.72 + 0.12 * e);
