@@ -107,74 +107,28 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const cam = new T.PerspectiveCamera(portrait ? 58 : 46, VW / VH, 0.05, 3000);
   const R = rnd(5);
 
-  // ── 하늘(위는 맑은 파랑 → 수평선은 옅은 크림) · 엷은 구름
-  const skyTex = canvasTex(64, 512, (g, w, h) => {
-    const gr = g.createLinearGradient(0, 0, 0, h);
-    gr.addColorStop(0, '#5E8FC4'); gr.addColorStop(0.32, '#8DB4DA'); gr.addColorStop(0.47, '#CFDDE6'); gr.addColorStop(0.5, '#EDE6D6'); gr.addColorStop(1, '#C9D4D8');
-    g.fillStyle = gr; g.fillRect(0, 0, w, h);
-  });
-  const sky = new T.Mesh(new T.SphereGeometry(1500, 32, 16), new T.MeshBasicMaterial({ map: skyTex, side: T.BackSide, fog: false, toneMapped: false }));
-  scene.add(sky);
-  const cloudTex = canvasTex(1024, 256, (g, w, h) => {
-    const r = rnd(9);
-    for (let i = 0; i < 70; i++) { const x = r() * w, y = h * (0.35 + r() * 0.45), rx = 30 + r() * 110, ry = rx * (0.25 + r() * 0.2); const gr = g.createRadialGradient(x, y, 0, x, y, rx); gr.addColorStop(0, `rgba(255,252,244,${0.35 + r() * 0.3})`); gr.addColorStop(1, 'rgba(255,252,244,0)'); g.fillStyle = gr; g.save(); g.translate(x, y); g.scale(1, ry / rx); g.translate(-x, -y); g.beginPath(); g.arc(x, y, rx, 0, Math.PI * 2); g.fill(); g.restore(); }
-  });
-  cloudTex.wrapS = T.RepeatWrapping;
-  const clouds = new T.Mesh(new T.CylinderGeometry(1200, 1200, 520, 48, 1, true, Math.PI * 0.6, Math.PI * 0.8), new T.MeshBasicMaterial({ map: cloudTex, transparent: true, side: T.BackSide, depthWrite: false, fog: false, toneMapped: false }));
-  clouds.position.y = 330; scene.add(clouds);
-  scene.fog = new T.Fog(0xE6E6DE, 120, 1400);
-
-  // ── 바다: 절벽 아래 멀리. 잔잔한 반짝임은 무늬로만(움직이지 않음)
-  const seaTex = canvasTex(1024, 1024, (g, w, h) => {
-    g.fillStyle = '#3E7A9A'; g.fillRect(0, 0, w, h);
-    const r = rnd(3);
-    for (let i = 0; i < 9000; i++) { g.fillStyle = r() < 0.6 ? `rgba(160,205,220,${r() * 0.18})` : `rgba(20,60,85,${r() * 0.2})`; g.fillRect(r() * w, r() * h, 6 + r() * 26, 1 + r() * 1.5); }
+  // ── 11/09(2): 하늘 · 바다 · 풀을 코드로 지으면 싸 보인다 — 어두운 무대에 조명 하나. 뒤편엔 모네의 에트르타 그림을 크게 · 흐릿하게(화가가 보고 그리는 풍경)
+  scene.background = new T.Color(0x0b0907);
+  scene.fog = new T.Fog(0x0b0907, 6, 16);
+  // 바닥: 짙은 나무 무대(결만 옅게) — 조명 아래만 드러난다
+  const floorTex = canvasTex(1024, 1024, (g, w, h) => {
+    g.fillStyle = '#2a1d14'; g.fillRect(0, 0, w, h);
+    const r = rnd(12);
+    for (let y = 0; y < h; y += 64) { g.fillStyle = `rgba(0,0,0,${0.25 + r() * 0.2})`; g.fillRect(0, y, w, 2); for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(${r() < 0.5 ? '80,55,35' : '10,6,3'},${0.1 + r() * 0.15})`; g.fillRect(r() * w, y + 4 + r() * 56, 40 + r() * 200, 1 + r() * 2); } }
   }, aniso);
-  seaTex.wrapS = seaTex.wrapT = T.RepeatWrapping; seaTex.repeat.set(40, 40);
-  const sea = new T.Mesh(new T.PlaneGeometry(6000, 6000), new T.MeshStandardMaterial({ map: seaTex, roughness: 0.35, metalness: 0.1, color: 0xD8E8EC }));
-  sea.rotation.x = -Math.PI / 2; sea.position.y = -70; scene.add(sea);
-
-  // ── 절벽 위 풀밭 — 바다 쪽 가장자리는 들쭉날쭉, 그 아래로 흰 백악 절벽면
-  const grassTex = canvasTex(1024, 1024, (g, w, h) => {
-    g.fillStyle = '#5E7034'; g.fillRect(0, 0, w, h);
-    const r = rnd(11);
-    for (let i = 0; i < 60000; i++) { const v = r(); g.fillStyle = v < 0.45 ? `rgba(40,58,20,${0.12 + r() * 0.2})` : v < 0.9 ? `rgba(120,140,60,${0.1 + r() * 0.15})` : `rgba(170,165,100,${0.08 + r() * 0.1})`; g.fillRect(r() * w, r() * h, 1, 2 + r() * 3); }
-  }, aniso);
-  grassTex.wrapS = grassTex.wrapT = T.RepeatWrapping; grassTex.repeat.set(16, 16);
-  const EDGE_Z = -2.6;
-  // 바닥 판: x · z 를 바로 잡아 만든다(가장자리 = 바다 쪽 -z)
-  const gPts = [[-14, 14], [14, 14]];
-  for (let x = 14; x >= -14; x -= 0.5) gPts.push([x, EDGE_Z + Math.sin(x * 0.7) * 0.35 + (R() - 0.5) * 0.25 + (x < -3 ? (x + 3) * 0.35 : 0)]);
-  const shp = new T.Shape(gPts.map(([x, z]) => new T.Vector2(x, -z)));
-  const ground = new T.Mesh(new T.ShapeGeometry(shp, 1), new T.MeshStandardMaterial({ map: grassTex, roughness: 0.95 }));
-  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
-  // 풀잎 — 카메라 가까운 풀밭에 가는 잎을 흩어 심는다(움직이지 않음)
-  {
-    const blade = new T.PlaneGeometry(0.012, 0.11, 1, 2); blade.translate(0, 0.055, 0);
-    const bp = blade.attributes.position; for (let i = 0; i < bp.count; i++) { const y = bp.getY(i); bp.setX(i, bp.getX(i) * (1 - y / 0.13)); }
-    const N = 16000, inst = new T.InstancedMesh(blade, new T.MeshLambertMaterial({ color: 0x5E7A30, side: T.DoubleSide }), N);
-    const m4 = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), col = new T.Color();
-    for (let i = 0; i < N; i++) {
-      const x = -4 + R() * 8, z = EDGE_Z + 0.4 + R() * 7.5; if (Math.abs(x) < 0.5 && Math.abs(z) < 0.5 && R() < 0.6) continue;
-      e.set((R() - 0.5) * 0.5, R() * Math.PI, (R() - 0.5) * 0.5); q.setFromEuler(e);
-      const sc = 0.6 + R() * 0.9; m4.compose(new T.Vector3(x, 0, z), q, new T.Vector3(sc, sc * (0.7 + R() * 0.8), sc)); inst.setMatrixAt(i, m4);
-      col.setHSL(0.15 + R() * 0.1, 0.2 + R() * 0.3, 0.45 + R() * 0.35); inst.setColorAt(i, col);
-    }
-    inst.receiveShadow = true; scene.add(inst);
-  }
-  const chalk = new T.MeshStandardMaterial({ color: 0xE8E2D2, roughness: 1 });
-  // 백악 절벽면 — 가장자리 아래로 울퉁불퉁 내려가는 흰 벽(가로 줄무늬 지층)
-  const chalkTex = canvasTex(512, 1024, (g, w, h) => { g.fillStyle = '#E9E3D4'; g.fillRect(0, 0, w, h); const r = rnd(8); for (let y = 0; y < h; y += 14 + r() * 30) { g.fillStyle = `rgba(110,100,80,${0.08 + r() * 0.12})`; g.fillRect(0, y, w, 1 + r() * 3); } for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(90,80,60,${r() * 0.08})`; g.fillRect(r() * w, r() * h, 2 + r() * 8, 1 + r() * 4); } }, aniso);
-  chalkTex.wrapS = chalkTex.wrapT = T.RepeatWrapping; chalkTex.repeat.set(6, 4);
-  const faceGeo = new T.PlaneGeometry(40, 72, 80, 60); const fp = faceGeo.attributes.position;
-  for (let i = 0; i < fp.count; i++) { const x = fp.getX(i), y = fp.getY(i); fp.setZ(i, Math.sin(x * 0.9) * 0.6 + Math.sin(x * 2.3 + y * 0.4) * 0.3 + (y < 30 ? (30 - y) * 0.06 : 0)); }
-  faceGeo.computeVertexNormals();
-  const face = new T.Mesh(faceGeo, new T.MeshStandardMaterial({ map: chalkTex, roughness: 1 })); face.position.set(0, -36, EDGE_Z - 0.2); scene.add(face);
-  // 왼쪽 멀리 이어지는 해안 절벽(흐릿한 덩어리) — 수평선에 땅이 하나도 없으면 바다 위에 떠 있는 느낌이라
-  const coast = new T.Mesh(new T.BoxGeometry(260, 70, 40), new T.MeshStandardMaterial({ color: 0xDCD6C6, roughness: 1 }));
-  coast.position.set(-330, -38, -520); coast.rotation.y = 0.5; scene.add(coast);
-  const coastTop = new T.Mesh(new T.BoxGeometry(262, 6, 42), new T.MeshStandardMaterial({ color: 0x7E8C4E, roughness: 1 }));
-  coastTop.position.set(-330, -0.5, -520); coastTop.rotation.y = 0.5; scene.add(coastTop);
+  floorTex.wrapS = floorTex.wrapT = T.RepeatWrapping; floorTex.repeat.set(4, 4);
+  const floor = new T.Mesh(new T.PlaneGeometry(30, 30), new T.MeshStandardMaterial({ map: floorTex, roughness: 0.6, metalness: 0 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+  // 뒤편 그림 — 미리 흐리게 해 둔 판(초점 밖). 스스로 은은히 빛나게(조명과 상관없이)
+  const backdropMat = new T.MeshBasicMaterial({ color: 0x6a6660, fog: false, toneMapped: false });
+  const backdrop = new T.Mesh(new T.PlaneGeometry(7.6, 7.6 * 721 / 900), backdropMat);
+  backdrop.position.set(0.3, 2.6, -5.2); scene.add(backdrop);
+  const setBackdrop = (img) => {
+    const c = document.createElement('canvas'); c.width = 900; c.height = 721; const x = c.getContext('2d');
+    x.filter = 'blur(10px)'; x.drawImage(img, -20, -16, 940, 753); x.filter = 'none';
+    const gr = x.createRadialGradient(450, 360, 120, 450, 360, 560); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(11,9,7,1)'); x.fillStyle = gr; x.fillRect(0, 0, 900, 721);   // 가장자리는 어둠으로 스며들게
+    const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; backdropMat.map = t; backdropMat.needsUpdate = true;
+  };
 
   // ── 나무 재료
   const woodTex = canvasTex(256, 1024, (g, w, h) => {
@@ -241,10 +195,11 @@ export async function playIntro({ onDone, instant = false } = {}) {
   // 붓 몇 자루(받침대 위)
   for (let i = 0; i < 3; i++) stick([-0.3 + i * 0.03, LEDGE_Y + 0.035, 0.11], [-0.04 + i * 0.03, LEDGE_Y + 0.05, 0.13], 0.008, new T.MeshStandardMaterial({ color: [0x8a2a1e, 0x22303a, 0xC9A27A][i], roughness: 0.5 }), easel);
 
-  // ── 빛: 늦은 오후 해(왼쪽 뒤 높이) · 하늘빛
-  const hemi = new T.HemisphereLight(0xC9DCF0, 0x5A6A30, 0.75); scene.add(hemi);
-  const sun = new T.DirectionalLight(0xFFE8C8, 2.0); sun.position.set(-5, 6.5, 6); sun.target.position.set(0, 0.8, -0.3); scene.add(sun, sun.target);
-  sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -3, right: 3, top: 3, bottom: -3, near: 1, far: 30 }); sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.02;
+  // ── 빛: 왼쪽 앞 위에서 따뜻한 스포트라이트 하나(이젤 · 상자에 그림자) + 아주 옅은 바탕빛 + 뒤에서 가장자리 빛
+  scene.add(new T.HemisphereLight(0x8090a0, 0x1a120c, 0.18));
+  const key = new T.SpotLight(0xFFE2BC, 5.5, 12, 0.5, 0.6, 1.6); key.position.set(-1.6, 4.2, 2.6); key.target.position.set(0, 0.85, 0.2); scene.add(key, key.target);
+  key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02; key.shadow.camera.near = 1; key.shadow.camera.far = 12;
+  const rim = new T.SpotLight(0xBFD2E6, 2.2, 10, 0.6, 0.8, 1.5); rim.position.set(1.8, 3, -2.5); rim.target.position.set(0, 1, 0); scene.add(rim, rim.target);
 
   // ── 카메라: 캔버스 정면 가까이(그림이 화면 폭의 86%) → 뒤로 물러나 왼쪽으로 돌며 이젤 · 상자 · 바다가 다 보이게
   scene.updateMatrixWorld(true);
@@ -253,8 +208,8 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const d0 = (CVS.W / 0.86 / 2) / tanH;
   const P0 = cvW.clone().add(new T.Vector3(Math.sin(0.08) * d0, 0.0, Math.cos(0.08) * d0));
   const L0 = cvW.clone();
-  const P1 = portrait ? new T.Vector3(-0.85, 1.32, 2.75) : new T.Vector3(-1.25, 1.4, 2.6);
-  const L1 = portrait ? new T.Vector3(0.32, 0.98, -0.9) : new T.Vector3(0.25, 0.95, -0.9);
+  const P1 = portrait ? new T.Vector3(-0.75, 1.45, 3.1) : new T.Vector3(-1.1, 1.5, 2.9);
+  const L1 = portrait ? new T.Vector3(0.22, 1.12, -1.2) : new T.Vector3(0.2, 1.05, -1.2);
   const pose = (p) => {
     const e = ease(p);
     cam.position.lerpVectors(P0, P1, e); cam.position.y += Math.sin(Math.PI * e) * 0.25;   // 곧장 뒤로가 아니라 살짝 호를 그리며
@@ -263,6 +218,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
 
   // ── 붓질: 넓은 붓 여덟 번(사선, 왼쪽 위 모서리부터) — 붓이 지나간 자리에 칠한 판(det)이 묻어난다
   let img; try { img = await load(PAINTING); } catch (e) { img = null; }
+  if (img) setBackdrop(img);
   const det = img ? paintedVersion(img) : paintCv;
   const pat = pg.createPattern(det, 'no-repeat');
   const W = TEX_W, H = TEX_H, BW = H * 0.22;
