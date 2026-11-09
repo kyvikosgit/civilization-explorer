@@ -1,7 +1,9 @@
 /* v3 아틀리에 — 고른 것이 정답이 아닐 때 카드 안의 한 줄 */
 .tube .card .why{margin-top:10px;font-size:15px;line-height:1.55;color:#E0A18C}
 /* 11/02: 실내 아틀리에 대신 에트르타 야외 — 기획안 장면을 배경으로 */
-.room-bg .ph{background:url(img/etretat_scene.jpg) 40% 40% / cover no-repeat;filter:brightness(.62) saturate(.95)}
+/* 11/09: 장표 배경 그림은 쓰지 않는다 — 3D 도입(et-intro.js)이 그릴 때까지 어둠 */
+.room-bg{background:#0d0b09!important}
+.room-bg .ph,.room-bg .lamp{display:none!important}
 .room-bg .lamp{display:none}
 .objs{grid-template-columns:repeat(2,1fr)!important}
 
