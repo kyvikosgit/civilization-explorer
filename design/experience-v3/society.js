@@ -144,13 +144,15 @@ const waitFocus = (ms) => Promise.race([new Promise((r) => { focusWait = r; }), 
 
 let introDone = false;
 async function streetIntro() {
-  if (reduceMotion) { $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; showStanding(); return; }
+  const cover = document.getElementById('scCover'), uncover = () => { if (cover) { cover.classList.add('off'); setTimeout(() => cover.remove(), 400); } };
+  if (reduceMotion) { uncover(); $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; showStanding(); return; }
+  viewer?.pause();   // 도입 동안 칼럼 3D 는 쉬게(두 3D 가 함께 돌면 끊김)
   // 11/09: 35번지 방 안에서 창이 열리고 대로로 나가는 3D 도입(society-intro.js) — 끝나면 거리 그림이 그 구도 그대로 이어진다
   document.body.classList.add('intro');
-  const skip = () => { if (introDone) return; introDone = true; document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
+  const skip = () => { if (introDone) return; introDone = true; uncover(); viewer?.resume(); document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
   try {
     const { playSocietyIntro } = await import('./society-intro.js');
-    await new Promise((res) => playSocietyIntro({ onDone: res }));
+    await new Promise((res) => playSocietyIntro({ onDone: res, onStart: uncover }));
   } catch (e) { console.warn('[intro]', e); }
   skip();
 }

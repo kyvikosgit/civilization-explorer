@@ -25,7 +25,7 @@ function canvasTex(w, h, draw, aniso = 4) {
   const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = aniso; return t;
 }
 
-export function playSocietyIntro({ onDone } = {}) {
+export function playSocietyIntro({ onDone, onStart } = {}) {
   const root = document.createElement('div');
   root.id = 'scIntro'; root.setAttribute('aria-hidden', 'true');
   root.innerHTML = `<canvas class="sc-cv"></canvas>
@@ -39,10 +39,10 @@ export function playSocietyIntro({ onDone } = {}) {
 
   let renderer;
   try { renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: false }); }
-  catch (e) { root.remove(); onDone?.(); return; }
+  catch (e) { root.remove(); onStart?.(); onDone?.(); return; }
   renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);   // 11/09: 폰 부담 — 2배 → 1.5배
   renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.55;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFShadowMap; renderer.shadowMap.autoUpdate = false;   // 11/09: 창 · 커튼이 움직일 때만 그림자를 다시 계산
   const aniso = renderer.capabilities.getMaxAnisotropy();
 
   const scene = new T.Scene(); scene.background = new T.Color(0x07050a);
@@ -235,6 +235,7 @@ export function playSocietyIntro({ onDone } = {}) {
     for (let i = 0; i < N; i++) { a[i * 3] += vel[i][0] * 0.016; a[i * 3 + 1] += vel[i][1] * 0.016; a[i * 3 + 2] += vel[i][2] * 0.016; }
     dustGeo.attributes.position.needsUpdate = true;
     pose(t);
+    if (t > TL.curtain - 0.1 && t < TL.window + TL.windowD + 0.1) renderer.shadowMap.needsUpdate = true;
     if (t > TL.title && !title.classList.contains('on') && t < TL.window) title.classList.add('on');
     if (t > TL.window + 0.6) title.classList.remove('on');
     renderer.render(scene, cam);
@@ -244,6 +245,11 @@ export function playSocietyIntro({ onDone } = {}) {
   const FREEZE = new URLSearchParams(location.search).get('scT');
   function start() {
     if (done) return;
+    // 첫 장면 전에 셰이더 · 텍스처 · 그림자를 미리 — 창이 열리거나 바깥이 보이는 순간 멈추지 않게
+    pose(0); renderer.compile(scene, cam);
+    if (renderer.initTexture) scene.traverse((c) => { const m = c.material; if (!m) return; for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap']) if (m[k]) renderer.initTexture(m[k]); });
+    renderer.shadowMap.needsUpdate = true; renderer.render(scene, cam);
+    requestAnimationFrame(() => onStart?.());
     if (FREEZE != null) { pose(+FREEZE); if (+FREEZE > TL.title && +FREEZE < TL.window + 0.6) title.classList.add('on'); renderer.render(scene, cam); window.__scReady = true; return; }
     t0 = performance.now(); raf = requestAnimationFrame(frame);
     addEventListener('pointerdown', skip, true);
