@@ -108,25 +108,28 @@ body{background:var(--bg);color:var(--on)}
 .field-en{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.18em;color:rgba(255,255,255,.78)}
 .field-ko{font-family:var(--display);font-weight:800;font-size:clamp(24px,2.3vw,34px);line-height:1.1}
 .field-work{margin-top:10px;font-size:14px;line-height:1.5;color:var(--on-sub)}
-.brand-ways{margin-top:clamp(48px,6vw,88px);display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(32px,6vw,96px);align-items:end}
+/* 보고 · 듣고 · 참여하는 — 섹션 폭 가득. 보고(왼쪽) 옆 빈자리에 소개 문단, 듣고는 오른쪽 끝, 참여하는이 한 줄을 채움 */
+.brand-ways{margin-top:clamp(48px,6vw,88px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:clamp(24px,4vw,64px)}
 /* 보고 · 듣고 · 참여하는 — 큰 글자 속으로만 그림이 보이고, 그림이 글자 안에서 천천히 흐른다(The Met 퍼블릭 도메인) */
-.ways-type{margin:0;display:grid;width:fit-content;max-width:100%}
-.wt{display:block;font-family:var(--display);font-weight:800;font-size:clamp(76px,8.6vw,136px);line-height:1.08;letter-spacing:-.03em;color:transparent;-webkit-background-clip:text;background-clip:text;background-size:190% auto;background-repeat:no-repeat;width:fit-content;animation:wtpan 9s ease-in-out infinite alternate}
-.wt+.wt{margin-top:.04em}
-.wt2{justify-self:end}
+.ways-type{display:contents}
+.wt{display:block;font-family:var(--display);font-weight:800;font-size:calc((min(100vw, var(--max)) - 2 * var(--gut)) / 3.62);line-height:1.04;letter-spacing:-.03em;color:transparent;-webkit-background-clip:text;background-clip:text;background-size:190% auto;background-repeat:no-repeat;width:fit-content;animation:wtpan 9s ease-in-out infinite alternate}
+.wt1{grid-column:1;grid-row:1}
+.wt2{grid-column:1 / -1;grid-row:2;justify-self:end}
+.wt3{grid-column:1 / -1;grid-row:3}
 .wt1{background-image:url(/web/img/way-see.jpg)}
 .wt2{background-image:url(/web/img/way-listen.jpg);animation-delay:-5s}
 .wt3{background-image:url(/web/img/way-join.jpg);animation-delay:-9s}
 @keyframes wtpan{from{background-position:0% 10%}to{background-position:100% 90%}}
-.wt-tail,.wt-cap{justify-self:start}
-.wt-tail{margin-top:28px;font-family:var(--display);font-weight:800;font-size:clamp(30px,2.8vw,42px)}
+.wt-tail{grid-column:1 / -1;grid-row:4;justify-self:end;margin-top:18px;font-family:var(--display);font-weight:800;font-size:clamp(30px,4.2vw,64px)}
 .wt-cap{display:block;margin-top:16px;font-size:clamp(14px,1.1vw,16px);line-height:1.75;color:var(--on-sub)}
 @media (prefers-reduced-motion:reduce){.wt{animation:none}}
-.brand-ways-text{font-size:clamp(18px,1.6vw,23px);line-height:1.8;color:var(--on);max-width:28em}
+.brand-ways-text{grid-column:2;grid-row:1;align-self:center;font-size:clamp(18px,1.6vw,23px);line-height:1.8;color:var(--on);max-width:24em}
 .brand-foot{margin-top:clamp(40px,5vw,64px);padding-top:20px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:15px;color:var(--on-sub)}
 .brand-credit{color:var(--on-meta)}
 @media (max-width:860px){
-  .brand-head,.brand-ways{grid-template-columns:1fr;gap:20px;align-items:start}
+  .brand-head{grid-template-columns:1fr;gap:20px;align-items:start}
+  .brand-ways{grid-template-columns:1fr}
+  .brand-ways-text{grid-column:1;grid-row:5;margin-top:20px}
   .fields{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin-left:calc(var(--gut) * -1);margin-right:calc(var(--gut) * -1);padding:0 var(--gut);scroll-padding:0 var(--gut);scrollbar-width:none}
   .fields::-webkit-scrollbar{display:none}
   .field{flex:0 0 42%;scroll-snap-align:start}
