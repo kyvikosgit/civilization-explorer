@@ -194,9 +194,22 @@ dialog .db{padding:22px 24px}
 .f .hint{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--sub)}
 .f .hint b{font-family:var(--mono);color:var(--ink)}
 .f .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
-.blist{margin:20px 0 0;padding:0;list-style:none}
-.blist li{display:flex;align-items:center;gap:8px;padding:11px 0;border-top:1px solid var(--line);font-size:13px}
-.blist li span{margin-right:auto}
+dialog.wide{max-width:min(760px,calc(100vw - 24px))}
+.reg h3,.newh{margin:0 0 12px;font-size:14px;font-weight:700;display:flex;align-items:baseline;gap:8px}
+.reg h3 small{font-weight:400;color:var(--sub);font-size:12.5px}
+.newh{margin-top:32px;padding-top:24px;border-top:1px solid var(--line)}
+.bt{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.bt th{font-size:12px;font-weight:600;color:var(--sub);text-align:left;padding:0 10px 8px 0;border-bottom:1px solid var(--ink);white-space:nowrap}
+.bt td{padding:12px 10px 12px 0;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}
+.bt td.k{font-weight:700}
+.bt td.k .sm{display:none;font-weight:400;color:var(--sub);font-size:12px}
+.bt td.rg{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+.bt td.bp{color:var(--sub)}
+.bt .r{text-align:right}
+.bt td.ac{text-align:right;padding-right:0;width:1%}
+.bt td.ac button{padding:6px 8px}
+.bt tr.ed td{background:#F2F5F9}
+@media (max-width:560px){.bt td.k .sm{display:block}.bt th:nth-child(4),.bt td.bp{display:none}.bt th:nth-child(2),.bt td.bm{display:none}.bt td,.bt th{padding-right:6px}}
 /* 번호판 */
 dialog.grid{max-width:min(1120px,calc(100vw - 24px))}
 dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
@@ -343,9 +356,14 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   </form>
 </dialog>
 
-<dialog id="dBatch" aria-labelledby="dBatchT">
-  <div class="dh"><h2 id="dBatchT">발주분 추가</h2><button type="button" class="link" data-close>닫기</button></div>
+<dialog id="dBatch" class="wide" aria-labelledby="dBatchT">
+  <div class="dh"><h2 id="dBatchT">발주분 관리</h2><button type="button" class="link" data-close>닫기</button></div>
   <div class="db">
+    <section class="reg">
+      <h3>등록된 발주분 <small id="bCount"></small></h3>
+      <table class="bt"><thead><tr><th>구분</th><th>명목</th><th>티켓 번호</th><th>사용 기간</th><th class="r">수량</th><th></th></tr></thead><tbody id="bList"></tbody></table>
+    </section>
+    <h3 class="newh" id="bFormT">새 발주분</h3>
     <form class="f" id="bF" novalidate>
       <label>구분<select id="bKind"><option>전기간</option><option>부분 기간</option></select></label>
       <label>명목<input id="bPur" list="purList" placeholder="예: 일반, 초대권, 기업 배포" autocomplete="off" required></label>
@@ -358,7 +376,6 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
       <p class="err w" id="bErr" role="alert"></p>
       <div class="row"><button type="button" class="ghost" id="bCancel" hidden>수정 취소</button><button type="submit" id="bSave">발주분 추가</button></div>
     </form>
-    <ul class="blist" id="bList"></ul>
   </div>
 </dialog>
 
@@ -650,18 +667,20 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   }
   $('bKind').addEventListener('change', function () { if ($('bKind').value === '부분 기간' && $('bFrom').value === SHOW0 && $('bTo').value === SHOW1) { $('bFrom').value = ''; $('bTo').value = ''; } kindSync(); });
   function bReset() {
-    bEdit = null; $('bF').reset(); $('bErr').textContent = ''; $('bSave').textContent = '발주분 추가'; $('bCancel').hidden = true; $('dBatchT').textContent = '발주분 추가'; kindSync();
+    bEdit = null; $('bF').reset(); $('bErr').textContent = ''; $('bSave').textContent = '발주분 추가'; $('bCancel').hidden = true; $('bFormT').textContent = '새 발주분'; kindSync(); if ($('bList').children.length) renderBList();
     var base = ['일반', '초대권', '기업 배포', 'VIP', '판매용'], have = S.batches.map(function (b) { return b.purpose; }).filter(Boolean);
     $('purList').innerHTML = Array.from(new Set(base.concat(have))).map(function (p) { return '<option value="' + esc(p) + '">'; }).join('');
   }
   $('bCancel').addEventListener('click', bReset);
   function renderBList() {
-    $('bList').innerHTML = S.batches.map(function (b) { return '<li><span><b>' + esc(b.kind) + ' · ' + esc(b.purpose || '') + '</b> · ' + rng(b.s, b.e) + ' · ' + esc(b.period) + ' · ' + cnt(b.e - b.s + 1) + '장</span><button type="button" class="link" data-bed="' + b.id + '">수정</button><button type="button" class="link" data-bdel="' + b.id + '" style="color:var(--bad)">삭제</button></li>'; }).join('');
+    $('bCount').textContent = S.batches.length + '건 · ' + cnt(S.batches.reduce(function (t, b) { return t + b.e - b.s + 1; }, 0)) + '장';
+    $('bList').innerHTML = S.batches.length ? S.batches.map(function (b) { return '<tr' + (bEdit === b.id ? ' class="ed"' : '') + '><td class="k">' + esc(b.kind) + '<small class="sm">' + esc(b.purpose || '') + '</small></td><td class="bm">' + esc(b.purpose || '') + '</td><td class="rg">' + rng(b.s, b.e) + '</td><td class="bp">' + esc(b.period) + '</td><td class="r">' + cnt(b.e - b.s + 1) + '장</td><td class="ac"><button type="button" class="link" data-bed="' + b.id + '">수정</button><button type="button" class="link" data-bdel="' + b.id + '" style="color:var(--bad)">삭제</button></td></tr>'; }).join('')
+      : '<tr><td colspan="6" style="color:var(--sub)">아직 등록된 발주분이 없습니다.</td></tr>';
   }
   function bStartEdit(id) {
     var b = S.batches.filter(function (x) { return x.id === id; })[0]; if (!b) return;
     bEdit = id; $('bKind').value = b.kind; $('bPur').value = b.purpose || ''; $('bFrom').value = b.start_date; $('bTo').value = b.end_date; $('bS').value = n6(b.s); $('bE').value = n6(b.e);
-    kindSync(); $('bSave').textContent = '발주분 수정'; $('bCancel').hidden = false; $('dBatchT').textContent = '발주분 수정 — ' + b.kind + ' · ' + rng(b.s, b.e); $('bErr').textContent = ''; $('bPur').focus();
+    kindSync(); $('bSave').textContent = '발주분 수정'; $('bCancel').hidden = false; $('bFormT').textContent = '발주분 수정 — ' + b.kind + ' · ' + rng(b.s, b.e); $('bErr').textContent = ''; renderBList(); $('bPur').focus();
   }
   $('bF').addEventListener('submit', function (e) {
     e.preventDefault(); $('bErr').textContent = '';
