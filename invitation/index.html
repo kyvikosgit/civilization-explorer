@@ -73,7 +73,7 @@ img{display:block;max-width:none}
 #again:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 /* ── 주차 안내 · 사전 차량 등록 (카드와 같은 단위: 1u = 폭 / 720) */
 /* 위 쪽(프로그램) 카드의 아래 여백과 겹쳐 올려서, 마지막 줄 → PARKING 간격을 카드 안 문단 간격(약 78u)에 맞춤 */
-.park{container-type:inline-size;background:var(--paper);border-top:1px solid #EFEDE8;text-align:center;padding:calc(78 * 100cqw / 720) 0 calc(90 * 100cqw / 720)}
+.park{container-type:inline-size;background:var(--paper);border-top:1px solid #EFEDE8;text-align:center;padding:7.5% 0 9%}
 .park .in{position:relative;padding:0 calc(60 * 100cqw / 720)}
 .park h2{margin:0 0 calc(44 * 100cqw / 720);font:400 calc(28.5 * 100cqw / 720)/1 var(--serif);letter-spacing:.04em;color:var(--ink)}
 .park p{margin:0;font-size:calc(20.7 * 100cqw / 720);line-height:1.85;color:var(--ink);word-break:keep-all}
@@ -261,7 +261,9 @@ img{display:block;max-width:none}
     try {
       var r = await fetch(SB + '/rest/v1/rpc/invite_parking_add', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_plate: v }) });
       if (!r.ok) throw 0;
-      doneB.textContent = v; park.classList.add('ok');
+      var j = await r.json();
+      if (j && j.dup) { msg.textContent = '이미 등록된 차량입니다'; inp.focus(); }
+      else { doneB.textContent = v; park.classList.add('ok'); }
     } catch (err) { msg.textContent = '등록하지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
     go.disabled = false;
   });
