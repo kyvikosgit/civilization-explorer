@@ -92,7 +92,7 @@ td.x{width:1%;text-align:right}
   }
   var fmt = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
   var fmtFull = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
-  function pretty(v) { var m = v.match(/^([가-힣]{2})?(\d{2,3})([가-힣])(\d{4})$/); return m ? (m[1] || '') + m[2] + m[3] + ' ' + m[4] : v; }
+  function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^((?:[가-힣]{2})?\d{2,3}[가-힣])(\d{4})$/); return m ? m[1] + ' ' + m[2] : t; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function load() {
     return rpc('invite_parking_list', { p_pw: pw }).then(function (rows) {

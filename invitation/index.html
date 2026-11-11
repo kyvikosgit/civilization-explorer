@@ -236,18 +236,32 @@ img{display:block;max-width:none}
   var park = document.getElementById('park'), form = document.getElementById('parkForm'), inp = document.getElementById('plate');
   var msg = park.querySelector('.msg'), go = park.querySelector('.go'), doneB = park.querySelector('.done b');
   var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
-  function pretty(v) { var m = v.match(/^([가-힣]{2})?(\d{2,3})([가-힣])(\d{4})$/); return m ? (m[1] || '') + m[2] + m[3] + ' ' + m[4] : v; }
+  // 앞자리(지역명 · 숫자 · 한글)와 뒤 숫자 사이에 띄어쓰기 한 칸 — 입력 중에도, 저장할 때도 같은 규칙
+  function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^((?:[가-힣]{2})?\d{2,3}[가-힣])(\d{1,4})$/); return m ? m[1] + ' ' + m[2] : t; }
+  var composing = false;
+  function fmtInput() {
+    var v = inp.value, pos = inp.selectionStart == null ? v.length : inp.selectionStart;
+    var k = v.slice(0, pos).replace(/\s+/g, '').length, nv = pretty(v);
+    if (nv === v) return;
+    inp.value = nv;
+    var i = 0, c = 0; while (i < nv.length && c < k) { if (!/\s/.test(nv[i])) c++; i++; }
+    try { inp.setSelectionRange(i, i); } catch (e) {}
+  }
+  inp.addEventListener('compositionstart', function () { composing = true; });
+  inp.addEventListener('compositionend', function () { composing = false; fmtInput(); });
+  inp.addEventListener('input', function (e) { if (!composing && !e.isComposing) fmtInput(); });
+  inp.addEventListener('blur', fmtInput);
   park.querySelector('.btn.open').addEventListener('click', function () { park.classList.add('on'); setTimeout(function () { inp.focus(); }, 30); });
   park.querySelector('.btn.more').addEventListener('click', function () { park.classList.remove('ok'); inp.value = ''; msg.textContent = ''; inp.focus(); });
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
-    var v = inp.value.replace(/\s+/g, '');
-    if (!/^([가-힣]{2})?\d{2,3}[가-힣]\d{4}$/.test(v)) { msg.textContent = '차량 번호를 다시 확인해 주세요. (예: 12가 3456)'; inp.focus(); return; }
+    var v = pretty(inp.value); inp.value = v;
+    if (!/^(?:[가-힣]{2})?\d{2,3}[가-힣] \d{4}$/.test(v)) { msg.textContent = '차량 번호를 다시 확인해 주세요. (예: 12가 3456)'; inp.focus(); return; }
     go.disabled = true; msg.textContent = '';
     try {
       var r = await fetch(SB + '/rest/v1/rpc/invite_parking_add', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_plate: v }) });
       if (!r.ok) throw 0;
-      doneB.textContent = pretty(v); park.classList.add('ok');
+      doneB.textContent = v; park.classList.add('ok');
     } catch (err) { msg.textContent = '등록하지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
     go.disabled = false;
   });
