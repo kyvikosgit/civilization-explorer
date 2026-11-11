@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>티켓 일련번호 관리 · MONET 100</title>
+<style>
+:root{--bg:#F4F3EF;--paper:#FFFFFF;--ink:#17171A;--sub:#6B6A64;--faint:#9C9A93;--line:#E5E3DC;--line2:#D4D1C8;--acc:#B5522E;--ok:#2F6B4F;--warn:#9A6A12;--sans:-apple-system,BlinkMacSystemFont,'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.5 var(--sans);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1240px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-left,0px)) 64px}
+header.top{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+header.top .t{margin-right:auto}
+.kick{margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--acc)}
+h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em}
+.sub{margin:4px 0 0;color:var(--sub);font-size:13px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{font:600 13px/1 var(--sans);border-radius:8px;padding:10px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;white-space:nowrap}
+button.ghost{background:var(--paper);color:var(--ink);border-color:var(--line2)}
+button.mini{font-weight:500;font-size:12px;padding:6px 9px;background:var(--paper);color:var(--ink);border-color:var(--line2)}
+button.mini.del{color:var(--acc);border-color:#E9D2C8}
+button[disabled]{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.login{max-width:340px;margin:60px auto;padding:28px 24px;display:flex;flex-direction:column;gap:10px;text-align:center}
+.login h2{margin:0 0 6px;font-size:17px}
+input,select,textarea{font:400 15px/1.3 var(--sans);color:var(--ink);background:#FBFAF8;border:1px solid var(--line2);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:58px}
+.err{min-height:1.3em;margin:0;color:var(--acc);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
+.stats div{padding:14px 18px;border-left:1px solid var(--line)}
+.stats div:first-child{border-left:0}
+.stats b{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stats span{font-size:12px;color:var(--sub)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+.side{display:flex;flex-direction:column;gap:18px}
+.sec{padding:18px 18px 16px}
+.sec h2{margin:0 0 12px;font-size:15px;font-weight:700;display:flex;align-items:baseline;gap:8px}
+.sec h2 small{font-size:12px;font-weight:400;color:var(--sub)}
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:10px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+thead th{font-size:12px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--ink);white-space:nowrap;background:var(--paper)}
+td.c{text-align:center}td.r,th.r{text-align:right}
+td.grp{font-weight:600;background:#FBFAF7;border-right:1px solid var(--line);white-space:nowrap}
+td.per{color:var(--sub);background:#FBFAF7;border-right:1px solid var(--line);white-space:nowrap}
+td.num{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;white-space:nowrap}
+tr.hold td.item{color:var(--sub)}
+tr.alloc td.item{font-weight:600}
+td.item{white-space:nowrap}
+td.grp,td.per{font-size:13px}
+tr.sum td{font-weight:700;border-top:1px solid var(--ink);border-bottom:0;background:#FBFAF7}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:3px 7px;border-radius:999px;border:1px solid var(--line2);color:var(--sub);white-space:nowrap}
+.tag.done{color:var(--ok);border-color:#C9DDD2;background:#F3F8F5}
+.tag.plan{color:var(--warn);border-color:#EADBB8;background:#FBF7EC}
+.tag.back{color:var(--faint)}
+.tag.hold{color:var(--sub);background:#F6F5F1}
+.meta{display:block;margin-top:3px;font-size:12px;color:var(--sub)}
+td.act{white-space:nowrap;text-align:right;width:1%}
+td.act .in{display:flex;gap:4px;justify-content:flex-end}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--sub);font-weight:600}
+.f .w{grid-column:1/-1}
+.hint{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--sub);min-height:1.2em}
+.hint b{color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-weight:600}
+.row{display:flex;gap:8px;grid-column:1/-1}
+.row button{flex:1}
+.look{display:flex;gap:8px}
+.lookres{margin:12px 0 0;padding:12px 13px;border-radius:8px;background:#FBFAF7;border:1px solid var(--line);font-size:13.5px;line-height:1.6;display:none}
+.lookres.on{display:block}
+.lookres .n{font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:15px}
+details summary{cursor:pointer;font-size:15px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:'+';font-weight:400;color:var(--sub);font-size:18px}
+details[open] summary::after{content:'−'}
+details .f{margin-top:12px}
+.blist{margin:14px 0 0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.blist li{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.blist li span{margin-right:auto}
+.editing{outline:2px solid var(--acc);outline-offset:-2px}
+.printhead{display:none}
+.backsec{margin-top:18px}
+[hidden]{display:none!important}
+@media (max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.stats div:nth-child(3){border-left:0}.stats div:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:560px){h1{font-size:21px}.f{grid-template-columns:1fr}th,td{padding:9px 7px}}
+@media print{
+  @page{size:A4;margin:14mm 12mm 16mm}
+  html,body{background:#fff;font-size:10pt}
+  .wrap{max-width:none;padding:0}
+  header.top,.side,.stats,td.act,th.act,.noprint{display:none!important}
+  .grid{display:block}
+  .card{border:0;border-radius:0}
+  .sec{padding:0}
+  .sec h2{display:none}
+  .printhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5px solid #000;padding-bottom:3mm;margin-bottom:6mm}
+  .printhead h1{font-size:15pt}
+  .printhead span{font-size:9pt;color:#333}
+  th,td{padding:2.6mm 2mm;border-bottom:.5pt solid #999}
+  thead th{color:#000;border-bottom:1pt solid #000}
+  td.grp,td.per,tr.sum td{background:none}
+  .tag{border:0;padding:0;background:none!important;color:#000!important;font-weight:400}
+  tr{break-inside:avoid}
+  .backsec h3{font-size:11pt;margin:8mm 0 2mm}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <form class="card login" id="login">
+    <p class="kick">MONET 100 · STAFF ONLY</p>
+    <h2>티켓 일련번호 관리</h2>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="비밀번호" aria-label="비밀번호" required>
+    <button type="submit">들어가기</button>
+    <p class="err" id="lerr" role="alert"></p>
+  </form>
+
+  <div id="app" hidden>
+    <header class="top">
+      <div class="t"><p class="kick">MONET 100 · STAFF ONLY</p><h1>티켓 일련번호 관리</h1><p class="sub">6자리 일련번호 · 기업별 배분 현황 · 배분하지 않은 번호는 큐비크스 보유</p></div>
+      <div class="tools"><button class="ghost" type="button" id="reload">새로고침</button><button class="ghost" type="button" id="csv">엑셀 내보내기</button><button type="button" id="print">인쇄</button></div>
+    </header>
+
+    <div class="card stats" aria-label="요약">
+      <div><b id="sTotal">0</b><span>발주 총수량</span></div>
+      <div><b id="sAlloc">0</b><span>기업 배분</span></div>
+      <div><b id="sHold">0</b><span>큐비크스 보유</span></div>
+      <div><b id="sPlan">0</b><span>전달 예정(장)</span></div>
+    </div>
+
+    <div class="grid">
+      <section class="card sec">
+        <div class="printhead"><h1>MONET 100 티켓 일련번호 현황</h1><span id="pdate"></span></div>
+        <h2>현황표 <small>발주분별 배분 · 남은 번호</small></h2>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>구분</th><th>사용 기간</th><th>항목</th><th>티켓 번호</th><th class="r">수량</th><th>비고</th><th class="act"></th></tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+        <div class="backsec" id="backsec" hidden>
+          <h3 style="font-size:13px;margin:0 0 8px;color:var(--sub)">회수 내역 <small style="font-weight:400">— 번호는 큐비크스 보유로 돌아감</small></h3>
+          <div class="tablebox"><table><tbody id="tbBack"></tbody></table></div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="card sec">
+          <h2>번호 조회</h2>
+          <form class="look" id="lookF"><input id="lookIn" inputmode="numeric" placeholder="예: 1234 또는 001234" aria-label="조회할 티켓 번호"><button type="submit">조회</button></form>
+          <div class="lookres" id="lookRes" role="status" aria-live="polite"></div>
+        </section>
+
+        <section class="card sec" id="allocSec">
+          <h2 id="aTitle">배분 추가</h2>
+          <form class="f" id="aF" novalidate>
+            <label class="w">발주분<select id="aBatch"></select></label>
+            <label>수량<input id="aQty" inputmode="numeric" placeholder="예: 300"></label>
+            <span></span>
+            <label>시작 번호<input id="aS" inputmode="numeric" placeholder="000001"></label>
+            <label>끝 번호<input id="aE" inputmode="numeric" placeholder="000300"></label>
+            <p class="hint" id="aHint"></p>
+            <label class="w">기업명<input id="aCo" placeholder="예: 신세계" autocomplete="off"></label>
+            <label>전달일<input id="aDate" type="date"></label>
+            <label>상태<select id="aSt"><option>전달 예정</option><option>전달 완료</option><option>회수</option></select></label>
+            <label class="w">받은 사람 · 연락처 <input id="aRcp" placeholder="선택" autocomplete="off"></label>
+            <label class="w">메모<textarea id="aMemo" placeholder="선택"></textarea></label>
+            <p class="err w" id="aErr" role="alert"></p>
+            <div class="row"><button type="button" class="ghost" id="aCancel" hidden>취소</button><button type="submit" id="aSave">배분 저장</button></div>
+          </form>
+        </section>
+
+        <section class="card sec">
+          <details id="bDet">
+            <summary>발주분 추가 · 관리</summary>
+            <form class="f" id="bF" novalidate>
+              <label>구분<select id="bKind"><option>전기간</option><option>부분 기간</option></select></label>
+              <label>사용 기간<input id="bPer" placeholder="2027.01 ~ 2027.02"></label>
+              <label>시작 번호<input id="bS" inputmode="numeric" placeholder="005401"></label>
+              <label>끝 번호<input id="bE" inputmode="numeric" placeholder="006400"></label>
+              <p class="err w" id="bErr" role="alert"></p>
+              <div class="row"><button type="submit">발주분 추가</button></div>
+            </form>
+            <ul class="blist" id="bList"></ul>
+          </details>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
+  var $ = function (id) { return document.getElementById(id); };
+  var pw = '', S = { batches: [], allocs: [] }, editId = null;
+  try { pw = sessionStorage.getItem('tk_pw') || ''; } catch (e) {}
+
+  function rpc(fn, body) {
+    return fetch(SB + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ p_pw: pw }, body || {})) })
+      .then(function (r) { return r.text().then(function (t) { var j = t ? JSON.parse(t) : null; if (!r.ok) throw new Error((j && j.message) || '요청이 실패했습니다'); return j; }); });
+  }
+  var n6 = function (n) { return String(n).padStart(6, '0'); };
+  var rng = function (s, e) { return n6(s) + ' - ' + n6(e); };
+  var cnt = function (n) { return n.toLocaleString('ko-KR'); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var num = function (v) { var d = String(v || '').replace(/[^0-9]/g, ''); return d && d.length <= 6 ? parseInt(d, 10) : NaN; };
+  var active = function (a) { return a.status !== '회수'; };
+  var bLabel = function (b) { return b.kind + ' · ' + rng(b.s, b.e); };
+  var tagCls = { '전달 완료': 'done', '전달 예정': 'plan', '회수': 'back' };
+  var fmtD = function (d) { return d ? d.replace(/-/g, '.') : ''; };
+
+  // 발주분 안에서 배분된 구간과 남은 구간(큐비크스 보유)을 번호 순서대로
+  function segments(b) {
+    var al = S.allocs.filter(function (a) { return a.batch_id === b.id && active(a); }).sort(function (x, y) { return x.s - y.s; });
+    var out = [], cur = b.s;
+    al.forEach(function (a) { if (a.s > cur) out.push({ hold: true, s: cur, e: a.s - 1 }); out.push({ a: a, s: a.s, e: a.e }); cur = a.e + 1; });
+    if (cur <= b.e) out.push({ hold: true, s: cur, e: b.e });
+    return out;
+  }
+  function freeRanges(b, skipId) {
+    var al = S.allocs.filter(function (a) { return a.batch_id === b.id && active(a) && a.id !== skipId; }).sort(function (x, y) { return x.s - y.s; });
+    var out = [], cur = b.s;
+    al.forEach(function (a) { if (a.s > cur) out.push([cur, a.s - 1]); cur = Math.max(cur, a.e + 1); });
+    if (cur <= b.e) out.push([cur, b.e]);
+    return out;
+  }
+
+  function render() {
+    var tb = '', tot = 0, alloc = 0, plan = 0, minS = Infinity, maxE = 0;
+    S.batches.forEach(function (b) {
+      var seg = segments(b); tot += b.e - b.s + 1; minS = Math.min(minS, b.s); maxE = Math.max(maxE, b.e);
+      seg.forEach(function (g, i) {
+        var q = g.e - g.s + 1, head = i === 0 ? '<td class="grp" rowspan="' + seg.length + '">' + esc(b.kind) + ' 티켓</td><td class="per" rowspan="' + seg.length + '">' + esc(b.period) + '</td>' : '';
+        if (g.hold) {
+          tb += '<tr class="hold">' + head + '<td class="item">일반</td><td class="num">' + rng(g.s, g.e) + '</td><td class="r">' + cnt(q) + '</td><td><span class="tag hold">큐비크스 보유</span></td><td class="act"></td></tr>';
+        } else {
+          var a = g.a; alloc += q; if (a.status === '전달 예정') plan += q;
+          var meta = [a.delivered_on ? '전달일 ' + fmtD(a.delivered_on) : '', a.recipient || '', a.memo || ''].filter(Boolean).map(esc).join(' · ');
+          tb += '<tr class="alloc' + (editId === a.id ? ' editing' : '') + '">' + head + '<td class="item">' + esc(a.company) + ' 전달분</td><td class="num">' + rng(a.s, a.e) + '</td><td class="r">' + cnt(q) + '</td><td><span class="tag ' + tagCls[a.status] + '">' + esc(a.status) + '</span>' + (meta ? '<span class="meta">' + meta + '</span>' : '') + '</td>'
+            + '<td class="act"><div class="in"><select class="mini noprint" data-st="' + a.id + '" aria-label="상태 바꾸기" style="width:auto;font-size:12px;padding:5px 6px">' + ['전달 예정', '전달 완료', '회수'].map(function (s) { return '<option' + (s === a.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select><button class="mini" type="button" data-ed="' + a.id + '">수정</button><button class="mini del" type="button" data-del="' + a.id + '">삭제</button></div></td></tr>';
+        }
+      });
+    });
+    if (S.batches.length) tb += '<tr class="sum"><td colspan="2">합계</td><td></td><td class="num">' + rng(minS, maxE) + '</td><td class="r">' + cnt(tot) + '</td><td></td><td class="act"></td></tr>';
+    else tb = '<tr><td colspan="7" style="padding:28px;text-align:center;color:var(--sub)">발주분이 없습니다. 오른쪽 아래에서 추가해 주세요.</td></tr>';
+    $('tb').innerHTML = tb;
+    var back = S.allocs.filter(function (a) { return !active(a); });
+    $('backsec').hidden = !back.length;
+    $('tbBack').innerHTML = back.map(function (a) {
+      return '<tr><td class="item">' + esc(a.company) + '</td><td class="num">' + rng(a.s, a.e) + '</td><td class="r">' + cnt(a.e - a.s + 1) + '</td><td><span class="tag back">회수</span>' + (a.memo ? '<span class="meta">' + esc(a.memo) + '</span>' : '') + '</td><td class="act"><div class="in"><button class="mini" type="button" data-ed="' + a.id + '">수정</button><button class="mini del" type="button" data-del="' + a.id + '">삭제</button></div></td></tr>';
+    }).join('');
+    $('sTotal').textContent = cnt(tot); $('sAlloc').textContent = cnt(alloc); $('sHold').textContent = cnt(tot - alloc); $('sPlan').textContent = cnt(plan);
+    var sel = $('aBatch'), keep = sel.value;
+    sel.innerHTML = S.batches.map(function (b) { return '<option value="' + b.id + '">' + esc(bLabel(b)) + '</option>'; }).join('');
+    if (keep && S.batches.some(function (b) { return String(b.id) === keep; })) sel.value = keep;
+    $('bList').innerHTML = S.batches.map(function (b) { return '<li><span>' + esc(bLabel(b)) + ' · ' + esc(b.period) + ' · ' + cnt(b.e - b.s + 1) + '장</span><button class="mini del" type="button" data-bdel="' + b.id + '">삭제</button></li>'; }).join('');
+    $('pdate').textContent = '출력 ' + new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
+    hint();
+  }
+
+  function load() {
+    return rpc('ticket_state').then(function (j) { S = j; $('login').hidden = true; $('app').hidden = false; render(); });
+  }
+
+  // ── 배분 폼
+  function curBatch() { var id = +$('aBatch').value; return S.batches.filter(function (b) { return b.id === id; })[0]; }
+  function hint() {
+    var b = curBatch(), h = $('aHint'); if (!b) { h.textContent = ''; return; }
+    var fr = freeRanges(b, editId), left = fr.reduce(function (t, r) { return t + r[1] - r[0] + 1; }, 0);
+    var s = num($('aS').value), e = num($('aE').value);
+    if (s && e && s <= e) h.innerHTML = '선택 범위 <b>' + rng(s, e) + '</b> · ' + cnt(e - s + 1) + '장';
+    else h.innerHTML = '남은 번호 ' + cnt(left) + '장' + (fr.length ? ' · 다음 빈 번호 <b>' + n6(fr[0][0]) + '</b>' : '');
+  }
+  function suggest() {
+    var b = curBatch(), q = num($('aQty').value); if (!b || !q) { hint(); return; }
+    var fr = freeRanges(b, editId), hit = fr.filter(function (r) { return r[1] - r[0] + 1 >= q; })[0];
+    if (hit) { $('aS').value = n6(hit[0]); $('aE').value = n6(hit[0] + q - 1); $('aErr').textContent = ''; }
+    else { $('aS').value = ''; $('aE').value = ''; $('aErr').textContent = '이 발주분에 ' + cnt(q) + '장이 이어진 빈 번호가 없습니다.'; }
+    hint();
+  }
+  function syncQty() { var s = num($('aS').value), e = num($('aE').value); if (s && e && s <= e) $('aQty').value = e - s + 1; hint(); }
+  $('aQty').addEventListener('input', suggest);
+  $('aBatch').addEventListener('change', function () { if ($('aQty').value) suggest(); else hint(); });
+  $('aS').addEventListener('input', syncQty); $('aE').addEventListener('input', syncQty);
+  ['aS', 'aE'].forEach(function (id) { $(id).addEventListener('blur', function () { var n = num($(id).value); if (n) $(id).value = n6(n); }); });
+  function resetForm() {
+    editId = null; $('aF').reset(); $('aErr').textContent = ''; $('aTitle').textContent = '배분 추가'; $('aSave').textContent = '배분 저장'; $('aCancel').hidden = true; render();
+  }
+  $('aCancel').addEventListener('click', resetForm);
+  $('aF').addEventListener('submit', function (e) {
+    e.preventDefault(); $('aErr').textContent = '';
+    var s = num($('aS').value), en = num($('aE').value);
+    if (!curBatch()) { $('aErr').textContent = '발주분을 먼저 추가해 주세요.'; return; }
+    if (!s || !en) { $('aErr').textContent = '수량을 넣거나 시작 · 끝 번호를 입력해 주세요.'; return; }
+    if (!$('aCo').value.trim()) { $('aErr').textContent = '기업명을 입력해 주세요.'; $('aCo').focus(); return; }
+    $('aSave').disabled = true;
+    rpc('ticket_alloc_save', { p_id: editId, p_batch: curBatch().id, p_company: $('aCo').value, p_s: s, p_e: en, p_date: $('aDate').value || null, p_recipient: $('aRcp').value, p_status: $('aSt').value, p_memo: $('aMemo').value })
+      .then(function () { return load(); }).then(resetForm)
+      .catch(function (err) { $('aErr').textContent = err.message; })
+      .finally(function () { $('aSave').disabled = false; });
+  });
+  function startEdit(id) {
+    var a = S.allocs.filter(function (x) { return x.id === id; })[0]; if (!a) return;
+    editId = id; $('aBatch').value = a.batch_id; $('aS').value = n6(a.s); $('aE').value = n6(a.e); $('aQty').value = a.e - a.s + 1;
+    $('aCo').value = a.company; $('aDate').value = a.delivered_on || ''; $('aSt').value = a.status; $('aRcp').value = a.recipient || ''; $('aMemo').value = a.memo || '';
+    $('aTitle').textContent = '배분 수정 — ' + a.company; $('aSave').textContent = '수정 저장'; $('aCancel').hidden = false; $('aErr').textContent = '';
+    render(); $('allocSec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-ed],[data-del],[data-bdel]'); if (!t) return;
+    if (t.dataset.ed) startEdit(+t.dataset.ed);
+    if (t.dataset.del) {
+      var a = S.allocs.filter(function (x) { return x.id === +t.dataset.del; })[0];
+      if (!a || !confirm(a.company + ' ' + rng(a.s, a.e) + ' (' + cnt(a.e - a.s + 1) + '장) 배분을 삭제할까요?\n번호는 큐비크스 보유로 돌아갑니다.')) return;
+      rpc('ticket_alloc_delete', { p_id: a.id }).then(function () { if (editId === a.id) editId = null; return load(); }).catch(function (err) { alert(err.message); });
+    }
+    if (t.dataset.bdel) {
+      var b = S.batches.filter(function (x) { return x.id === +t.dataset.bdel; })[0];
+      if (!b || !confirm(bLabel(b) + ' 발주분을 삭제할까요?')) return;
+      rpc('ticket_batch_delete', { p_id: b.id }).then(load).catch(function (err) { alert(err.message); });
+    }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t.dataset || !t.dataset.st) return;
+    var a = S.allocs.filter(function (x) { return x.id === +t.dataset.st; })[0]; if (!a) return;
+    rpc('ticket_alloc_save', { p_id: a.id, p_batch: a.batch_id, p_company: a.company, p_s: a.s, p_e: a.e, p_date: a.delivered_on, p_recipient: a.recipient, p_status: t.value, p_memo: a.memo })
+      .then(load).catch(function (err) { alert(err.message); render(); });
+  });
+
+  // ── 발주분
+  $('bF').addEventListener('submit', function (e) {
+    e.preventDefault(); $('bErr').textContent = '';
+    var s = num($('bS').value), en = num($('bE').value);
+    if (!s || !en) { $('bErr').textContent = '시작 · 끝 번호를 입력해 주세요.'; return; }
+    rpc('ticket_batch_save', { p_id: null, p_kind: $('bKind').value, p_period: $('bPer').value, p_s: s, p_e: en })
+      .then(function () { $('bF').reset(); return load(); }).catch(function (err) { $('bErr').textContent = err.message; });
+  });
+
+  // ── 번호 조회
+  $('lookF').addEventListener('submit', function (e) {
+    e.preventDefault(); var n = num($('lookIn').value), box = $('lookRes'); box.classList.add('on');
+    if (!n) { box.innerHTML = '숫자 6자리 이내로 입력해 주세요.'; return; }
+    var b = S.batches.filter(function (x) { return n >= x.s && n <= x.e; })[0];
+    if (!b) { box.innerHTML = '<span class="n">' + n6(n) + '</span><br>발주되지 않은 번호입니다.'; return; }
+    var a = S.allocs.filter(function (x) { return active(x) && n >= x.s && n <= x.e; })[0];
+    var back = S.allocs.filter(function (x) { return !active(x) && n >= x.s && n <= x.e; });
+    var h = '<span class="n">' + n6(n) + '</span><br>' + esc(b.kind) + ' 티켓 · 사용 기간 ' + esc(b.period) + '<br>';
+    if (a) h += '<b>' + esc(a.company) + '</b> 배분 <span class="tag ' + tagCls[a.status] + '">' + esc(a.status) + '</span><br><span style="color:var(--sub)">배분 범위 ' + rng(a.s, a.e) + ' · ' + cnt(a.e - a.s + 1) + '장' + (a.delivered_on ? ' · 전달일 ' + fmtD(a.delivered_on) : '') + (a.recipient ? ' · ' + esc(a.recipient) : '') + '</span>';
+    else h += '<b>큐비크스 보유</b> (배분 안 됨)';
+    if (back.length) h += '<br><span style="color:var(--sub)">회수 이력: ' + back.map(function (x) { return esc(x.company); }).join(', ') + '</span>';
+    box.innerHTML = h;
+  });
+
+  // ── 내보내기 · 인쇄
+  $('csv').addEventListener('click', function () {
+    var q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var tx = function (v) { return '="' + v + '"'; };   // 엑셀이 앞자리 0을 지우지 않게
+    var rows = [['구분', '사용 기간', '항목', '티켓 번호', '시작', '끝', '수량', '비고', '전달일', '받은 사람 · 연락처', '메모']], tot = 0, minS = Infinity, maxE = 0;
+    S.batches.forEach(function (b) {
+      tot += b.e - b.s + 1; minS = Math.min(minS, b.s); maxE = Math.max(maxE, b.e);
+      segments(b).forEach(function (g) {
+        var a = g.a || {};
+        rows.push([b.kind + ' 티켓', b.period, g.hold ? '일반' : a.company + ' 전달분', rng(g.s, g.e), tx(n6(g.s)), tx(n6(g.e)), g.e - g.s + 1, g.hold ? '큐비크스 보유' : a.status, fmtD(a.delivered_on), a.recipient || '', a.memo || '']);
+      });
+    });
+    rows.push(['합계', '', '', S.batches.length ? rng(minS, maxE) : '', '', '', tot, '', '', '', '']);
+    S.allocs.filter(function (a) { return !active(a); }).forEach(function (a) { rows.push(['회수', '', a.company, rng(a.s, a.e), tx(n6(a.s)), tx(n6(a.e)), a.e - a.s + 1, '회수', fmtD(a.delivered_on), a.recipient || '', a.memo || '']); });
+    var csv = '﻿' + rows.map(function (r) { return r.map(function (v, i) { return (i === 4 || i === 5) ? v : q(v); }).join(','); }).join('\r\n');
+    var d = new Date(), stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    var link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); link.download = 'MONET100_티켓일련번호_' + stamp + '.csv';
+    document.body.appendChild(link); link.click(); setTimeout(function () { URL.revokeObjectURL(link.href); link.remove(); }, 500);
+  });
+  $('print').addEventListener('click', function () { load().finally(function () { window.print(); }); });
+  $('reload').addEventListener('click', function () { load().catch(function (err) { alert(err.message); }); });
+
+  $('login').addEventListener('submit', function (e) {
+    e.preventDefault(); pw = $('pw').value.trim(); $('lerr').textContent = '';
+    load().then(function () { try { sessionStorage.setItem('tk_pw', pw); } catch (e) {} })
+      .catch(function (err) { $('lerr').textContent = /비밀번호/.test(err.message) ? '비밀번호가 맞지 않습니다.' : '불러오지 못했습니다. 다시 시도해 주세요.'; });
+  });
+  if (pw) load().catch(function () { pw = ''; try { sessionStorage.removeItem('tk_pw'); } catch (e) {} });
+})();
+</script>
+</body>
+</html>
