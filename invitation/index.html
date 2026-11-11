@@ -92,6 +92,11 @@ img{display:block;max-width:none}
 .park .done b{display:block;font-weight:400;color:var(--gold);font-size:17px;letter-spacing:.06em;margin-top:4px}
 .park .done .btn{margin-top:18px;font-size:14px;padding:11px 18px;border-color:#D9D6CE;color:#6A6A64}
 .park.ok form{display:none}.park.ok .done{display:block}
+/* ── 약도 (주차 안내와 같은 틀) */
+.loc .map{display:block;margin:0 auto;border:1px solid #E4E1D9}
+.loc .map img{display:block;width:100%;height:auto}
+.loc .addr{margin-top:calc(30 * 100cqw / 720)}
+.loc .addr+p{font-size:calc(17.5 * 100cqw / 720);color:var(--sub)}
 @media (min-width:600px){body.reading,html.reading{background:var(--bg)}#read{box-shadow:0 0 0 1px #E2DFD7,0 18px 50px rgba(0,0,0,.08);margin-top:28px;margin-bottom:28px}}
 .noanim #stage,.noanim #stage *,.noanim #hint{transition:none!important;animation:none!important}
 @media (prefers-reduced-motion:reduce){#stage,#flap,#card,#closed,#read{transition-duration:.01s!important}#hint{animation:none}}
@@ -156,6 +161,14 @@ img{display:block;max-width:none}
     <p class="t" style="--y:743.5;--f:16.5">서울시 중구 남대문로 42</p>
     <p class="t" style="--y:821.5;--f:16.6">주최. SONG DONG HUN Inc. &nbsp;|&nbsp; 주관. KYVIKOS &nbsp;|&nbsp; 후원. 주한 프랑스대사관</p>
     <p class="t" style="--y:879;--f:14.9">문의. (주)송동훈 이현진 총괄팀장 | 010-2061-0961 | windtogether@grandtours.co.kr</p>
+  </section>
+  <section class="park loc" aria-label="오시는 길">
+    <div class="in">
+      <h2>LOCATION</h2>
+      <a class="map" href="/invitation/img/map.webp" target="_blank" rel="noopener"><img src="/invitation/img/map.webp" width="960" height="795" loading="lazy" alt="약도: 남대문로와 퇴계로 사이 남대문로12길 옆 신세계백화점 본점 더 헤리티지. 남쪽 퇴계로에 4호선 회현역 6번 · 7번 · 1번 출구가 있고, 7번 출구에서 북쪽 길을 따라 올라가면 됩니다."></a>
+      <p class="addr">신세계본점 더 헤리티지 4F 뮤지엄 · 서울시 중구 남대문로 42</p>
+      <p>4호선 회현역 7번 출구</p>
+    </div>
   </section>
   <section class="park" id="park" aria-label="주차 안내">
     <div class="in">
