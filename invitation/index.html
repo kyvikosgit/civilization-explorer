@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MONET 100 VIP 오프닝 초대장</title>
+<meta name="description" content="〈MONET 100: 시대를 읽는 감각의 계보〉 VIP 오프닝에 초대합니다. 2026년 12월 4일 금요일 오후 4시, 신세계본점 더 헤리티지 4층.">
+<meta property="og:title" content="MONET 100 VIP 오프닝 초대장">
+<meta property="og:description" content="2026. 12. 4 (금) 16:00 – 19:30 · 신세계본점 더 헤리티지 4F 뮤지엄">
+<meta property="og:image" content="https://monet100.com/invitation/img/og.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#EDEBE5">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Diphylleia&display=swap">
+<link rel="preload" as="image" href="/invitation/img/env_closed.webp">
+<style>
+/* 봉투(닫힘) → 누르면 덮개가 열리고 카드가 올라옴 → 카드가 화면 폭으로 커지며 세 쪽을 세로로 읽는 화면
+   봉투 좌표는 열린 봉투 원본(1129 × 2000) 기준: 접는 선 y 885, 몸통 x 197–932 · y 885–1902, 카드 폭 670 · 위끝 940
+   카드 안 글자는 원본 카드(720 × 998) 좌표 그대로 — 1u = 카드 폭 / 720 */
+:root{--bg:#EDEBE5;--paper:#FFFFFF;--gold:#B39243;--ink:#1E1E1E;--sub:#4A4A4A;--serif:'Diphylleia','Gowun Batang','AppleMyungjo',serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);-webkit-tap-highlight-color:transparent}
+body{font-family:var(--serif);color:var(--ink);overflow:hidden}
+body.reading{overflow:auto;background:var(--paper)}
+html.reading{background:var(--paper)}
+img{display:block;max-width:none}
+
+/* ── 봉투 무대 */
+#stage{position:fixed;left:0;top:0;width:calc(1129px * var(--s));height:calc(2000px * var(--s));transform:translate(var(--x),var(--y));transition:transform 1s cubic-bezier(.6,0,.2,1),opacity .6s ease;cursor:pointer;z-index:2}
+#stage .l{position:absolute;left:0;width:100%}
+#flap{top:0;height:calc(885px * var(--s));transform-origin:50% 100%;transform:perspective(1400px) rotateX(-92deg);opacity:0;transition:transform .85s cubic-bezier(.3,.6,.25,1),opacity .2s ease}
+#body{top:calc(885px * var(--s));height:calc(1115px * var(--s))}
+#front{top:calc(885px * var(--s));height:calc(1115px * var(--s));z-index:3;pointer-events:none}
+#closed{position:absolute;left:calc(197px * var(--s));top:calc(885px * var(--s));width:calc(735px * var(--s));height:calc(1017px * var(--s));z-index:5;transition:opacity .35s ease;filter:drop-shadow(0 10px 22px rgba(0,0,0,.18))}
+#body,#flap{filter:drop-shadow(0 8px 18px rgba(0,0,0,.12))}
+#card{position:absolute;left:calc(229.5px * var(--s));top:calc(940px * var(--s));width:calc(670px * var(--s));z-index:2;opacity:0;transition:transform 1.15s cubic-bezier(.45,0,.2,1)}
+#hint{position:fixed;left:0;right:0;text-align:center;font:400 15px/1.4 var(--serif);color:#5E6B5C;letter-spacing:.06em;z-index:3;transition:opacity .3s;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+.open #closed{opacity:0}
+.open #flap{transform:perspective(1400px) rotateX(0);opacity:1}
+.open #card{opacity:1}
+.open #hint{opacity:0;animation:none}
+.rise #card{transform:translateY(calc(-860px * var(--s)))}
+.leave #stage{opacity:0}
+
+/* ── 카드 쪽(원본 720 × 998 좌표) */
+.page{position:relative;width:100%;aspect-ratio:720/998;background:var(--paper);container-type:inline-size;overflow:hidden}
+.page>*{position:absolute;margin:0}
+.page .t{left:0;right:0;text-align:center;line-height:1;white-space:nowrap;transform:translateY(-50%);top:calc(var(--y) * 100cqw / 720);font-size:calc(var(--f) * 100cqw / 720)}
+.page .im{left:calc(var(--x) * 100cqw / 720);top:calc(var(--y) * 100cqw / 720);width:calc(var(--w) * 100cqw / 720);height:auto}
+.p1 .t{color:var(--gold)}
+.p2 .t,.p3 .t{color:var(--ink)}
+.page .t.col{left:calc((var(--cx) - 110) * 100cqw / 720);right:auto;width:calc(220 * 100cqw / 720)}
+.page .t.note{left:calc(107 * 100cqw / 720);right:auto;text-align:left}
+.p3 .small{color:var(--sub)}
+
+/* ── 읽는 화면 */
+#read{position:relative;max-width:480px;margin:0 auto;opacity:0;visibility:hidden;transition:opacity .5s ease}
+.reading #read{opacity:1;visibility:visible}
+#read .page+.page{border-top:1px solid #EFEDE8}
+#read .end{padding:28px 20px calc(36px + env(safe-area-inset-bottom,0px));text-align:center}
+#again{font:400 14px/1 var(--serif);color:#6A6A64;background:none;border:1px solid #D9D6CE;border-radius:999px;padding:11px 18px;cursor:pointer}
+#again:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (min-width:600px){body.reading,html.reading{background:var(--bg)}#read{box-shadow:0 0 0 1px #E2DFD7,0 18px 50px rgba(0,0,0,.08);margin-top:28px;margin-bottom:28px}}
+@media (prefers-reduced-motion:reduce){#stage,#flap,#card,#closed,#read{transition-duration:.01s!important}#hint{animation:none}}
+</style>
+</head>
+<body>
+
+<div id="stage" role="button" tabindex="0" aria-label="봉투를 열어 초대장 보기">
+  <img id="flap" class="l" src="/invitation/img/env_flap.webp" alt="">
+  <img id="body" class="l" src="/invitation/img/env_body.webp" alt="">
+  <div id="card" aria-hidden="true"></div>
+  <img id="front" class="l" src="/invitation/img/env_front.webp" alt="">
+  <img id="closed" src="/invitation/img/env_closed.webp" alt="MONET 100 밀랍 도장으로 봉한 초대장 봉투">
+</div>
+<p id="hint">봉투를 눌러 열어 주세요</p>
+
+<main id="read" aria-label="초대장">
+  <section class="page p1" aria-label="표지">
+    <p class="t" style="--y:105;--f:25.5">클로드 모네 서거 100주년 기념 전시</p>
+    <img class="im" style="--x:245;--y:192;--w:261" src="/invitation/img/haystack.webp" alt="모네의 건초더미 그림">
+    <img class="im" style="--x:236;--y:388;--w:246" src="/invitation/img/logo_monet100.webp" alt="Monet 100">
+    <p class="t" style="--y:596;--f:47.8">시대를 읽는 감각의 계보</p>
+    <p class="t" style="--y:727.5;--f:28.7">FRIDAY | Dec 4 | 2026</p>
+    <p class="t" style="--y:767;--f:30.5">4:00–7:30 PM</p>
+    <p class="t" style="--y:865;--f:25.4">신세계본점 더 헤리티지 4층</p>
+  </section>
+  <section class="page p2" aria-label="초대의 글">
+    <p class="t" style="--y:162.5;--f:22.6">클로드 모네 서거 100주년 기념 전시</p>
+    <p class="t" style="--y:238;--f:20.7">〈MONET 100: 시대를 읽는 감각의 계보〉</p>
+    <p class="t" style="--y:275.5;--f:20.7">VIP 오프닝에 초대합니다.</p>
+    <p class="t" style="--y:388.5;--f:20.7">1926년 12월 5일, 클로드 모네가 세상을 떠났습니다.</p>
+    <p class="t" style="--y:425.5;--f:20.7">서거 100주년을 하루 앞둔 12월 4일,</p>
+    <p class="t" style="--y:463.5;--f:20.7">서울시 유형문화유산인 신세계본점 더 헤리티지에서</p>
+    <p class="t" style="--y:500;--f:20.7">〈MONET 100: 시대를 읽는 감각의 계보〉 의 개막을</p>
+    <p class="t" style="--y:538;--f:20.7">귀한 분들과 먼저 함께하고자 합니다.</p>
+    <p class="t" style="--y:613.5;--f:20.7">모네의 그림 너머, 인상주의를 탄생시킨 시대를</p>
+    <p class="t" style="--y:650;--f:20.7">직접 경험하는 인문학 경험 전시입니다.</p>
+    <p class="t" style="--y:763.5;--f:20.7">정식 개막에 앞서 전시를 여유롭게 둘러보시고,</p>
+    <p class="t" style="--y:800.5;--f:20.7">오프닝 세리머니와 송동훈 작가의 강연에</p>
+    <p class="t" style="--y:838.5;--f:20.7">함께해 주시기 바랍니다.</p>
+  </section>
+  <section class="page p3" aria-label="프로그램">
+    <p class="t" style="--y:122.5;--f:28.5;letter-spacing:.04em">PROGRAM</p>
+    <img class="im" style="--x:112;--y:222;--w:96" src="/invitation/img/ic_frame.webp" alt="액자 그림">
+    <img class="im" style="--x:336;--y:233;--w:53" src="/invitation/img/ic_mic.webp" alt="마이크 그림">
+    <img class="im" style="--x:510;--y:230;--w:104" src="/invitation/img/ic_bag.webp" alt="보자기 답례품 그림">
+    <p class="t col" style="--cx:162;--y:371.5;--f:20">16:00 ~</p>
+    <p class="t col" style="--cx:358.5;--y:371.5;--f:20">18:30 ~ 19:30</p>
+    <p class="t col" style="--cx:558;--y:371.5;--f:20">19:30</p>
+    <p class="t col" style="--cx:163.5;--y:455;--f:20.2">전시 관람</p>
+    <p class="t col" style="--cx:163.5;--y:489.5;--f:20.2">및</p>
+    <p class="t col" style="--cx:163.5;--y:522;--f:20.2">웰컴 리셉션</p>
+    <p class="t col" style="--cx:357;--y:455;--f:20.2">오프닝 세리머니</p>
+    <p class="t col" style="--cx:357;--y:489.5;--f:20.2">송동훈 작가 강연</p>
+    <p class="t col" style="--cx:357;--y:522;--f:20.2">(미디어 갤러리)</p>
+    <p class="t col" style="--cx:557.5;--y:455;--f:20.2">행사 종료</p>
+    <p class="t col" style="--cx:557.5;--y:489.5;--f:20.2">및</p>
+    <p class="t col" style="--cx:557;--y:522;--f:20.2">답례품 증정</p>
+    <p class="t note" style="--y:605;--f:16.6">* 오후 4시부터 편하신 시간에 오셔서 자유롭게 관람하실 수 있습니다.</p>
+    <p class="t note" style="--y:635.5;--f:16.6">* 본 행사는 초청받으신 분에 한해 입장하실 수 있습니다.</p>
+    <p class="t" style="--y:717.5;--f:18.4">신세계본점 더 헤리티지 4F 뮤지엄</p>
+    <p class="t" style="--y:743.5;--f:16.5">서울시 중구 남대문로 42</p>
+    <p class="t" style="--y:821.5;--f:16.6">주최. SONG DONG HUN Inc. &nbsp;|&nbsp; 주관. KYVIKOS &nbsp;|&nbsp; 후원. 주한 프랑스대사관</p>
+    <p class="t" style="--y:879;--f:14.9">문의. (주)송동훈 이현진 총괄팀장 | 010-2061-0961 | windtogether@grandtours.co.kr</p>
+  </section>
+  <div class="end"><button id="again" type="button">봉투 다시 보기</button></div>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement, body = document.body, stage = document.getElementById('stage'), card = document.getElementById('card');
+  var hint = document.getElementById('hint'), read = document.getElementById('read'), p1 = read.querySelector('.p1');
+  // 카드 = 표지 쪽 복제(같은 글자 · 같은 좌표, 크기만 작게)
+  var face = p1.cloneNode(true); face.removeAttribute('aria-label'); card.appendChild(face);
+  var state = 'closed';
+  function layout() {
+    var vw = innerWidth, vh = innerHeight;
+    var s = Math.min((Math.min(vw, 480) * 0.80) / 735, (vh * 0.90) / 1870);
+    root.style.setProperty('--s', s);
+    var x = vw / 2 - 564.5 * s;
+    var yC = vh / 2 - 1393 * s;                 // 닫힘: 몸통 가운데를 화면 가운데에
+    var yO = vh / 2 - 967 * s;                  // 열림: 도장 위끝 ~ 몸통 아래끝을 화면 가운데에
+    stage.style.setProperty('--x', x + 'px');
+    stage.style.setProperty('--y', (state === 'closed' ? yC : yO) + 'px');
+    hint.style.top = (yC + 1902 * s + 22) + 'px';
+  }
+  layout(); addEventListener('resize', layout);
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  async function open() {
+    if (state !== 'closed') return; state = 'opening';
+    body.classList.add('open'); layout();
+    await wait(1000); body.classList.add('rise');
+    await wait(1250);
+    // 카드 → 읽는 화면 표지 자리로(FLIP)
+    body.classList.add('reading'); root.classList.add('reading'); read.style.transition = 'none'; read.style.opacity = '1';
+    scrollTo(0, 0);
+    var a = card.getBoundingClientRect(), b = p1.getBoundingClientRect();
+    var k = a.width / b.width;
+    p1.style.transformOrigin = '0 0';
+    p1.style.transform = 'translate(' + (a.left - b.left) + 'px,' + (a.top - b.top) + 'px) scale(' + k + ')';
+    p1.style.boxShadow = '0 14px 40px rgba(0,0,0,.18)'; p1.style.zIndex = 3;
+    Array.prototype.forEach.call(read.children, function (el) { if (el !== p1) { el.style.opacity = 0; el.style.transition = 'none'; } });
+    card.style.visibility = 'hidden'; body.classList.add('leave');
+    p1.getBoundingClientRect();
+    p1.style.transition = 'transform .85s cubic-bezier(.5,0,.2,1), box-shadow .85s ease';
+    p1.style.transform = 'none'; p1.style.boxShadow = '0 0 0 rgba(0,0,0,0)';
+    await wait(850);
+    Array.prototype.forEach.call(read.children, function (el) { if (el !== p1) { el.style.transition = 'opacity .6s ease'; el.style.opacity = 1; } });
+    stage.style.visibility = 'hidden'; hint.style.display = 'none'; state = 'read';
+  }
+  function reset() {
+    state = 'closed'; body.className = ''; root.classList.remove('reading'); scrollTo(0, 0);
+    p1.removeAttribute('style'); card.style.visibility = ''; stage.style.visibility = ''; hint.style.display = '';
+    read.removeAttribute('style'); Array.prototype.forEach.call(read.children, function (el) { el.removeAttribute('style'); });
+    layout();
+  }
+  stage.addEventListener('click', open);
+  stage.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  document.getElementById('again').addEventListener('click', reset);
+  if (/[?&]open=1/.test(location.search)) { body.classList.add('reading', 'leave'); root.classList.add('reading'); stage.style.visibility = 'hidden'; hint.style.display = 'none'; state = 'read'; }
+})();
+</script>
+</body>
+</html>
