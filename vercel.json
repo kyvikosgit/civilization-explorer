@@ -31,6 +31,10 @@
       "dest": "/monet100-web/index.html"
     },
     {
+      "src": "/invita(t?)ion/admin/?",
+      "dest": "/invitation/admin/index.html"
+    },
+    {
       "src": "/invita(t?)ion/?",
       "dest": "/invitation/index.html"
     },
