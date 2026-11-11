@@ -6,102 +6,222 @@
 <meta name="robots" content="noindex, nofollow">
 <title>티켓 일련번호 관리 · MONET 100</title>
 <style>
-:root{--bg:#F4F3EF;--paper:#FFFFFF;--ink:#17171A;--sub:#6B6A64;--faint:#9C9A93;--line:#E5E3DC;--line2:#D4D1C8;--acc:#B5522E;--ok:#2F6B4F;--warn:#9A6A12;--sans:-apple-system,BlinkMacSystemFont,'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+:root{--bg:#F5F4F0;--paper:#FFFFFF;--ink:#17171A;--sub:#6B6A64;--faint:#A19F97;--line:#E6E3DC;--line2:#D4D0C6;--acc:#B5522E;
+  --ok:#2E7D57;--okbg:#EAF5EE;--bad:#C2362B;--badbg:#FCEDEB;--warn:#9A6A12;--warnbg:#FBF3E1;--mute:#76746C;--mutebg:#F1F0EC;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,'Pretendard','Apple SD Gothic Neo','Noto Sans KR',sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.5 var(--sans);-webkit-tap-highlight-color:transparent}
-.wrap{max-width:1240px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-left,0px)) 64px}
-header.top{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.wrap{max-width:1280px;margin:0 auto;padding:26px max(16px,env(safe-area-inset-left,0px)) 72px}
+button{font:600 13px/1 var(--sans);border-radius:8px;padding:10px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;white-space:nowrap}
+button.ghost{background:var(--paper);color:var(--ink);border-color:var(--line2)}
+button.link{background:none;border:0;color:var(--sub);padding:6px 8px;font-weight:500}
+button.link:hover{color:var(--ink)}
+button[disabled]{opacity:.45;cursor:default}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+input,select,textarea{font:400 15px/1.3 var(--sans);color:var(--ink);background:#FBFAF8;border:1px solid var(--line2);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+textarea{resize:vertical}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.kick{margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--acc)}
+.err{min-height:1.3em;margin:0;color:var(--bad);font-size:13px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+/* 로그인 */
+.login{max-width:340px;margin:70px auto;padding:28px 24px;display:flex;flex-direction:column;gap:10px;text-align:center}
+.login h2{margin:0 0 6px;font-size:17px}
+
+/* 머리 */
+header.top{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
 header.top .t{margin-right:auto}
-.kick{margin:0 0 6px;font-size:11px;font-weight:600;letter-spacing:.14em;color:var(--acc)}
 h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em}
 .sub{margin:4px 0 0;color:var(--sub);font-size:13px}
-.tools{display:flex;gap:8px;flex-wrap:wrap}
-button,.btn{font:600 13px/1 var(--sans);border-radius:8px;padding:10px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;white-space:nowrap}
-button.ghost{background:var(--paper);color:var(--ink);border-color:var(--line2)}
-button.mini{font-weight:500;font-size:12px;padding:6px 9px;background:var(--paper);color:var(--ink);border-color:var(--line2)}
-button.mini.del{color:var(--acc);border-color:#E9D2C8}
-button[disabled]{opacity:.45;cursor:default}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.card{background:var(--paper);border:1px solid var(--line);border-radius:12px}
-.login{max-width:340px;margin:60px auto;padding:28px 24px;display:flex;flex-direction:column;gap:10px;text-align:center}
-.login h2{margin:0 0 6px;font-size:17px}
-input,select,textarea{font:400 15px/1.3 var(--sans);color:var(--ink);background:#FBFAF8;border:1px solid var(--line2);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
-textarea{resize:vertical;min-height:58px}
-.err{min-height:1.3em;margin:0;color:var(--acc);font-size:13px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px}
-.stats div{padding:14px 18px;border-left:1px solid var(--line)}
-.stats div:first-child{border-left:0}
-.stats b{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.stats span{font-size:12px;color:var(--sub)}
-.grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
-.side{display:flex;flex-direction:column;gap:18px}
-.sec{padding:18px 18px 16px}
-.sec h2{margin:0 0 12px;font-size:15px;font-weight:700;display:flex;align-items:baseline;gap:8px}
-.sec h2 small{font-size:12px;font-weight:400;color:var(--sub)}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.menu{position:relative}
+.menu summary{list-style:none}.menu summary::-webkit-details-marker{display:none}
+.menu .pop{position:absolute;right:0;top:calc(100% + 6px);z-index:30;background:var(--paper);border:1px solid var(--line2);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.10);padding:6px;min-width:190px;display:flex;flex-direction:column}
+.menu .pop button{background:none;border:0;color:var(--ink);text-align:left;font-weight:500;padding:10px 12px;border-radius:6px}
+.menu .pop button:hover{background:var(--mutebg)}
+.menu .pop button.danger{color:var(--bad)}
+.sumtag{display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;padding:10px 14px;border:1px solid var(--line2);border-radius:8px;background:var(--paper);cursor:pointer}
+
+main{display:flex;flex-direction:column;gap:18px}
+.sec{padding:20px 22px}
+.sec>.h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.sec>.h h2{margin:0;font-size:16px;font-weight:700}
+.sec>.h .meta{color:var(--sub);font-size:13px}
+.sec>.h .r{margin-left:auto}
+
+/* ── 번호 지도 */
+.mapscroll{overflow-x:auto;padding-bottom:4px}
+.mapin{position:relative;min-width:760px}
+.tier1{position:relative;height:44px}
+.tier1 .b{position:absolute;top:0;height:40px;padding:0 10px;border-top:2px solid var(--ink);display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.tier1 .b+.b{border-left:0}
+.tier1 .b b{font-size:13px;white-space:nowrap}
+.tier1 .b span{font-size:12px;color:var(--sub);white-space:nowrap}
+.band{position:relative;height:84px;margin-top:4px}
+.seg{position:absolute;top:0;height:84px;border:1px solid var(--edge);background:var(--fill);border-radius:6px;padding:9px 10px 0;overflow:hidden;cursor:pointer;text-align:left;color:var(--ink);font:inherit;display:block}
+.seg:hover,.seg.sel{box-shadow:0 0 0 2px var(--edge) inset}
+.seg .nm{font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg .rg{font-family:var(--mono);font-size:11.5px;color:var(--sub);white-space:nowrap}
+.seg .q{font-size:12px;white-space:nowrap;margin-top:2px}
+.seg .q b{font-weight:700}
+.seg .bar{position:absolute;left:0;right:0;bottom:0;height:6px;background:rgba(0,0,0,.06)}
+.seg .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--edge)}
+.seg.narrow{padding:0}
+.ticks{position:relative;height:40px}
+.ticks span{position:absolute;font-family:var(--mono);font-size:11px;color:var(--sub);transform:translateX(-50%);white-space:nowrap}
+.ticks span::before{content:'';position:absolute;left:50%;top:-6px;height:5px;border-left:1px solid var(--line2)}
+.ticks span.l0{top:6px}.ticks span.l1{top:22px}
+.ticks span.first{transform:none}.ticks span.first::before{left:0}
+.ticks span.last{transform:translateX(-100%)}.ticks span.last::before{left:auto;right:0}
+.callouts{position:relative}
+.co{position:absolute;font-size:12px;white-space:nowrap;cursor:pointer;background:none;border:0;padding:0;color:var(--ink);font-weight:500;text-align:left}
+.co::before{content:'';position:absolute;left:0;bottom:100%;border-left:1px solid var(--edge);height:var(--lh)}
+.co i{display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--edge);margin-right:6px;vertical-align:0}
+.co .rg{font-family:var(--mono);color:var(--sub);font-size:11.5px;margin-left:6px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.legend span{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--sub)}
+.legend i{width:12px;height:12px;border-radius:3px;background:var(--fill);border:1px solid var(--edge)}
+.legend b{color:var(--ink);font-weight:600}
+
+/* ── 사용 확인 */
+.check{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:0}
+.check .main{padding:22px 24px;border-right:1px solid var(--line)}
+.check .side{padding:22px 22px}
+.check h2{margin:0 0 4px;font-size:16px}
+.check .lead{margin:0 0 14px;color:var(--sub);font-size:13px}
+.big{display:flex;gap:10px}
+.big input{font:600 32px/1 var(--mono);letter-spacing:.12em;padding:16px 18px;text-align:center;background:#fff;border:1.5px solid var(--ink);border-radius:12px}
+.big input::placeholder{font-size:17px;letter-spacing:.02em;font-family:var(--sans);font-weight:400;color:var(--faint)}
+.big button{font-size:16px;padding:0 24px;border-radius:12px}
+.opts{display:flex;align-items:center;gap:14px;margin:12px 0 0;flex-wrap:wrap}
+.sw{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;cursor:pointer;user-select:none}
+.sw input{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:999px;background:var(--line2);position:relative;padding:0;border:0;cursor:pointer;transition:background .15s}
+.sw input::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .15s}
+.sw input:checked{background:var(--ok)}.sw input:checked::after{left:19px}
+.opts small{color:var(--sub);font-size:12.5px}
+.flash{margin-top:16px;border-radius:12px;padding:16px 18px;display:none;border:1px solid}
+.flash.on{display:block}
+.flash.ok{background:var(--okbg);border-color:#BFDCCB;color:var(--ok)}
+.flash.bad{background:var(--badbg);border-color:#F0C7C2;color:var(--bad)}
+.flash.warn{background:var(--warnbg);border-color:#EBD6A6;color:var(--warn)}
+.flash.mute{background:var(--mutebg);border-color:var(--line2);color:var(--mute)}
+.flash.info{background:#F7F6F3;border-color:var(--line);color:var(--ink)}
+.flash .st{font-size:20px;font-weight:800;letter-spacing:-.01em}
+.flash .no{font-family:var(--mono);font-weight:700;font-size:20px;color:var(--ink);margin-right:10px}
+.flash dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:12px 0 0;color:var(--ink);font-size:14px}
+.flash dt{color:var(--sub)}.flash dd{margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.pill.y{background:var(--okbg);color:var(--ok)}.pill.n{background:var(--warnbg);color:var(--warn)}
+.flash .acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.flash .acts button.go{font-size:16px;padding:14px 22px;background:var(--ok);border-color:var(--ok)}
+.flash .acts button.go.warn{background:var(--warn);border-color:var(--warn)}
+.recent h3{margin:0 0 8px;font-size:14px;display:flex;justify-content:space-between;align-items:baseline}
+.recent h3 small{font-weight:400;color:var(--sub);font-size:12px}
+.recent ol{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.recent li{display:grid;grid-template-columns:44px 64px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.recent li .tm{color:var(--sub);font-variant-numeric:tabular-nums}
+.recent li .hd{color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent .empty{padding:16px 0;color:var(--sub);font-size:13px;border-bottom:1px solid var(--line)}
+.bulk{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+.bulk summary{cursor:pointer;font-weight:700;font-size:14px;list-style:none;display:flex;justify-content:space-between}
+.bulk summary::-webkit-details-marker{display:none}
+.bulk summary::after{content:'+';color:var(--sub);font-weight:400;font-size:18px;line-height:1}
+.bulk[open] summary::after{content:'−'}
+.bulk p.h{margin:8px 0;color:var(--sub);font-size:12.5px}
+.bulk textarea{font-family:var(--mono);font-size:14px;min-height:92px}
+.bulk .row{display:flex;gap:8px;margin-top:8px}
+.prev{margin-top:10px;font-size:13px;display:none}
+.prev.on{display:block}
+.prev .cnt{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.prev .cnt span{padding:5px 9px;border-radius:999px;font-weight:700;font-size:12.5px}
+.prev .cnt .a{background:var(--okbg);color:var(--ok)}.prev .cnt .b{background:var(--badbg);color:var(--bad)}.prev .cnt .c{background:var(--mutebg);color:var(--mute)}
+.prev .ls{font-family:var(--mono);font-size:12px;color:var(--sub);max-height:84px;overflow:auto;margin:2px 0 8px;word-break:break-all}
+
+/* ── 현황표 */
 .tablebox{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th,td{padding:10px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-thead th{font-size:12px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--ink);white-space:nowrap;background:var(--paper)}
-td.c{text-align:center}td.r,th.r{text-align:right}
-td.grp{font-weight:600;background:#FBFAF7;border-right:1px solid var(--line);white-space:nowrap}
-td.per{color:var(--sub);background:#FBFAF7;border-right:1px solid var(--line);white-space:nowrap}
-td.num{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;white-space:nowrap}
-tr.hold td.item{color:var(--sub)}
-tr.alloc td.item{font-weight:600}
-td.item{white-space:nowrap}
-td.grp,td.per{font-size:13px}
-tr.sum td{font-weight:700;border-top:1px solid var(--ink);border-bottom:0;background:#FBFAF7}
-.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:3px 7px;border-radius:999px;border:1px solid var(--line2);color:var(--sub);white-space:nowrap}
-.tag.done{color:var(--ok);border-color:#C9DDD2;background:#F3F8F5}
-.tag.plan{color:var(--warn);border-color:#EADBB8;background:#FBF7EC}
-.tag.back{color:var(--faint)}
-.tag.hold{color:var(--sub);background:#F6F5F1}
-.meta{display:block;margin-top:3px;font-size:12px;color:var(--sub)}
-td.act{white-space:nowrap;text-align:right;width:1%}
-td.act .in{display:flex;gap:4px;justify-content:flex-end}
-.f{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+thead th{font-size:12px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--ink);white-space:nowrap}
+td.r,th.r{text-align:right}
+td.grp{font-weight:600;white-space:nowrap;border-right:1px solid var(--line);background:#FCFBF9}
+td.per{color:var(--sub);white-space:nowrap;border-right:1px solid var(--line);background:#FCFBF9}
+tbody tr.seg-row{cursor:pointer}
+tbody tr.seg-row:hover td:not(.grp):not(.per){background:#FAF9F6}
+tr.seg-row.sel td:not(.grp):not(.per){background:#FFF6EF}
+td.who{white-space:nowrap;font-weight:600}
+td.who i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--fill);border:1px solid var(--edge);margin-right:8px;vertical-align:0}
+td.who small{display:block;font-weight:400;color:var(--sub);font-size:12px;margin-left:18px}
+td.rg{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.pct{display:flex;align-items:center;gap:8px;justify-content:flex-end;white-space:nowrap}
+.pct .bar{width:70px;height:5px;border-radius:3px;background:var(--mutebg);position:relative;overflow:hidden}
+.pct .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--edge)}
+tr.sum td{font-weight:700;border-top:1px solid var(--ink);border-bottom:0;background:#FCFBF9}
+td.act{width:1%;white-space:nowrap;text-align:right}
+td.act .menu summary{opacity:.35;padding:6px 9px;border-radius:6px;cursor:pointer;font-size:16px;line-height:1;color:var(--sub)}
+tr:hover td.act .menu summary,td.act .menu summary:focus-visible,td.act .menu[open] summary{opacity:1;background:var(--mutebg)}
+@media (hover:none){td.act .menu summary{opacity:1}}
+
+/* ── 모달 */
+dialog{border:0;border-radius:14px;padding:0;max-width:min(560px,calc(100vw - 24px));width:100%;box-shadow:0 30px 80px rgba(0,0,0,.25);color:var(--ink)}
+dialog::backdrop{background:rgba(20,20,22,.38)}
+dialog .dh{display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid var(--line)}
+dialog .dh h2{margin:0;font-size:16px;margin-right:auto}
+dialog .db{padding:18px 20px}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .f label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--sub);font-weight:600}
 .f .w{grid-column:1/-1}
-.hint{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--sub);min-height:1.2em}
-.hint b{color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-weight:600}
-.row{display:flex;gap:8px;grid-column:1/-1}
-.row button{flex:1}
-.look{display:flex;gap:8px}
-.lookres{margin:12px 0 0;padding:12px 13px;border-radius:8px;background:#FBFAF7;border:1px solid var(--line);font-size:13.5px;line-height:1.6;display:none}
-.lookres.on{display:block}
-.lookres .n{font-family:ui-monospace,Menlo,monospace;font-weight:700;font-size:15px}
-details summary{cursor:pointer;font-size:15px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center}
-details summary::-webkit-details-marker{display:none}
-details summary::after{content:'+';font-weight:400;color:var(--sub);font-size:18px}
-details[open] summary::after{content:'−'}
-details .f{margin-top:12px}
-.blist{margin:14px 0 0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.f .hint{grid-column:1/-1;margin:0;font-size:12.5px;color:var(--sub)}
+.f .hint b{font-family:var(--mono);color:var(--ink)}
+.f .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.blist{margin:16px 0 0;padding:0;list-style:none;border-top:1px solid var(--line)}
 .blist li{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
 .blist li span{margin-right:auto}
-.editing{outline:2px solid var(--acc);outline-offset:-2px}
+/* 번호판 */
+dialog.grid{max-width:min(1120px,calc(100vw - 24px))}
+dialog.grid .db{max-height:calc(100vh - 170px);overflow:auto;padding-top:8px}
+.seg3{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+.seg3 button{border:0;border-radius:0;background:var(--paper);color:var(--sub);font-weight:600;padding:8px 12px}
+.seg3 button.on{background:var(--ink);color:#fff}
+.gstat{font-size:13px;color:var(--sub)}
+.gstat b{color:var(--ink)}
+.hund{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.hund>b{font-family:var(--mono);font-size:12px;color:var(--sub);font-weight:600;padding-top:5px}
+.cells{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:3px}
+.cells button{font:600 11.5px/1 var(--mono);padding:7px 0;border-radius:4px;border:1px solid var(--edge);background:var(--paper);color:var(--ink)}
+.cells button.u{background:var(--edge);color:#fff}
+.gwrap.f-u .cells button:not(.u),.gwrap.f-n .cells button.u{display:none}
+.gwrap.f-u .hund.none-u,.gwrap.f-n .hund.none-n{display:none}
+.glegend{display:flex;gap:14px;font-size:12.5px;color:var(--sub);align-items:center}
+.glegend i{display:inline-block;width:14px;height:12px;border-radius:3px;border:1px solid var(--edge);vertical-align:-1px;margin-right:5px}
+.glegend i.u{background:var(--edge)}
 .printhead{display:none}
-.backsec{margin-top:18px}
-[hidden]{display:none!important}
-@media (max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,1fr)}.stats div:nth-child(3){border-left:0}.stats div:nth-child(n+3){border-top:1px solid var(--line)}}
-@media (max-width:560px){h1{font-size:21px}.f{grid-template-columns:1fr}th,td{padding:9px 7px}}
+
+@media (max-width:900px){
+  .check{grid-template-columns:1fr}.check .main{border-right:0;border-bottom:1px solid var(--line)}
+  #secCheck{order:-1}
+}
+@media (max-width:560px){
+  #print{display:none}
+  h1{font-size:21px}.sec{padding:16px 14px}.check .main,.check .side{padding:18px 14px}
+  .big input{font-size:26px;padding:14px 10px}.big button{padding:0 16px}
+  .f{grid-template-columns:1fr}th,td{padding:10px 7px}
+  .hund{grid-template-columns:1fr;gap:4px}
+}
 @media print{
-  @page{size:A4;margin:14mm 12mm 16mm}
-  html,body{background:#fff;font-size:10pt}
+  @page{size:A4 landscape;margin:12mm}
+  html,body{background:#fff;font-size:9.5pt}
   .wrap{max-width:none;padding:0}
-  header.top,.side,.stats,td.act,th.act,.noprint{display:none!important}
-  .grid{display:block}
-  .card{border:0;border-radius:0}
-  .sec{padding:0}
-  .sec h2{display:none}
-  .printhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5px solid #000;padding-bottom:3mm;margin-bottom:6mm}
-  .printhead h1{font-size:15pt}
-  .printhead span{font-size:9pt;color:#333}
-  th,td{padding:2.6mm 2mm;border-bottom:.5pt solid #999}
+  header.top,#secCheck,td.act,th.act,dialog,.legend{display:none!important}
+  .card{border:0;border-radius:0}.sec{padding:0}
+  .printhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5px solid #000;padding-bottom:3mm;margin-bottom:5mm}
+  .printhead h1{font-size:15pt}.printhead span{font-size:9pt}
+  .mapscroll{overflow:visible}.mapin{min-width:0}
+  #secTable{margin-top:6mm}
+  th,td{padding:2.2mm 2mm;border-bottom:.5pt solid #999}
   thead th{color:#000;border-bottom:1pt solid #000}
-  td.grp,td.per,tr.sum td{background:none}
-  .tag{border:0;padding:0;background:none!important;color:#000!important;font-weight:400}
   tr{break-inside:avoid}
-  .backsec h3{font-size:11pt;margin:8mm 0 2mm}
 }
 </style>
 </head>
@@ -117,265 +237,453 @@ details .f{margin-top:12px}
 
   <div id="app" hidden>
     <header class="top">
-      <div class="t"><p class="kick">MONET 100 · STAFF ONLY</p><h1>티켓 일련번호 관리</h1><p class="sub">6자리 일련번호 · 기업별 배분 현황 · 배분하지 않은 번호는 큐비크스 보유</p></div>
-      <div class="tools"><button class="ghost" type="button" id="reload">새로고침</button><button class="ghost" type="button" id="csv">엑셀 내보내기</button><button type="button" id="print">인쇄</button></div>
+      <div class="t"><p class="kick">MONET 100 · STAFF ONLY</p><h1>티켓 일련번호 관리</h1><p class="sub" id="topSub"></p></div>
+      <div class="tools">
+        <button type="button" id="btnAlloc">배포 추가</button>
+        <button type="button" class="ghost" id="btnBatch">발주분 추가</button>
+        <details class="menu" id="expMenu"><summary class="sumtag">엑셀 내보내기 ▾</summary>
+          <div class="pop"><button type="button" id="csv1">현황표 (구간별)</button><button type="button" id="csv2">번호별 사용 내역</button></div></details>
+        <button type="button" class="ghost" id="print">인쇄</button>
+        <button type="button" class="ghost" id="reload" aria-label="새로고침">↻</button>
+      </div>
     </header>
 
-    <div class="card stats" aria-label="요약">
-      <div><b id="sTotal">0</b><span>발주 총수량</span></div>
-      <div><b id="sAlloc">0</b><span>기업 배분</span></div>
-      <div><b id="sHold">0</b><span>큐비크스 보유</span></div>
-      <div><b id="sPlan">0</b><span>전달 예정(장)</span></div>
-    </div>
-
-    <div class="grid">
-      <section class="card sec">
+    <main>
+      <section class="card sec" id="secMap" aria-label="번호 지도">
         <div class="printhead"><h1>MONET 100 티켓 일련번호 현황</h1><span id="pdate"></span></div>
-        <h2>현황표 <small>발주분별 배분 · 남은 번호</small></h2>
-        <div class="tablebox">
-          <table>
-            <thead><tr><th>구분</th><th>사용 기간</th><th>항목</th><th>티켓 번호</th><th class="r">수량</th><th>비고</th><th class="act"></th></tr></thead>
-            <tbody id="tb"></tbody>
-          </table>
+        <div class="h"><h2>번호 지도</h2><span class="meta">위: 기간 · 아래: 배포처 · 막대 = 사용 비율 · 누르면 번호판</span><span class="meta r" id="mapSum"></span></div>
+        <div class="mapscroll"><div class="mapin" id="mapIn"></div></div>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="card check" id="secCheck" aria-label="티켓 사용 확인">
+        <div class="main">
+          <h2>티켓 사용 확인</h2>
+          <p class="lead">번호를 넣고 Enter. 1234 · 001234 모두 됩니다.</p>
+          <form class="big" id="chkF" autocomplete="off">
+            <input id="chkIn" inputmode="numeric" enterkeyhint="go" maxlength="6" placeholder="티켓 번호" aria-label="티켓 번호">
+            <button type="submit">확인</button>
+          </form>
+          <div class="opts">
+            <label class="sw"><input type="checkbox" id="auto" checked> 바로 사용 처리</label>
+            <small id="autoHint">미사용 · 사용 기간 안이면 Enter 한 번에 사용 처리합니다</small>
+          </div>
+          <div class="flash" id="flash" role="status" aria-live="assertive"></div>
+          <details class="bulk" id="bulk">
+            <summary>여러 번호 한 번에</summary>
+            <p class="h">줄바꿈 · 띄어쓰기 · 쉼표로 구분, 범위는 000401-000450 처럼. 미리 보기로 확인한 뒤 처리합니다(기간은 따지지 않음).</p>
+            <textarea id="bulkIn" placeholder="000401-000450&#10;1203, 1204 1207"></textarea>
+            <div class="row"><button type="button" class="ghost" id="bulkPrev">미리 보기</button><button type="button" id="bulkGo" disabled>사용 처리</button></div>
+            <div class="prev" id="bulkRes"></div>
+          </details>
         </div>
-        <div class="backsec" id="backsec" hidden>
-          <h3 style="font-size:13px;margin:0 0 8px;color:var(--sub)">회수 내역 <small style="font-weight:400">— 번호는 큐비크스 보유로 돌아감</small></h3>
-          <div class="tablebox"><table><tbody id="tbBack"></tbody></table></div>
+        <div class="side recent">
+          <h3>최근 사용 <small>최근 10건</small></h3>
+          <ol id="recent"></ol>
         </div>
       </section>
 
-      <aside class="side">
-        <section class="card sec">
-          <h2>번호 조회</h2>
-          <form class="look" id="lookF"><input id="lookIn" inputmode="numeric" placeholder="예: 1234 또는 001234" aria-label="조회할 티켓 번호"><button type="submit">조회</button></form>
-          <div class="lookres" id="lookRes" role="status" aria-live="polite"></div>
-        </section>
-
-        <section class="card sec" id="allocSec">
-          <h2 id="aTitle">배분 추가</h2>
-          <form class="f" id="aF" novalidate>
-            <label class="w">발주분<select id="aBatch"></select></label>
-            <label>수량<input id="aQty" inputmode="numeric" placeholder="예: 300"></label>
-            <span></span>
-            <label>시작 번호<input id="aS" inputmode="numeric" placeholder="000001"></label>
-            <label>끝 번호<input id="aE" inputmode="numeric" placeholder="000300"></label>
-            <p class="hint" id="aHint"></p>
-            <label class="w">기업명<input id="aCo" placeholder="예: 신세계" autocomplete="off"></label>
-            <label>전달일<input id="aDate" type="date"></label>
-            <label>상태<select id="aSt"><option>전달 예정</option><option>전달 완료</option><option>회수</option></select></label>
-            <label class="w">받은 사람 · 연락처 <input id="aRcp" placeholder="선택" autocomplete="off"></label>
-            <label class="w">메모<textarea id="aMemo" placeholder="선택"></textarea></label>
-            <p class="err w" id="aErr" role="alert"></p>
-            <div class="row"><button type="button" class="ghost" id="aCancel" hidden>취소</button><button type="submit" id="aSave">배분 저장</button></div>
-          </form>
-        </section>
-
-        <section class="card sec">
-          <details id="bDet">
-            <summary>발주분 추가 · 관리</summary>
-            <form class="f" id="bF" novalidate>
-              <label>구분<select id="bKind"><option>전기간</option><option>부분 기간</option></select></label>
-              <label>사용 기간<input id="bPer" placeholder="2027.01 ~ 2027.02"></label>
-              <label>시작 번호<input id="bS" inputmode="numeric" placeholder="005401"></label>
-              <label>끝 번호<input id="bE" inputmode="numeric" placeholder="006400"></label>
-              <p class="err w" id="bErr" role="alert"></p>
-              <div class="row"><button type="submit">발주분 추가</button></div>
-            </form>
-            <ul class="blist" id="bList"></ul>
-          </details>
-        </section>
-      </aside>
-    </div>
+      <section class="card sec" id="secTable" aria-label="현황표">
+        <div class="h"><h2>현황표</h2><span class="meta">행을 누르면 그 구간의 번호판이 열립니다</span></div>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>구분</th><th>사용 기간</th><th>배포처</th><th>티켓 번호</th><th class="r">수량</th><th class="r">사용</th><th class="r">미사용</th><th class="r">사용률</th><th class="act"></th></tr></thead>
+            <tbody id="tb"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
   </div>
 </div>
+
+<dialog id="dAlloc" aria-labelledby="dAllocT">
+  <div class="dh"><h2 id="dAllocT">배포 추가</h2><button type="button" class="link" data-close>닫기</button></div>
+  <form class="db f" id="aF" novalidate>
+    <label class="w">발주분<select id="aBatch"></select></label>
+    <label>수량<input id="aQty" inputmode="numeric" placeholder="예: 300"></label>
+    <span></span>
+    <label>시작 번호<input id="aS" inputmode="numeric" placeholder="000401"></label>
+    <label>끝 번호<input id="aE" inputmode="numeric" placeholder="000700"></label>
+    <p class="hint" id="aHint"></p>
+    <label class="w">배포처<input id="aCo" placeholder="예: 신세계" autocomplete="off" list="coList"></label>
+    <datalist id="coList"></datalist>
+    <label class="w">메모<input id="aMemo" placeholder="선택" autocomplete="off"></label>
+    <p class="err w" id="aErr" role="alert"></p>
+    <div class="row"><button type="button" class="ghost" data-close>취소</button><button type="submit" id="aSave">저장</button></div>
+  </form>
+</dialog>
+
+<dialog id="dBatch" aria-labelledby="dBatchT">
+  <div class="dh"><h2 id="dBatchT">발주분 추가</h2><button type="button" class="link" data-close>닫기</button></div>
+  <div class="db">
+    <form class="f" id="bF" novalidate>
+      <label>구분<select id="bKind"><option>전기간</option><option>부분 기간</option></select></label>
+      <span></span>
+      <label>사용 시작 월<input id="bFrom" type="month" value="2027-01"></label>
+      <label>사용 끝 월<input id="bTo" type="month" value="2027-02"></label>
+      <label>시작 번호<input id="bS" inputmode="numeric" placeholder="005401"></label>
+      <label>끝 번호<input id="bE" inputmode="numeric" placeholder="006400"></label>
+      <p class="err w" id="bErr" role="alert"></p>
+      <div class="row"><button type="submit">발주분 추가</button></div>
+    </form>
+    <ul class="blist" id="bList"></ul>
+  </div>
+</dialog>
+
+<dialog id="dGrid" class="grid" aria-labelledby="dGridT">
+  <div class="dh" style="flex-wrap:wrap">
+    <h2 id="dGridT">번호판</h2>
+    <span class="gstat" id="gStat"></span>
+    <div class="seg3" role="group" aria-label="보기"><button type="button" class="on" data-f="">전체</button><button type="button" data-f="u">사용</button><button type="button" data-f="n">미사용</button></div>
+    <button type="button" class="link" data-close>닫기</button>
+  </div>
+  <div class="db">
+    <div class="glegend" style="margin:6px 0 4px"><span><i class="u" id="gLu"></i>사용</span><span><i id="gLn"></i>미사용</span><span>· 칸을 누르면 사용 처리, 사용된 칸은 한 번 더 확인 후 취소</span></div>
+    <div class="gwrap" id="gWrap"></div>
+  </div>
+</dialog>
+
 <script>
 (function () {
   var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
   var $ = function (id) { return document.getElementById(id); };
-  var pw = '', S = { batches: [], allocs: [] }, editId = null;
+  var pw = '', S = { batches: [], allocs: [], used: [] }, U = [], USET = new Set(), editId = null, selKey = null, gridSeg = null;
   try { pw = sessionStorage.getItem('tk_pw') || ''; } catch (e) {}
+  try { var a0 = localStorage.getItem('tk_auto'); if (a0 === '0') $('auto').checked = false; } catch (e) {}
 
   function rpc(fn, body) {
     return fetch(SB + '/rest/v1/rpc/' + fn, { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ p_pw: pw }, body || {})) })
       .then(function (r) { return r.text().then(function (t) { var j = t ? JSON.parse(t) : null; if (!r.ok) throw new Error((j && j.message) || '요청이 실패했습니다'); return j; }); });
   }
   var n6 = function (n) { return String(n).padStart(6, '0'); };
-  var rng = function (s, e) { return n6(s) + ' - ' + n6(e); };
-  var cnt = function (n) { return n.toLocaleString('ko-KR'); };
+  var rng = function (s, e) { return n6(s) + ' – ' + n6(e); };
+  var cnt = function (n) { return Number(n).toLocaleString('ko-KR'); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var num = function (v) { var d = String(v || '').replace(/[^0-9]/g, ''); return d && d.length <= 6 ? parseInt(d, 10) : NaN; };
-  var active = function (a) { return a.status !== '회수'; };
-  var bLabel = function (b) { return b.kind + ' · ' + rng(b.s, b.e); };
-  var tagCls = { '전달 완료': 'done', '전달 예정': 'plan', '회수': 'back' };
-  var fmtD = function (d) { return d ? d.replace(/-/g, '.') : ''; };
+  var pctS = function (u, q) { return q ? Math.round(u / q * 1000) / 10 + '%' : '0%'; };
+  var tfmt = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false });
+  var dtfmt = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  var HOLD = '큐비크스 보유';
 
-  // 발주분 안에서 배분된 구간과 남은 구간(큐비크스 보유)을 번호 순서대로
+  // 사용된 번호(정렬된 배열)에서 구간 안 개수 — 이분 탐색
+  function lb(x) { var lo = 0, hi = U.length; while (lo < hi) { var m = (lo + hi) >> 1; if (U[m] < x) lo = m + 1; else hi = m; } return lo; }
+  function usedIn(s, e) { return lb(e + 1) - lb(s); }
+  function setUsed(arr) { U = arr.slice().sort(function (a, b) { return a - b; }); USET = new Set(U); }
+  function addUsed(n) { if (USET.has(n)) return; USET.add(n); U.splice(lb(n), 0, n); }
+  function delUsed(n) { if (!USET.has(n)) return; USET.delete(n); U.splice(lb(n), 1); }
+
+  // 배포처 색: 큐비크스 보유는 회색, 나머지는 차분한 색을 번호 순서대로
+  var PAL = [['#E3ECF4', '#5B80A5'], ['#E6EFE1', '#5A8A4B'], ['#F5E6D8', '#B4713C'], ['#ECE5F3', '#7B63A3'], ['#F4EDD3', '#A3862E'], ['#DFEFED', '#3C8A81'], ['#F4E1E4', '#A65466'], ['#E5E9EE', '#5E6B7A']];
+  var colorOf = {};
+  function color(name) { if (name === HOLD) return ['#F1EFEA', '#8F8A7E']; return colorOf[name] || ['#EEE', '#999']; }
+  function assignColors() { colorOf = {}; var k = 0; S.allocs.slice().sort(function (a, b) { return a.s - b.s; }).forEach(function (a) { if (!colorOf[a.company]) colorOf[a.company] = PAL[k++ % PAL.length]; }); }
+  function cvars(name) { var c = color(name); return '--fill:' + c[0] + ';--edge:' + c[1]; }
+
+  // 발주분 → 구간(배포 · 큐비크스 보유)
   function segments(b) {
-    var al = S.allocs.filter(function (a) { return a.batch_id === b.id && active(a); }).sort(function (x, y) { return x.s - y.s; });
+    var al = S.allocs.filter(function (a) { return a.batch_id === b.id; }).sort(function (x, y) { return x.s - y.s; });
     var out = [], cur = b.s;
-    al.forEach(function (a) { if (a.s > cur) out.push({ hold: true, s: cur, e: a.s - 1 }); out.push({ a: a, s: a.s, e: a.e }); cur = a.e + 1; });
-    if (cur <= b.e) out.push({ hold: true, s: cur, e: b.e });
+    al.forEach(function (a) { if (a.s > cur) out.push({ who: HOLD, s: cur, e: a.s - 1, b: b }); out.push({ who: a.company, s: a.s, e: a.e, a: a, b: b }); cur = a.e + 1; });
+    if (cur <= b.e) out.push({ who: HOLD, s: cur, e: b.e, b: b });
+    out.forEach(function (g) { g.q = g.e - g.s + 1; g.u = usedIn(g.s, g.e); g.key = g.s + '-' + g.e; });
     return out;
   }
-  function freeRanges(b, skipId) {
-    var al = S.allocs.filter(function (a) { return a.batch_id === b.id && active(a) && a.id !== skipId; }).sort(function (x, y) { return x.s - y.s; });
-    var out = [], cur = b.s;
-    al.forEach(function (a) { if (a.s > cur) out.push([cur, a.s - 1]); cur = Math.max(cur, a.e + 1); });
-    if (cur <= b.e) out.push([cur, b.e]);
-    return out;
+  function allSegs() { var r = []; S.batches.forEach(function (b) { r = r.concat(segments(b)); }); return r; }
+
+  // ── 번호 지도
+  function renderMap() {
+    var host = $('mapIn'), W = Math.max(host.clientWidth, 760), segs = allSegs();
+    if (!segs.length) { host.innerHTML = '<p style="color:var(--sub);padding:20px 0">발주분이 없습니다. 오른쪽 위 [발주분 추가]로 시작하세요.</p>'; $('legend').innerHTML = ''; return; }
+    var tot = segs.reduce(function (t, g) { return t + g.q; }, 0), MIN = 46, GAP = 3;
+    // 너무 작은 구간은 최소 폭을 주고, 나머지 폭을 수량 비율로 나눔
+    var avail = W - GAP * (segs.length - 1), fixed = 0, flex = 0;
+    segs.forEach(function (g) { g.small = g.q / tot * avail < MIN; if (g.small) fixed += MIN; else flex += g.q; });
+    var x = 0;
+    segs.forEach(function (g) { g.w = g.small ? MIN : (avail - fixed) * g.q / flex; g.x = x; x += g.w + GAP; });
+    var html = '<div class="tier1">';
+    S.batches.forEach(function (b) {
+      var gs = segs.filter(function (g) { return g.b === b; }), x0 = gs[0].x, x1 = gs[gs.length - 1].x + gs[gs.length - 1].w, q = b.e - b.s + 1, u = usedIn(b.s, b.e);
+      html += '<div class="b" style="left:' + x0 + 'px;width:' + (x1 - x0) + 'px"><b>' + esc(b.kind) + ' 티켓</b><span>' + esc(b.period) + ' · ' + cnt(q) + '장 · 사용 ' + cnt(u) + '</span></div>';
+    });
+    html += '</div><div class="band">';
+    segs.forEach(function (g) {
+      var inside = g.w >= 132, mid = !inside && g.w >= 74, p = g.q ? g.u / g.q * 100 : 0;
+      html += '<button type="button" class="seg' + (inside || mid ? '' : ' narrow') + (selKey === g.key ? ' sel' : '') + '" data-seg="' + g.key + '" style="' + cvars(g.who) + ';left:' + g.x + 'px;width:' + g.w + 'px" title="' + esc(g.who) + ' ' + rng(g.s, g.e) + ' · ' + cnt(g.q) + '장 · 사용 ' + cnt(g.u) + '">'
+        + (inside ? '<div class="nm">' + esc(g.who === HOLD ? HOLD : g.who + ' 배포분') + '</div><div class="rg">' + rng(g.s, g.e) + '</div><div class="q"><b>' + cnt(g.q) + '장</b> · 사용 ' + cnt(g.u) + ' (' + pctS(g.u, g.q) + ')</div>' : '')
+        + (mid ? '<div class="nm">' + esc(g.who) + '</div><div class="q"><b>' + cnt(g.q) + '장</b></div><div class="q">사용 ' + cnt(g.u) + '</div>' : '')
+        + '<span class="bar"><i style="width:' + p + '%"></i></span></button>';
+    });
+    html += '</div><div class="ticks">';
+    // 경계 번호: 각 구간 시작 + 마지막 끝. 가까우면 아래 줄로
+    var marks = segs.map(function (g, i) { return { x: g.x, t: n6(g.s), cls: i === 0 ? 'first' : '' }; });
+    var lastG = segs[segs.length - 1]; marks.push({ x: lastG.x + lastG.w, t: n6(lastG.e), cls: 'last' });
+    var prevX = [-1e9, -1e9];
+    marks.forEach(function (m) { var lv = m.x - prevX[0] >= 64 ? 0 : (m.x - prevX[1] >= 64 ? 1 : 0); prevX[lv] = m.x; html += '<span class="l' + lv + ' ' + m.cls + '" style="left:' + m.x + 'px">' + m.t + '</span>'; });
+    html += '</div>';
+    // 좁은 구간은 아래에 지시선과 함께 이름
+    var narrow = segs.filter(function (g) { return g.w < 74; });
+    if (narrow.length) {
+      var lvEnd = [], rows = 0, co = '';
+      narrow.forEach(function (g) {
+        var cx = g.x + g.w / 2, label = (g.who === HOLD ? HOLD : g.who + ' 배포분'), wEst = 14 + label.length * 13 + 120, lv = 0;
+        while (lvEnd[lv] != null && lvEnd[lv] > cx - 6) lv++;
+        lvEnd[lv] = cx + wEst; rows = Math.max(rows, lv + 1);
+        co += '<button type="button" class="co" data-seg="' + g.key + '" style="' + cvars(g.who) + ';left:' + cx + 'px;top:' + (lv * 24 + 6) + 'px;--lh:' + (lv * 24 + 46) + 'px"><i></i>' + esc(label) + '<span class="rg">' + rng(g.s, g.e) + ' · ' + cnt(g.q) + '장 · 사용 ' + cnt(g.u) + '</span></button>';
+      });
+      html += '<div class="callouts" style="height:' + (rows * 24 + 10) + 'px">' + co + '</div>';
+    }
+    host.innerHTML = html;
+    // 범례: 배포처별 합계
+    var by = {}; segs.forEach(function (g) { var k = g.who; by[k] = by[k] || { q: 0, u: 0 }; by[k].q += g.q; by[k].u += g.u; });
+    var names = Object.keys(colorOf).concat(by[HOLD] ? [HOLD] : []);
+    $('legend').innerHTML = names.filter(function (k) { return by[k]; }).map(function (k) { return '<span style="' + cvars(k) + '"><i></i><b>' + esc(k) + '</b>' + cnt(by[k].q) + '장 · 사용 ' + cnt(by[k].u) + ' (' + pctS(by[k].u, by[k].q) + ')</span>'; }).join('');
+    $('mapSum').innerHTML = '총 <b>' + cnt(tot) + '</b>장 · 사용 <b>' + cnt(U.length) + '</b> · 미사용 <b>' + cnt(tot - usedIn(0, 999999)) + '</b>';
   }
 
-  function render() {
-    var tb = '', tot = 0, alloc = 0, plan = 0, minS = Infinity, maxE = 0;
+  // ── 현황표
+  function renderTable() {
+    var tb = '', tot = 0, used = 0, minS = Infinity, maxE = 0;
     S.batches.forEach(function (b) {
-      var seg = segments(b); tot += b.e - b.s + 1; minS = Math.min(minS, b.s); maxE = Math.max(maxE, b.e);
+      var seg = segments(b); minS = Math.min(minS, b.s); maxE = Math.max(maxE, b.e);
       seg.forEach(function (g, i) {
-        var q = g.e - g.s + 1, head = i === 0 ? '<td class="grp" rowspan="' + seg.length + '">' + esc(b.kind) + ' 티켓</td><td class="per" rowspan="' + seg.length + '">' + esc(b.period) + '</td>' : '';
-        if (g.hold) {
-          tb += '<tr class="hold">' + head + '<td class="item">일반</td><td class="num">' + rng(g.s, g.e) + '</td><td class="r">' + cnt(q) + '</td><td><span class="tag hold">큐비크스 보유</span></td><td class="act"></td></tr>';
-        } else {
-          var a = g.a; alloc += q; if (a.status === '전달 예정') plan += q;
-          var meta = [a.delivered_on ? '전달일 ' + fmtD(a.delivered_on) : '', a.recipient || '', a.memo || ''].filter(Boolean).map(esc).join(' · ');
-          tb += '<tr class="alloc' + (editId === a.id ? ' editing' : '') + '">' + head + '<td class="item">' + esc(a.company) + ' 전달분</td><td class="num">' + rng(a.s, a.e) + '</td><td class="r">' + cnt(q) + '</td><td><span class="tag ' + tagCls[a.status] + '">' + esc(a.status) + '</span>' + (meta ? '<span class="meta">' + meta + '</span>' : '') + '</td>'
-            + '<td class="act"><div class="in"><select class="mini noprint" data-st="' + a.id + '" aria-label="상태 바꾸기" style="width:auto;font-size:12px;padding:5px 6px">' + ['전달 예정', '전달 완료', '회수'].map(function (s) { return '<option' + (s === a.status ? ' selected' : '') + '>' + s + '</option>'; }).join('') + '</select><button class="mini" type="button" data-ed="' + a.id + '">수정</button><button class="mini del" type="button" data-del="' + a.id + '">삭제</button></div></td></tr>';
-        }
+        tot += g.q; used += g.u;
+        var head = i === 0 ? '<td class="grp" rowspan="' + seg.length + '">' + esc(b.kind) + ' 티켓</td><td class="per" rowspan="' + seg.length + '">' + esc(b.period) + '</td>' : '';
+        var menu = g.a ? '<details class="menu"><summary aria-label="' + esc(g.who) + ' 배포 메뉴">⋯</summary><div class="pop"><button type="button" data-ed="' + g.a.id + '">수정</button><button type="button" data-grid="' + g.key + '">번호판 열기</button><button type="button" class="danger" data-del="' + g.a.id + '">삭제 (큐비크스 보유로)</button></div></details>'
+          : '<details class="menu"><summary aria-label="큐비크스 보유 메뉴">⋯</summary><div class="pop"><button type="button" data-give="' + g.key + '">이 구간에서 배포 추가</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>';
+        tb += '<tr class="seg-row' + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '">' + head
+          + '<td class="who"><i></i>' + esc(g.who === HOLD ? HOLD : g.who) + (g.a && g.a.memo ? '<small>' + esc(g.a.memo) + '</small>' : '') + '</td>'
+          + '<td class="rg">' + rng(g.s, g.e) + '</td><td class="r">' + cnt(g.q) + '</td><td class="r">' + cnt(g.u) + '</td><td class="r">' + cnt(g.q - g.u) + '</td>'
+          + '<td class="r"><div class="pct"><span class="bar"><i style="width:' + (g.q ? g.u / g.q * 100 : 0) + '%"></i></span>' + pctS(g.u, g.q) + '</div></td><td class="act">' + menu + '</td></tr>';
       });
     });
-    if (S.batches.length) tb += '<tr class="sum"><td colspan="2">합계</td><td></td><td class="num">' + rng(minS, maxE) + '</td><td class="r">' + cnt(tot) + '</td><td></td><td class="act"></td></tr>';
-    else tb = '<tr><td colspan="7" style="padding:28px;text-align:center;color:var(--sub)">발주분이 없습니다. 오른쪽 아래에서 추가해 주세요.</td></tr>';
+    if (S.batches.length) tb += '<tr class="sum"><td colspan="2">합계</td><td></td><td class="rg">' + rng(minS, maxE) + '</td><td class="r">' + cnt(tot) + '</td><td class="r">' + cnt(used) + '</td><td class="r">' + cnt(tot - used) + '</td><td class="r">' + pctS(used, tot) + '</td><td class="act"></td></tr>';
     $('tb').innerHTML = tb;
-    var back = S.allocs.filter(function (a) { return !active(a); });
-    $('backsec').hidden = !back.length;
-    $('tbBack').innerHTML = back.map(function (a) {
-      return '<tr><td class="item">' + esc(a.company) + '</td><td class="num">' + rng(a.s, a.e) + '</td><td class="r">' + cnt(a.e - a.s + 1) + '</td><td><span class="tag back">회수</span>' + (a.memo ? '<span class="meta">' + esc(a.memo) + '</span>' : '') + '</td><td class="act"><div class="in"><button class="mini" type="button" data-ed="' + a.id + '">수정</button><button class="mini del" type="button" data-del="' + a.id + '">삭제</button></div></td></tr>';
-    }).join('');
-    $('sTotal').textContent = cnt(tot); $('sAlloc').textContent = cnt(alloc); $('sHold').textContent = cnt(tot - alloc); $('sPlan').textContent = cnt(plan);
-    var sel = $('aBatch'), keep = sel.value;
-    sel.innerHTML = S.batches.map(function (b) { return '<option value="' + b.id + '">' + esc(bLabel(b)) + '</option>'; }).join('');
-    if (keep && S.batches.some(function (b) { return String(b.id) === keep; })) sel.value = keep;
-    $('bList').innerHTML = S.batches.map(function (b) { return '<li><span>' + esc(bLabel(b)) + ' · ' + esc(b.period) + ' · ' + cnt(b.e - b.s + 1) + '장</span><button class="mini del" type="button" data-bdel="' + b.id + '">삭제</button></li>'; }).join('');
-    $('pdate').textContent = '출력 ' + new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', dateStyle: 'medium', timeStyle: 'short' }).format(new Date());
-    hint();
+    $('topSub').textContent = '6자리 일련번호 · 총 ' + cnt(tot) + '장 · 사용 ' + cnt(used) + '장 · 배포하지 않은 번호는 큐비크스 보유';
+    $('pdate').textContent = '출력 ' + dtfmt.format(new Date()) + ' · 총 ' + cnt(tot) + '장 · 사용 ' + cnt(used) + '장';
   }
+  function renderAll() { assignColors(); renderMap(); renderTable(); if (gridSeg) renderGrid(); }
 
+  function loadRecent() {
+    return rpc('ticket_recent', { p_limit: 10 }).then(function (rows) {
+      $('recent').innerHTML = rows.length ? rows.map(function (r) { return '<li><span class="tm">' + tfmt.format(new Date(r.used_at)) + '</span><span class="num"><b>' + n6(r.serial) + '</b></span><span class="hd">' + esc(r.holder) + (r.note ? ' · ' + esc(r.note) : '') + '</span><button type="button" class="link" data-unuse="' + r.serial + '">취소</button></li>'; }).join('')
+        : '<li class="empty" style="display:block">아직 사용 처리한 티켓이 없습니다.</li>';
+    });
+  }
   function load() {
-    return rpc('ticket_state').then(function (j) { S = j; $('login').hidden = true; $('app').hidden = false; render(); });
+    return rpc('ticket_state').then(function (j) {
+      S = j; setUsed(j.used || []); $('login').hidden = true; $('app').hidden = false; renderAll(); loadRecent();
+    });
   }
 
-  // ── 배분 폼
+  // ── 사용 확인
+  var lastInfo = null, armed = false;
+  function flash(cls, html) { var f = $('flash'); f.className = 'flash on ' + cls; f.innerHTML = html; }
+  function infoDl(j) {
+    return '<dl><dt>기간</dt><dd>' + esc(j.kind) + ' 티켓 · ' + esc(j.period) + (j.in_period ? '<span class="pill y">사용 가능</span>' : '<span class="pill n">기간 아님</span>') + '</dd>'
+      + '<dt>배포처</dt><dd>' + esc(j.holder) + (j.alloc_s ? ' <span style="color:var(--sub)">(' + rng(j.alloc_s, j.alloc_e) + ')</span>' : '') + '</dd>'
+      + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>';
+  }
+  function show(j) {
+    lastInfo = j; armed = false;
+    var no = '<span class="no">' + n6(j.serial) + '</span>';
+    if (j.status === 'not_issued') return flash('mute', '<div class="st">' + no + '발주되지 않은 번호</div>');
+    if (j.status === 'already') return flash('bad', '<div class="st">' + no + '이미 사용된 티켓</div>' + infoDl(j) + '<div class="acts"><button type="button" class="ghost" data-unuse="' + j.serial + '">사용 취소</button></div>');
+    if (j.status === 'ok') return flash('ok', '<div class="st">' + no + '사용 처리됨</div>' + infoDl(j) + '<div class="acts"><button type="button" class="ghost" data-unuse="' + j.serial + '">사용 취소</button></div>');
+    if (j.status === 'out_of_period') return flash('warn', '<div class="st">' + no + '사용 기간이 아닙니다</div>' + infoDl(j) + '<div class="acts"><button type="button" class="go warn" data-force="' + j.serial + '">그래도 사용 처리</button></div>');
+    // 미사용(바로 처리 꺼짐)
+    flash('info', '<div class="st" style="color:var(--ok)">' + no + '미사용</div>' + infoDl(j) + '<div class="acts"><button type="button" class="go' + (j.in_period ? '' : ' warn') + '" data-' + (j.in_period ? 'use' : 'force') + '="' + j.serial + '">' + (j.in_period ? '사용 처리' : '기간 아님 · 그래도 사용 처리') + '</button></div>');
+  }
+  function after(j) {
+    if (j.status === 'ok') { addUsed(j.serial); renderAll(); loadRecent(); }
+    show(j); var i = $('chkIn'); i.value = ''; i.focus();
+  }
+  $('chkF').addEventListener('submit', function (e) {
+    e.preventDefault(); var n = num($('chkIn').value);
+    if (!n) { flash('mute', '<div class="st">번호를 입력해 주세요</div>'); return; }
+    var p = $('auto').checked ? rpc('ticket_use', { p_serial: n }) : rpc('ticket_lookup', { p_serial: n });
+    p.then(after).catch(function (err) { flash('bad', '<div class="st">처리하지 못했습니다</div><p>' + esc(err.message) + '</p>'); });
+  });
+  $('auto').addEventListener('change', function () { try { localStorage.setItem('tk_auto', this.checked ? '1' : '0'); } catch (e) {} $('autoHint').textContent = this.checked ? '미사용 · 사용 기간 안이면 Enter 한 번에 사용 처리합니다' : '조회만 합니다. 사용 처리는 결과에서 버튼으로'; $('chkIn').focus(); });
+  function useOne(n, force) { return rpc('ticket_use', { p_serial: n, p_force: !!force }).then(after); }
+  function unuseOne(n) {
+    if (!confirm(n6(n) + ' 사용을 취소할까요?')) return;
+    rpc('ticket_unuse', { p_serial: n }).then(function (j) { delUsed(n); renderAll(); loadRecent(); if (lastInfo && lastInfo.serial === n) flash('mute', '<div class="st"><span class="no">' + n6(n) + '</span>사용 취소됨</div>' + infoDl(j)); }).catch(function (err) { alert(err.message); });
+  }
+
+  // ── 여러 번호 한 번에
+  var bulkList = [];
+  function parseBulk(t) {
+    var out = [], bad = [];
+    String(t).replace(/\s*[-~–]\s*/g, '-').split(/[\s,;]+/).forEach(function (tok) {
+      if (!tok) return; var m = tok.match(/^(\d{1,6})-(\d{1,6})$/);
+      if (m) { var a = +m[1], b = +m[2]; if (a > b) { var x = a; a = b; b = x; } if (b - a > 20000) { bad.push(tok); return; } for (var i = a; i <= b; i++) out.push(i); }
+      else if (/^\d{1,6}$/.test(tok)) out.push(+tok); else bad.push(tok);
+    });
+    return { list: Array.from(new Set(out)).filter(function (n) { return n > 0; }).sort(function (a, b) { return a - b; }), bad: bad };
+  }
+  function compress(arr) { var r = [], i = 0; while (i < arr.length) { var j = i; while (j + 1 < arr.length && arr[j + 1] === arr[j] + 1) j++; r.push(i === j ? n6(arr[i]) : n6(arr[i]) + '–' + n6(arr[j])); i = j + 1; } return r.join(', '); }
+  function inBatch(n) { return S.batches.some(function (b) { return n >= b.s && n <= b.e; }); }
+  $('bulkPrev').addEventListener('click', function () {
+    var p = parseBulk($('bulkIn').value), go = [], al = [], no = [];
+    p.list.forEach(function (n) { if (!inBatch(n)) no.push(n); else if (USET.has(n)) al.push(n); else go.push(n); });
+    bulkList = go;
+    var box = $('bulkRes'); box.classList.add('on');
+    box.innerHTML = '<div class="cnt"><span class="a">' + cnt(go.length) + '장 사용 처리 예정</span><span class="b">' + cnt(al.length) + '장 이미 사용</span><span class="c">' + cnt(no.length) + '장 발주 안 됨</span>' + (p.bad.length ? '<span class="c">읽지 못한 ' + p.bad.length + '개</span>' : '') + '</div>'
+      + (go.length ? '<div>처리 예정</div><div class="ls">' + compress(go) + '</div>' : '') + (al.length ? '<div>이미 사용</div><div class="ls">' + compress(al) + '</div>' : '') + (no.length ? '<div>발주 안 됨</div><div class="ls">' + compress(no) + '</div>' : '') + (p.bad.length ? '<div>읽지 못함</div><div class="ls">' + esc(p.bad.join(' ')) + '</div>' : '');
+    $('bulkGo').disabled = !go.length; $('bulkGo').textContent = go.length ? cnt(go.length) + '장 사용 처리' : '사용 처리';
+  });
+  $('bulkIn').addEventListener('input', function () { $('bulkGo').disabled = true; $('bulkGo').textContent = '사용 처리'; });
+  $('bulkGo').addEventListener('click', function () {
+    if (!bulkList.length) return; var btn = this; btn.disabled = true;
+    rpc('ticket_use_many', { p_serials: bulkList }).then(function (r) {
+      $('bulkRes').innerHTML = '<div class="cnt"><span class="a">' + cnt(r.ok) + '장 사용 처리됨</span>' + (r.already ? '<span class="b">' + cnt(r.already) + '장 이미 사용</span>' : '') + (r.not_issued ? '<span class="c">' + cnt(r.not_issued) + '장 발주 안 됨</span>' : '') + '</div>';
+      bulkList = []; btn.textContent = '사용 처리'; $('bulkIn').value = ''; return load();
+    }).catch(function (err) { alert(err.message); btn.disabled = false; });
+  });
+
+  // ── 번호판
+  function segByKey(k) { return allSegs().filter(function (g) { return g.key === k; })[0]; }
+  function openGrid(k) { var g = segByKey(k); if (!g) return; gridSeg = k; selKey = k; renderAll(); var d = $('dGrid'); if (!d.open) d.showModal(); }
+  function renderGrid() {
+    var g = segByKey(gridSeg); if (!g) { $('dGrid').close(); return; }
+    var c = color(g.who); $('dGrid').style.setProperty('--edge', c[1]); $('dGrid').style.setProperty('--fill', c[0]);
+    $('dGridT').textContent = (g.who === HOLD ? HOLD : g.who + ' 배포분') + ' · ' + rng(g.s, g.e);
+    $('gStat').innerHTML = '<b>' + cnt(g.q) + '</b>장 · 사용 <b>' + cnt(g.u) + '</b> (' + pctS(g.u, g.q) + ') · 미사용 <b>' + cnt(g.q - g.u) + '</b>';
+    var h = '';
+    for (var hs = Math.floor((g.s - 1) / 100) * 100 + 1; hs <= g.e; hs += 100) {
+      var a = Math.max(hs, g.s), b = Math.min(hs + 99, g.e), cells = '', uu = 0;
+      for (var n = a; n <= b; n++) { var u = USET.has(n); if (u) uu++; cells += '<button type="button" class="' + (u ? 'u' : '') + '" data-cell="' + n + '" title="' + n6(n) + (u ? ' · 사용' : ' · 미사용') + '">' + String(n % 10000).padStart(4, '0') + '</button>'; }
+      h += '<div class="hund' + (uu ? '' : ' none-u') + (uu === b - a + 1 ? ' none-n' : '') + '"><b>' + n6(a) + '<br>– ' + n6(b) + '</b><div class="cells">' + cells + '</div></div>';
+    }
+    $('gWrap').innerHTML = h;
+  }
+  $('dGrid').querySelector('.seg3').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+    $('gWrap').className = 'gwrap' + (b.dataset.f ? ' f-' + b.dataset.f : '');
+  });
+  $('gWrap').addEventListener('click', function (e) {
+    var c = e.target.closest('[data-cell]'); if (!c) return; var n = +c.dataset.cell;
+    if (USET.has(n)) {
+      if (!confirm(n6(n) + ' 사용을 취소할까요?')) return;
+      c.classList.remove('u'); delUsed(n);
+      rpc('ticket_unuse', { p_serial: n }).then(function () { renderAll(); loadRecent(); }).catch(function (err) { addUsed(n); c.classList.add('u'); alert(err.message); });
+    } else {
+      c.classList.add('u'); addUsed(n);
+      rpc('ticket_use_many', { p_serials: [n] }).then(function () { renderAll(); loadRecent(); }).catch(function (err) { delUsed(n); c.classList.remove('u'); alert(err.message); });
+    }
+  });
+  $('dGrid').addEventListener('close', function () { gridSeg = null; });
+
+  // ── 배포 추가 · 수정
   function curBatch() { var id = +$('aBatch').value; return S.batches.filter(function (b) { return b.id === id; })[0]; }
+  function freeRanges(b, skipId) {
+    var al = S.allocs.filter(function (a) { return a.batch_id === b.id && a.id !== skipId; }).sort(function (x, y) { return x.s - y.s; });
+    var out = [], cur = b.s; al.forEach(function (a) { if (a.s > cur) out.push([cur, a.s - 1]); cur = Math.max(cur, a.e + 1); }); if (cur <= b.e) out.push([cur, b.e]); return out;
+  }
   function hint() {
     var b = curBatch(), h = $('aHint'); if (!b) { h.textContent = ''; return; }
-    var fr = freeRanges(b, editId), left = fr.reduce(function (t, r) { return t + r[1] - r[0] + 1; }, 0);
-    var s = num($('aS').value), e = num($('aE').value);
-    if (s && e && s <= e) h.innerHTML = '선택 범위 <b>' + rng(s, e) + '</b> · ' + cnt(e - s + 1) + '장';
-    else h.innerHTML = '남은 번호 ' + cnt(left) + '장' + (fr.length ? ' · 다음 빈 번호 <b>' + n6(fr[0][0]) + '</b>' : '');
+    var fr = freeRanges(b, editId), left = fr.reduce(function (t, r) { return t + r[1] - r[0] + 1; }, 0), s = num($('aS').value), e = num($('aE').value);
+    h.innerHTML = (s && e && s <= e ? '선택 <b>' + rng(s, e) + '</b> · ' + cnt(e - s + 1) + '장 · ' : '') + '이 발주분의 남은 번호 ' + cnt(left) + '장' + (fr.length ? ' · 다음 빈 번호 <b>' + n6(fr[0][0]) + '</b>' : '');
   }
   function suggest() {
     var b = curBatch(), q = num($('aQty').value); if (!b || !q) { hint(); return; }
-    var fr = freeRanges(b, editId), hit = fr.filter(function (r) { return r[1] - r[0] + 1 >= q; })[0];
-    if (hit) { $('aS').value = n6(hit[0]); $('aE').value = n6(hit[0] + q - 1); $('aErr').textContent = ''; }
-    else { $('aS').value = ''; $('aE').value = ''; $('aErr').textContent = '이 발주분에 ' + cnt(q) + '장이 이어진 빈 번호가 없습니다.'; }
+    var hit = freeRanges(b, editId).filter(function (r) { return r[1] - r[0] + 1 >= q; })[0];
+    if (hit) { $('aS').value = n6(hit[0]); $('aE').value = n6(hit[0] + q - 1); $('aErr').textContent = ''; } else { $('aS').value = ''; $('aE').value = ''; $('aErr').textContent = '이 발주분에 ' + cnt(q) + '장이 이어진 빈 번호가 없습니다.'; }
     hint();
   }
-  function syncQty() { var s = num($('aS').value), e = num($('aE').value); if (s && e && s <= e) $('aQty').value = e - s + 1; hint(); }
   $('aQty').addEventListener('input', suggest);
   $('aBatch').addEventListener('change', function () { if ($('aQty').value) suggest(); else hint(); });
-  $('aS').addEventListener('input', syncQty); $('aE').addEventListener('input', syncQty);
-  ['aS', 'aE'].forEach(function (id) { $(id).addEventListener('blur', function () { var n = num($(id).value); if (n) $(id).value = n6(n); }); });
-  function resetForm() {
-    editId = null; $('aF').reset(); $('aErr').textContent = ''; $('aTitle').textContent = '배분 추가'; $('aSave').textContent = '배분 저장'; $('aCancel').hidden = true; render();
+  ['aS', 'aE'].forEach(function (id) {
+    $(id).addEventListener('input', function () { var s = num($('aS').value), e = num($('aE').value); if (s && e && s <= e) $('aQty').value = e - s + 1; hint(); });
+    $(id).addEventListener('blur', function () { var n = num($(id).value); if (n) $(id).value = n6(n); });
+  });
+  function openAlloc(a, pre) {
+    editId = a ? a.id : null; $('aF').reset(); $('aErr').textContent = '';
+    $('aBatch').innerHTML = S.batches.map(function (b) { return '<option value="' + b.id + '">' + esc(b.kind) + ' · ' + rng(b.s, b.e) + ' · ' + esc(b.period) + '</option>'; }).join('');
+    $('coList').innerHTML = Object.keys(colorOf).map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
+    if (a) { $('aBatch').value = a.batch_id; $('aS').value = n6(a.s); $('aE').value = n6(a.e); $('aQty').value = a.e - a.s + 1; $('aCo').value = a.company; $('aMemo').value = a.memo || ''; }
+    if (pre) { $('aBatch').value = pre.b.id; $('aS').value = n6(pre.s); }
+    $('dAllocT').textContent = a ? '배포 수정 — ' + a.company : '배포 추가'; hint(); $('dAlloc').showModal(); (a ? $('aCo') : $('aQty')).focus();
   }
-  $('aCancel').addEventListener('click', resetForm);
   $('aF').addEventListener('submit', function (e) {
-    e.preventDefault(); $('aErr').textContent = '';
-    var s = num($('aS').value), en = num($('aE').value);
+    e.preventDefault(); $('aErr').textContent = ''; var s = num($('aS').value), en = num($('aE').value);
     if (!curBatch()) { $('aErr').textContent = '발주분을 먼저 추가해 주세요.'; return; }
     if (!s || !en) { $('aErr').textContent = '수량을 넣거나 시작 · 끝 번호를 입력해 주세요.'; return; }
-    if (!$('aCo').value.trim()) { $('aErr').textContent = '기업명을 입력해 주세요.'; $('aCo').focus(); return; }
+    if (!$('aCo').value.trim()) { $('aErr').textContent = '배포처를 입력해 주세요.'; $('aCo').focus(); return; }
     $('aSave').disabled = true;
-    rpc('ticket_alloc_save', { p_id: editId, p_batch: curBatch().id, p_company: $('aCo').value, p_s: s, p_e: en, p_date: $('aDate').value || null, p_recipient: $('aRcp').value, p_status: $('aSt').value, p_memo: $('aMemo').value })
-      .then(function () { return load(); }).then(resetForm)
-      .catch(function (err) { $('aErr').textContent = err.message; })
-      .finally(function () { $('aSave').disabled = false; });
-  });
-  function startEdit(id) {
-    var a = S.allocs.filter(function (x) { return x.id === id; })[0]; if (!a) return;
-    editId = id; $('aBatch').value = a.batch_id; $('aS').value = n6(a.s); $('aE').value = n6(a.e); $('aQty').value = a.e - a.s + 1;
-    $('aCo').value = a.company; $('aDate').value = a.delivered_on || ''; $('aSt').value = a.status; $('aRcp').value = a.recipient || ''; $('aMemo').value = a.memo || '';
-    $('aTitle').textContent = '배분 수정 — ' + a.company; $('aSave').textContent = '수정 저장'; $('aCancel').hidden = false; $('aErr').textContent = '';
-    render(); $('allocSec').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-ed],[data-del],[data-bdel]'); if (!t) return;
-    if (t.dataset.ed) startEdit(+t.dataset.ed);
-    if (t.dataset.del) {
-      var a = S.allocs.filter(function (x) { return x.id === +t.dataset.del; })[0];
-      if (!a || !confirm(a.company + ' ' + rng(a.s, a.e) + ' (' + cnt(a.e - a.s + 1) + '장) 배분을 삭제할까요?\n번호는 큐비크스 보유로 돌아갑니다.')) return;
-      rpc('ticket_alloc_delete', { p_id: a.id }).then(function () { if (editId === a.id) editId = null; return load(); }).catch(function (err) { alert(err.message); });
-    }
-    if (t.dataset.bdel) {
-      var b = S.batches.filter(function (x) { return x.id === +t.dataset.bdel; })[0];
-      if (!b || !confirm(bLabel(b) + ' 발주분을 삭제할까요?')) return;
-      rpc('ticket_batch_delete', { p_id: b.id }).then(load).catch(function (err) { alert(err.message); });
-    }
-  });
-  document.addEventListener('change', function (e) {
-    var t = e.target; if (!t.dataset || !t.dataset.st) return;
-    var a = S.allocs.filter(function (x) { return x.id === +t.dataset.st; })[0]; if (!a) return;
-    rpc('ticket_alloc_save', { p_id: a.id, p_batch: a.batch_id, p_company: a.company, p_s: a.s, p_e: a.e, p_date: a.delivered_on, p_recipient: a.recipient, p_status: t.value, p_memo: a.memo })
-      .then(load).catch(function (err) { alert(err.message); render(); });
+    rpc('ticket_alloc_save', { p_id: editId, p_batch: curBatch().id, p_company: $('aCo').value, p_s: s, p_e: en, p_memo: $('aMemo').value })
+      .then(function () { $('dAlloc').close(); editId = null; return load(); })
+      .catch(function (err) { $('aErr').textContent = err.message; }).finally(function () { $('aSave').disabled = false; });
   });
 
   // ── 발주분
+  function renderBList() {
+    $('bList').innerHTML = S.batches.map(function (b) { return '<li><span><b>' + esc(b.kind) + '</b> · ' + rng(b.s, b.e) + ' · ' + esc(b.period) + ' · ' + cnt(b.e - b.s + 1) + '장</span><button type="button" class="link" data-bdel="' + b.id + '" style="color:var(--bad)">삭제</button></li>'; }).join('');
+  }
   $('bF').addEventListener('submit', function (e) {
-    e.preventDefault(); $('bErr').textContent = '';
-    var s = num($('bS').value), en = num($('bE').value);
+    e.preventDefault(); $('bErr').textContent = ''; var s = num($('bS').value), en = num($('bE').value), f = $('bFrom').value, t = $('bTo').value;
     if (!s || !en) { $('bErr').textContent = '시작 · 끝 번호를 입력해 주세요.'; return; }
-    rpc('ticket_batch_save', { p_id: null, p_kind: $('bKind').value, p_period: $('bPer').value, p_s: s, p_e: en })
-      .then(function () { $('bF').reset(); return load(); }).catch(function (err) { $('bErr').textContent = err.message; });
+    if (!f || !t) { $('bErr').textContent = '사용 기간(월)을 골라 주세요.'; return; }
+    rpc('ticket_batch_save', { p_id: null, p_kind: $('bKind').value, p_period: f.replace('-', '.') + ' ~ ' + t.replace('-', '.'), p_s: s, p_e: en })
+      .then(function () { $('bS').value = ''; $('bE').value = ''; return load(); }).then(renderBList).catch(function (err) { $('bErr').textContent = err.message; });
   });
 
-  // ── 번호 조회
-  $('lookF').addEventListener('submit', function (e) {
-    e.preventDefault(); var n = num($('lookIn').value), box = $('lookRes'); box.classList.add('on');
-    if (!n) { box.innerHTML = '숫자 6자리 이내로 입력해 주세요.'; return; }
-    var b = S.batches.filter(function (x) { return n >= x.s && n <= x.e; })[0];
-    if (!b) { box.innerHTML = '<span class="n">' + n6(n) + '</span><br>발주되지 않은 번호입니다.'; return; }
-    var a = S.allocs.filter(function (x) { return active(x) && n >= x.s && n <= x.e; })[0];
-    var back = S.allocs.filter(function (x) { return !active(x) && n >= x.s && n <= x.e; });
-    var h = '<span class="n">' + n6(n) + '</span><br>' + esc(b.kind) + ' 티켓 · 사용 기간 ' + esc(b.period) + '<br>';
-    if (a) h += '<b>' + esc(a.company) + '</b> 배분 <span class="tag ' + tagCls[a.status] + '">' + esc(a.status) + '</span><br><span style="color:var(--sub)">배분 범위 ' + rng(a.s, a.e) + ' · ' + cnt(a.e - a.s + 1) + '장' + (a.delivered_on ? ' · 전달일 ' + fmtD(a.delivered_on) : '') + (a.recipient ? ' · ' + esc(a.recipient) : '') + '</span>';
-    else h += '<b>큐비크스 보유</b> (배분 안 됨)';
-    if (back.length) h += '<br><span style="color:var(--sub)">회수 이력: ' + back.map(function (x) { return esc(x.company); }).join(', ') + '</span>';
-    box.innerHTML = h;
+  // ── 공통 클릭
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-close],[data-seg],[data-row],[data-ed],[data-del],[data-give],[data-grid],[data-bdel],[data-unuse],[data-use],[data-force]');
+    if (!t) return;
+    var m = t.closest('details.menu'); if (m && !t.matches('summary')) m.open = false;
+    if (t.dataset.close != null) { t.closest('dialog').close(); return; }
+    if (t.dataset.seg) { selKey = t.dataset.seg; renderAll(); var row = document.querySelector('[data-row="' + selKey + '"]'); if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' }); openGrid(selKey); return; }
+    if (t.dataset.grid) { openGrid(t.dataset.grid); return; }
+    if (t.dataset.ed) { openAlloc(S.allocs.filter(function (a) { return a.id === +t.dataset.ed; })[0]); return; }
+    if (t.dataset.give) { openAlloc(null, segByKey(t.dataset.give)); return; }
+    if (t.dataset.del) {
+      var a = S.allocs.filter(function (x) { return x.id === +t.dataset.del; })[0]; var u = usedIn(a.s, a.e);
+      if (!a || !confirm(a.company + ' ' + rng(a.s, a.e) + ' (' + cnt(a.e - a.s + 1) + '장) 배포를 지울까요?\n번호는 큐비크스 보유로 돌아갑니다.' + (u ? '\n사용 기록 ' + cnt(u) + '장은 그대로 남습니다.' : ''))) return;
+      rpc('ticket_alloc_delete', { p_id: a.id }).then(load).catch(function (err) { alert(err.message); }); return;
+    }
+    if (t.dataset.bdel) { var b = S.batches.filter(function (x) { return x.id === +t.dataset.bdel; })[0]; if (!b || !confirm(b.kind + ' ' + rng(b.s, b.e) + ' 발주분을 지울까요?')) return; rpc('ticket_batch_delete', { p_id: b.id }).then(load).then(renderBList).catch(function (err) { alert(err.message); }); return; }
+    if (t.dataset.unuse) { unuseOne(+t.dataset.unuse); return; }
+    if (t.dataset.use) { useOne(+t.dataset.use, false); return; }
+    if (t.dataset.force) { useOne(+t.dataset.force, true); return; }
+    if (t.dataset.row && !e.target.closest('td.act')) { selKey = t.dataset.row; openGrid(selKey); }
   });
+  document.addEventListener('click', function (e) { document.querySelectorAll('details.menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; }); });
+  $('btnAlloc').addEventListener('click', function () { openAlloc(null); });
+  $('btnBatch').addEventListener('click', function () { renderBList(); $('bErr').textContent = ''; $('dBatch').showModal(); });
 
   // ── 내보내기 · 인쇄
-  $('csv').addEventListener('click', function () {
-    var q = function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    var tx = function (v) { return '="' + v + '"'; };   // 엑셀이 앞자리 0을 지우지 않게
-    var rows = [['구분', '사용 기간', '항목', '티켓 번호', '시작', '끝', '수량', '비고', '전달일', '받은 사람 · 연락처', '메모']], tot = 0, minS = Infinity, maxE = 0;
-    S.batches.forEach(function (b) {
-      tot += b.e - b.s + 1; minS = Math.min(minS, b.s); maxE = Math.max(maxE, b.e);
-      segments(b).forEach(function (g) {
-        var a = g.a || {};
-        rows.push([b.kind + ' 티켓', b.period, g.hold ? '일반' : a.company + ' 전달분', rng(g.s, g.e), tx(n6(g.s)), tx(n6(g.e)), g.e - g.s + 1, g.hold ? '큐비크스 보유' : a.status, fmtD(a.delivered_on), a.recipient || '', a.memo || '']);
-      });
-    });
-    rows.push(['합계', '', '', S.batches.length ? rng(minS, maxE) : '', '', '', tot, '', '', '', '']);
-    S.allocs.filter(function (a) { return !active(a); }).forEach(function (a) { rows.push(['회수', '', a.company, rng(a.s, a.e), tx(n6(a.s)), tx(n6(a.e)), a.e - a.s + 1, '회수', fmtD(a.delivered_on), a.recipient || '', a.memo || '']); });
-    var csv = '﻿' + rows.map(function (r) { return r.map(function (v, i) { return (i === 4 || i === 5) ? v : q(v); }).join(','); }).join('\r\n');
-    var d = new Date(), stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-    var link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); link.download = 'MONET100_티켓일련번호_' + stamp + '.csv';
-    document.body.appendChild(link); link.click(); setTimeout(function () { URL.revokeObjectURL(link.href); link.remove(); }, 500);
+  function dl(name, rows) {
+    var q = function (v) { v = String(v == null ? '' : v); return /^=/.test(v) ? v : (/[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v); };
+    var csv = '﻿' + rows.map(function (r) { return r.map(q).join(','); }).join('\r\n');
+    var d = new Date(), st = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'MONET100_' + name + '_' + st + '.csv';
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  var tx = function (n) { return '="' + n6(n) + '"'; };
+  $('csv1').addEventListener('click', function () {
+    var rows = [['구분', '사용 기간', '배포처', '티켓 번호', '시작', '끝', '수량', '사용', '미사용', '사용률', '메모']], tot = 0, used = 0;
+    allSegs().forEach(function (g) { tot += g.q; used += g.u; rows.push([g.b.kind + ' 티켓', g.b.period, g.who, rng(g.s, g.e), tx(g.s), tx(g.e), g.q, g.u, g.q - g.u, pctS(g.u, g.q), g.a && g.a.memo || '']); });
+    rows.push(['합계', '', '', '', '', '', tot, used, tot - used, pctS(used, tot), '']); dl('티켓현황', rows); $('expMenu').open = false;
+  });
+  $('csv2').addEventListener('click', function () {
+    var btn = this; btn.disabled = true;
+    rpc('ticket_uses_list').then(function (list) {
+      var when = {}; list.forEach(function (x) { when[x[0]] = x[1]; });
+      var rows = [['번호', '구분', '사용 기간', '배포처', '사용 여부', '사용 일시']];
+      allSegs().forEach(function (g) { for (var n = g.s; n <= g.e; n++) rows.push([tx(n), g.b.kind + ' 티켓', g.b.period, g.who, when[n] ? '사용' : '미사용', when[n] ? dtfmt.format(new Date(when[n])) : '']); });
+      dl('번호별_사용내역', rows); $('expMenu').open = false;
+    }).catch(function (err) { alert(err.message); }).finally(function () { btn.disabled = false; });
   });
   $('print').addEventListener('click', function () { load().finally(function () { window.print(); }); });
   $('reload').addEventListener('click', function () { load().catch(function (err) { alert(err.message); }); });
+  var rT; addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(renderMap, 120); });
 
   $('login').addEventListener('submit', function (e) {
     e.preventDefault(); pw = $('pw').value.trim(); $('lerr').textContent = '';
-    load().then(function () { try { sessionStorage.setItem('tk_pw', pw); } catch (e) {} })
+    load().then(function () { try { sessionStorage.setItem('tk_pw', pw); } catch (e) {} $('chkIn').focus(); })
       .catch(function (err) { $('lerr').textContent = /비밀번호/.test(err.message) ? '비밀번호가 맞지 않습니다.' : '불러오지 못했습니다. 다시 시도해 주세요.'; });
   });
   if (pw) load().catch(function () { pw = ''; try { sessionStorage.removeItem('tk_pw'); } catch (e) {} });
