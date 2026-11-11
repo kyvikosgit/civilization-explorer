@@ -33,7 +33,7 @@ textarea{resize:vertical}
 .login h2{margin:0 0 10px;font-size:22px;letter-spacing:-.02em}
 
 /* 머리 */
-header.top{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:28px;border-bottom:1px solid var(--ink)}
+header.top{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:40px}
 header.top .t{margin-right:auto}
 h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.2}
 .sub{margin:8px 0 0;color:var(--sub);font-size:13.5px}
@@ -48,15 +48,15 @@ h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.025em;line-height:1.
 .sumtag:hover{border-color:var(--ink)}
 
 main{display:flex;flex-direction:column}
-.sec{padding:40px 0;border-bottom:1px solid var(--line)}
-.sec:last-child{border-bottom:0}
-.sec>.h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:24px}
-.sec>.h h2{margin:0;font-size:18px;font-weight:700;letter-spacing:-.015em}
-.sec>.h .meta{color:var(--faint);font-size:13px}
-.sec>.h .r{margin-left:auto}
+.sec{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding:36px 0 64px;border-top:2px solid var(--ink)}
+.sec>.h h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+.sec>.h p{margin:10px 0 0;color:var(--sub);font-size:13px;line-height:1.65;word-break:keep-all}
+.sec>.body{min-width:0}
+.sec.band{background:var(--soft);box-shadow:0 0 0 100vmax var(--soft);clip-path:inset(0 -100vmax);border-top-color:var(--ink);margin-bottom:0}
+.sec.band+.sec{margin-top:0}
 
 /* ── 번호 지도 = 비율 막대그래프 */
-.kpis{display:flex;gap:0;margin-bottom:28px;flex-wrap:wrap}
+.kpis{display:flex;gap:0;margin-bottom:32px;flex-wrap:wrap}
 .kpi{padding:0 32px 0 0;margin-right:32px;border-right:1px solid var(--line)}
 .kpi:last-child{border-right:0}
 .kpi b{display:block;font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
@@ -70,7 +70,7 @@ main{display:flex;flex-direction:column}
 .pd b{font-size:13px;font-weight:700;white-space:nowrap}
 .pd span{font-size:12px;color:var(--sub);white-space:nowrap;margin-left:8px}
 .bar{position:relative;height:84px;display:block}
-.sg{position:absolute;top:0;bottom:0;border:0;border-radius:0;padding:0 12px;background:var(--c);color:var(--tx);font:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;overflow:hidden;box-shadow:inset -2px 0 0 #fff}
+.sg{position:absolute;top:0;bottom:0;border:0;border-radius:0;padding:0 10px;background:var(--c);color:var(--tx);font:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;overflow:hidden;box-shadow:inset -2px 0 0 #fff}
 .sg:last-child{box-shadow:none}
 .sg:hover{filter:brightness(.95)}
 .sg.sel{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
@@ -100,20 +100,18 @@ main{display:flex;flex-direction:column}
 .brk td.u{text-align:right;width:130px;color:var(--sub)}
 
 /* ── 사용 확인 */
-.check{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:48px}
-.check h2{margin:0 0 6px;font-size:18px;letter-spacing:-.015em}
-.check .lead{margin:0 0 18px;color:var(--sub);font-size:13.5px}
+.ck{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:48px}
 .big{display:flex;gap:8px}
-.big input{font:600 34px/1 var(--mono);letter-spacing:.14em;padding:18px 20px;text-align:center;border:1.5px solid var(--ink);border-radius:8px}
-.big input::placeholder{font-size:16px;letter-spacing:0;font-family:var(--sans);font-weight:400;color:var(--faint)}
-.big button{font-size:16px;padding:0 28px;border-radius:8px}
+.big input{font:600 34px/normal var(--mono);letter-spacing:.14em;height:80px;padding:0 20px;text-align:center;border:1.5px solid var(--ink);border-radius:8px;background:#fff}
+.big input::placeholder{color:#CFCCC4}
+.big button{font-size:16px;padding:0 28px;border-radius:8px;height:80px}
 .opts{display:flex;align-items:center;gap:12px;margin:14px 0 0;flex-wrap:wrap}
 .sw{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;cursor:pointer;user-select:none}
 .sw input{appearance:none;-webkit-appearance:none;width:36px;height:20px;border-radius:999px;background:var(--line2);position:relative;padding:0;border:0;cursor:pointer;transition:background .15s}
 .sw input::after{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .15s}
 .sw input:checked{background:var(--ink)}.sw input:checked::after{left:18px}
 .opts small{color:var(--sub);font-size:12.5px}
-.flash{margin-top:20px;padding:18px 20px 18px 22px;display:none;border-left:4px solid;background:var(--soft)}
+.flash{margin-top:20px;padding:18px 20px 18px 22px;display:none;border-left:4px solid;background:#fff}
 .flash.on{display:block}
 .flash.ok{border-color:var(--ok);background:var(--okbg)}
 .flash.bad{border-color:var(--bad);background:var(--badbg)}
@@ -131,7 +129,7 @@ main{display:flex;flex-direction:column}
 .flash .acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 .flash .acts button.go{font-size:15px;padding:13px 20px;background:var(--ok);border-color:var(--ok)}
 .flash .acts button.go.warn{background:var(--warn);border-color:var(--warn)}
-.recent h3{margin:6px 0 14px;font-size:13px;font-weight:600;color:var(--sub);display:flex;justify-content:space-between;align-items:baseline}
+.recent h3{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--ink);display:flex;justify-content:space-between;align-items:baseline}
 .recent h3 small{font-weight:400;color:var(--faint);font-size:12px}
 .recent ol{list-style:none;margin:0;padding:0}
 .recent li{display:grid;grid-template-columns:44px 68px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:13px}
@@ -217,16 +215,19 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
 .glegend i.u{background:var(--edge);border-color:var(--edge)}
 .printhead{display:none}
 
+@media (max-width:1000px){
+  .sec{grid-template-columns:1fr;gap:20px;padding:28px 0 48px}
+}
 @media (max-width:900px){
-  .check{grid-template-columns:1fr;gap:32px}
+  .ck{grid-template-columns:1fr;gap:32px}
   #secCheck{order:-1}
   .brk td.p{display:none}
 }
 @media (max-width:560px){
   #print{display:none}
   .wrap{padding-top:24px}
-  h1{font-size:23px}.sec{padding:32px 0}
-  header.top{padding-bottom:20px}
+  h1{font-size:23px}
+  header.top{padding-bottom:28px}
   .kpis{display:grid;grid-template-columns:1fr 1fr;gap:18px 16px}.kpi{padding:0;margin:0;border:0}.kpi b{font-size:24px}
   .chart{grid-template-columns:0 minmax(0,1fr);column-gap:0}.chart .lab{visibility:hidden}
   .pd span{display:none}
@@ -242,7 +243,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   html,body{background:#fff;font-size:9.5pt}
   .wrap{max-width:none;padding:0}
   header.top,#secCheck,td.act,th.act,dialog{display:none!important}
-  .sec{padding:0 0 6mm;border:0}
+  .sec{display:block;padding:0 0 6mm;border:0;box-shadow:none;background:none}.sec>.h p{display:none}
   .printhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5px solid #000;padding-bottom:3mm;margin-bottom:5mm}
   .printhead h1{font-size:15pt}.printhead span{font-size:9pt}
   .sg,.ug i,.kpi i,.brk td.c i,.st td.who i,.pct .pb i{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -276,43 +277,43 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     </header>
 
     <main>
+      <div class="printhead"><h1>MONET 100 티켓 일련번호 현황</h1><span id="pdate"></span></div>
       <section class="sec" id="secMap" aria-label="번호 지도">
-        <div class="printhead"><h1>MONET 100 티켓 일련번호 현황</h1><span id="pdate"></span></div>
-        <div class="h"><h2>번호 지도</h2><span class="meta">번호 순서대로, 수량 비율 그대로 · 구간을 누르면 번호판</span></div>
-        <div class="kpis" id="kpis"></div>
-        <div id="mapIn"></div>
+        <div class="h"><h2>번호 지도</h2><p>막대 길이가 장수입니다. 구간을 누르면 그 구간의 번호별 사용 현황이 열립니다.</p></div>
+        <div class="body"><div class="kpis" id="kpis"></div><div id="mapIn"></div></div>
       </section>
 
-      <section class="sec check" id="secCheck" aria-label="티켓 사용 확인">
+      <section class="sec band" id="secCheck" aria-label="티켓 사용 확인">
+        <div class="h"><h2>티켓 사용 확인</h2><p>입구에서 받은 티켓의 6자리 번호를 입력합니다. 앞자리 0은 빼고 입력해도 됩니다.</p></div>
+        <div class="body ck">
         <div class="main">
-          <h2>티켓 사용 확인</h2>
-          <p class="lead">번호를 넣고 Enter. 1234 · 001234 모두 됩니다.</p>
           <form class="big" id="chkF" autocomplete="off">
-            <input id="chkIn" inputmode="numeric" enterkeyhint="go" maxlength="6" placeholder="티켓 번호" aria-label="티켓 번호">
+            <input id="chkIn" inputmode="numeric" enterkeyhint="go" maxlength="6" placeholder="000000" aria-label="티켓 번호 6자리">
             <button type="submit">확인</button>
           </form>
           <div class="opts">
             <label class="sw"><input type="checkbox" id="auto" checked> 바로 사용 처리</label>
-            <small id="autoHint">미사용 · 사용 기간 안이면 Enter 한 번에 사용 처리합니다</small>
+            <small id="autoHint">확인과 동시에 사용 처리합니다</small>
           </div>
           <div class="flash" id="flash" role="status" aria-live="assertive"></div>
           <details class="bulk" id="bulk">
-            <summary>여러 번호 한 번에</summary>
-            <p class="h">줄바꿈 · 띄어쓰기 · 쉼표로 구분, 범위는 000401-000450 처럼. 미리 보기로 확인한 뒤 처리합니다(기간은 따지지 않음).</p>
+            <summary>여러 장 한꺼번에 처리</summary>
+            <p class="h">번호는 줄바꿈·띄어쓰기·쉼표로 나누고, 연속된 번호는 000401-000450처럼 범위로 적습니다. 미리 보기로 확인한 뒤 처리하며, 사용 기간은 따지지 않습니다.</p>
             <textarea id="bulkIn" placeholder="000401-000450&#10;1203, 1204 1207"></textarea>
             <div class="row"><button type="button" class="ghost" id="bulkPrev">미리 보기</button><button type="button" id="bulkGo" disabled>사용 처리</button></div>
             <div class="prev" id="bulkRes"></div>
           </details>
         </div>
         <div class="side recent">
-          <h3>최근 사용 <small>최근 10건</small></h3>
+          <h3>최근 처리 <small>10건</small></h3>
           <ol id="recent"></ol>
         </div>
+      </div>
       </section>
 
       <section class="sec" id="secTable" aria-label="현황표">
-        <div class="h"><h2>현황표</h2><span class="meta">행을 누르면 그 구간의 번호판</span></div>
-        <div class="tablebox">
+        <div class="h"><h2>현황표</h2><p>기간 · 배포처별 장수와 사용 현황입니다. 행을 누르면 번호별 사용 현황이 열립니다.</p></div>
+        <div class="body tablebox">
           <table class="st">
             <thead><tr><th>구분</th><th>사용 기간</th><th>배포처</th><th>티켓 번호</th><th class="r">수량</th><th class="r">사용</th><th class="r">미사용</th><th class="r">사용률</th><th class="act"></th></tr></thead>
             <tbody id="tb"></tbody>
@@ -438,7 +439,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     segs.forEach(function (g) {
       var name = g.who === HOLD ? HOLD : g.who, inner = '';
       if (g.px >= 150) inner = '<span class="nm">' + esc(name) + '</span><span class="pc">' + pctS(g.q, tot) + '</span><span class="q">' + cnt(g.q) + '장</span>';
-      else if (g.px >= 64) inner = '<span class="pc">' + pctS(g.q, tot) + '</span><span class="q">' + cnt(g.q) + '</span>';
+      else if (g.px >= 52) inner = '<span class="pc" style="font-size:15px">' + pctS(g.q, tot) + '</span><span class="q">' + cnt(g.q) + '</span>';
       h += '<button type="button" class="sg' + (selKey === g.key ? ' sel' : '') + '" data-seg="' + g.key + '" style="' + cvars(g.who) + ';left:' + g.p0 + '%;width:' + g.pw + '%" title="' + esc(name) + ' ' + rng(g.s, g.e) + ' · ' + cnt(g.q) + '장 · 사용 ' + cnt(g.u) + '" aria-label="' + esc(name) + ' ' + rng(g.s, g.e) + ' ' + cnt(g.q) + '장">' + inner + '</button>';
     });
     h += '</div><span class="lab">사용</span><div class="use">';
@@ -471,7 +472,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     });
     if (S.batches.length) tb += '<tr class="sum"><td colspan="2">합계</td><td></td><td class="rg">' + rng(minS, maxE) + '</td><td class="r">' + cnt(tot) + '</td><td class="r">' + cnt(used) + '</td><td class="r">' + cnt(tot - used) + '</td><td class="r">' + pctS(used, tot) + '</td><td class="act"></td></tr>';
     $('tb').innerHTML = tb;
-    $('topSub').textContent = '6자리 일련번호 · 총 ' + cnt(tot) + '장 · 사용 ' + cnt(used) + '장 · 배포하지 않은 번호는 큐비크스 보유';
+    $('topSub').textContent = '배포하지 않은 번호는 모두 큐비크스 보유로 집계됩니다.';
     $('pdate').textContent = '출력 ' + dtfmt.format(new Date()) + ' · 총 ' + cnt(tot) + '장 · 사용 ' + cnt(used) + '장';
   }
   function renderAll() { assignColors(); renderMap(); renderTable(); if (gridSeg) renderGrid(); }
@@ -516,7 +517,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     var p = $('auto').checked ? rpc('ticket_use', { p_serial: n }) : rpc('ticket_lookup', { p_serial: n });
     p.then(after).catch(function (err) { flash('bad', '<div class="st">처리하지 못했습니다</div><p>' + esc(err.message) + '</p>'); });
   });
-  $('auto').addEventListener('change', function () { try { localStorage.setItem('tk_auto', this.checked ? '1' : '0'); } catch (e) {} $('autoHint').textContent = this.checked ? '미사용 · 사용 기간 안이면 Enter 한 번에 사용 처리합니다' : '조회만 합니다. 사용 처리는 결과에서 버튼으로'; $('chkIn').focus(); });
+  $('auto').addEventListener('change', function () { try { localStorage.setItem('tk_auto', this.checked ? '1' : '0'); } catch (e) {} $('autoHint').textContent = this.checked ? '확인과 동시에 사용 처리합니다' : '조회만 합니다. 결과에서 사용 처리를 누르세요'; $('chkIn').focus(); });
   function useOne(n, force) { return rpc('ticket_use', { p_serial: n, p_force: !!force }).then(after); }
   function unuseOne(n) {
     if (!confirm(n6(n) + ' 사용을 취소할까요?')) return;
