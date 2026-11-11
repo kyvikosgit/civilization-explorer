@@ -68,18 +68,15 @@ main{display:flex;flex-direction:column}
 .pd b{font-size:13px;font-weight:700;white-space:nowrap}
 .pd span{font-size:12px;color:var(--sub);white-space:nowrap;margin-left:8px}
 .bar{position:relative;height:84px;display:block}
-.sg{position:absolute;top:0;bottom:0;border:0;border-radius:0;padding:0 12px 10px;background:var(--c);color:var(--tx);font:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;overflow:hidden;box-shadow:inset -2px 0 0 #fff}
-.sg .ub{position:absolute;left:0;right:2px;bottom:0;height:8px;background:var(--ut)}
-.sg:last-child .ub{right:0}
-.sg .ub i{position:absolute;left:0;top:0;bottom:0;background:var(--uf)}
+.sg{position:absolute;top:0;bottom:0;border:0;border-radius:0;padding:0 12px;background:var(--c);color:var(--tx);font:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;overflow:hidden;box-shadow:inset -2px 0 0 #fff}
+.sg .uf{position:absolute;left:0;top:0;bottom:0;background:var(--ud);z-index:0}
+.sg>span:not(.uf){position:relative;z-index:1}
 .sg:last-child{box-shadow:none}
 .sg:hover{filter:brightness(.95)}
 .sg.sel{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
 .sg .nm{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sg .pc{font-size:22px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1}
 .sg .q{font-size:12px;opacity:.85;white-space:nowrap;font-variant-numeric:tabular-nums}
-.chart .note{margin:12px 0 0;font-size:12px;color:var(--sub)}
-.chart .note i{display:inline-block;width:18px;height:6px;background:#8C8579;vertical-align:1px;margin-right:6px}
 .axis{position:relative;height:34px;margin-top:0;border-top:1px solid var(--ink2)}
 .axis span{position:absolute;top:8px;font-family:var(--mono);font-size:11.5px;color:var(--ink2);transform:translateX(-50%);white-space:nowrap}
 .axis span::before{content:'';position:absolute;left:50%;top:-8px;height:6px;border-left:1px solid var(--ink2)}
@@ -304,7 +301,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
       </section>
 
       <section class="sec" id="secMap" aria-label="번호 지도">
-        <div class="h"><h2>번호 지도</h2><p>막대 길이가 장수입니다. 구간을 누르면 그 구간의 번호별 사용 현황이 열립니다.</p></div>
+        <div class="h"><h2>번호 지도</h2><p>막대 길이가 장수, 진하게 채워진 만큼이 사용한 티켓입니다. 구간을 누르면 번호별 사용 현황이 열립니다.</p></div>
         <div class="body"><div class="kpis" id="kpis"></div><div id="mapIn"></div></div>
       </section>
 
@@ -404,7 +401,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   var colorOf = {};
   function color(name) { if (name === HOLD) return ['#F1EFEA', '#8C8579']; return colorOf[name] || ['#EEE', '#999']; }
   function assignColors() { colorOf = {}; var k = 0; S.allocs.slice().sort(function (a, b) { return a.s - b.s; }).forEach(function (a) { if (!colorOf[a.company]) colorOf[a.company] = PAL[k++ % PAL.length]; }); }
-  function cvars(name) { var c = color(name); return '--fill:' + c[0] + ';--edge:' + c[1] + ';--c:' + (name === HOLD ? '#D9D4CA' : c[1]) + ';--tx:' + (name === HOLD ? '#3A3A3E' : '#fff') + ';--ut:' + (name === HOLD ? 'rgba(0,0,0,.07)' : 'rgba(255,255,255,.28)') + ';--uf:' + (name === HOLD ? '#5E594F' : '#fff'); }
+  function cvars(name) { var c = color(name); return '--fill:' + c[0] + ';--edge:' + c[1] + ';--c:' + (name === HOLD ? '#D9D4CA' : c[1]) + ';--tx:' + (name === HOLD ? '#3A3A3E' : '#fff') + ';--ud:' + (name === HOLD ? '#BDB5A6' : 'rgba(0,0,0,.32)'); }
 
   // 발주분 → 구간(배포 · 큐비크스 보유)
   function segments(b) {
@@ -437,16 +434,16 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     h += '</div><div class="bar">';
     segs.forEach(function (g) {
       var name = g.who === HOLD ? HOLD : g.who, inner = '';
-      if (g.px >= 150) inner = '<span class="nm">' + esc(name) + '</span><span class="pc">' + pctS(g.q, tot) + '</span><span class="q">' + cnt(g.q) + '장</span>';
-      else if (g.px >= 52) inner = '<span class="pc" style="font-size:15px">' + pctS(g.q, tot) + '</span><span class="q">' + cnt(g.q) + '</span>';
-      h += '<button type="button" class="sg' + (selKey === g.key ? ' sel' : '') + '" data-seg="' + g.key + '" style="' + cvars(g.who) + ';left:' + g.p0 + '%;width:' + g.pw + '%" title="' + esc(name) + ' ' + rng(g.s, g.e) + ' · ' + cnt(g.q) + '장 · 사용 ' + cnt(g.u) + '" aria-label="' + esc(name) + ' ' + rng(g.s, g.e) + ' ' + cnt(g.q) + '장">' + inner + '<span class="ub"><i style="width:' + (g.q ? g.u / g.q * 100 : 0) + '%"></i></span></button>';
+      var big = g.px >= 150;
+      if (g.px >= 44) inner = '<span class="nm">' + esc(name) + '</span><span class="pc"' + (big ? '' : ' style="font-size:16px"') + '>' + pctS(g.q, tot) + '</span><span class="q">' + cnt(g.q) + '장' + (big ? ' · 사용 ' + cnt(g.u) : '') + '</span>';
+      h += '<button type="button" class="sg' + (selKey === g.key ? ' sel' : '') + '" data-seg="' + g.key + '" style="' + cvars(g.who) + ';left:' + g.p0 + '%;width:' + g.pw + '%" title="' + esc(name) + ' ' + rng(g.s, g.e) + ' · ' + cnt(g.q) + '장 · 사용 ' + cnt(g.u) + '" aria-label="' + esc(name) + ' ' + rng(g.s, g.e) + ' ' + cnt(g.q) + '장"><span class="uf" style="width:' + (g.q ? g.u / g.q * 100 : 0) + '%"></span>' + inner + '</button>';
     });
     h += '</div><div class="axis">';
     var marks = segs.map(function (g, i) { return { p: g.p0, t: n6(g.s), cls: i === 0 ? 'first' : '' }; }), lg = segs[segs.length - 1];
     marks.push({ p: 100, t: n6(lg.e), cls: 'last' });
     var prev = -1e9, prevLo = -1e9;
     marks.forEach(function (m) { var x = m.p / 100 * W, lo = false; if (x - prev < 62) { if (x - prevLo < 62) return; lo = true; prevLo = x; } else prev = x; h += '<span class="' + m.cls + (lo ? ' lo' : '') + '" style="left:' + m.p + '%">' + m.t + '</span>'; });
-    h += '</div><p class="note"><i></i>막대 아래 띠 = 그 구간에서 사용한 비율</p></div>';
+    h += '</div></div>';
     host.innerHTML = h;
     void [].map(function (g) { return '<tr data-seg="' + g.key + '" class="' + (selKey === g.key ? 'sel' : '') + '" style="' + cvars(g.who) + '"><td class="c"><i></i></td><td class="w">' + esc(g.who) + '</td><td class="p">' + esc(g.b.kind) + ' · ' + esc(g.b.period) + '</td><td class="rg">' + rng(g.s, g.e) + '</td><td class="r"><b>' + cnt(g.q) + '</b>장</td><td class="pc">' + pctS(g.q, tot) + '</td><td class="u">사용 ' + cnt(g.u) + ' · ' + pctS(g.u, g.q) + '</td></tr>'; }).join('');
   }
