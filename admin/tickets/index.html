@@ -65,7 +65,10 @@ main{display:flex;flex-direction:column}
 .periods{position:relative;height:46px}
 .pd{position:absolute;top:0;bottom:8px;border-top:1.5px solid var(--ink);border-left:1.5px solid var(--ink);border-right:1.5px solid var(--ink);padding:6px 10px 0}
 .pd+.pd{border-left:0}
+.pd{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .pd b{font-size:13px;font-weight:700;white-space:nowrap}
+.pd b em{font-style:normal;font-weight:500;color:var(--sub);margin-left:6px}
+.pd .pq{margin-left:0}
 .pd span{font-size:12px;color:var(--sub);white-space:nowrap;margin-left:8px}
 .bar{position:relative;height:84px;display:block}
 .sg{position:absolute;top:0;bottom:0;border:0;border-radius:0;padding:0 12px;background:var(--c);color:var(--tx);font:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;overflow:hidden;box-shadow:inset -2px 0 0 #fff}
@@ -157,6 +160,9 @@ table.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .st thead th{font-size:12px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--ink);white-space:nowrap;padding-top:0}
 .st td.r,.st th.r{text-align:right}
 .st td.grp{font-weight:700;white-space:nowrap;vertical-align:top}
+.st td.grp small{display:block;margin-top:3px;font-size:12px;font-weight:500;color:var(--sub)}
+.f .note{font-weight:400;color:var(--sub);font-size:11.5px}
+.f input[readonly]{background:var(--soft,#F4F3EF);color:var(--sub)}
 .st td.per{color:var(--sub);white-space:nowrap;vertical-align:top}
 .st tr.gs td{border-top:1px solid var(--line2)}
 .st tbody tr.seg-row{cursor:pointer}
@@ -342,13 +348,15 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   <div class="db">
     <form class="f" id="bF" novalidate>
       <label>구분<select id="bKind"><option>전기간</option><option>부분 기간</option></select></label>
-      <span></span>
-      <label>사용 시작 월<input id="bFrom" type="month" value="2027-01"></label>
-      <label>사용 끝 월<input id="bTo" type="month" value="2027-02"></label>
+      <label>명목<input id="bPur" list="purList" placeholder="예: 일반, 초대권, 기업 배포" autocomplete="off" required></label>
+      <datalist id="purList"></datalist>
+      <label>사용 시작일<input id="bFrom" type="date" min="2026-12-05" max="2027-02-28"></label>
+      <label>사용 종료일<input id="bTo" type="date" min="2026-12-05" max="2027-02-28"></label>
+      <p class="hint" id="bNote" style="margin-top:-4px"></p>
       <label>시작 번호<input id="bS" inputmode="numeric" placeholder="005401"></label>
       <label>끝 번호<input id="bE" inputmode="numeric" placeholder="006400"></label>
       <p class="err w" id="bErr" role="alert"></p>
-      <div class="row"><button type="submit">발주분 추가</button></div>
+      <div class="row"><button type="button" class="ghost" id="bCancel" hidden>수정 취소</button><button type="submit" id="bSave">발주분 추가</button></div>
     </form>
     <ul class="blist" id="bList"></ul>
   </div>
@@ -429,7 +437,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     S.batches.forEach(function (b) {
       var gs = segs.filter(function (g) { return g.b === b; }); if (!gs.length) return;
       var l = gs[0].p0, w = gs.reduce(function (t, g) { return t + g.pw; }, 0), q = b.e - b.s + 1;
-      h += '<div class="pd" style="left:' + l + '%;width:' + w + '%"><b>' + esc(b.kind) + ' 티켓</b><span>' + esc(b.period) + ' · ' + cnt(q) + '장</span></div>';
+      h += '<div class="pd" title="' + esc(b.kind + ' 티켓 · ' + (b.purpose || '') + ' · ' + b.period + ' · ' + cnt(q) + '장') + '" style="left:' + l + '%;width:' + w + '%"><b>' + esc(b.kind) + ' 티켓<em>' + esc(b.purpose || '') + '</em></b><span class="pp">' + esc(b.period) + '<span class="pq"> · ' + cnt(q) + '장</span></span></div>';
     });
     h += '</div><div class="bar">';
     segs.forEach(function (g) {
@@ -445,6 +453,13 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     marks.forEach(function (m) { var x = m.p / 100 * W, lo = false; if (x - prev < 62) { if (x - prevLo < 62) return; lo = true; prevLo = x; } else prev = x; h += '<span class="' + m.cls + (lo ? ' lo' : '') + '" style="left:' + m.p + '%">' + m.t + '</span>'; });
     h += '</div></div>';
     host.innerHTML = h;
+    // 괄호가 좁으면 장수 → 기간 순서로 뺌
+    host.querySelectorAll('.pd').forEach(function (d) {
+      if (d.scrollWidth > d.clientWidth + 1) { var q = d.querySelector('.pq'); if (q) q.remove(); }
+      if (d.scrollWidth > d.clientWidth + 1) { var p = d.querySelector('.pp'); if (p) p.remove(); }
+      if (d.scrollWidth > d.clientWidth + 1) { var bb = d.querySelector('b'), em = bb && bb.querySelector('em'); if (bb && em) bb.textContent = em.textContent; }
+      if (d.scrollWidth > d.clientWidth + 1) d.style.padding = '6px 3px 0';
+    });
     void [].map(function (g) { return '<tr data-seg="' + g.key + '" class="' + (selKey === g.key ? 'sel' : '') + '" style="' + cvars(g.who) + '"><td class="c"><i></i></td><td class="w">' + esc(g.who) + '</td><td class="p">' + esc(g.b.kind) + ' · ' + esc(g.b.period) + '</td><td class="rg">' + rng(g.s, g.e) + '</td><td class="r"><b>' + cnt(g.q) + '</b>장</td><td class="pc">' + pctS(g.q, tot) + '</td><td class="u">사용 ' + cnt(g.u) + ' · ' + pctS(g.u, g.q) + '</td></tr>'; }).join('');
   }
 
@@ -455,7 +470,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
       var seg = segments(b); minS = Math.min(minS, b.s); maxE = Math.max(maxE, b.e);
       seg.forEach(function (g, i) {
         tot += g.q; used += g.u;
-        var head = i === 0 ? '<td class="grp" rowspan="' + seg.length + '">' + esc(b.kind) + ' 티켓</td><td class="per" rowspan="' + seg.length + '">' + esc(b.period) + '</td>' : '';
+        var head = i === 0 ? '<td class="grp" rowspan="' + seg.length + '">' + esc(b.kind) + ' 티켓<small>' + esc(b.purpose || '') + '</small></td><td class="per" rowspan="' + seg.length + '">' + esc(b.period) + '</td>' : '';
         var menu = g.a ? '<details class="menu"><summary aria-label="' + esc(g.who) + ' 배포 메뉴">⋯</summary><div class="pop"><button type="button" data-ed="' + g.a.id + '">수정</button><button type="button" data-grid="' + g.key + '">번호판 열기</button><button type="button" class="danger" data-del="' + g.a.id + '">삭제 (큐비크스 보유로)</button></div></details>'
           : '<details class="menu"><summary aria-label="큐비크스 보유 메뉴">⋯</summary><div class="pop"><button type="button" data-give="' + g.key + '">이 구간에서 배포 추가</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>';
         tb += '<tr class="seg-row' + (i === 0 ? ' gs' : '') + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '">' + head
@@ -487,7 +502,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   var lastInfo = null, armed = false;
   function flash(cls, html) { var f = $('flash'); f.className = 'flash on ' + cls; f.innerHTML = html; }
   function infoDl(j) {
-    return '<dl><dt>기간</dt><dd>' + esc(j.kind) + ' 티켓 · ' + esc(j.period) + (j.in_period ? '<span class="pill y">사용 가능</span>' : '<span class="pill n">기간 아님</span>') + '</dd>'
+    return '<dl><dt>기간</dt><dd>' + esc(j.kind) + ' 티켓 · ' + esc(j.purpose || '') + ' · ' + esc(j.period) + (j.in_period ? '<span class="pill y">사용 가능</span>' : '<span class="pill n">기간 아님</span>') + '</dd>'
       + '<dt>배포처</dt><dd>' + esc(j.holder) + (j.alloc_s ? ' <span style="color:var(--sub)">(' + rng(j.alloc_s, j.alloc_e) + ')</span>' : '') + '</dd>'
       + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>';
   }
@@ -608,7 +623,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   });
   function openAlloc(a, pre) {
     editId = a ? a.id : null; $('aF').reset(); $('aErr').textContent = '';
-    $('aBatch').innerHTML = S.batches.map(function (b) { return '<option value="' + b.id + '">' + esc(b.kind) + ' · ' + rng(b.s, b.e) + ' · ' + esc(b.period) + '</option>'; }).join('');
+    $('aBatch').innerHTML = S.batches.map(function (b) { return '<option value="' + b.id + '">' + esc(b.kind) + ' · ' + esc(b.purpose || '') + ' · ' + rng(b.s, b.e) + ' · ' + esc(b.period) + '</option>'; }).join('');
     $('coList').innerHTML = Object.keys(colorOf).map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
     if (a) { $('aBatch').value = a.batch_id; $('aS').value = n6(a.s); $('aE').value = n6(a.e); $('aQty').value = a.e - a.s + 1; $('aCo').value = a.company; $('aMemo').value = a.memo || ''; }
     if (pre) { $('aBatch').value = pre.b.id; $('aS').value = n6(pre.s); }
@@ -626,20 +641,43 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   });
 
   // ── 발주분
+  var SHOW0 = '2026-12-05', SHOW1 = '2027-02-28', bEdit = null;
+  function kindSync() {
+    var full = $('bKind').value === '전기간';
+    if (full) { $('bFrom').value = SHOW0; $('bTo').value = SHOW1; }
+    $('bFrom').readOnly = $('bTo').readOnly = full;
+    $('bNote').textContent = full ? '전시 전 기간(2026.12.05 ~ 2027.02.28)으로 고정됩니다.' : '전시 기간(2026.12.05 ~ 2027.02.28) 안에서 고르세요.';
+  }
+  $('bKind').addEventListener('change', function () { if ($('bKind').value === '부분 기간' && $('bFrom').value === SHOW0 && $('bTo').value === SHOW1) { $('bFrom').value = ''; $('bTo').value = ''; } kindSync(); });
+  function bReset() {
+    bEdit = null; $('bF').reset(); $('bErr').textContent = ''; $('bSave').textContent = '발주분 추가'; $('bCancel').hidden = true; $('dBatchT').textContent = '발주분 추가'; kindSync();
+    var base = ['일반', '초대권', '기업 배포', 'VIP', '판매용'], have = S.batches.map(function (b) { return b.purpose; }).filter(Boolean);
+    $('purList').innerHTML = Array.from(new Set(base.concat(have))).map(function (p) { return '<option value="' + esc(p) + '">'; }).join('');
+  }
+  $('bCancel').addEventListener('click', bReset);
   function renderBList() {
-    $('bList').innerHTML = S.batches.map(function (b) { return '<li><span><b>' + esc(b.kind) + '</b> · ' + rng(b.s, b.e) + ' · ' + esc(b.period) + ' · ' + cnt(b.e - b.s + 1) + '장</span><button type="button" class="link" data-bdel="' + b.id + '" style="color:var(--bad)">삭제</button></li>'; }).join('');
+    $('bList').innerHTML = S.batches.map(function (b) { return '<li><span><b>' + esc(b.kind) + ' · ' + esc(b.purpose || '') + '</b> · ' + rng(b.s, b.e) + ' · ' + esc(b.period) + ' · ' + cnt(b.e - b.s + 1) + '장</span><button type="button" class="link" data-bed="' + b.id + '">수정</button><button type="button" class="link" data-bdel="' + b.id + '" style="color:var(--bad)">삭제</button></li>'; }).join('');
+  }
+  function bStartEdit(id) {
+    var b = S.batches.filter(function (x) { return x.id === id; })[0]; if (!b) return;
+    bEdit = id; $('bKind').value = b.kind; $('bPur').value = b.purpose || ''; $('bFrom').value = b.start_date; $('bTo').value = b.end_date; $('bS').value = n6(b.s); $('bE').value = n6(b.e);
+    kindSync(); $('bSave').textContent = '발주분 수정'; $('bCancel').hidden = false; $('dBatchT').textContent = '발주분 수정 — ' + b.kind + ' · ' + rng(b.s, b.e); $('bErr').textContent = ''; $('bPur').focus();
   }
   $('bF').addEventListener('submit', function (e) {
-    e.preventDefault(); $('bErr').textContent = ''; var s = num($('bS').value), en = num($('bE').value), f = $('bFrom').value, t = $('bTo').value;
+    e.preventDefault(); $('bErr').textContent = '';
+    var s = num($('bS').value), en = num($('bE').value), f = $('bFrom').value, t = $('bTo').value, pur = $('bPur').value.trim();
+    if (!pur) { $('bErr').textContent = '명목을 입력해 주세요. (예: 일반, 초대권, 기업 배포)'; $('bPur').focus(); return; }
+    if (!f || !t) { $('bErr').textContent = '사용 시작일과 종료일을 골라 주세요.'; return; }
+    if (f > t) { $('bErr').textContent = '사용 시작일이 종료일보다 늦습니다.'; return; }
+    if (f < SHOW0 || t > SHOW1) { $('bErr').textContent = '사용 기간은 전시 기간(2026.12.05 ~ 2027.02.28) 안이어야 합니다.'; return; }
     if (!s || !en) { $('bErr').textContent = '시작 · 끝 번호를 입력해 주세요.'; return; }
-    if (!f || !t) { $('bErr').textContent = '사용 기간(월)을 골라 주세요.'; return; }
-    rpc('ticket_batch_save', { p_id: null, p_kind: $('bKind').value, p_period: f.replace('-', '.') + ' ~ ' + t.replace('-', '.'), p_s: s, p_e: en })
-      .then(function () { $('bS').value = ''; $('bE').value = ''; return load(); }).then(renderBList).catch(function (err) { $('bErr').textContent = err.message; });
+    rpc('ticket_batch_save', { p_id: bEdit, p_kind: $('bKind').value, p_purpose: pur, p_start: f, p_end: t, p_s: s, p_e: en })
+      .then(function () { return load(); }).then(function () { bReset(); renderBList(); }).catch(function (err) { $('bErr').textContent = err.message; });
   });
 
   // ── 공통 클릭
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-close],[data-seg],[data-row],[data-ed],[data-del],[data-give],[data-grid],[data-bdel],[data-unuse],[data-use],[data-force]');
+    var t = e.target.closest('[data-close],[data-seg],[data-row],[data-ed],[data-del],[data-give],[data-grid],[data-bdel],[data-bed],[data-unuse],[data-use],[data-force]');
     if (!t) return;
     var m = t.closest('details.menu'); if (m && !t.matches('summary')) m.open = false;
     if (t.dataset.close != null) { t.closest('dialog').close(); return; }
@@ -652,6 +690,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
       if (!a || !confirm(a.company + ' ' + rng(a.s, a.e) + ' (' + cnt(a.e - a.s + 1) + '장) 배포를 지울까요?\n번호는 큐비크스 보유로 돌아갑니다.' + (u ? '\n사용 기록 ' + cnt(u) + '장은 그대로 남습니다.' : ''))) return;
       rpc('ticket_alloc_delete', { p_id: a.id }).then(load).catch(function (err) { alert(err.message); }); return;
     }
+    if (t.dataset.bed) { bStartEdit(+t.dataset.bed); return; }
     if (t.dataset.bdel) { var b = S.batches.filter(function (x) { return x.id === +t.dataset.bdel; })[0]; if (!b || !confirm(b.kind + ' ' + rng(b.s, b.e) + ' 발주분을 지울까요?')) return; rpc('ticket_batch_delete', { p_id: b.id }).then(load).then(renderBList).catch(function (err) { alert(err.message); }); return; }
     if (t.dataset.unuse) { unuseOne(+t.dataset.unuse); return; }
     if (t.dataset.use) { useOne(+t.dataset.use, false); return; }
@@ -660,7 +699,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   });
   document.addEventListener('click', function (e) { document.querySelectorAll('details.menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; }); });
   $('btnAlloc').addEventListener('click', function () { openAlloc(null); });
-  $('btnBatch').addEventListener('click', function () { renderBList(); $('bErr').textContent = ''; $('dBatch').showModal(); });
+  $('btnBatch').addEventListener('click', function () { bReset(); renderBList(); $('dBatch').showModal(); });
 
   // ── 내보내기 · 인쇄
   function dl(name, rows) {
@@ -672,16 +711,16 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   }
   var tx = function (n) { return '="' + n6(n) + '"'; };
   $('csv1').addEventListener('click', function () {
-    var rows = [['구분', '사용 기간', '배포처', '티켓 번호', '시작', '끝', '수량', '사용', '미사용', '사용률', '메모']], tot = 0, used = 0;
-    allSegs().forEach(function (g) { tot += g.q; used += g.u; rows.push([g.b.kind + ' 티켓', g.b.period, g.who, rng(g.s, g.e), tx(g.s), tx(g.e), g.q, g.u, g.q - g.u, pctS(g.u, g.q), g.a && g.a.memo || '']); });
-    rows.push(['합계', '', '', '', '', '', tot, used, tot - used, pctS(used, tot), '']); dl('티켓현황', rows); $('expMenu').open = false;
+    var rows = [['구분', '명목', '사용 기간', '배포처', '티켓 번호', '시작', '끝', '수량', '사용', '미사용', '사용률', '메모']], tot = 0, used = 0;
+    allSegs().forEach(function (g) { tot += g.q; used += g.u; rows.push([g.b.kind + ' 티켓', g.b.purpose || '', g.b.period, g.who, rng(g.s, g.e), tx(g.s), tx(g.e), g.q, g.u, g.q - g.u, pctS(g.u, g.q), g.a && g.a.memo || '']); });
+    rows.push(['합계', '', '', '', '', '', '', tot, used, tot - used, pctS(used, tot), '']); dl('티켓현황', rows); $('expMenu').open = false;
   });
   $('csv2').addEventListener('click', function () {
     var btn = this; btn.disabled = true;
     rpc('ticket_uses_list').then(function (list) {
       var when = {}; list.forEach(function (x) { when[x[0]] = x[1]; });
-      var rows = [['번호', '구분', '사용 기간', '배포처', '사용 여부', '사용 일시']];
-      allSegs().forEach(function (g) { for (var n = g.s; n <= g.e; n++) rows.push([tx(n), g.b.kind + ' 티켓', g.b.period, g.who, when[n] ? '사용' : '미사용', when[n] ? dtfmt.format(new Date(when[n])) : '']); });
+      var rows = [['번호', '구분', '명목', '사용 기간', '배포처', '사용 여부', '사용 일시']];
+      allSegs().forEach(function (g) { for (var n = g.s; n <= g.e; n++) rows.push([tx(n), g.b.kind + ' 티켓', g.b.purpose || '', g.b.period, g.who, when[n] ? '사용' : '미사용', when[n] ? dtfmt.format(new Date(when[n])) : '']); });
       dl('번호별_사용내역', rows); $('expMenu').open = false;
     }).catch(function (err) { alert(err.message); }).finally(function () { btn.disabled = false; });
   });
