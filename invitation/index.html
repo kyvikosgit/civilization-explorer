@@ -26,19 +26,29 @@ html.reading{background:var(--paper)}
 img{display:block;max-width:none}
 
 /* ── 봉투 무대 */
-#stage{position:fixed;left:0;top:0;width:calc(1129px * var(--s));height:calc(2000px * var(--s));transform:translate(var(--x),var(--y));transition:transform 1s cubic-bezier(.6,0,.2,1),opacity .6s ease;cursor:pointer;z-index:2}
+#stage{position:fixed;left:0;top:0;width:calc(1129px * var(--s));height:calc(2000px * var(--s));transform:translate(var(--x),var(--y));transition:transform 1.7s cubic-bezier(.45,0,.25,1),opacity .6s ease;cursor:pointer;z-index:2;perspective:calc(1700px * var(--s));perspective-origin:50% calc(885px * var(--s))}
 #stage .l{position:absolute;left:0;width:100%}
-#flap{top:0;height:calc(885px * var(--s));transform-origin:50% 100%;transform:perspective(1400px) rotateX(-92deg);opacity:0;transition:transform .85s cubic-bezier(.3,.6,.25,1),opacity .2s ease}
+/* 덮개: 접는 선(y 885)을 축으로 도는 3D 판. 앞면 = 닫힌 봉투의 덮개 + 밀랍 도장, 뒷면 = 열린 덮개(안감 그림) */
+#flapWrap{position:absolute;left:0;top:calc(885px * var(--s));width:calc(1129px * var(--s));height:calc(885px * var(--s));transform-origin:50% 0;transform-style:preserve-3d;z-index:9;pointer-events:none}
+.face{position:absolute;top:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.f{left:calc(197px * var(--s));width:calc(735px * var(--s));height:auto;transform-origin:50% 0}
+.face.b{left:0;width:100%;height:calc(885px * var(--s));transform:rotateX(180deg)}
+.open #flapWrap{animation:flapOpen 1.7s cubic-bezier(.5,.02,.3,1) .25s both}
+.open .face.f{animation:shadeF 1.7s cubic-bezier(.5,.02,.3,1) .25s both}
+.open .face.b{animation:shadeB 1.7s cubic-bezier(.5,.02,.3,1) .25s both}
+@keyframes flapOpen{from{transform:rotateX(0)}to{transform:rotateX(180deg)}}
+@keyframes shadeF{0%{filter:brightness(1)}55%{filter:brightness(.62)}100%{filter:brightness(.62)}}
+@keyframes shadeB{0%,45%{filter:brightness(.6)}100%{filter:brightness(1)}}
+.flapped #flapWrap{z-index:1}
+.pressed #flapWrap .face.f{transform:scale(.985)}
 #body{top:calc(885px * var(--s));height:calc(1115px * var(--s))}
-#front{top:calc(885px * var(--s));height:calc(1115px * var(--s));z-index:3;pointer-events:none}
-#closed{position:absolute;left:calc(197px * var(--s));top:calc(885px * var(--s));width:calc(735px * var(--s));height:calc(1017px * var(--s));z-index:5;transition:opacity .35s ease;filter:drop-shadow(0 10px 22px rgba(0,0,0,.18))}
-#body,#flap{filter:drop-shadow(0 8px 18px rgba(0,0,0,.12))}
-#card{position:absolute;left:calc(229.5px * var(--s));top:calc(940px * var(--s));width:calc(670px * var(--s));z-index:2;opacity:0;transition:transform 1.15s cubic-bezier(.45,0,.2,1)}
+#front{top:calc(885px * var(--s));height:calc(1115px * var(--s));z-index:4;pointer-events:none}
+#closed{position:absolute;left:calc(197px * var(--s));top:calc(885px * var(--s));width:calc(735px * var(--s));height:calc(1017px * var(--s));z-index:8;transition:opacity .12s ease .05s;filter:drop-shadow(0 10px 22px rgba(0,0,0,.18))}
+#body{filter:drop-shadow(0 8px 18px rgba(0,0,0,.12))}
+#card{position:absolute;left:calc(229.5px * var(--s));top:calc(940px * var(--s));width:calc(670px * var(--s));z-index:2;transition:transform 1.7s cubic-bezier(.45,0,.2,1)}
 #hint{position:fixed;left:0;right:0;text-align:center;font:400 15px/1.4 var(--serif);color:#5E6B5C;letter-spacing:.06em;z-index:3;transition:opacity .3s;animation:breathe 2.4s ease-in-out infinite}
 @keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
 .open #closed{opacity:0}
-.open #flap{transform:perspective(1400px) rotateX(0);opacity:1}
-.open #card{opacity:1}
 .open #hint{opacity:0;animation:none}
 .rise #card{transform:translateY(calc(-860px * var(--s)))}
 .leave #stage{opacity:0}
@@ -68,11 +78,11 @@ img{display:block;max-width:none}
 <body>
 
 <div id="stage" role="button" tabindex="0" aria-label="봉투를 열어 초대장 보기">
-  <img id="flap" class="l" src="/invitation/img/env_flap.webp" alt="">
   <img id="body" class="l" src="/invitation/img/env_body.webp" alt="">
   <div id="card" aria-hidden="true"></div>
   <img id="front" class="l" src="/invitation/img/env_front.webp" alt="">
   <img id="closed" src="/invitation/img/env_closed.webp" alt="MONET 100 밀랍 도장으로 봉한 초대장 봉투">
+  <div id="flapWrap"><img class="face f" src="/invitation/img/env_flapclosed.webp" alt=""><img class="face b" src="/invitation/img/env_flap.webp" alt=""></div>
 </div>
 <p id="hint">봉투를 눌러 열어 주세요</p>
 
@@ -150,9 +160,11 @@ img{display:block;max-width:none}
   var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   async function open() {
     if (state !== 'closed') return; state = 'opening';
-    body.classList.add('open'); layout();
-    await wait(1000); body.classList.add('rise');
-    await wait(1250);
+    body.classList.add('pressed'); await wait(220);
+    body.classList.remove('pressed'); body.classList.add('open'); layout();
+    await wait(1950); body.classList.add('flapped');                    // 덮개가 다 열림 → 카드가 덮개 앞으로
+    await wait(350); body.classList.add('rise');
+    await wait(1900);
     // 카드 → 읽는 화면 표지 자리로(FLIP)
     body.classList.add('reading'); root.classList.add('reading'); read.style.transition = 'none'; read.style.opacity = '1';
     scrollTo(0, 0);
@@ -164,9 +176,9 @@ img{display:block;max-width:none}
     Array.prototype.forEach.call(read.children, function (el) { if (el !== p1) { el.style.opacity = 0; el.style.transition = 'none'; } });
     card.style.visibility = 'hidden'; body.classList.add('leave');
     p1.getBoundingClientRect();
-    p1.style.transition = 'transform .85s cubic-bezier(.5,0,.2,1), box-shadow .85s ease';
+    p1.style.transition = 'transform 1s cubic-bezier(.5,0,.2,1), box-shadow 1s ease';
     p1.style.transform = 'none'; p1.style.boxShadow = '0 0 0 rgba(0,0,0,0)';
-    await wait(850);
+    await wait(1000);
     Array.prototype.forEach.call(read.children, function (el) { if (el !== p1) { el.style.transition = 'opacity .6s ease'; el.style.opacity = 1; } });
     stage.style.visibility = 'hidden'; hint.style.display = 'none'; state = 'read';
   }
