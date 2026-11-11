@@ -237,12 +237,13 @@ img{display:block;max-width:none}
   var msg = park.querySelector('.msg'), go = park.querySelector('.go'), doneB = park.querySelector('.done b');
   var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
   // 앞자리(지역명 · 숫자 · 한글)와 뒤 숫자 사이에 띄어쓰기 한 칸 — 입력 중에도, 저장할 때도 같은 규칙
-  function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^((?:[가-힣]{2})?\d{2,3}[가-힣])(\d{1,4})$/); return m ? m[1] + ' ' + m[2] : t; }
+  // 번호판 정리: [지역 ]숫자[한글] 뒤4자리 — 12가 3456 · 서울 12가 3456 · 경기 42 1234(옛 지역 번호판). 덜 쓴 번호는 손대지 않음(null)
+  function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^([가-힣]{2})?(\d{1,3})([가-힣])?(\d{4})$/); return m && (m[1] || m[3]) ? (m[1] ? m[1] + ' ' : '') + m[2] + (m[3] || '') + ' ' + m[4] : null; }
   var composing = false;
   function fmtInput() {
     var v = inp.value, pos = inp.selectionStart == null ? v.length : inp.selectionStart;
     var k = v.slice(0, pos).replace(/\s+/g, '').length, nv = pretty(v);
-    if (nv === v) return;
+    if (nv === null || nv === v) return;
     inp.value = nv;
     var i = 0, c = 0; while (i < nv.length && c < k) { if (!/\s/.test(nv[i])) c++; i++; }
     try { inp.setSelectionRange(i, i); } catch (e) {}
@@ -255,9 +256,9 @@ img{display:block;max-width:none}
   park.querySelector('.btn.more').addEventListener('click', function () { park.classList.remove('ok'); inp.value = ''; msg.textContent = ''; inp.focus(); });
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
-    var v = pretty(inp.value); inp.value = v;
-    if (!/^(?:[가-힣]{2})?\d{2,3}[가-힣] \d{4}$/.test(v)) { msg.textContent = '차량 번호를 다시 확인해 주세요. (예: 12가 3456)'; inp.focus(); return; }
-    go.disabled = true; msg.textContent = '';
+    var v = pretty(inp.value);
+    if (v === null) { msg.textContent = '차량 번호를 다시 확인해 주세요. (예: 12가 3456)'; inp.focus(); return; }
+    inp.value = v; go.disabled = true; msg.textContent = '';
     try {
       var r = await fetch(SB + '/rest/v1/rpc/invite_parking_add', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_plate: v }) });
       if (!r.ok) throw 0;
