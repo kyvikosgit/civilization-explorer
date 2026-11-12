@@ -39,6 +39,14 @@
       "dest": "/invitation/admin/index.html"
     },
     {
+      "src": "/(invita(t?)ion/)?press/?",
+      "dest": "/invitation/press/index.html"
+    },
+    {
+      "src": "/invita(t?)ion/vip/?",
+      "dest": "/invitation/index.html"
+    },
+    {
       "src": "/invita(t?)ion/?",
       "dest": "/invitation/index.html"
     },

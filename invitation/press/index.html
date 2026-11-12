@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MONET 100 Press Day 초대</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="〈MONET 100: 시대를 읽는 감각의 계보〉 Press Day에 초대합니다. 2026년 12월 3일 목요일 10:30–18:00, 신세계본점 더 헤리티지 4층.">
+<meta property="og:title" content="MONET 100 Press Day 초대">
+<meta property="og:description" content="2026. 12. 3 (목) 10:30 – 18:00 · 신세계본점 더 헤리티지 4F 뮤지엄">
+<meta property="og:image" content="https://monet100.com/invitation/img/og_press.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#EDEBE5">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Diphylleia&display=swap">
+<link rel="preload" as="image" href="/invitation/img/env_closed.webp">
+<style>
+/* 봉투(닫힘) → 누르면 덮개가 열리고 카드가 올라옴 → 카드가 화면 폭으로 커지며 세 쪽을 세로로 읽는 화면
+   봉투 좌표는 열린 봉투 원본(1129 × 2000) 기준: 접는 선 y 885, 몸통 x 197–932 · y 885–1902, 카드 폭 670 · 위끝 940
+   카드 안 글자는 원본 카드(720 × 998) 좌표 그대로 — 1u = 카드 폭 / 720 */
+:root{--bg:#EDEBE5;--paper:#FFFFFF;--gold:#B39243;--ink:#1E1E1E;--sub:#4A4A4A;--serif:'Diphylleia','Gowun Batang','AppleMyungjo',serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);-webkit-tap-highlight-color:transparent}
+body{font-family:var(--serif);color:var(--ink);overflow:hidden}
+body.reading{overflow:auto;background:var(--paper)}
+html.reading{background:var(--paper)}
+img{display:block;max-width:none}
+
+/* ── 봉투 무대 */
+#stage{position:fixed;left:0;top:0;width:calc(1129px * var(--s));height:calc(2000px * var(--s));transform:translate(var(--x),var(--y));transition:transform 1.2s cubic-bezier(.45,0,.25,1),opacity .5s ease;cursor:pointer;z-index:2;perspective:calc(1700px * var(--s));perspective-origin:50% calc(885px * var(--s))}
+#stage .l{position:absolute;left:0;width:100%}
+/* 덮개: 접는 선(y 885)을 축으로 도는 3D 판. 앞면 = 닫힌 봉투의 덮개 + 밀랍 도장, 뒷면 = 열린 덮개(안감 그림) */
+#flapWrap{position:absolute;left:0;top:calc(885px * var(--s));width:calc(1129px * var(--s));height:calc(885px * var(--s));transform-origin:50% 0;transform-style:preserve-3d;z-index:9;pointer-events:none}
+.face{position:absolute;top:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.f{left:calc(197px * var(--s));width:calc(735px * var(--s));height:auto;transform-origin:50% 0}
+.face.b{left:0;width:100%;height:calc(885px * var(--s));transform:rotateX(180deg)}
+.open #flapWrap{animation:flapOpen 1.15s cubic-bezier(.5,.02,.3,1) .1s both}
+.open .face.f{animation:shadeF 1.15s cubic-bezier(.5,.02,.3,1) .1s both}
+.open .face.b{animation:shadeB 1.15s cubic-bezier(.5,.02,.3,1) .1s both}
+@keyframes flapOpen{from{transform:rotateX(0)}to{transform:rotateX(180deg)}}
+@keyframes shadeF{0%{filter:brightness(1)}55%{filter:brightness(.62)}100%{filter:brightness(.62)}}
+@keyframes shadeB{0%,45%{filter:brightness(.6)}100%{filter:brightness(1)}}
+.flapped #flapWrap{z-index:1}
+.pressed #flapWrap .face.f{transform:scale(.985)}
+#body{top:calc(885px * var(--s));height:calc(1115px * var(--s))}
+#front{top:calc(885px * var(--s));height:calc(1115px * var(--s));z-index:4;pointer-events:none}
+#closed{position:absolute;left:calc(197px * var(--s));top:calc(885px * var(--s));width:calc(735px * var(--s));height:calc(1017px * var(--s));z-index:8;transition:opacity .12s ease .05s;filter:drop-shadow(0 10px 22px rgba(0,0,0,.18))}
+#body{filter:drop-shadow(0 8px 18px rgba(0,0,0,.12))}
+#card{position:absolute;left:calc(229.5px * var(--s));top:calc(940px * var(--s));width:calc(670px * var(--s));z-index:2;transition:transform 1.2s cubic-bezier(.45,0,.2,1)}
+#hint{position:fixed;left:0;right:0;text-align:center;font:400 15px/1.4 var(--serif);color:#5E6B5C;letter-spacing:.06em;z-index:3;transition:opacity .3s;animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
+.open #closed{opacity:0}
+.open #hint{opacity:0;animation:none}
+.rise #card{transform:translateY(calc(-860px * var(--s)))}
+.leave #stage{opacity:0}
+
+/* ── 카드 쪽(원본 720 × 998 좌표) */
+.page{position:relative;width:100%;aspect-ratio:720/998;background:var(--paper);container-type:inline-size;overflow:hidden}
+.page>*{position:absolute;margin:0}
+.page .t{left:0;right:0;text-align:center;line-height:1;white-space:nowrap;transform:translateY(-50%);top:calc(var(--y) * 100cqw / 720);font-size:calc(var(--f) * 100cqw / 720)}
+.page .im{left:calc(var(--x) * 100cqw / 720);top:calc(var(--y) * 100cqw / 720);width:calc(var(--w) * 100cqw / 720);height:auto}
+.p1 .t{color:var(--gold)}
+.p2 .t,.p3 .t{color:var(--ink)}
+.page .t.col{left:calc((var(--cx) - 110) * 100cqw / 720);right:auto;width:calc(220 * 100cqw / 720)}
+.page .t.note{left:calc(var(--nx, 62) * 100cqw / 720);right:auto;text-align:left}
+.p2 .t b{font-weight:700}.p2 .t i{font-style:italic}
+.p3 .small{color:var(--sub)}
+
+/* ── 읽는 화면 */
+#read{position:relative;max-width:480px;margin:0 auto;opacity:0;visibility:hidden;transition:opacity .5s ease}
+.reading #read{opacity:1;visibility:visible}
+#read .page+.page{border-top:1px solid #EFEDE8}
+#read .end{padding:28px 20px calc(36px + env(safe-area-inset-bottom,0px));text-align:center}
+#again{font:400 14px/1 var(--serif);color:#6A6A64;background:none;border:1px solid #D9D6CE;border-radius:999px;padding:11px 18px;cursor:pointer}
+#again:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+/* ── 주차 안내 · 사전 차량 등록 (카드와 같은 단위: 1u = 폭 / 720) */
+/* 위 쪽(프로그램) 카드의 아래 여백과 겹쳐 올려서, 마지막 줄 → PARKING 간격을 카드 안 문단 간격(약 78u)에 맞춤 */
+.park{container-type:inline-size;background:var(--paper);border-top:1px solid #EFEDE8;text-align:center;padding:7.5% 0 9%}
+.park .in{position:relative;padding:0 calc(60 * 100cqw / 720)}
+.park h2{margin:0 0 calc(44 * 100cqw / 720);font:400 calc(28.5 * 100cqw / 720)/1 var(--serif);letter-spacing:.04em;color:var(--ink)}
+.park p{margin:0;font-size:calc(20.7 * 100cqw / 720);line-height:1.85;color:var(--ink);word-break:keep-all}
+.park .btn{margin-top:calc(46 * 100cqw / 720);font:400 15px/1 var(--serif);color:var(--ink);background:none;border:1px solid var(--gold);border-radius:999px;padding:13px 24px;cursor:pointer;letter-spacing:.02em}
+.park .btn:focus-visible,.park input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.park form{display:none;margin:calc(46 * 100cqw / 720) auto 0;max-width:330px;flex-direction:column;gap:12px;align-items:stretch}
+.park.on form{display:flex}.park.on .btn.open{display:none}
+.park label{font-size:13px;color:var(--sub);letter-spacing:.04em}
+.park .row{display:flex;gap:8px}
+.park input{flex:1;min-width:0;font:400 16px/1 var(--serif);color:var(--ink);background:#FAF9F6;border:1px solid #D9D6CE;border-radius:999px;padding:13px 18px;text-align:center;letter-spacing:.06em}
+.park input::placeholder{color:#A5A39C}
+.park .go{flex:none;font:400 15px/1 var(--serif);color:#fff;background:var(--ink);border:0;border-radius:999px;padding:0 20px;cursor:pointer}
+.park .go[disabled]{opacity:.5}
+.park .msg{min-height:1.4em;margin:0;font-size:14px;line-height:1.5;color:#9A4A2E}
+.park .done{display:none;margin:calc(46 * 100cqw / 720) auto 0;font-size:15px;line-height:1.7;color:var(--ink)}
+.park .done b{display:block;font-weight:400;color:var(--gold);font-size:17px;letter-spacing:.06em;margin-top:4px}
+.park .done .btn{margin-top:18px;font-size:14px;padding:11px 18px;border-color:#D9D6CE;color:#6A6A64}
+.park.ok form{display:none}.park.ok .done{display:block}
+/* ── 약도 (주차 안내와 같은 틀) */
+.loc .map{display:block;margin:0 auto;border:1px solid #E4E1D9}
+.loc .map img{display:block;width:100%;height:auto}
+.loc .addr{margin-top:calc(30 * 100cqw / 720)}
+.loc .addr+p{font-size:calc(17.5 * 100cqw / 720);color:var(--sub)}
+@media (min-width:600px){body.reading,html.reading{background:var(--bg)}#read{box-shadow:0 0 0 1px #E2DFD7,0 18px 50px rgba(0,0,0,.08);margin-top:28px;margin-bottom:28px}}
+.noanim #stage,.noanim #stage *,.noanim #hint{transition:none!important;animation:none!important}
+@media (prefers-reduced-motion:reduce){#stage,#flap,#card,#closed,#read{transition-duration:.01s!important}#hint{animation:none}}
+</style>
+</head>
+<body>
+
+<div id="stage" role="button" tabindex="0" aria-label="봉투를 열어 초대장 보기">
+  <img id="body" class="l" src="/invitation/img/env_body.webp" alt="">
+  <div id="card" aria-hidden="true"></div>
+  <img id="front" class="l" src="/invitation/img/env_front.webp" alt="">
+  <img id="closed" src="/invitation/img/env_closed.webp" alt="MONET 100 밀랍 도장으로 봉한 초대장 봉투">
+  <div id="flapWrap"><img class="face f" src="/invitation/img/env_flapclosed.webp" alt=""><img class="face b" src="/invitation/img/env_flap.webp" alt=""></div>
+</div>
+<p id="hint">봉투를 눌러 열어 주세요</p>
+
+<main id="read" aria-label="초대장">
+  <section class="page p1" aria-label="표지">
+    <p class="t" style="--y:102;--f:25.5">클로드 모네 서거 100주년 기념 전시</p>
+    <img class="im" style="--x:245;--y:189;--w:261" src="/invitation/img/haystack.webp" alt="모네의 건초더미 그림">
+    <img class="im" style="--x:236;--y:385;--w:246" src="/invitation/img/logo_monet100.webp" alt="Monet 100">
+    <p class="t" style="--y:593;--f:47.8">시대를 읽는 감각의 계보</p>
+    <p class="t" style="--y:686.5;--f:24.8;left:calc(8 * 100cqw / 720)">PRESS DAY</p>
+    <p class="t" style="--y:726.5;--f:28.7">THURSDAY | Dec 3 | 2026</p>
+    <p class="t" style="--y:765;--f:30.5">10:30–18:00</p>
+    <p class="t" style="--y:864;--f:25.4">신세계본점 더 헤리티지 4층</p>
+  </section>
+  <section class="page p2" aria-label="초대의 글">
+    <p class="t" style="--y:133;--f:22.6">클로드 모네 서거 100주년 기념 전시</p>
+    <p class="t" style="--y:209;--f:20.7">〈MONET 100: 시대를 읽는 감각의 계보〉</p>
+    <p class="t" style="--y:289;--f:20.7"><b>2026년 12월 3일 목요일</b></p>
+    <p class="t" style="--y:322;--f:20.7"><i>Press Day</i>에 초대합니다.</p>
+    <p class="t" style="--y:396.5;--f:20.7">1926년 12월 5일, 클로드 모네가 세상을 떠났습니다.</p>
+    <p class="t" style="--y:434;--f:20.7">그로부터 100년, 서울시 유형문화유산인</p>
+    <p class="t" style="--y:471;--f:20.7">신세계본점 더 헤리티지에서</p>
+    <p class="t" style="--y:509;--f:20.7">〈MONET 100: 시대를 읽는 감각의 계보〉가 문을 엽니다.</p>
+    <p class="t" style="--y:584;--f:20.7">모네의 그림 너머,</p>
+    <p class="t" style="--y:621;--f:20.7">인상주의를 탄생시킨 시대를 직접 경험하는</p>
+    <p class="t" style="--y:658.5;--f:20.7">인문학 경험 전시입니다.</p>
+    <p class="t" style="--y:733.5;--f:20.7">정식 개막에 앞서</p>
+    <p class="t" style="--y:771;--f:20.7">일반 관람객 없이 기자분들께 먼저 전시를 공개합니다.</p>
+    <p class="t" style="--y:809;--f:20.7">전시 공간을 자유롭게 취재하시고,</p>
+    <p class="t" style="--y:846;--f:20.7">기획총괄 송동훈 작가와의</p>
+    <p class="t" style="--y:883.5;--f:20.7">기자간담회에 함께해 주시기 바랍니다.</p>
+  </section>
+  <section class="page p3" aria-label="프로그램">
+    <p class="t" style="--y:119.5;--f:27.6;letter-spacing:.04em">PROGRAM</p>
+    <img class="im" style="--x:76.2;--y:187.7;--w:98.1" src="/invitation/img/ic_frame.webp" alt="액자 그림">
+    <img class="im" style="--x:256.6;--y:189.9;--w:58.9" src="/invitation/img/ic_mic.webp" alt="마이크 그림">
+    <img class="im" style="--x:409.5;--y:185;--w:51.5" src="/invitation/img/ic_dine.webp" alt="포크와 숟가락 그림">
+    <img class="im" style="--x:548;--y:194;--w:91" src="/invitation/img/ic_pen.webp" alt="만년필 그림">
+    <p class="t col" style="--cx:127.5;--y:337;--f:20">10:30 ~</p>
+    <p class="t col" style="--cx:282;--y:337;--f:20">11:00 ~ 11:40</p>
+    <p class="t col" style="--cx:436.8;--y:337;--f:20">12:00 ~ 13:00</p>
+    <p class="t col" style="--cx:591.2;--y:337;--f:20">13:00 ~ 18:00</p>
+    <p class="t col" style="--cx:127;--y:395.5;--f:20.2">자유 관람</p>
+    <p class="t col" style="--cx:127;--y:429;--f:20.2">및</p>
+    <p class="t col" style="--cx:126.5;--y:462;--f:20.2">취재</p>
+    <p class="t col" style="--cx:281;--y:395.5;--f:20.2">기자간담회</p>
+    <p class="t col" style="--cx:282;--y:429;--f:20.2">및</p>
+    <p class="t col" style="--cx:282.5;--y:462;--f:20.2">질의응답</p>
+    <p class="t col" style="--cx:437;--y:395.5;--f:20.2">점심 식사</p>
+    <p class="t col" style="--cx:436;--y:429;--f:20.2">(중식당 홍복)</p>
+    <p class="t col" style="--cx:590;--y:395.5;--f:20.2">자유 취재</p>
+    <p class="t col" style="--cx:590;--y:429;--f:20.2">및</p>
+    <p class="t col" style="--cx:589.5;--y:462;--f:20.2">방송 촬영</p>
+    <p class="t note" style="--y:537;--f:15.8">* 오전 10시 30분부터 편하신 시간에 오셔서 자유롭게 관람하고 취재하실 수 있습니다.</p>
+    <p class="t note" style="--y:563.5;--f:15.8">* 기자간담회는 4층 미디어 갤러리에서 진행합니다.</p>
+    <p class="t note" style="--y:591;--f:15.8">* 점심 식사는 전시장 인근 중식당 홍복(서울시 중구 남대문시장길 73-3)에서 진행하며,</p>
+    <p class="t note" style="--y:617.5;--f:15.8;--nx:76">간담회 후 함께 이동합니다.</p>
+    <p class="t note" style="--y:645.5;--f:15.8">* 사진과 영상 촬영 모두 가능하며, 방송 촬영은 사전에 신청해 주시기 바랍니다.</p>
+    <p class="t note" style="--y:672;--f:15.8">* 접수 시 보도자료(프레스킷)를 드립니다.</p>
+    <p class="t note" style="--y:699;--f:15.8">* 본 행사는 초청받으신 분에 한해 입장하실 수 있습니다.</p>
+    <p class="t" style="--y:762.5;--f:18.7">신세계본점 더 헤리티지 4F 뮤지엄</p>
+    <p class="t" style="--y:788;--f:16.5">서울시 중구 남대문로 42</p>
+    <p class="t" style="--y:840;--f:16.6">주최. SONG DONG HUN Inc. &nbsp;|&nbsp; 주관. KYVIKOS &nbsp;|&nbsp; 후원. 주한 프랑스대사관</p>
+    <p class="t" style="--y:875;--f:14.75">문의. (주)송동훈 이현진 총괄팀장 | 010-2061-0961 | windtogether@grandtours.co.kr</p>
+  </section>
+  <section class="park loc" aria-label="오시는 길">
+    <div class="in">
+      <h2>LOCATION</h2>
+      <a class="map" href="/invitation/img/map.webp" target="_blank" rel="noopener"><img src="/invitation/img/map.webp" width="960" height="795" loading="lazy" alt="약도: 남대문로와 퇴계로 사이 남대문로12길 옆 신세계백화점 본점 더 헤리티지. 남쪽 퇴계로에 4호선 회현역 6번 · 7번 · 1번 출구가 있고, 7번 출구에서 북쪽 길을 따라 올라가면 됩니다."></a>
+      <p class="addr">신세계본점 더 헤리티지 4F 뮤지엄 · 서울시 중구 남대문로 42</p>
+      <p>4호선 회현역 7번 출구</p>
+    </div>
+  </section>
+  <section class="park" id="park" aria-label="주차 안내">
+    <div class="in">
+      <h2>PARKING</h2>
+      <p>주차는 신세계백화점 본점 주차장을 이용하실 수 있습니다.<br>사전 차량 등록이 필요하오니, 아래 버튼을 눌러 차량 번호를 입력해 주시기 바랍니다.</p>
+      <button class="btn open" type="button" aria-controls="parkForm">차량 번호 등록</button>
+      <form id="parkForm" novalidate>
+        <label for="plate">차량 번호</label>
+        <div class="row"><input id="plate" name="plate" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="16" placeholder="예: 12가 3456" required><button class="go" type="submit">등록</button></div>
+        <p class="msg" role="status" aria-live="polite"></p>
+      </form>
+      <div class="done" role="status" aria-live="polite">등록되었습니다<b></b><button class="btn more" type="button">다른 차량 등록</button></div>
+    </div>
+  </section>
+  <div class="end"><button id="again" type="button">봉투 다시 보기</button></div>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement, body = document.body, stage = document.getElementById('stage'), card = document.getElementById('card');
+  var hint = document.getElementById('hint'), read = document.getElementById('read'), p1 = read.querySelector('.p1');
+  // 카드 = 표지 쪽 복제(같은 글자 · 같은 좌표, 크기만 작게)
+  var face = p1.cloneNode(true); face.removeAttribute('aria-label'); card.appendChild(face);
+  var state = 'closed';
+  function layout() {
+    var vw = innerWidth, vh = innerHeight;
+    var s = Math.min((Math.min(vw, 480) * 0.80) / 735, (vh * 0.90) / 1870);
+    root.style.setProperty('--s', s);
+    var x = vw / 2 - 564.5 * s;
+    var yC = vh / 2 - 1393 * s;                 // 닫힘: 몸통 가운데를 화면 가운데에
+    var yO = vh / 2 - 967 * s;                  // 열림: 도장 위끝 ~ 몸통 아래끝을 화면 가운데에
+    stage.style.setProperty('--x', x + 'px');
+    stage.style.setProperty('--y', (state === 'closed' ? yC : yO) + 'px');
+    hint.style.top = (yC + 1902 * s + 22) + 'px';
+  }
+  layout(); addEventListener('resize', layout);
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  async function open() {
+    if (state !== 'closed') return; state = 'opening';
+    body.classList.add('pressed'); await wait(150);
+    body.classList.remove('pressed'); body.classList.add('open'); layout();
+    await wait(1250); body.classList.add('flapped');                    // 덮개가 다 열림 → 카드가 덮개 앞으로
+    await wait(150); body.classList.add('rise');
+    await wait(1300);
+    // 카드 → 읽는 화면 표지 자리로(FLIP)
+    body.classList.add('reading'); root.classList.add('reading'); read.style.transition = 'none'; read.style.opacity = '1';
+    scrollTo(0, 0);
+    var a = card.getBoundingClientRect(), b = p1.getBoundingClientRect();
+    var k = a.width / b.width;
+    p1.style.transformOrigin = '0 0';
+    p1.style.transform = 'translate(' + (a.left - b.left) + 'px,' + (a.top - b.top) + 'px) scale(' + k + ')';
+    p1.style.boxShadow = '0 14px 40px rgba(0,0,0,.18)'; p1.style.zIndex = 3;
+    Array.prototype.forEach.call(read.children, function (el) { if (el !== p1) { el.style.opacity = 0; el.style.transition = 'none'; } });
+    card.style.visibility = 'hidden'; body.classList.add('leave');
+    p1.getBoundingClientRect();
+    p1.style.transition = 'transform .85s cubic-bezier(.5,0,.2,1), box-shadow .85s ease';
+    p1.style.transform = 'none'; p1.style.boxShadow = '0 0 0 rgba(0,0,0,0)';
+    await wait(850);
+    Array.prototype.forEach.call(read.children, function (el) { if (el !== p1) { el.style.transition = 'opacity .6s ease'; el.style.opacity = 1; } });
+    stage.style.visibility = 'hidden'; hint.style.display = 'none'; state = 'read';
+  }
+  function reset() {
+    // 되감기 움직임 없이 한 번에 닫힌 봉투로 — 카드가 봉투로 빨려 들어가는 장면이 보이지 않게
+    state = 'closed'; body.className = 'noanim'; root.classList.remove('reading'); scrollTo(0, 0);
+    p1.removeAttribute('style'); card.style.visibility = ''; hint.style.display = '';
+    read.removeAttribute('style'); Array.prototype.forEach.call(read.children, function (el) { el.removeAttribute('style'); });
+    stage.style.visibility = ''; stage.style.opacity = '0'; layout();
+    stage.getBoundingClientRect();
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      body.className = ''; stage.style.transition = 'opacity .45s ease'; stage.style.opacity = '1';
+      setTimeout(function () { stage.style.transition = ''; stage.style.opacity = ''; }, 500);
+    }); });
+  }
+  stage.addEventListener('click', open);
+  stage.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  document.getElementById('again').addEventListener('click', reset);
+  // 사전 차량 등록 — 주차 시스템 연동 없이 명단만 저장(현장 스태프가 /invitation/admin 에서 확인·출력)
+  var park = document.getElementById('park'), form = document.getElementById('parkForm'), inp = document.getElementById('plate');
+  var msg = park.querySelector('.msg'), go = park.querySelector('.go'), doneB = park.querySelector('.done b');
+  var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
+  // 앞자리(지역명 · 숫자 · 한글)와 뒤 숫자 사이에 띄어쓰기 한 칸 — 입력 중에도, 저장할 때도 같은 규칙
+  // 번호판 정리: [지역 ]숫자[한글] 뒤4자리 — 12가 3456 · 서울 12가 3456 · 경기 42 1234(옛 지역 번호판). 덜 쓴 번호는 손대지 않음(null)
+  function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^([가-힣]{2})?(\d{1,3})([가-힣])?(\d{4})$/); return m && (m[1] || m[3]) ? (m[1] ? m[1] + ' ' : '') + m[2] + (m[3] || '') + ' ' + m[4] : null; }
+  var composing = false;
+  function fmtInput() {
+    var v = inp.value, pos = inp.selectionStart == null ? v.length : inp.selectionStart;
+    var k = v.slice(0, pos).replace(/\s+/g, '').length, nv = pretty(v);
+    if (nv === null || nv === v) return;
+    inp.value = nv;
+    var i = 0, c = 0; while (i < nv.length && c < k) { if (!/\s/.test(nv[i])) c++; i++; }
+    try { inp.setSelectionRange(i, i); } catch (e) {}
+  }
+  inp.addEventListener('compositionstart', function () { composing = true; });
+  inp.addEventListener('compositionend', function () { composing = false; fmtInput(); });
+  inp.addEventListener('input', function (e) { if (!composing && !e.isComposing) fmtInput(); });
+  inp.addEventListener('blur', fmtInput);
+  park.querySelector('.btn.open').addEventListener('click', function () { park.classList.add('on'); setTimeout(function () { inp.focus(); }, 30); });
+  park.querySelector('.btn.more').addEventListener('click', function () { park.classList.remove('ok'); inp.value = ''; msg.textContent = ''; inp.focus(); });
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var v = pretty(inp.value);
+    if (v === null) { msg.textContent = '차량 번호를 다시 확인해 주세요. (예: 12가 3456)'; inp.focus(); return; }
+    inp.value = v; go.disabled = true; msg.textContent = '';
+    try {
+      var r = await fetch(SB + '/rest/v1/rpc/invite_parking_add', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_plate: v, p_event: 'press' }) });
+      if (!r.ok) throw 0;
+      var j = await r.json();
+      if (j && j.dup) { msg.textContent = '이미 등록된 차량입니다'; inp.focus(); }
+      else { doneB.textContent = v; park.classList.add('ok'); }
+    } catch (err) { msg.textContent = '등록하지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
+    go.disabled = false;
+  });
+  if (/[?&]open=1/.test(location.search)) { body.classList.add('reading', 'leave'); root.classList.add('reading'); stage.style.visibility = 'hidden'; hint.style.display = 'none'; state = 'read'; }
+})();
+</script>
+</body>
+</html>
