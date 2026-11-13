@@ -47,7 +47,7 @@ let cropZ = 1;   // 카메라 줌이 안 되면 사진에서 잘라 낼 배율
 async function startCam() {
   try {
     video.srcObject?.getTracks().forEach((t) => t.stop());
-    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false });
+    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 4032 }, height: { ideal: 3024 }, aspectRatio: { ideal: 4 / 3 } }, audio: false });   // 누르는 순간 이 영상 화면을 그대로 씀 — 가능한 최대 해상도
     video.srcObject = st; await video.play();
     const tr = st.getVideoTracks()[0]; cropZ = ZOOM;
     tr.addEventListener('ended', () => { status('카메라가 꺼짐 · 다시 켜는 중', true); setTimeout(startCam, 1500); });
@@ -83,33 +83,24 @@ async function aiPhoto(comp) {
     const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0); return c;
   } finally { clearTimeout(t); }
 }
-// 원본 사진: ImageCapture.takePhoto(안드로이드 크롬). 안 되거나 3초 넘으면 미리보기 영상 장면으로
-async function grab() {
-  const tr = video.srcObject?.getVideoTracks?.()[0];
-  if (tr && 'ImageCapture' in window) {
-    try {
-      const blob = await Promise.race([new ImageCapture(tr).takePhoto(), sleep(3000).then(() => { throw new Error('slow'); })]);
-      const bm = await createImageBitmap(blob); bm.how = 'photo'; return bm;
-    } catch (e) { console.warn('[takePhoto]', e); }
-  }
-  const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight; c.getContext('2d').drawImage(video, 0, 0); c.how = 'video'; return c;
-}
+// 누르는 순간의 카메라 영상 화면(지연 없음). 원본 사진 촬영(takePhoto)은 초점 · 노출을 다시 잡느라 0.5–1초 늦어서 쓰지 않음
+function grab() { const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight; c.getContext('2d').drawImage(video, 0, 0); return c; }
 let busy = false;
 async function shoot() {
   if (busy || video.readyState < 2) return; busy = true;
-  for (const n of [3, 2, 1]) { link.send('count', { n }); await sleep(1000); }   // 숫자는 폰에 띄우지 않음(뷰파인더) — 액자가 노출 연출
+  // 11/13: 누르는 순간 바로 찍음(3초 노출 연출 없앰) — 찍고 나서 폰 번쩍 · 액자 마그네슘 섬광
+  const src = grab();
   link.send('count', { n: 0 });
   $('shot').classList.remove('go'); void $('shot').offsetWidth; $('shot').classList.add('go');
-  // 11/13: 미리보기 영상 한 장면이 아니라 카메라 원본 사진(수천 px). 사람 위치로는 자르지 않는다(폰을 세우면 원본이 3:4 — 구도는 AI 가 허리 위로 다시 잡음)
+  // 사람 위치로는 자르지 않는다(폰을 세우면 화면이 3:4 — 구도는 AI 가 허리 위로 다시 잡음)
   //   자르는 건 광각 렌즈 귀퉁이(가운데 기준 · 카메라 줌이 안 될 때만)와, 원본이 3:4 가 아닐 때 가운데 맞춤뿐
-  const src = await grab();
   const iw = src.width, ih = src.height, zw = iw / cropZ, zh = ih / cropZ;
   let cw = zw, chh = zh; if (cw / chh > 3 / 4) cw = chh * 3 / 4; else chh = cw * 4 / 3;
   const c = document.createElement('canvas'); c.width = Math.round(cw); c.height = Math.round(chh);
   c.getContext('2d').drawImage(src, (iw - cw) / 2, (ih - chh) / 2, cw, chh, 0, 0, c.width, c.height);
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   const comp = c;
-  if (DEBUG) console.log('[shot]', src.how, iw + '×' + ih, '→', c.width + '×' + c.height);
+  if (DEBUG) console.log('[shot]', iw + '×' + ih, '→', c.width + '×' + c.height);
   link.send('dev', { id, preview: jpeg(comp, 300, 0.6) }).catch(() => {});   // 액자: 유리판 위로 방금 찍힌 모습이 떠오름(작은 미리보기)
   // 진행 신호: 1초마다 액자로(단계 · 경과 초). 신호가 끊기면 액자가 '응답 없음'을 띄운다
   const t0 = performance.now(); let stage = KEY ? 'ai' : 'local';
