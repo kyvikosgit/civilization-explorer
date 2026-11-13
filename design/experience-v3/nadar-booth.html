@@ -76,12 +76,23 @@ async function aiPhoto(comp) {
   if (!KEY) throw new Error('no key');
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), AI_LIMIT);   // 11/13: 체험 · 동선 때문에 30초 안 — 넘으면 기기 사진
   try {
-    const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, img: jpeg(comp, 900, 0.9) }), signal: ctl.signal });
+    const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, img: jpeg(comp, Math.min(1200, comp.width), 0.9) }), signal: ctl.signal });
     const d = await r.json(); if (!r.ok || !d.img) throw new Error(d.error || r.status);
     lastModel = (d.model || '').split('/').pop() + (d.ms ? ` ${Math.round(d.ms / 1000)}초` : '');   // 어느 모델이 왔는지(5.5 / 예비 Flash)
     const im = new Image(); im.src = d.img; await im.decode();
     const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0); return c;
   } finally { clearTimeout(t); }
+}
+// 원본 사진: ImageCapture.takePhoto(안드로이드 크롬). 안 되거나 3초 넘으면 미리보기 영상 장면으로
+async function grab() {
+  const tr = video.srcObject?.getVideoTracks?.()[0];
+  if (tr && 'ImageCapture' in window) {
+    try {
+      const blob = await Promise.race([new ImageCapture(tr).takePhoto(), sleep(3000).then(() => { throw new Error('slow'); })]);
+      const bm = await createImageBitmap(blob); bm.how = 'photo'; return bm;
+    } catch (e) { console.warn('[takePhoto]', e); }
+  }
+  const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight; c.getContext('2d').drawImage(video, 0, 0); c.how = 'video'; return c;
 }
 let busy = false;
 async function shoot() {
@@ -89,10 +100,16 @@ async function shoot() {
   for (const n of [3, 2, 1]) { link.send('count', { n }); await sleep(1000); }   // 숫자는 폰에 띄우지 않음(뷰파인더) — 액자가 노출 연출
   link.send('count', { n: 0 });
   $('shot').classList.remove('go'); void $('shot').offsetWidth; $('shot').classList.add('go');
-  const vw = video.videoWidth, vh = video.videoHeight, sw = vw / cropZ, sh = vh / cropZ;   // 카메라 줌이 안 되면 가운데를 잘라 냄
-  const c = document.createElement('canvas'); c.width = Math.round(sw); c.height = Math.round(sh); c.getContext('2d').drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
+  // 11/13: 미리보기 영상 한 장면이 아니라 카메라 원본 사진(수천 px). 사람 위치로는 자르지 않는다(폰을 세우면 원본이 3:4 — 구도는 AI 가 허리 위로 다시 잡음)
+  //   자르는 건 광각 렌즈 귀퉁이(가운데 기준 · 카메라 줌이 안 될 때만)와, 원본이 3:4 가 아닐 때 가운데 맞춤뿐
+  const src = await grab();
+  const iw = src.width, ih = src.height, zw = iw / cropZ, zh = ih / cropZ;
+  let cw = zw, chh = zh; if (cw / chh > 3 / 4) cw = chh * 3 / 4; else chh = cw * 4 / 3;
+  const c = document.createElement('canvas'); c.width = Math.round(cw); c.height = Math.round(chh);
+  c.getContext('2d').drawImage(src, (iw - cw) / 2, (ih - chh) / 2, cw, chh, 0, 0, c.width, c.height);
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
-  let comp = c; try { comp = N.cropTo34(c); } catch {}
+  const comp = c;
+  if (DEBUG) console.log('[shot]', src.how, iw + '×' + ih, '→', c.width + '×' + c.height);
   link.send('dev', { id, preview: jpeg(comp, 300, 0.6) }).catch(() => {});   // 액자: 유리판 위로 방금 찍힌 모습이 떠오름(작은 미리보기)
   // 진행 신호: 1초마다 액자로(단계 · 경과 초). 신호가 끊기면 액자가 '응답 없음'을 띄운다
   const t0 = performance.now(); let stage = KEY ? 'ai' : 'local';
@@ -101,11 +118,11 @@ async function shoot() {
   beat(); const hb = setInterval(beat, 1000);
   let card, how = 'AI';
   try { card = await aiPhoto(comp); }
-  catch (e) { console.warn('[ai]', e); how = '기기'; stage = 'local'; beat(); try { card = N.renderPhoto19(comp, null); } catch { try { card = N.quickPhoto(comp); } catch { card = comp; } } }
+  catch (e) { console.warn('[ai]', e); how = '기기'; stage = 'local'; beat(); let w = comp; try { w = N.cropTo34(comp); } catch {} try { card = N.renderPhoto19(w, null); } catch { try { card = N.quickPhoto(w); } catch { card = w; } } }
   stage = 'send'; beat();
   console.log('[time]', how, lastModel, sec() + '초', id);
-  // 액자 · 사진 받기로 가는 크기 — 실시간 메시지 한도 안(720px JPEG ≈ 150KB 안팎)
-  try { const r = await link.send('photo', { id, img: jpeg(card, 720, 0.82) }); if (r === 'ok') { if (DEBUG || how !== 'AI') status(`액자로 보냄(${how}${how === 'AI' ? ' ' + lastModel : ''}) · ${sec()}초 · ${id}`); } else status('액자로 보내지 못함 · 인터넷 확인'); }
+  // 액자 · 사진 받기로 — AI 결과 원본 크기 그대로(조각으로 나눠 보냄)
+  try { const r = await link.sendBig('photo', { id, img: jpeg(card, card.width, 0.92) }, 'img'); if (r === 'ok') { if (DEBUG || how !== 'AI') status(`액자로 보냄(${how}${how === 'AI' ? ' ' + lastModel : ''}) · ${sec()}초 · ${id}`); } else status('액자로 보내지 못함 · 인터넷 확인'); }
   catch { status('액자로 보내지 못함 · 인터넷 확인'); }
   clearInterval(hb); try { localStorage.setItem('m100-booth-last', JSON.stringify({ id, how, sec: sec(), at: new Date().toISOString() })); } catch {}
   busy = false;

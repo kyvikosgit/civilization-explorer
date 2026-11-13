@@ -154,7 +154,7 @@ const link = joinRoom({
   dev: (p) => { develop(p?.preview); progShow(p?.id); clearTimeout(devT); devT = setTimeout(() => { plate.classList.remove('on'); plateReset(); progHide(); }, 150000); },   // 촬영기는 110초에 기기 사진으로 넘어감 — 넉넉히
   prog: (p) => { if (!pgOn) progShow(p?.id); lastBeat = Date.now(); pgT = p?.t ?? pgT; $('prog').classList.remove('stall'); progDraw(p?.stage); },
   count: (p) => { if (p?.n === 3) startExposure(); else if (p?.n === 0) magnesium(); },
-  get: (p) => { const img = KEEP.get(p?.id); if (img) link.send('img', { id: p.id, img }); else link.send('img', { id: p?.id, missing: true }); },
+  get: (p) => { const img = KEEP.get(p?.id); if (img) link.sendBig('img', { id: p.id, img }, 'img'); else link.send('img', { id: p?.id, missing: true }); },
 });
 link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
 document.body.addEventListener('click', async () => {
