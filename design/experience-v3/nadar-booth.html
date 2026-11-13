@@ -65,6 +65,7 @@ async function keepAwake() { try { lock = await navigator.wakeLock?.request('scr
 keepAwake();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { keepAwake(); if (!video.srcObject?.active) startCam(); } });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const AI_LIMIT = 26000;   // 버튼 → 액자 사진까지 30초 안(3초 노출 + AI 26초 + 보내기)
 const AI = 'https://bttjtkhfyzapcsqocick.supabase.co/functions/v1/nadar-photo';
 if (!KEY) status('AI 키 없음 · 주소에 ?k= 필요(지금은 기기 안 처리)', true);
 function KEY_OK() { return !!KEY; }
@@ -72,7 +73,7 @@ const jpeg = (cv, w, q) => { const o = document.createElement('canvas'); o.width
 // 서버 변환 — 70초 안에 안 오면 포기
 async function aiPhoto(comp) {
   if (!KEY) throw new Error('no key');
-  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 110000);   // Seedream 5 는 45초 안팎 — 넉넉히
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), AI_LIMIT);   // 11/13: 체험 · 동선 때문에 30초 안 — 넘으면 기기 사진
   try {
     const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, img: jpeg(comp, 900, 0.9) }), signal: ctl.signal });
     const d = await r.json(); if (!r.ok || !d.img) throw new Error(d.error || r.status);
