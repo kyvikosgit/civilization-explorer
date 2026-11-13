@@ -8,13 +8,15 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <style>
-/* 옛 카메라 하우징 안의 폰. 관람객은 이 화면을 보지 않는다 — 설치 · 점검하는 사람용. 버튼(블루투스 키) 또는 화면을 누르면 촬영 */
+/* 옛 카메라 하우징 안의 폰(퀀텀4, 화면이 뒤 = 주름상자 쪽). 화면은 볼록렌즈로 뒤 틀 반투명 아크릴에 비친다(뷰파인더) — 그래서 평소엔 미리보기만, 글자 · 숫자 없음.
+   촬영: 받침 상자 3키 패드(USB, 엔터) 또는 화면 누름. 상태 글자는 켤 때 8초 · 문제가 있을 때만 보이고, 주소에 ?debug=1 이면 계속 보임 */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sans-serif;overflow:hidden}
 video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}
-.hud{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.7));font-size:14px;display:flex;justify-content:space-between;gap:12px}
+.hud{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.7));font-size:14px;display:flex;justify-content:space-between;gap:12px;transition:opacity .6s}
+.hud.off{opacity:0}
+video{transform:scale(var(--z,1));transform-origin:50% 50%}
 .hud b{color:#E9C77A}
-.count{position:fixed;inset:0;display:grid;place-items:center;font-size:30vmin;font-weight:800;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.6);pointer-events:none}
 .shot{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none}
 .shot.go{animation:sh .5s ease-out}
 @keyframes sh{0%{opacity:.95}100%{opacity:0}}
@@ -22,9 +24,8 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}
 </head>
 <body>
 <video id="v" playsinline muted autoplay></video>
-<div class="count" id="count"></div>
 <div class="shot" id="shot"></div>
-<div class="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 화면이나 버튼(Space · Enter)으로 촬영</span></div>
+<div class="hud" id="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 줌 <b id="zm"></b> · 버튼(엔터) · 화면 누름으로 촬영</span></div>
 <script type="module">
 // 촬영 → 액자에 3·2·1 → 찍고 → 액자에 '현상 중' → 서버(Supabase 함수 nadar-photo · Seedream 5.0 Pro, 약 45초)가 1870년대 나다르 사진관 사진으로 → 액자로
 //   키: 이 기기 주소 ?k=촬영기키 (한 번 열면 이 기기에 기억). 키가 없거나 변환이 안 되면 기기 안 처리(booth/js/nadar.js) 사진을 보낸다
@@ -32,17 +33,41 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}
 import { joinRoom, room } from './link.js';
 import * as N from '../../booth/js/nadar.js';
 const $ = (s) => document.getElementById(s), video = $('v');
+const KEY = (() => { const q = new URLSearchParams(location.search).get('k'); try { if (q) localStorage.setItem('m100-booth-k', q); return q || localStorage.getItem('m100-booth-k'); } catch { return q; } })();
 $('room').textContent = room();
 const link = joinRoom({});
-link.ready.then(() => { $('st').textContent = '대기 중 · 액자와 연결됨'; }).catch(() => { $('st').textContent = '액자와 연결되지 않음 · 인터넷 확인'; });
-try {
-  video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false });
-  await video.play();
-} catch (e) { $('st').textContent = '카메라를 켜지 못함 · 권한 확인'; }
+link.ready.then(() => { if (KEY_OK()) status('대기 중 · 액자와 연결됨'); else status('액자와 연결됨 · AI 키 없음(주소에 ?k= 필요 — 지금은 기기 안 처리)', true); }).catch(() => { status('액자와 연결되지 않음 · 인터넷 확인', true); });
+// 상태 글자: 뷰파인더에 비치므로 켤 때 8초 · 문제가 있을 때만(?debug=1 이면 계속)
+const DEBUG = new URLSearchParams(location.search).has('debug');
+let hudT = 0;
+function status(t, keep) { $('st').textContent = t; $('hud').classList.remove('off'); clearTimeout(hudT); if (!keep && !DEBUG) hudT = setTimeout(() => $('hud').classList.add('off'), 8000); }
+// 줌: 광각 렌즈(상덕 0.45X) 귀퉁이 검은 테를 잘라 내는 배율. 주소 ?zoom=2 (한 번 열면 이 기기에 기억). 카메라가 줌을 지원하면 카메라에서, 아니면 가운데를 잘라서
+const ZOOM = (() => { const q = parseFloat(new URLSearchParams(location.search).get('zoom')); try { if (q > 0) localStorage.setItem('m100-booth-zoom', String(q)); return q > 0 ? q : parseFloat(localStorage.getItem('m100-booth-zoom')) || 1; } catch { return q > 0 ? q : 1; } })();
+let cropZ = 1;   // 카메라 줌이 안 되면 사진에서 잘라 낼 배율
+async function startCam() {
+  try {
+    video.srcObject?.getTracks().forEach((t) => t.stop());
+    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false });
+    video.srcObject = st; await video.play();
+    const tr = st.getVideoTracks()[0]; cropZ = ZOOM;
+    tr.addEventListener('ended', () => { status('카메라가 꺼짐 · 다시 켜는 중', true); setTimeout(startCam, 1500); });
+    const cap = tr.getCapabilities?.() || {};
+    if (ZOOM > 1 && cap.zoom && cap.zoom.max >= ZOOM) { try { await tr.applyConstraints({ advanced: [{ zoom: ZOOM }] }); cropZ = 1; } catch {} }
+    document.documentElement.style.setProperty('--z', cropZ);
+    $('zm').textContent = ZOOM === 1 ? '없음' : `${ZOOM}배(${cropZ === 1 ? '카메라' : '잘라서'})`;
+    return true;
+  } catch (e) { status('카메라를 켜지 못함 · 권한 확인', true); setTimeout(startCam, 4000); return false; }
+}
+await startCam();
+// 화면 꺼짐 막기 — 화면이 다시 보이면 다시 잡는다(카메라도 다시)
+let lock = null;
+async function keepAwake() { try { lock = await navigator.wakeLock?.request('screen'); } catch {} }
+keepAwake();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { keepAwake(); if (!video.srcObject?.active) startCam(); } });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const AI = 'https://bttjtkhfyzapcsqocick.supabase.co/functions/v1/nadar-photo';
-const KEY = (() => { const q = new URLSearchParams(location.search).get('k'); try { if (q) localStorage.setItem('m100-booth-k', q); return q || localStorage.getItem('m100-booth-k'); } catch { return q; } })();
-if (!KEY) $('st').textContent += ' · AI 키 없음(기기 안 처리)';
+if (!KEY) status('AI 키 없음 · 주소에 ?k= 필요(지금은 기기 안 처리)', true);
+function KEY_OK() { return !!KEY; }
 const jpeg = (cv, w, q) => { const o = document.createElement('canvas'); o.width = w; o.height = Math.round(cv.height * w / cv.width); o.getContext('2d').drawImage(cv, 0, 0, o.width, o.height); return o.toDataURL('image/jpeg', q); };
 // 서버 변환 — 70초 안에 안 오면 포기
 async function aiPhoto(comp) {
@@ -58,24 +83,26 @@ async function aiPhoto(comp) {
 let busy = false;
 async function shoot() {
   if (busy || video.readyState < 2) return; busy = true;
-  for (const n of [3, 2, 1]) { $('count').textContent = n; link.send('count', { n }); await sleep(1000); }
-  $('count').textContent = ''; link.send('count', { n: 0 });
+  for (const n of [3, 2, 1]) { link.send('count', { n }); await sleep(1000); }   // 숫자는 폰에 띄우지 않음(뷰파인더) — 액자가 노출 연출
+  link.send('count', { n: 0 });
   $('shot').classList.remove('go'); void $('shot').offsetWidth; $('shot').classList.add('go');
-  const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight; c.getContext('2d').drawImage(video, 0, 0);
+  const vw = video.videoWidth, vh = video.videoHeight, sw = vw / cropZ, sh = vh / cropZ;   // 카메라 줌이 안 되면 가운데를 잘라 냄
+  const c = document.createElement('canvas'); c.width = Math.round(sw); c.height = Math.round(sh); c.getContext('2d').drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   let comp = c; try { comp = N.cropTo34(c); } catch {}
   link.send('dev', { id, preview: jpeg(comp, 300, 0.6) }).catch(() => {});   // 액자: 유리판 위로 방금 찍힌 모습이 떠오름(작은 미리보기)
-  $('st').textContent = '사진 현상 중';
+  if (DEBUG) status('사진 현상 중');
   let card, how = 'AI';
   try { card = await aiPhoto(comp); }
   catch (e) { console.warn('[ai]', e); how = '기기'; try { card = N.renderPhoto19(comp, null); } catch { try { card = N.quickPhoto(comp); } catch { card = comp; } } }
   // 액자 · 사진 받기로 가는 크기 — 실시간 메시지 한도 안(720px JPEG ≈ 150KB 안팎)
-  try { const r = await link.send('photo', { id, img: jpeg(card, 720, 0.82) }); $('st').textContent = r === 'ok' ? `액자로 보냄(${how}) · ${id}` : '액자로 보내지 못함'; }
-  catch { $('st').textContent = '액자로 보내지 못함'; }
+  try { const r = await link.send('photo', { id, img: jpeg(card, 720, 0.82) }); if (r === 'ok') { if (DEBUG || how !== 'AI') status(`액자로 보냄(${how}) · ${id}`); } else status('액자로 보내지 못함 · 인터넷 확인'); }
+  catch { status('액자로 보내지 못함 · 인터넷 확인'); }
   busy = false;
 }
 document.addEventListener('pointerdown', shoot);
-document.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); shoot(); } });
+document.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); shoot(); } });   // 3키 패드는 엔터 — 누르고 있어도 한 번만
+document.addEventListener('pointerdown', () => { document.documentElement.requestFullscreen?.().catch(() => {}); keepAwake(); }, { once: true });
 </script>
 </body>
 </html>
