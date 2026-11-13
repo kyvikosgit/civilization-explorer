@@ -66,22 +66,30 @@ keepAwake();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { keepAwake(); if (!video.srcObject?.active) startCam(); } });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let lastModel = '';
-const AI_LIMIT = 26000;   // 버튼 → 액자 사진까지 30초 안(3초 노출 + AI 26초 + 보내기)
+const AI_LIMIT = 28000;   // 서버가 25초 안에 AI 사진 저장 · 액자 전달까지 끝냄 — 넘으면 기기 사진   // 버튼 → 액자 사진까지 30초 안(3초 노출 + AI 26초 + 보내기)
 const AI = 'https://bttjtkhfyzapcsqocick.supabase.co/functions/v1/nadar-photo';
 if (!KEY) status('AI 키 없음 · 주소에 ?k= 필요(지금은 기기 안 처리)', true);
 function KEY_OK() { return !!KEY; }
 const jpeg = (cv, w, q) => { const o = document.createElement('canvas'); o.width = w; o.height = Math.round(cv.height * w / cv.width); o.getContext('2d').drawImage(cv, 0, 0, o.width, o.height); return o.toDataURL('image/jpeg', q); };
 // 서버 변환 — 70초 안에 안 오면 포기
-async function aiPhoto(comp) {
+// 서버로 한 번 올리면 끝 — 서버가 AI 사진을 저장소에 올리고 액자에 바로 띄운다(폰은 사진을 다시 받지 않음)
+async function aiPhoto(comp, id) {
   if (!KEY) throw new Error('no key');
-  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), AI_LIMIT);   // 11/13: 체험 · 동선 때문에 30초 안 — 넘으면 기기 사진
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), AI_LIMIT);
   try {
-    const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, img: jpeg(comp, Math.min(1200, comp.width), 0.9) }), signal: ctl.signal });
-    const d = await r.json(); if (!r.ok || !d.img) throw new Error(d.error || r.status);
-    lastModel = (d.model || '').split('/').pop() + (d.ms ? ` ${Math.round(d.ms / 1000)}초` : '');   // 어느 모델이 왔는지(5.5 / 예비 Flash)
-    const im = new Image(); im.src = d.img; await im.decode();
-    const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0); return c;
+    const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, room: room(), id, img: jpeg(comp, Math.min(1200, comp.width), 0.9) }), signal: ctl.signal });
+    const d = await r.json(); if (!r.ok || !d.url) throw new Error(d.error || r.status);
+    lastModel = (d.model || '') + (d.ms ? ` ${Math.round(d.ms / 1000)}초` : '');   // 어느 모델이 왔는지(5.5 / 예비 Flash)
+    return d;
   } finally { clearTimeout(t); }
+}
+// AI 가 안 되면 기기 사진을 서버에 올려 같은 길로 액자에(그것도 안 되면 예전처럼 폰이 직접)
+async function localPhoto(card, id) {
+  try {
+    const r = await fetch(AI, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, room: room(), id, local: true, img: jpeg(card, card.width, 0.9) }) });
+    const d = await r.json(); if (r.ok && d.url) return 'ok';
+  } catch {}
+  return link.sendBig('photo', { id, img: jpeg(card, Math.min(card.width, 1000), 0.9) }, 'img');
 }
 // 누르는 순간의 카메라 영상 화면(지연 없음). 원본 사진 촬영(takePhoto)은 초점 · 노출을 다시 잡느라 0.5–1초 늦어서 쓰지 않음
 function grab() { const c = document.createElement('canvas'); c.width = video.videoWidth; c.height = video.videoHeight; c.getContext('2d').drawImage(video, 0, 0); return c; }
@@ -101,20 +109,21 @@ async function shoot() {
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   const comp = c;
   if (DEBUG) console.log('[shot]', iw + '×' + ih, '→', c.width + '×' + c.height);
-  link.send('dev', { id, preview: jpeg(comp, 300, 0.6) }).catch(() => {});   // 액자: 유리판 위로 방금 찍힌 모습이 떠오름(작은 미리보기)
   // 진행 신호: 1초마다 액자로(단계 · 경과 초). 신호가 끊기면 액자가 '응답 없음'을 띄운다
   const t0 = performance.now(); let stage = KEY ? 'ai' : 'local';
   const sec = () => Math.round((performance.now() - t0) / 1000);
   const beat = () => { link.send('prog', { id, stage, t: sec() }).catch(() => {}); if (DEBUG) status(`사진 현상 중 · ${stage} · ${sec()}초`, true); };
   beat(); const hb = setInterval(beat, 1000);
-  let card, how = 'AI';
-  try { card = await aiPhoto(comp); }
-  catch (e) { console.warn('[ai]', e); how = '기기'; stage = 'local'; beat(); let w = comp; try { w = N.cropTo34(comp); } catch {} try { card = N.renderPhoto19(w, null); } catch { try { card = N.quickPhoto(w); } catch { card = w; } } }
-  stage = 'send'; beat();
+  let how = 'AI', res = 'ok';
+  try { await aiPhoto(comp, id); }
+  catch (e) {
+    console.warn('[ai]', e); how = '기기'; stage = 'local'; beat();
+    let w = comp, card; try { w = N.cropTo34(comp); } catch {}
+    try { card = N.renderPhoto19(w, null); } catch { try { card = N.quickPhoto(w); } catch { card = w; } }
+    try { res = KEY ? await localPhoto(card, id) : await link.sendBig('photo', { id, img: jpeg(card, Math.min(card.width, 1000), 0.9) }, 'img'); } catch { res = 'error'; }
+  }
   console.log('[time]', how, lastModel, sec() + '초', id);
-  // 액자 · 사진 받기로 — AI 결과 원본 크기 그대로(조각으로 나눠 보냄)
-  try { const r = await link.sendBig('photo', { id, img: jpeg(card, card.width, 0.92) }, 'img'); if (r === 'ok') { if (DEBUG || how !== 'AI') status(`액자로 보냄(${how}${how === 'AI' ? ' ' + lastModel : ''}) · ${sec()}초 · ${id}`); } else status('액자로 보내지 못함 · 인터넷 확인'); }
-  catch { status('액자로 보내지 못함 · 인터넷 확인'); }
+  if (res === 'ok') { if (DEBUG || how !== 'AI') status(`액자로 보냄(${how}${how === 'AI' ? ' ' + lastModel : ''}) · ${sec()}초 · ${id}`); } else status('액자로 보내지 못함 · 인터넷 확인');
   clearInterval(hb); try { localStorage.setItem('m100-booth-last', JSON.stringify({ id, how, sec: sec(), at: new Date().toISOString() })); } catch {}
   busy = false;
 }

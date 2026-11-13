@@ -42,10 +42,13 @@ import { joinRoom } from './link.js';
 import { showComplete } from './done.js';
 const $ = (s) => document.getElementById(s), id = new URLSearchParams(location.search).get('id');
 let got = null;
-const link = joinRoom({ img: (p) => {
+const room = new URLSearchParams(location.search).get('room') || 'c4';
+const STORE = `https://bttjtkhfyzapcsqocick.supabase.co/storage/v1/object/public/nadar-photos/${encodeURIComponent(room)}/${id}`;
+const link = joinRoom({ img: (p) => onImg(p) });
+function onImg(p) {
   if (p?.id !== id || got) return;
   if (p.missing) { $('msg').textContent = '사진을 찾지 못했습니다.\n벽 액자에 사진이 걸려 있는 동안 다시 스캔해 주세요.'; return; }
-  got = p.img; $('img').src = got; $('img').classList.add('on'); $('msg').hidden = true;
+  got = p.url || p.img; $('img').src = got; $('img').classList.add('on'); $('msg').hidden = true;
   $('dl').hidden = false;
   // 받은 사진이 곧 수집품 — 저절로 담는다
   try { localStorage.setItem('m100v3_nadar', JSON.stringify({ id, img: got, at: Date.now() })); } catch {}
@@ -53,8 +56,10 @@ const link = joinRoom({ img: (p) => {
   showComplete('nadar', { cap: '사진 완성', item: { name: '나다르 사진관의 내 초상', sub: '1870년대 파리 · 나다르 사진관', img: got, contain: true }, body: '사진은 이 폰에만 남습니다. 아래 단추로 폰 사진첩에 저장해 두세요.', more: () => { location.href = 'nadar.html?more'; } });
   // 공통 화면 위에 '폰에 사진 저장'을 올린다
   setTimeout(() => { const t = document.querySelector('.v3-done .d-txt'); const dl = $('dl'); if (t && dl) { dl.classList.add('in-done'); t.appendChild(dl); } }, 50);
-} });
+}
 const ask = () => { if (!got) link.send('get', { id }).catch(() => {}); };
+// 11/13: 사진은 서버 저장소에 있다 — 주소로 바로. 없으면(예전 방식 사진) 액자에 요청
+if (id) { const t = new Image(); t.onload = () => onImg({ id, url: STORE }); t.src = STORE; }
 if (!id) $('msg').textContent = 'QR을 다시 스캔해 주세요.';
 else { link.ready.then(ask); [2500, 5000, 8000].forEach((t) => setTimeout(ask, t)); setTimeout(() => { if (!got) $('msg').textContent = '액자와 연결되지 않았습니다.\n벽 액자에 사진이 걸려 있는 동안 다시 스캔해 주세요.'; }, 11000); }
 $('dl').onclick = async () => {

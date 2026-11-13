@@ -72,6 +72,12 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 .prog .bar u{position:absolute;top:0;bottom:0;width:30%;background:linear-gradient(90deg,transparent,rgba(255,240,205,.55),transparent);animation:pg 1.8s linear infinite}
 @keyframes pg{from{left:-30%}to{left:100%}}
 .prog.stall b{color:#E8A08C}.prog.stall .bar u{animation:none;opacity:0}
+.ink{position:fixed;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1.4s ease;pointer-events:none}
+.ink.on{opacity:1}
+.ink.nogl{background:radial-gradient(120% 90% at 50% 50%,#EFE6D2,#D9C9A8 70%,#B8A47F)}
+/* 잉크 대기 화면 위의 글자 · 막대는 양피지에 쓴 잉크색 */
+.prog{color:#3A2A1C}.prog small{opacity:.75}.prog .bar{background:rgba(70,48,30,.14)}.prog .bar i{background:#6B4A2B}
+.prog .bar u{background:linear-gradient(90deg,transparent,rgba(255,250,235,.7),transparent)}.prog.stall b{color:#A0452E}
 </style>
 </head>
 <body>
@@ -80,12 +86,14 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 <i class="dot" id="dot" title="연결 상태"></i>
 <div class="plate" id="plate"><div class="expo"></div><img class="neg" id="neg" alt=""><img class="pos" id="pos" alt=""><div class="rim"></div></div>
 <div class="smoke" id="smoke"><i style="left:10%;--dx:-6vmin;animation-delay:0s"></i><i style="left:30%;--dx:4vmin;animation-delay:.15s"></i><i style="left:48%;--dx:-3vmin;animation-delay:.05s"></i><i style="left:62%;--dx:7vmin;animation-delay:.25s"></i><i style="left:76%;--dx:2vmin;animation-delay:.1s"></i></div>
+<canvas class="ink" id="ink"></canvas>
 <div class="flash" id="flash"></div>
 <div class="prog" id="prog" role="status" aria-live="polite"><b id="pgT">사진을 현상하고 있습니다</b><small id="pgS"></small><div class="bar"><i id="pgI"></i><u></u></div></div>
 <div class="qr" id="qr"><canvas id="qrc"></canvas><span><b>앱으로 QR을 찍어<br>사진을 받으세요</b><small>폰 카메라로 찍어도 받을 수 있습니다</small></span></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script type="module">
 import { joinRoom } from './link.js';
+import { inkLoader } from './ink.js';
 setTimeout(() => document.getElementById('hint').classList.add('off'), 6000);   // 설치할 때만 보이면 된다
 const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
 const HOLD = 10000;                          // 11/03 미팅: 관람객 사진은 약 10초 걸어 두고 평소로 — 그동안 QR 로 받는다(받는 건 최근 12장까지 그 뒤에도 됨)
@@ -120,7 +128,7 @@ function develop(preview) {   // 은빛 음화 → 가운데부터 세피아 양
   }, 2200);
 }
 // 진행 표시(11/13): 폰이 1초마다 보내는 신호로 경과 시간 · 막대. 10초 넘게 신호가 없으면 '응답 없음'
-const EXPECT = 26;                           // 촬영기가 AI를 기다리는 한도(초) — 막대가 여기까지 90%, 그 뒤엔 기기 사진으로 마무리
+const EXPECT = 22;                           // 보통 걸리는 시간(초) — 막대 · 액자 선이 여기까지 90%
 let pgOn = false, pgId = null, lastBeat = 0, pgT = 0;
 function progShow(id) { pgOn = true; pgId = id; lastBeat = Date.now(); pgT = 0; $('prog').classList.add('on'); $('prog').classList.remove('stall'); progDraw(); }
 function progHide() { pgOn = false; $('prog').classList.remove('on', 'stall'); }
@@ -135,6 +143,8 @@ setInterval(() => {
   if (Date.now() - lastBeat > 10000) { $('prog').classList.add('stall'); $('pgT').textContent = '촬영기 응답이 없습니다'; $('pgS').textContent = `마지막 신호 ${Math.round((Date.now() - lastBeat) / 1000)}초 전 · 버튼을 다시 눌러 주세요`; }
 }, 1000);
 let front = 0, back = 0, devT = 0;
+const ink = inkLoader(document.getElementById('ink'));
+function waitStart() { if (!ink.on) ink.start(); clearTimeout(devT); devT = setTimeout(() => { ink.stop(); progHide(); }, 45000); }   // 촬영기가 아예 죽으면 45초 뒤 평소 화면
 function showSrc(src) {
   const next = imgs[1 - front];
   next.onload = () => { next.classList.add('on'); imgs[front].classList.remove('on'); front = 1 - front; };
@@ -143,18 +153,23 @@ function showSrc(src) {
 showSrc(IDLE);
 const link = joinRoom({
   photo: (p) => {
-    if (!p?.img) return;
-    clearTimeout(devT); progHide();
-    showSrc(p.img); setTimeout(() => { plate.classList.remove('on'); setTimeout(plateReset, 800); }, 400);   // 판이 걷히고 완성 사진
-    KEEP.set(p.id, p.img); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value);
-    drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
-    link.send('ack', { id: p.id });
-    clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
+    const src = p?.url || p?.img; if (!src) return;
+    const show = () => {
+      clearTimeout(devT); ink.finish();
+      setTimeout(() => {   // 타원 액자가 마저 닫히고 → 잉크 화면이 걷히며 사진이 떠오름
+        showSrc(src); ink.stop(); progHide(); plate.classList.remove('on'); plateReset();
+        KEEP.set(p.id, src); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value);
+        drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
+        clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
+      }, ink.on ? 700 : 0);
+      link.send('ack', { id: p.id });
+    };
+    const im = new Image(); im.onload = show; im.onerror = show; im.src = src;   // 다 받은 뒤에 바꿈(반쯤 그려진 사진이 안 보이게)
   },
-  dev: (p) => { develop(p?.preview); progShow(p?.id); clearTimeout(devT); devT = setTimeout(() => { plate.classList.remove('on'); plateReset(); progHide(); }, 150000); },   // 촬영기는 110초에 기기 사진으로 넘어감 — 넉넉히
-  prog: (p) => { if (!pgOn) progShow(p?.id); lastBeat = Date.now(); pgT = p?.t ?? pgT; $('prog').classList.remove('stall'); progDraw(p?.stage); },
-  count: (p) => { if (p?.n === 3) startExposure(); else if (p?.n === 0) magnesium(); },
-  get: (p) => { const img = KEEP.get(p?.id); if (img) link.sendBig('img', { id: p.id, img }, 'img'); else link.send('img', { id: p?.id, missing: true }); },
+  dev: () => {},   // 11/13: 찍은 사진을 미리 보여 주지 않음 — 잉크 대기 화면
+  prog: (p) => { if (!pgOn) { progShow(p?.id); waitStart(); } lastBeat = Date.now(); pgT = p?.t ?? pgT; $('prog').classList.remove('stall'); progDraw(p?.stage); ink.progress(pgT / EXPECT); },
+  count: (p) => { if (p?.n === 0) { magnesium(); setTimeout(waitStart, 450); } },   // 찰칵: 섬광 → 잉크 대기 화면
+  get: (p) => { const v = KEEP.get(p?.id); if (!v) link.send('img', { id: p?.id, missing: true }); else if (v.startsWith('http')) link.send('img', { id: p.id, url: v }); else link.sendBig('img', { id: p.id, img: v }, 'img'); },
 });
 link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
 document.body.addEventListener('click', async () => {
