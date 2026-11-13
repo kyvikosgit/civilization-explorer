@@ -50,7 +50,7 @@ td.nm{font-weight:600;white-space:nowrap}
 td.ad{font-size:13.5px;line-height:1.5;word-break:keep-all}
 td.ad small{color:var(--sub)}
 td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
-.att i{font-style:normal;display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:600;background:#E4EFE3;color:#3D6B3A;white-space:nowrap}
+.att i{font-style:normal;display:inline-block;margin:1px 2px 1px 0;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:600;background:#E4EFE3;color:#3D6B3A;white-space:nowrap}
 .att i.no{background:#F1E4DF;color:#8A4A33}
 @media (max-width:420px){td.at{font-size:12px}th,td{padding:11px 4px}}
 @media print{
@@ -126,17 +126,26 @@ td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
   try { var t0 = sessionStorage.getItem('ip_tab'); if (t0 && !/[?&]e=/.test(location.search)) tab = t0; } catch (e) {}
   function cur() { var src = mode === 'rsvp' ? rsvp : all; return tab === 'all' ? src : src.filter(function (r) { return (r.event || 'vip') === tab; }); }
   function renderRsvp() {
-    var rows = cur(), e = EV[tab], y = rows.filter(function (r) { return r.attend; }).length;
+    var rows = cur(), e = EV[tab], press = tab === 'press';
+    var y = rows.filter(function (r) { return r.attend; }).length, rl = rows.filter(function (r) { return r.want_release; }).length, fl = rows.filter(function (r) { return r.want_filming; }).length;
+    var cars = rows.filter(function (r) { return r.plate; }).length;
     document.querySelectorAll('.tabs button').forEach(function (b) { var on = b.dataset.ev === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
-    $('sub').textContent = (e ? e.name + ' · ' + e.date : 'VIP 오프닝 12월 4일 · 프레스데이 12월 3일') + ' · RSVP 회신';
-    $('ptitle').textContent = 'MONET 100 ' + (e ? e.name : 'VIP 오프닝 · 프레스데이') + ' · RSVP 회신 명단';
-    $('ntext').innerHTML = '회신 <b>' + rows.length + '</b>명 · 참석 ' + y + ' · 불참 ' + (rows.length - y);
-    $('thead').innerHTML = '<tr><th>번호</th><th>성함</th><th>참석</th><th>초대장 받을 주소</th><th>차량</th><th>회신 시각</th><th class="x"></th></tr>';
-    $('empty').textContent = '아직 회신이 없습니다.'; $('empty').hidden = rows.length > 0;
+    $('sub').textContent = (e ? e.name + ' · ' + e.date : 'VIP 오프닝 12월 4일 · 프레스데이 12월 3일') + (press ? ' · 신청' : ' · RSVP 회신');
+    $('ptitle').textContent = 'MONET 100 ' + (e ? e.name : 'VIP 오프닝 · 프레스데이') + (press ? ' · 신청 명단' : ' · RSVP 회신 명단');
+    $('ntext').innerHTML = press ? '신청 <b>' + rows.length + '</b>명 · 보도자료 ' + rl + ' · 방송 촬영 ' + fl + ' · 차량 ' + cars
+                                 : '회신 <b>' + rows.length + '</b>명 · 참석 ' + y + ' · 불참 ' + rows.filter(function (r) { return r.attend === false; }).length;
+    $('thead').innerHTML = press ? '<tr><th>번호</th><th>성함</th><th>신청</th><th>이메일</th><th>차량</th><th>신청 시각</th><th class="x"></th></tr>'
+                                 : '<tr><th>번호</th><th>성함</th><th>참석</th><th>초대장 받을 주소 · 이메일</th><th>차량</th><th>회신 시각</th><th class="x"></th></tr>';
+    $('empty').textContent = press ? '아직 신청이 없습니다.' : '아직 회신이 없습니다.'; $('empty').hidden = rows.length > 0;
+    function req(r) { return (r.want_release ? '<i>보도자료</i> ' : '') + (r.want_filming ? '<i>방송 촬영</i>' : ''); }
     $('rows').innerHTML = rows.map(function (r, i) {
-      return '<tr><td class="no">' + (i + 1) + '</td><td class="nm">' + esc(r.name) + '</td><td class="att"><i class="' + (r.attend ? '' : 'no') + '">' + (r.attend ? '참석' : '불참') + '</i></td><td class="ad">' + (r.zip ? '<small>(' + esc(r.zip) + ')</small> ' : '') + esc(r.addr) + (r.addr2 ? ' ' + esc(r.addr2) : '') + '</td><td class="pl2">' + (r.plate ? esc(pretty(r.plate)) : '') + '</td><td class="at">' + fmt.format(new Date(r.created_at)) + '</td><td class="x"><button class="del" type="button" data-rid="' + r.id + '" data-pl="' + esc(r.name) + '" data-ev="RSVP">삭제</button></td></tr>';
+      var isP = (r.event || 'vip') === 'press';
+      var c3 = press ? req(r) : (isP ? '<i>프레스</i>' : '<i class="' + (r.attend ? '' : 'no') + '">' + (r.attend ? '참석' : '불참') + '</i>');
+      var c4 = press ? esc(r.email || '') : (isP ? esc(r.email || '') + (r.want_release || r.want_filming ? ' <small>' + [r.want_release ? '보도자료' : '', r.want_filming ? '방송 촬영' : ''].filter(Boolean).join(' · ') + '</small>' : '')
+                                               : (r.zip ? '<small>(' + esc(r.zip) + ')</small> ' : '') + esc(r.addr || '') + (r.addr2 ? ' ' + esc(r.addr2) : ''));
+      return '<tr><td class="no">' + (i + 1) + '</td><td class="nm">' + esc(r.name) + '</td><td class="att">' + c3 + '</td><td class="ad">' + c4 + '</td><td class="pl2">' + (r.plate ? esc(pretty(r.plate)) : '') + '</td><td class="at">' + fmt.format(new Date(r.created_at)) + '</td><td class="x"><button class="del" type="button" data-rid="' + r.id + '" data-pl="' + esc(r.name) + '" data-ev="RSVP">삭제</button></td></tr>';
     }).join('');
-    $('pdate').textContent = (e ? e.date + '\n' : '') + '출력 ' + fmtFull.format(new Date()) + ' · 회신 ' + rows.length + '명(참석 ' + y + ')';
+    $('pdate').textContent = (e ? e.date + '\n' : '') + '출력 ' + fmtFull.format(new Date()) + (press ? ' · 신청 ' + rows.length + '명' : ' · 회신 ' + rows.length + '명(참석 ' + y + ')');
   }
   function render() {
     document.querySelectorAll('.mode button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === mode); });
@@ -176,8 +185,8 @@ td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
   // 우편 발송용 — 엑셀에서 바로 열리게 BOM 붙인 CSV
   $('csv').addEventListener('click', function () {
     var q = function (v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    var lines = [['번호', '성함', '참석', '우편번호', '주소', '상세 주소', '차량 번호', '행사', '회신 시각']].concat(cur().map(function (r, i) {
-      return [i + 1, r.name, r.attend ? '참석' : '불참', r.zip, r.addr, r.addr2, r.plate ? pretty(r.plate) : '', EV[r.event || 'vip'].name, fmtFull.format(new Date(r.created_at))];
+    var lines = [['번호', '성함', '참석', '우편번호', '주소', '상세 주소', '이메일', '보도자료', '방송 촬영', '차량 번호', '행사', '회신 시각']].concat(cur().map(function (r, i) {
+      return [i + 1, r.name, r.attend == null ? '' : (r.attend ? '참석' : '불참'), r.zip, r.addr, r.addr2, r.email, r.want_release ? 'O' : '', r.want_filming ? 'O' : '', r.plate ? pretty(r.plate) : '', EV[r.event || 'vip'].name, fmtFull.format(new Date(r.created_at))];
     })).map(function (a) { return a.map(q).join(','); }).join('\r\n');
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\ufeff' + lines], { type: 'text/csv;charset=utf-8' }));
     a.download = 'MONET100_RSVP_' + (tab === 'all' ? '전체' : EV[tab].name) + '.csv'; document.body.appendChild(a); a.click(); a.remove();

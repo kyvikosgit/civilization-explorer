@@ -94,7 +94,7 @@ img{display:block;max-width:none}
 .park .done b{display:block;font-weight:400;color:var(--gold);font-size:17px;letter-spacing:.06em;margin-top:4px}
 .park .done .btn{margin-top:18px;font-size:14px;padding:11px 18px;border-color:#D9D6CE;color:#6A6A64}
 .park.ok form{display:none}.park.ok .done{display:block}
-/* ── RSVP: 참석 여부 · 성함 · 초대장 받을 주소 · 차량 번호(참석 시) 한 번에 */
+/* ── 신청: 성함 · 보도자료 받기 / 방송 촬영 신청 · 받을 이메일 · 차량 번호 */
 .rsvp form{display:flex;margin-top:calc(46 * 100cqw / 720);max-width:340px;gap:16px;text-align:left}
 .rsvp .f{display:flex;flex-direction:column;gap:7px}
 .rsvp .f>label,.rsvp .lab{font-size:13px;color:var(--sub);letter-spacing:.04em;padding-left:4px}
@@ -117,12 +117,6 @@ img{display:block;max-width:none}
 .rsvp{background:#F6F2E8;border-top-color:#ECE6D8}
 .rsvp input,.rsvp .att button{background:#fff}
 .rsvp input[readonly]{background:#F0ECE2}
-#pcLayer{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
-#pcLayer.on{display:flex}
-#pcLayer .box{position:relative;width:100%;max-width:480px;height:min(560px,86vh);background:#fff;border-radius:14px 14px 0 0;overflow:hidden;padding-top:44px}
-#pcLayer .x{position:absolute;right:8px;top:6px;font:400 15px/1 var(--serif);background:none;border:0;padding:10px 12px;cursor:pointer;color:var(--ink)}
-#pcLayer .t{position:absolute;left:16px;top:14px;font:400 15px/1 var(--serif);color:var(--ink)}
-#pcWrap{width:100%;height:100%}
 /* ── 약도 (주차 안내와 같은 틀) */
 .loc .map{display:block;margin:0 auto;border:1px solid #E4E1D9}
 .loc .map img{display:block;width:100%;height:auto}
@@ -206,25 +200,23 @@ img{display:block;max-width:none}
     <p class="t" style="--y:840;--f:16.6">주최. SONG DONG HUN Inc. &nbsp;|&nbsp; 주관. KYVIKOS &nbsp;|&nbsp; 후원. 주한 프랑스대사관</p>
     <p class="t" style="--y:875;--f:14.75">문의. (주)송동훈 이현진 총괄팀장 | 010-2061-0961 | windtogether@grandtours.co.kr</p>
   </section>
-  <section class="park rsvp" id="rsvp" aria-label="참석 회신">
+  <section class="park rsvp" id="rsvp" aria-label="차량 등록 · 보도자료 · 방송 촬영 신청">
     <div class="in">
       <h2>RSVP</h2>
-      <p>참석 여부와 초대장을 받으실 주소를 알려 주시기 바랍니다.<br>참석이 어려우시더라도 초대장은 보내 드리고자 하오니<br>주소를 꼭 남겨 주시기 바랍니다.</p>
+      <p>차량 등록과 보도자료 · 방송 촬영 신청을 받습니다.<br>보도자료와 촬영 안내는 남겨 주신 이메일로 보내 드립니다.</p>
       <form id="rForm" novalidate>
-        <div class="f"><span class="lab" id="rAttL">참석 여부</span>
-          <div class="att" role="group" aria-labelledby="rAttL"><button type="button" data-a="1" aria-pressed="false">참석</button><button type="button" data-a="0" aria-pressed="false">불참</button></div></div>
         <div class="f"><label for="rName">성함</label><input id="rName" type="text" autocomplete="name" maxlength="40" placeholder="성함" required></div>
-        <div class="f"><label for="rAddr">초대장 받으실 주소</label>
-          <div class="zip"><input id="rZip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" placeholder="우편번호" readonly aria-label="우편번호"><button class="find" type="button" id="rFind">주소 검색</button></div>
-          <input id="rAddr" type="text" autocomplete="street-address" maxlength="200" placeholder="주소 검색을 눌러 주세요" required>
-          <input id="rAddr2" type="text" autocomplete="address-line2" maxlength="120" placeholder="상세 주소 (동 · 호수 등)" aria-label="상세 주소"></div>
-        <div class="f" id="rCar" hidden><label for="rPlate">차량 번호 <span style="color:#A5A39C">(자가용으로 오시는 경우)</span></label>
+        <div class="f"><span class="lab" id="rReqL">신청</span>
+          <div class="att" role="group" aria-labelledby="rReqL"><button type="button" data-k="release" aria-pressed="false">보도자료 받기</button><button type="button" data-k="filming" aria-pressed="false">방송 촬영 신청</button></div>
+          <small>필요한 것을 모두 눌러 주세요.</small></div>
+        <div class="f"><label for="rEmail">받으실 이메일</label><input id="rEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="name@example.com"></div>
+        <div class="f"><label for="rPlate">차량 번호 <span style="color:#A5A39C">(자가용으로 오시는 경우)</span></label>
           <input id="rPlate" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="16" placeholder="예: 12가 3456">
           <small>신세계백화점 본점 주차장은 사전 차량 등록이 필요합니다.</small></div>
         <p class="msg" role="status" aria-live="polite"></p>
-        <button class="send" type="submit">회신하기</button>
+        <button class="send" type="submit">신청하기</button>
       </form>
-      <div class="done" role="status" aria-live="polite">회신해 주셔서 감사합니다<span></span><button class="btn more" type="button">다시 작성하기</button></div>
+      <div class="done" role="status" aria-live="polite">신청해 주셔서 감사합니다<span></span><button class="btn more" type="button">다시 작성하기</button></div>
     </div>
   </section>
   <section class="park loc" aria-label="오시는 길">
@@ -242,7 +234,6 @@ img{display:block;max-width:none}
     </div>
   </section>
   <div class="end"><button id="again" type="button">봉투 다시 보기</button></div>
-  <div id="pcLayer" role="dialog" aria-modal="true" aria-label="주소 검색"><div class="box"><span class="t">주소 검색</span><button class="x" type="button" id="pcClose">닫기</button><div id="pcWrap"></div></div></div>
 </main>
 
 <script>
@@ -304,11 +295,11 @@ img{display:block;max-width:none}
   stage.addEventListener('click', open);
   stage.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
   document.getElementById('again').addEventListener('click', reset);
-  // RSVP — 참석 여부 · 성함 · 주소(불참이어도 받음) · 차량 번호(참석 시, 사전 차량 등록 명단에도 들어감). 관리: /invitation/admin
+  // 프레스 신청 — 성함 · 보도자료 받기 / 방송 촬영 신청 · 받을 이메일 · 차량 번호(사전 차량 등록 명단에도 들어감). 관리: /invitation/admin
   var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
   var $ = function (id) { return document.getElementById(id); };
   var rs = $('rsvp'), form = $('rForm'), inp = $('rPlate'), msg = rs.querySelector('.msg'), send = rs.querySelector('.send'), doneS = rs.querySelector('.done span');
-  var attend = null;
+  var want = { release: false, filming: false };
   // 번호판 정리: [지역 ]숫자[한글] 뒤4자리 — 12가 3456 · 서울 12가 3456 · 경기 42 1234(옛 지역 번호판). 덜 쓴 번호는 손대지 않음(null)
   function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^([가-힣]{2})?(\d{1,3})([가-힣])?(\d{4})$/); return m && (m[1] || m[3]) ? (m[1] ? m[1] + ' ' : '') + m[2] + (m[3] || '') + ' ' + m[4] : null; }
   var composing = false;
@@ -326,52 +317,30 @@ img{display:block;max-width:none}
   inp.addEventListener('blur', fmtInput);
   rs.querySelector('.att').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
-    attend = b.dataset.a === '1';
-    rs.querySelectorAll('.att button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-    $('rCar').hidden = !attend; msg.textContent = '';
-  });
-  // 주소 검색: 카카오(다음) 우편번호 서비스 — 누를 때만 불러옴. 못 불러오면 주소 칸에 직접 입력
-  var pcLoaded = null, layer = $('pcLayer');
-  function loadPc() {
-    if (pcLoaded) return pcLoaded;
-    pcLoaded = new Promise(function (ok, no) { var sc = document.createElement('script'); sc.src = 'https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
-    return pcLoaded;
-  }
-  function closePc() { layer.classList.remove('on'); $('pcWrap').innerHTML = ''; }
-  $('pcClose').addEventListener('click', closePc);
-  layer.addEventListener('click', function (e) { if (e.target === layer) closePc(); });
-  $('rFind').addEventListener('click', function () {
-    loadPc().then(function () {
-      layer.classList.add('on');
-      new daum.Postcode({ width: '100%', height: '100%', oncomplete: function (d) {
-        $('rZip').value = d.zonecode || '';
-        var a = d.roadAddress || d.jibunAddress || d.address || '';
-        if (d.buildingName && d.apartment === 'Y') a += ' (' + d.buildingName + ')';
-        $('rAddr').value = a; closePc(); setTimeout(function () { $('rAddr2').focus(); }, 30);
-      } }).embed($('pcWrap'));
-    }).catch(function () { pcLoaded = null; msg.textContent = '주소 검색을 불러오지 못했습니다. 주소 칸에 직접 입력해 주세요.'; $('rAddr').focus(); });
+    want[b.dataset.k] = !want[b.dataset.k]; b.setAttribute('aria-pressed', want[b.dataset.k] ? 'true' : 'false'); msg.textContent = '';
   });
   rs.querySelector('.btn.more').addEventListener('click', function () { rs.classList.remove('ok'); msg.textContent = ''; $('rName').focus(); });
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); msg.textContent = '';
-    var name = $('rName').value.trim(), addr = $('rAddr').value.trim(), addr2 = $('rAddr2').value.trim(), plate = '';
-    if (attend === null) { msg.textContent = '참석 여부를 선택해 주세요.'; return; }
+    var name = $('rName').value.trim(), email = $('rEmail').value.trim(), plate = '';
     if (!name) { msg.textContent = '성함을 입력해 주세요.'; $('rName').focus(); return; }
-    if (addr.length < 4) { msg.textContent = '초대장 받으실 주소를 입력해 주세요.'; $('rFind').focus(); return; }
-    if (attend && inp.value.trim()) {
+    if (inp.value.trim()) {
       plate = pretty(inp.value);
       if (plate === null) { msg.textContent = '차량 번호를 다시 확인해 주세요. (예: 12가 3456)'; inp.focus(); return; }
       inp.value = plate;
     }
+    if (!want.release && !want.filming && !plate) { msg.textContent = '보도자료 · 방송 촬영 신청을 고르시거나 차량 번호를 남겨 주세요.'; return; }
+    if ((want.release || want.filming) && !email) { msg.textContent = '받으실 이메일을 입력해 주세요.'; $('rEmail').focus(); return; }
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = '이메일 주소를 다시 확인해 주세요.'; $('rEmail').focus(); return; }
     send.disabled = true;
     try {
-      var r = await fetch(SB + '/rest/v1/rpc/invite_rsvp_add', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_event: 'press', p_attend: attend, p_name: name, p_zip: $('rZip').value, p_addr: addr, p_addr2: addr2, p_plate: plate }) });
+      var r = await fetch(SB + '/rest/v1/rpc/invite_press_add', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_name: name, p_email: email, p_release: want.release, p_filming: want.filming, p_plate: plate }) });
       if (!r.ok) throw 0;
       var j = await r.json();
       doneS.innerHTML = '';
-      [ (attend ? '참석' : '불참') + ' · ' + name, ($('rZip').value ? '(' + $('rZip').value + ') ' : '') + addr + (addr2 ? ' ' + addr2 : ''),
-        plate ? '차량 ' + plate + (j && j.plate_dup ? ' (이미 등록된 차량입니다)' : '') : '' ].forEach(function (t) { if (t) { var d = document.createElement('div'); d.textContent = t; doneS.appendChild(d); } });
+      var req = [want.release ? '보도자료 받기' : '', want.filming ? '방송 촬영 신청' : ''].filter(Boolean).join(' · ');
+      [name, req, email, plate ? '차량 ' + plate + (j && j.plate_dup ? ' (이미 등록된 차량입니다)' : '') : ''].forEach(function (t) { if (t) { var d = document.createElement('div'); d.textContent = t; doneS.appendChild(d); } });
       rs.classList.add('ok');
     } catch (err) { msg.textContent = '보내지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
     send.disabled = false;
