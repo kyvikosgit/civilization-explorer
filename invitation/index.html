@@ -92,7 +92,7 @@ img{display:block;max-width:none}
 .park .done b{display:block;font-weight:400;color:var(--gold);font-size:17px;letter-spacing:.06em;margin-top:4px}
 .park .done .btn{margin-top:18px;font-size:14px;padding:11px 18px;border-color:#D9D6CE;color:#6A6A64}
 .park.ok form{display:none}.park.ok .done{display:block}
-/* ── RSVP: 참석 여부 · 성함 · 초대장 받을 주소 · 차량 번호(참석 시) 한 번에 */
+/* ── 성함 · 초대장 받을 주소 · 차량 번호 (참석하는 분에게만 보냄 — 참석 여부 칸 없음) */
 .rsvp form{display:flex;margin-top:calc(46 * 100cqw / 720);max-width:340px;gap:16px;text-align:left}
 .rsvp .f{display:flex;flex-direction:column;gap:7px}
 .rsvp .f>label,.rsvp .lab{font-size:13px;color:var(--sub);letter-spacing:.04em;padding-left:4px}
@@ -191,25 +191,22 @@ img{display:block;max-width:none}
     <p class="t" style="--y:821.5;--f:16.6">주최. SONG DONG HUN Inc. &nbsp;|&nbsp; 주관. KYVIKOS &nbsp;|&nbsp; 후원. 주한 프랑스대사관</p>
     <p class="t" style="--y:879;--f:14.9">문의. (주)송동훈 이현진 총괄팀장 | 010-2061-0961 | windtogether@grandtours.co.kr</p>
   </section>
-  <section class="park rsvp" id="rsvp" aria-label="참석 회신">
+  <section class="park rsvp" id="rsvp" aria-label="초대장 받으실 주소 · 차량 등록">
     <div class="in">
-      <h2>RSVP</h2>
-      <p>참석 여부와 초대장을 받으실 주소를 알려 주시기 바랍니다.<br>참석이 어려우시더라도 초대장은 보내 드리고자 하오니<br>주소를 꼭 남겨 주시기 바랍니다.</p>
+      <p>초대장을 받으실 주소와 차량 번호를 남겨 주시기 바랍니다.</p>
       <form id="rForm" novalidate>
-        <div class="f"><span class="lab" id="rAttL">참석 여부</span>
-          <div class="att" role="group" aria-labelledby="rAttL"><button type="button" data-a="1" aria-pressed="false">참석</button><button type="button" data-a="0" aria-pressed="false">불참</button></div></div>
         <div class="f"><label for="rName">성함</label><input id="rName" type="text" autocomplete="name" maxlength="40" placeholder="성함" required></div>
         <div class="f"><label for="rAddr">초대장 받으실 주소</label>
           <div class="zip"><input id="rZip" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="6" placeholder="우편번호" readonly aria-label="우편번호"><button class="find" type="button" id="rFind">주소 검색</button></div>
           <input id="rAddr" type="text" autocomplete="street-address" maxlength="200" placeholder="주소 검색을 눌러 주세요" required>
           <input id="rAddr2" type="text" autocomplete="address-line2" maxlength="120" placeholder="상세 주소 (동 · 호수 등)" aria-label="상세 주소"></div>
-        <div class="f" id="rCar" hidden><label for="rPlate">차량 번호 <span style="color:#A5A39C">(자가용으로 오시는 경우)</span></label>
+        <div class="f" id="rCar"><label for="rPlate">차량 번호 <span style="color:#A5A39C">(자가용으로 오시는 경우)</span></label>
           <input id="rPlate" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="16" placeholder="예: 12가 3456">
           <small>신세계백화점 본점 주차장은 사전 차량 등록이 필요합니다.</small></div>
         <p class="msg" role="status" aria-live="polite"></p>
-        <button class="send" type="submit">회신하기</button>
+        <button class="send" type="submit">보내기</button>
       </form>
-      <div class="done" role="status" aria-live="polite">회신해 주셔서 감사합니다<span></span><button class="btn more" type="button">다시 작성하기</button></div>
+      <div class="done" role="status" aria-live="polite">보내 주셔서 감사합니다<span></span><button class="btn more" type="button">다시 작성하기</button></div>
     </div>
   </section>
   <section class="park loc" aria-label="오시는 길">
@@ -223,7 +220,7 @@ img{display:block;max-width:none}
   <section class="park" id="park" aria-label="주차 안내">
     <div class="in">
       <h2>PARKING</h2>
-      <p>주차는 신세계백화점 본점 주차장을 이용하실 수 있습니다.<br>사전 차량 등록이 필요하오니, 위 RSVP에서 차량 번호를 함께 남겨 주시기 바랍니다.</p>
+      <p>주차는 신세계백화점 본점 주차장을 이용하실 수 있습니다.<br>사전 차량 등록이 필요하오니, 위에서 차량 번호를 함께 남겨 주시기 바랍니다.</p>
     </div>
   </section>
   <div class="end"><button id="again" type="button">봉투 다시 보기</button></div>
@@ -289,11 +286,10 @@ img{display:block;max-width:none}
   stage.addEventListener('click', open);
   stage.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
   document.getElementById('again').addEventListener('click', reset);
-  // RSVP — 참석 여부 · 성함 · 주소(불참이어도 받음) · 차량 번호(참석 시, 사전 차량 등록 명단에도 들어감). 관리: /invitation/admin
+  // 성함 · 초대장 받을 주소 · 차량 번호(사전 차량 등록 명단에도 들어감). 참석하는 분에게만 보내는 초대장이라 참석으로 저장. 관리: /invitation/admin
   var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
   var $ = function (id) { return document.getElementById(id); };
   var rs = $('rsvp'), form = $('rForm'), inp = $('rPlate'), msg = rs.querySelector('.msg'), send = rs.querySelector('.send'), doneS = rs.querySelector('.done span');
-  var attend = null;
   // 번호판 정리: [지역 ]숫자[한글] 뒤4자리 — 12가 3456 · 서울 12가 3456 · 경기 42 1234(옛 지역 번호판). 덜 쓴 번호는 손대지 않음(null)
   function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^([가-힣]{2})?(\d{1,3})([가-힣])?(\d{4})$/); return m && (m[1] || m[3]) ? (m[1] ? m[1] + ' ' : '') + m[2] + (m[3] || '') + ' ' + m[4] : null; }
   var composing = false;
@@ -309,12 +305,6 @@ img{display:block;max-width:none}
   inp.addEventListener('compositionend', function () { composing = false; fmtInput(); });
   inp.addEventListener('input', function (e) { if (!composing && !e.isComposing) fmtInput(); });
   inp.addEventListener('blur', fmtInput);
-  rs.querySelector('.att').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    attend = b.dataset.a === '1';
-    rs.querySelectorAll('.att button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
-    $('rCar').hidden = !attend; msg.textContent = '';
-  });
   // 주소 검색: 카카오(다음) 우편번호 서비스 — 누를 때만 불러옴. 못 불러오면 주소 칸에 직접 입력
   var pcLoaded = null, layer = $('pcLayer');
   function loadPc() {
@@ -340,10 +330,9 @@ img{display:block;max-width:none}
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); msg.textContent = '';
     var name = $('rName').value.trim(), addr = $('rAddr').value.trim(), addr2 = $('rAddr2').value.trim(), plate = '';
-    if (attend === null) { msg.textContent = '참석 여부를 선택해 주세요.'; return; }
     if (!name) { msg.textContent = '성함을 입력해 주세요.'; $('rName').focus(); return; }
     if (addr.length < 4) { msg.textContent = '초대장 받으실 주소를 입력해 주세요.'; $('rFind').focus(); return; }
-    if (attend && inp.value.trim()) {
+    if (inp.value.trim()) {
       plate = pretty(inp.value);
       if (plate === null) { msg.textContent = '차량 번호를 다시 확인해 주세요. (예: 12가 3456)'; inp.focus(); return; }
       inp.value = plate;
@@ -351,11 +340,11 @@ img{display:block;max-width:none}
     send.disabled = true;
     try {
       var r = await fetch(SB + '/rest/v1/rpc/invite_rsvp_add', { method: 'POST', headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ p_event: 'vip', p_attend: attend, p_name: name, p_zip: $('rZip').value, p_addr: addr, p_addr2: addr2, p_plate: plate }) });
+        body: JSON.stringify({ p_event: 'vip', p_attend: true, p_name: name, p_zip: $('rZip').value, p_addr: addr, p_addr2: addr2, p_plate: plate }) });
       if (!r.ok) throw 0;
       var j = await r.json();
       doneS.innerHTML = '';
-      [ (attend ? '참석' : '불참') + ' · ' + name, ($('rZip').value ? '(' + $('rZip').value + ') ' : '') + addr + (addr2 ? ' ' + addr2 : ''),
+      [ name, ($('rZip').value ? '(' + $('rZip').value + ') ' : '') + addr + (addr2 ? ' ' + addr2 : ''),
         plate ? '차량 ' + plate + (j && j.plate_dup ? ' (이미 등록된 차량입니다)' : '') : '' ].forEach(function (t) { if (t) { var d = document.createElement('div'); d.textContent = t; doneS.appendChild(d); } });
       rs.classList.add('ok');
     } catch (err) { msg.textContent = '보내지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
