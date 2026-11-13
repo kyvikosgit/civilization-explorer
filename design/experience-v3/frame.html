@@ -78,6 +78,10 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 /* 잉크 대기 화면 위의 글자 · 막대는 양피지에 쓴 잉크색 */
 .prog{color:#3A2A1C}.prog small{opacity:.75}.prog .bar{background:rgba(70,48,30,.14)}.prog .bar i{background:#6B4A2B}
 .prog .bar u{background:linear-gradient(90deg,transparent,rgba(255,250,235,.7),transparent)}.prog.stall b{color:#A0452E}
+.icap{position:fixed;left:6vw;right:6vw;top:81.5vh;text-align:center;font-family:Freesentation,sans-serif;color:#3A2A1C;opacity:0;transition:opacity 1.2s ease;pointer-events:none}
+.icap.on{opacity:1}
+.icap b{display:block;font-size:max(15px,2.4vmin);font-weight:600;letter-spacing:.01em}
+.icap small{display:block;margin-top:.7vmin;font-size:max(12px,1.8vmin);opacity:.72}
 </style>
 </head>
 <body>
@@ -87,13 +91,14 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 <div class="plate" id="plate"><div class="expo"></div><img class="neg" id="neg" alt=""><img class="pos" id="pos" alt=""><div class="rim"></div></div>
 <div class="smoke" id="smoke"><i style="left:10%;--dx:-6vmin;animation-delay:0s"></i><i style="left:30%;--dx:4vmin;animation-delay:.15s"></i><i style="left:48%;--dx:-3vmin;animation-delay:.05s"></i><i style="left:62%;--dx:7vmin;animation-delay:.25s"></i><i style="left:76%;--dx:2vmin;animation-delay:.1s"></i></div>
 <canvas class="ink" id="ink"></canvas>
+<div class="icap" id="icap"><b id="icapT"></b><small id="icapS"></small></div>
 <div class="flash" id="flash"></div>
 <div class="prog" id="prog" role="status" aria-live="polite"><b id="pgT">사진을 현상하고 있습니다</b><small id="pgS"></small><div class="bar"><i id="pgI"></i><u></u></div></div>
 <div class="qr" id="qr"><canvas id="qrc"></canvas><span><b>앱으로 QR을 찍어<br>사진을 받으세요</b><small>폰 카메라로 찍어도 받을 수 있습니다</small></span></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script type="module">
 import { joinRoom } from './link.js';
-import { inkLoader } from './ink.js';
+import { inkLoader, SCENE_SEC } from './ink.js';
 setTimeout(() => document.getElementById('hint').classList.add('off'), 6000);   // 설치할 때만 보이면 된다
 const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
 const HOLD = 10000;                          // 11/03 미팅: 관람객 사진은 약 10초 걸어 두고 평소로 — 그동안 QR 로 받는다(받는 건 최근 12장까지 그 뒤에도 됨)
@@ -144,7 +149,16 @@ setInterval(() => {
 }, 1000);
 let front = 0, back = 0, devT = 0;
 const ink = inkLoader(document.getElementById('ink'));
-function waitStart() { if (!ink.on) ink.start(); clearTimeout(devT); devT = setTimeout(() => { ink.stop(); progHide(); }, 45000); }   // 촬영기가 아예 죽으면 45초 뒤 평소 화면
+// 장면 설명(자료 출처 그대로) — 잉크로 그려진 뒤에 보이고, 장면이 바뀌기 전에 사라짐
+const CAPS = [['나다르 사진관 · 파리 카퓌신 대로 35번지', '1874년 봄, 이 건물에서 첫 인상파 전시가 열렸습니다'],
+              ['오노레 도미에, 〈사진을 예술의 높이로 끌어올리는 나다르〉', '1862년 석판화']];
+let capK = -1;
+ink.onTick = (t) => {
+  const c = t % (2 * SCENE_SEC), k = Math.floor(c / SCENE_SEC), lt = c - k * SCENE_SEC, show = lt > 3 && lt < 9.3;
+  if (k !== capK) { capK = k; $('icapT').textContent = CAPS[k][0]; $('icapS').textContent = CAPS[k][1]; }
+  $('icap').classList.toggle('on', show && ink.on);
+};
+function waitStart() { if (!ink.on) ink.start(); clearTimeout(devT); devT = setTimeout(() => { ink.stop(); progHide(); $('icap').classList.remove('on'); }, 45000); }   // 촬영기가 아예 죽으면 45초 뒤 평소 화면
 function showSrc(src) {
   const next = imgs[1 - front];
   next.onload = () => { next.classList.add('on'); imgs[front].classList.remove('on'); front = 1 - front; };
@@ -157,11 +171,11 @@ const link = joinRoom({
     const show = () => {
       clearTimeout(devT); ink.finish();
       setTimeout(() => {   // 타원 액자가 마저 닫히고 → 잉크 화면이 걷히며 사진이 떠오름
-        showSrc(src); ink.stop(); progHide(); plate.classList.remove('on'); plateReset();
+        showSrc(src); ink.stop(); progHide(); $('icap').classList.remove('on'); plate.classList.remove('on'); plateReset();
         KEEP.set(p.id, src); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value);
         drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
         clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
-      }, ink.on ? 700 : 0);
+      }, 0);
       link.send('ack', { id: p.id });
     };
     const im = new Image(); im.onload = show; im.onerror = show; im.src = src;   // 다 받은 뒤에 바꿈(반쯤 그려진 사진이 안 보이게)
