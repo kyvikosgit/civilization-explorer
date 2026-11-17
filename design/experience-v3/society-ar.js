@@ -107,12 +107,16 @@ let readyOnce = false;
 window.addEventListener('c1:ready', () => {
   if (readyOnce) return; readyOnce = true;
   const t0 = Date.now();
-  const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => guide.show(START), 1400); else setTimeout(go, 200); };
+  if (ended) return;
+  // 11/17: '칼럼으로 가기' 단추 단계를 뺌 — 거리 첫 문장을 읽을 틈을 둔 뒤 저절로 칼럼 앞으로 걸어간다
+  const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => { if (stage === 'start') toColumn(); }, 1400); else setTimeout(go, 200); };
   go();
 });
 window.addEventListener('c1:step', (e) => {
   if (ended) return;
   if (e.detail === 2) { stage = 'flyer'; setTimeout(() => guide.show(FLYER), 500); }   // 칼럼 앞에 도착
   else if (e.detail === 3) guide.hide();                                              // 포스터를 떼어 읽는 동안
-  else if (e.detail === 1 && stage !== 'start') { stage = 'start'; document.body.classList.remove('walked'); guide.show(START); }
+  else if (e.detail === 1 && stage !== 'start') { stage = 'start'; document.body.classList.remove('walked'); setTimeout(() => { if (stage === 'start') toColumn(); }, 600); }   // 거리로 돌아와도 단추 없이 다시 칼럼으로
 });
+// 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
+if (store.saved(flyer.id)) { ended = true; document.body.classList.add('ended'); setTimeout(showEnd, 0); }

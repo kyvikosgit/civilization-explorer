@@ -4,7 +4,7 @@
 // C0 아카데미 살롱 — 올해의 메달 한 점
 //   한 장면(three.js) 안에서 모두 일어난다 — 화면 전환 없음.
 //   입장: 어두운 대기실의 두 짝 문이 열리고 → 열린 문간을 지나(벽을 뚫지 않는다) 천창 아래 전시실을 눈높이로 걸어 들어가 → 후보작 벽 앞에 정면으로 선다.
-//   벽: 적갈색 살롱 벽에 후보작 다섯 점(1 / 2 · 3 / 4 · 5, 위에서 아래로 번호 순), 둘레는 빽빽한 살롱 걸기. 역할 문장은 위에 얇게 겹친다.
+//   벽: 적갈색 살롱 벽에 후보작 다섯 점(11/17 전개도 최종대로 한 줄, 왼쪽부터 01–05), 둘레는 빽빽한 살롱 걸기. 역할 문장은 위에 얇게 겹친다.
 //   누르면: 그 그림이 벽에서 떨어져 앞으로 나오고 카메라가 그 앞으로 미끄러진다(같은 장면). 나머지 방은 어두워진다. 끌면 돌아가고, 두 손가락으로 확대.
 //   뒤로(또는 그림 바깥 누르기) → 그림이 제자리로 돌아가 걸리고 카메라가 벽 앞으로 물러난다. 다른 그림을 누른다.
 //   "이 그림에 메달" → 확인 → 메달이 날아와 아래 테두리에 앉고 번호판이 이름판으로 뒤집힌다 → 이름판을 읽을 틈
@@ -21,18 +21,25 @@ import { ZONES } from './data.js';
 import { store } from './store.js';
 import { collect, mountEnd, showComplete } from './done.js';
 
-// 11/03: 벽 전체를 비춘 뒤(PICK) 벽에서 고르는 정답형. 정답 = data.js 의 correct(메르송 〈환상〉 = n 3)
+// 11/03: 벽 전체를 비춘 뒤(PICK) 벽에서 고르는 정답형. 정답 = data.js 의 correct(메르송 〈환영: 14세기의 전설〉 = n 3)
 let PICK = false;
 const WIN_N = ZONES.find((z) => z.id === 'salon').tasks[0].targets.findIndex((t) => t.correct) + 1;
+// 11/17: 살롱 전개도 최종(261115) B 정면 5점 그대로 — 왼쪽부터 01–05, 한 줄. 그림 = 전개도의 A1 재단본(841 × 594)
 const WORKS = [
-  { n: 1, src: '../works/c0-cambyses.jpg',   hd: 'img/c0-cambyses.jpg',   w: 960,  h: 695,  title: '펠루시움의 캄비세스 왕', artist: '폴 마리 르누아르',   year: '1872', coll: '',               shown: '', desc: '기원전 525년, 페르시아 왕 캄비세스가 이집트의 펠루시움을 치는 장면. 이집트인이 신성하게 여긴 고양이를 앞세웠다는 전설을 그렸습니다.' },
-  { n: 2, src: '../works/c0-cartridges.jpg', hd: 'img/c0-cartridges.jpg', w: 1280, h: 832,  title: '마지막 탄약통',          artist: '알퐁스 드 뇌빌',     year: '1873', coll: '바제유 마지막 탄약통의 집', shown: '1873년 살롱 출품', desc: '1870년 프로이센과의 전쟁, 바제유의 한 여관에서 프랑스 병사들이 마지막 탄약까지 버티는 장면입니다.' },
-  { n: 3, src: '../works/c0-vision.jpg',     hd: 'img/c0-vision.jpg',     w: 1400, h: 1169, title: '환상, 14세기 전설',      artist: '뤽 올리비에 메르송', year: '1872', coll: '릴 미술관',        shown: '', desc: '십자가 앞에 쓰러진 수도사 곁으로 천사들이 음악을 연주하고, 십자가의 그리스도가 한 손을 내밉니다. 중세 전설을 옮긴 그림입니다.' },
-  { n: 4, src: '../works/c0-spring.jpg',     hd: 'img/c0-spring.jpg',     w: 827,  h: 1400, title: '봄날',                  artist: '피에르 오귀스트 코트', year: '1873', coll: '메트로폴리탄',     shown: '1873년 살롱 출품', desc: '숲속 그네 위의 젊은 두 연인. 매끈한 살결과 꼼꼼한 마무리로 그린 그림입니다.' },
-  { n: 5, src: '../../experience-v3/img/m_cleo.jpg',  hd: '../../experience-v3/img/m_cleo.jpg',  w: 900,  h: 516,  title: '사형수에게 독약을 시험하는 클레오파트라', artist: '알렉상드르 카바넬', year: '', coll: '', shown: '', desc: '' },
+  { n: 1, src: '../../experience-v3/img/salon_01.jpg', hd: '../../experience-v3/img/salon_01.jpg', w: 989,  h: 1400, title: '모성',                  artist: '레옹 페로',          year: '1873', coll: '',          shown: '1873년 살롱 출품', desc: '어머니 무릎 위에 올라선 아기와, 아기를 받쳐 안은 젊은 어머니. 비단 옷자락과 아기의 살결이 부드럽고 매끄럽게 그려졌습니다.' },
+  { n: 2, src: '../../experience-v3/img/salon_02.jpg', hd: '../../experience-v3/img/salon_02.jpg', w: 989,  h: 1400, title: '세르비아의 젊은 집시',     artist: '샤를 랑델',          year: '1872', coll: '',          shown: '1873년 살롱 출품', desc: '붉은 모자에 갈색 망토를 두른 젊은 집시가 조용히 이쪽을 바라봅니다.' },
+  { n: 3, src: '../../experience-v3/img/salon_03.jpg', hd: '../../experience-v3/img/salon_03.jpg', w: 1400, h: 989,  title: '환영: 14세기의 전설',     artist: '뤽 올리비에 메르송', year: '1872', coll: '릴 미술관',  shown: '1873년 살롱 출품', desc: '십자가 앞에 쓰러진 수도사 곁으로 천사들이 음악을 연주하고, 십자가의 그리스도가 한 손을 내밉니다. 중세 전설을 옮긴 그림입니다.' },
+  { n: 4, src: '../../experience-v3/img/salon_04.jpg', hd: '../../experience-v3/img/salon_04.jpg', w: 989,  h: 1400, title: '봄',                    artist: '피에르 오귀스트 코트', year: '1873', coll: '메트로폴리탄', shown: '1873년 살롱 출품', desc: '숲속 그네 위의 젊은 두 연인. 매끈한 살결과 꼼꼼한 마무리로 그린 그림입니다.' },
+  { n: 5, src: '../../experience-v3/img/salon_05.jpg', hd: '../../experience-v3/img/salon_05.jpg', w: 989,  h: 1400, title: '독서하는 돈키호테',        artist: '셀레스탱 낭퇴유',     year: '1873', coll: '',          shown: '1873년 살롱 출품', desc: '기사 이야기를 읽다 말고 칼을 치켜든 늙은 돈키호테. 책상 위에는 펼친 책, 발치에는 투구와 갑옷이 흩어져 있습니다.' },
 ];
-// 벽에 거는 자리 — 위에서 아래로 번호 순: 1 / 2 · 3 / 4 · 5. 줄마다 그림(캔버스) 높이(m)
-const ROWS = [[0], [1, 2], [3, 4]], ROW_H = [1.45, 1.15, 1.9], GAP_X = 0.36, GAP_Y = 0.58, HANG_BOTTOM = 1.62;   // 맨 아래 줄 이름표가 징두리(1.0m) 위 벽지에 오도록
+// 벽에 거는 자리 — 전개도 그대로 한 줄. 그림 가운데 높이가 모두 같다(바닥에서 2,030mm)
+//   액자 바깥(전개도): 700 · 740 · 971 · 754 · 700mm, 사이 57 · 30 · 3 · 3mm → 배치 폭 3,958mm. 아래 HANG_X = 액자 가운데(덩어리 가운데 기준, m)
+//   그림 크기: A1 재단 841mm에서 사방 7mm 물림 → 보이는 긴 변 0.827m
+//   11/17 저녁: 둘레 채움 그림보다 너무 작아 보여서 배치 비율은 그대로 두고 1.4배로 키움(가운데 높이 2.2m — 아래 이름표가 징두리 위에 오게)
+const HANG_X_REAL = [-1.629, -0.852, 0.0335, 0.899, 1.629], HANG_Y_REAL = 2.03, CANVAS_REAL = 0.827;   // 실제 벽(전개도) 그대로
+const WALL_K = 1.4, HANG_X = HANG_X_REAL.map((x) => x * WALL_K), HANG_Y = 2.2, CANVAS_LONG = CANVAS_REAL * WALL_K;
+// 고르는 화면(벽을 비춘 뒤 PICK) — 세로 화면에서 크게 보고 비교하도록 2 · 1 · 2 로 벽 앞으로 나와 선다(방은 조금 어두워짐)
+const PICK_ROWS = [[0, 1], [2], [3, 4]], PICK_S = 1.0, PICK_Z = 0.9, PICK_GX = 0.14, PICK_GY = 0.42, PICK_CY = 3.3;
 const TODAY = { 1: 9, 2: 27, 3: 18, 4: 39, 5: 7 };   // 예시 수치
 const JURY = '1,284';
 const stampLine = (total, at = new Date()) => `오늘 ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')} 기준 · ${total}명 · 수치는 예시`;
@@ -203,6 +210,17 @@ function buildFrame(w, i) {
     hx: 0, hy: 0, s: 1, zb: 0, lift: 0, act: 0, k: -1 };
 }
 const frames = WORKS.map(buildFrame);
+// 11/17: 정답(〈환영〉)에만 — 액자 뒤에서 가장자리로 은은하게 새어 나오는 빛(액자에 붙어서, 바깥으로 짧게 흐려짐). 다른 그림에는 없다
+const AURA = (() => {
+  const f = frames[WIN_N - 1], PAD = 0.16, aw = f.ow + 2 * PAD, ah = f.oh + 2 * PAD, PX = 640;
+  const tw = PX, th = Math.round(PX * ah / aw), k = PX / aw;
+  const tex = canvasTex(tw, th, (c) => {
+    c.filter = `blur(${Math.round(0.075 * k)}px)`; c.fillStyle = 'rgba(255,198,105,1)';
+    c.fillRect(PAD * k, PAD * k, f.ow * k, f.oh * k); c.fillRect(PAD * k, PAD * k, f.ow * k, f.oh * k);   // 액자 크기 판을 흐리게 → 액자 뒤에 가려지고 가장자리로만 빛이 번져 나옴
+  });
+  const m = new T.Mesh(new T.PlaneGeometry(aw, ah), new T.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
+  m.position.z = -0.077; m.material.polygonOffset = true; m.material.polygonOffsetFactor = -2; f.g.add(m); return m;   // 뒤판(-0.075까지) 바로 뒤 · 벽(뒤판이 닿는 면)보다는 앞 — 가운데는 액자에 가려지고 가장자리 빛만 보인다
+})();
 // 이름표 — 벽에서 각 그림 아래: 제목 · 화가, 연도(번호 대신)
 const _lp = new T.Vector3();
 frames.forEach((f) => {
@@ -210,36 +228,45 @@ frames.forEach((f) => {
   el.innerHTML = `<b>${f.w.title}</b><small>${[f.w.artist, f.w.year].filter(Boolean).join(', ')}</small>`;
   $('#labels').appendChild(el); f.lab = el;
 });
-// 거는 자리 계산 — 아래 줄부터 쌓는다. 한 줄 안에서는 가운데 높이를 맞춘다
+// 거는 자리 — 벽(W): 전개도 위치 그대로 한 줄 · 고르는 화면(P): 2 · 1 · 2 로 벽 앞에. f.hx · hy · s · zb 는 지금 자리(둘 사이를 오간다)
+frames.forEach((f, i) => {
+  const s = CANVAS_LONG / Math.max(f.pw, f.ph); f.W = { x: HANG_X[i], y: HANG_Y, s, z: 0.08 * s };   // z = 뒤판이 벽에 닿는 깊이
+  f.F = f.W;   // 옮겨 가기 시작하는 자리(가상 살롱 벽의 한 줄)
+});
 (() => {
-  let y = HANG_BOTTOM;
-  for (let r = ROWS.length - 1; r >= 0; r--) {
-    const row = ROWS[r].map((i) => frames[i]);
-    row.forEach((f) => { f.s = ROW_H[r] / f.ph; });
-    const hRow = Math.max(...row.map((f) => f.oh * f.s)), wRow = row.reduce((a, f) => a + f.ow * f.s, 0) + GAP_X * (row.length - 1);
-    let x = -wRow / 2;
-    row.forEach((f) => { f.hx = x + f.ow * f.s / 2; f.hy = y + hRow / 2; x += f.ow * f.s + GAP_X; });
-    y += hRow + GAP_Y;
-  }
+  const hs = (i) => frames[i].oh * PICK_S, ws = (i) => frames[i].ow * PICK_S;
+  const tot = PICK_ROWS.reduce((a, r) => a + Math.max(...r.map(hs)), 0) + PICK_GY * (PICK_ROWS.length - 1);
+  let y = PICK_CY + tot / 2;
+  PICK_ROWS.forEach((r) => {
+    const hR = Math.max(...r.map(hs)), wR = r.reduce((a, i) => a + ws(i), 0) + PICK_GX * (r.length - 1);
+    let x = -wR / 2;
+    r.forEach((i) => { frames[i].P = { x: x + ws(i) / 2, y: y - hR / 2, s: PICK_S, z: PICK_Z }; x += ws(i) + PICK_GX; });
+    y -= hR + PICK_GY;
+  });
+})();
+let pickK = 0, pickT = 0;
+function poseAt(k) {   // (eio · lerp 는 아래에서 정의 — 처음 부를 때를 위해 여기서 직접 계산)
+  const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2, L = (a, b) => a + (b - a) * e;
   frames.forEach((f) => {
-    f.zb = 0.08 * f.s;   // 뒤판이 벽에 닿는 깊이
+    const A = f.F, B = f.P;
+    f.hx = L(A.x, B.x); f.hy = L(A.y, B.y); f.s = L(A.s, B.s); f.zb = L(A.z, B.z);
     f.plate.scale.setScalar(PLATE_K / f.s); f.plate.position.set(0, -f.oh / 2 - PLATE_DROP / f.s, -0.05);
     f.pool.position.set(f.hx, f.hy + 0.1 * f.s, 0.008); f.pool.scale.set(f.ow * f.s * 1.9, f.oh * f.s * 1.8, 1);
   });
-})();
+}
+poseAt(0);
 // 후보작 덩어리의 사각형(월드) — 벽 카메라가 이것을 화면에 맞춘다(아래 번호판까지)
-const CL = (() => {
-  const x0 = Math.min(...frames.map((f) => f.hx - f.ow * f.s / 2)), x1 = Math.max(...frames.map((f) => f.hx + f.ow * f.s / 2));
-  const y0 = Math.min(...frames.map((f) => f.hy - f.oh * f.s / 2)) - PLATE_DROP - 0.12, y1 = Math.max(...frames.map((f) => f.hy + f.oh * f.s / 2));
-  return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, z: 0.1 };
-})();
-// 채움 그림이 비켜 갈 자리 — 줄마다 띠
-const AVOID = ROWS.map((row) => {
-  const fs = row.map((i) => frames[i]);
-  return { x0: Math.min(...fs.map((f) => f.hx - f.ow * f.s / 2)) - 0.2, x1: Math.max(...fs.map((f) => f.hx + f.ow * f.s / 2)) + 0.2,
-    y0: Math.min(...fs.map((f) => f.hy - f.oh * f.s / 2)) - PLATE_DROP - 0.2, y1: Math.max(...fs.map((f) => f.hy + f.oh * f.s / 2)) + 0.2 };
-});
+function clOf(k) {
+  const q = frames.map((f) => f[k]);
+  const x0 = Math.min(...frames.map((f, i) => q[i].x - f.ow * q[i].s / 2)), x1 = Math.max(...frames.map((f, i) => q[i].x + f.ow * q[i].s / 2));
+  const y0 = Math.min(...frames.map((f, i) => q[i].y - f.oh * q[i].s / 2)) - PLATE_DROP - 0.12, y1 = Math.max(...frames.map((f, i) => q[i].y + f.oh * q[i].s / 2));
+  return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, z: k === 'P' ? PICK_Z + 0.02 : 0.1 };
+}
+let CL = clOf('W');
+// 채움 그림이 비켜 갈 자리 — 후보작 한 줄 띠
+const AVOID = [{ x0: CL.cx - CL.w / 2 - 0.25, x1: CL.cx + CL.w / 2 + 0.25, y0: CL.cy - CL.h / 2 - 0.15, y1: CL.cy + CL.h / 2 + 0.2 }];
 const salon = buildSalon(scene, { aniso: ANISO, avoid: AVOID, kick: () => kick() });
+
 
 function titleTex(f) {
   const W2 = 1024, H2 = Math.round(W2 * f.TPH / f.TPW);
@@ -308,6 +335,8 @@ function camFor(k) {
   }
   if (k === 'wall') {   // 후보작 벽 — 역할 문장 아래부터 안내 위까지, 눈높이에서 정면
     const rb = roleEl.getBoundingClientRect(), top = Math.max(safeT + 96, rb.bottom - stage.getBoundingClientRect().top + 14);
+    // 11/17 고르는 화면(세로 2 · 1 · 2): 위 글과 겹치지 않게 넉넉히 띄우고, 아래엔 안내가 없으니 바닥까지 쓴다 — 위아래 여백을 맞춘다
+    if (PICK) return fit(CL, { l: 22, r: W - 22, t: rb.bottom - stage.getBoundingClientRect().top + 26, b: H - safeB() - 18 }, HALL.EYE);
     return fit(CL, { l: 30, r: W - 30, t: top, b: H - (window.__salonGuideH || 96) - safeB() }, HALL.EYE);
   }
   if (k === 'near') {   // v3: 카메라로 넘어갈 때 벽으로 한 걸음 다가간다
@@ -331,11 +360,12 @@ function applyCam() {
 const pxPerM = (z) => H / (2 * (cam.z - z) * TAN);   // 깊이 z 에서 1m 가 몇 px
 // 그림 앞으로 — 벽과 카메라는 그대로, 그림만 벽에서 떨어져 화면 가운데로(상단 바와 메달 단추 사이를 채우는 크기, 아래 번호판까지)
 function focusPose(f) {
-  const ext = 0.26 * f.s, rect = { l: W * 0.06, r: W * 0.94, t: safeT + 88, b: H - dock.offsetHeight - ($('#fcap').offsetHeight || 0) - 22 };
+  // 11/17: 메달 이름판 자리(0.26)는 메달 연출을 뺀 뒤 안 써서 없앰 — 액자는 위 안내(끌어서 돌려 보기)와 아래 설명 글 사이 정가운데
+  const rect = { l: W * 0.06, r: W * 0.94, t: safeT + 88, b: H - dock.offsetHeight - ($('#fcap').offsetHeight || 0) - 22 };
   const z = f.zb + 0.5 * (cam.z - f.zb), ppm = pxPerM(z);
-  const k = Math.min((rect.r - rect.l) / (f.ow * f.s * ppm), (rect.b - rect.t) / ((f.oh * f.s + ext) * ppm));
+  const k = Math.min((rect.r - rect.l) / (f.ow * f.s * ppm), (rect.b - rect.t) / (f.oh * f.s * ppm));
   const p = screenToWorld((rect.l + rect.r) / 2, (rect.t + rect.b) / 2, z);
-  return { x: p.x, y: p.y + ext * k / 2, z, s: f.s * k };
+  return { x: p.x, y: p.y, z, s: f.s * k };
 }
 
 function layout() {
@@ -373,19 +403,25 @@ function apply(now = performance.now()) {
     f.g.rotation.set(pitch * a, yaw * a, 0); f.g.scale.setScalar(s);
     if (thud && f === MED.f) { f.g.position.z -= 0.05 * thud * s; f.g.rotation.x += 0.025 * thud; }
     dim(f, 1 - 0.72 * dk * (1 - a));
-    f.pool.material.opacity = 1 - 0.8 * dk;
+    f.pool.material.opacity = (1 - 0.8 * dk) * (1 - pickK);
     f.plate.visible = false; f.titlePlate.visible = f.tpOn;   // 번호판은 쓰지 않는다 — 벽에서는 아래 이름표(글자), 메달을 주면 이름판
     const inv = f.inv || 0;
+    // 11/17: 정답(〈환영〉)에만 뒤로 금빛 후광 — 숨 쉬듯 천천히(쉽게 맞추도록)
     f.glow.material.opacity = f.glowV * 0.75 + inv * 0.5;
+    if (f.w.n === WIN_N) AURA.material.opacity = mode !== 'intro' ? 0.85 + 0.15 * Math.sin(now / 700) : 0;   // 밝기만 천천히 — 번지는 폭은 그대로
     f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5 + inv * 0.45);
     f.mats.bead.emissive.setRGB(0.3, 0.2, 0.04).multiplyScalar(inv * 0.5);
     // 이름표 — 벽의 제자리 아래(그림이 앞으로 나와도 이름표는 벽에 남는다)
+    if (f.lab) f.lab.style.visibility = PICK && pickK > 0.98 ? 'visible' : 'hidden';   // 11/17: 가로 한 줄 벽에서는 이름표 없음(좁아서 줄바꿈이 깨짐) — 세로로 다 옮겨 간 뒤에만
     if (f.lab) {
+      _lp.set(f.hx + f.ow * f.s / 2, f.hy - f.oh * f.s / 2 - 0.05, f.zb).project(camera); const xr = (_lp.x + 1) / 2 * W;
       _lp.set(f.hx, f.hy - f.oh * f.s / 2 - 0.05, f.zb).project(camera);
+      const lw = Math.round(2 * (xr - (_lp.x + 1) / 2 * W));   // 한 줄 다섯 점 — 이름표 폭을 액자 폭에 맞춰 줄바꿈(옆 이름표와 겹치지 않게)
+      if (f.labW !== lw) { f.labW = lw; f.lab.style.width = lw + 'px'; }
       f.lab.style.transform = `translate(${((_lp.x + 1) / 2 * W).toFixed(1)}px, ${((1 - _lp.y) / 2 * H).toFixed(1)}px) translateX(-50%)`;
     }
   });
-  salon.dim(1 - 0.7 * dk);
+  salon.dim((1 - 0.7 * dk) * (1 - 0.72 * eio(pickK)));   // 고르는 화면: 둘레 그림을 많이 낮춰 다섯 점 · 이름표가 또렷하게
   // 메달은 고른 액자에 붙은 채
   if (MED.f && MED.dir !== 2) { medal.visible = MED.dir !== 0; medal.scale.setScalar(MED.sc * (1 + 0.14 * Math.max(0, thud))); }
   camera.position.y += 0.006 * thud;
@@ -484,10 +520,11 @@ function step(dt, now) {
     if (Math.abs(lT - f.lift) > 0.002 || Math.abs(aT - f.act) > 0.002) busy = true; else { f.lift = lT; f.act = aT; }
   });
   dimV += (dimT - dimV) * ef; if (Math.abs(dimT - dimV) > 0.002) busy = true; else dimV = dimT;
+  if (pickK !== pickT) { const st = reduceMotion ? 1 : dt / 1.4; pickK = pickT > pickK ? Math.min(pickT, pickK + st) : Math.max(pickT, pickK - st); poseAt(pickK); busy = true; }   // 1.4초 — 카메라 이동과 같은 박자(움직임 곡선은 poseAt 안)
   frames.forEach((f) => { const e = 1 - Math.exp(-dt * 6); f.glowV += (f.glowT - f.glowV) * e; if (Math.abs(f.glowT - f.glowV) > 0.003) busy = true; else f.glowV = f.glowT; });
   // 벽에 서 있는 동안 — 금박 테두리에 빛이 위에서부터 차례로 번졌다 사라진다(누를 수 있다는 신호, 글 안내 대신)
   const inviting = mode === 'wall' && !reduceMotion, wt = now - wallT0 - 700;
-  frames.forEach((f, i) => { const ph = (((wt - i * 240) % 5200) + 5200) % 5200; f.inv = inviting && wt > 0 ? Math.pow(Math.sin(Math.PI * clamp(ph / 1300, 0, 1)), 2) : 0; });
+  frames.forEach((f) => { f.inv = 0; });   // 11/17: 액자마다 차례로 빛나던 효과는 뺌(가운데 〈환영〉의 선만 남김)
   if (inviting) busy = true;
   // 반사광: 그림이 나오면 금박 위를 한 번 쓸고 지나간다 · 끄는 동안엔 손가락을 따라간다
   if (mode !== 'intro') {
@@ -568,7 +605,7 @@ function hitFrame(p, list) {
   ray.setFromCamera(new T.Vector2((p.x / W) * 2 - 1, -(p.y / H) * 2 + 1), camera);
   let best = null;
   // 보이는 액자·그림만(뒤의 금빛 후광 판 · 숨긴 판은 빼고) — 그래야 그림 바깥 빈 곳을 누르면 벽으로 돌아간다
-  list.forEach((f) => { const h = ray.intersectObject(f.g, true).find((x) => x.object.visible && x.object !== f.glow && !(x.object.material && x.object.material.transparent && x.object.material.opacity === 0)); if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
+  list.forEach((f) => { const h = ray.intersectObject(f.g, true).find((x) => x.object.visible && x.object !== f.glow && x.object !== AURA && !(x.object.material && x.object.material.transparent && x.object.material.opacity === 0)); if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
   return best ? best.f : null;
 }
 function wppF() { const f = frames[fi]; return 2 * (cam.z - (f.fp ? f.fp.z : f.g.position.z)) * TAN / H; }   // 그림 면에서 1px 가 몇 m
@@ -598,7 +635,7 @@ cv.addEventListener('pointerdown', (e) => {
     g = { type: 'one', id: e.pointerId, x0: p.x, y0: p.y, lx: p.x, ly: p.y, t0: performance.now(), moved: false, mode: zoom > 1.04 ? 'pan' : 'rotate', samples: [{ t: performance.now(), x: p.x, y: p.y }], yaw0: yaw, pitch0: pitch, consumed: false };
     yawV = pitchV = 0;
     if (zoom <= 1.04) pressT = setTimeout(() => {
-      if (g && g.type === 'one' && !g.moved && pointers.size === 1 && mode === 'focus' && hitFrame({ x: g.x0, y: g.y0 }, [frames[fi]])) { g.consumed = true; placeMedal(); }
+      /* 11/17: 확인 단계를 없앴으니 그림을 한 번 눌러서는 고르지 않는다(단추로만) */
     }, 520);
   } else if (pointers.size === 2) {
     // 두 손가락 사이의 그림 위 점을 붙잡고 그림을 키운다(rx, ry: 확대 1 기준 그림 중심에서의 거리)
@@ -700,9 +737,11 @@ async function placeMedal() {
   hideGest(); resetView();
   chosen.glowT = 1; if (!reduceMotion) glintT0 = performance.now();
   haptic(14); kick();
-  $('#cfTitle').textContent = `〈${chosen.w.title}〉, 올해의 당선작으로 고를까요?`;
+  // 11/17: '당선작으로 고를까요?' 확인 없이 바로 — 정답이면 완료, 아니면 그 그림의 심사평
   await sleep(reduceMotion ? 100 : 420);
-  if (mode === 'placed') confirm.open();
+  if (mode !== 'placed') return;
+  if (PICK && chosen.w.n !== WIN_N) return wrongPick(chosen);
+  reveal(award);
 }
 function unplace() {
   confirm.close();
@@ -803,9 +842,9 @@ function fillResult(me) {
   // 11/03: 수집품은 정답과 함께 저절로 → 끝 줄 [목록으로 | 다음 미션] · 체험 더보기(후보작 하나씩 살펴보기)
   if (w.n === WIN_N) {
     collect('salon');
-    mountEnd($('.res-btns'), 'salon', { item: t.item, more: () => window.dispatchEvent(new CustomEvent('salon:more')) });
+    mountEnd($('.res-btns'), 'salon', { item: t.item });   // 11/17: 체험 더보기(후보작 하나씩 비추기 = 예전 방식) 뺌
     // 11/06: 미션 완료는 구역 공통 화면 — 금빛이 번진 자리에서 이 판이 덮는다(toResult)
-    winDone = () => showComplete('salon', { item: t.item, title: `〈${w.title}〉 · ${[w.artist, w.year].filter(Boolean).join(', ')}`, body: `${t.successBody}\n\n${t.successVerdict}`, note: t.after, more: (d) => { d.hide(); window.dispatchEvent(new CustomEvent('salon:more')); } });
+    winDone = () => showComplete('salon', { item: t.item, title: `〈${w.title}〉 · ${[w.artist, w.year].filter(Boolean).join(', ')}`, body: `${t.successBody}\n\n${t.successVerdict}`, note: t.after });   // 11/17: 체험 더보기 뺌
   }
 }
 window.addEventListener('resize', () => { if (resWork) sizeHero(resWork); });
@@ -912,15 +951,27 @@ new ResizeObserver(() => layout()).observe(stage);
   kick();
 })();
 
+// 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
+if (store.saved('salon')) {
+  const t = ZONES.find((z) => z.id === 'salon').tasks[0], w = WORKS[WIN_N - 1];
+  setTimeout(() => showComplete('salon', { item: t.item, title: `〈${w.title}〉 · ${[w.artist, w.year].filter(Boolean).join(', ')}`, body: `${t.successBody}\n\n${t.successVerdict}`, note: t.after }), 0);
+}
 // v3: 안내 · 카메라 전환에서 장면을 움직인다(salon-ar.js)
 window.__salon = {
   to: (k, ms) => camTo(k, ms),
   // 11/03: 현장의 벽을 비춘 뒤 — 같은 벽이 화면에 그대로 있고, 여기서 한 점을 눌러 고른다
   pick() {
     PICK = true; window.__salonGuideH = 96; document.body.classList.add('pick');
+    // 스캔 직후: 먼저 카메라로 비춘 그대로(다섯 점 가로 한 줄이 화면을 채운 구도) — 그다음 arrange() 에서 세로로 옮겨 간다
+    pickT = pickK = 0; poseAt(0); CL = clOf('W');   // 비춘 그대로(가상 살롱 벽의 가로 한 줄) — 카메라가 닫히면 arrange() 로 세로 정렬
     $('#role .lead').innerHTML = '올해의 당선작을 눌러 고르세요. <button type="button" class="crit-link" id="critBtn2">살롱의 기준</button>';
-    $('#critBtn2').addEventListener('click', () => $('#critBtn').click());
-    camTo('wall', reduceMotion ? 1 : 900); kick();
+    $('#critBtn2').addEventListener('click', () => critSheet.open());   // 원래 단추(#critBtn)는 위 문장을 바꾸며 사라졌으니 시트를 바로 연다
+    camTo('wall', 1); kick();
+  },
+  // 카메라가 닫힌 뒤: 가로 한 줄 → 2 · 1 · 2 세로 정렬로 액자들이 옮겨 가고, 카메라는 그 덩어리에 맞춰 같이 움직인다
+  arrange() {
+    pickT = 1; CL = clOf('P');
+    camTo('wall', reduceMotion ? 1 : 1400); kick();
   },
   // 카메라에서 정답을 고른 뒤: 벽으로 돌아와 그 그림이 앞으로 나오고 → 메달이 날아와 앉고 → 금빛 → 결과 화면
   async award(i) {

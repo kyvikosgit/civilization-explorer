@@ -156,7 +156,12 @@ function browse() {
   window.scrollTo(0, 0);
 }
 // 11/06: 모은 뒤에도 같은 화면(튜브물감 찾기) — 소품 넷 둘러보기는 없앴다. 아래에 밖으로 나가 칠하기 · 끝 줄
-if (store.saved(TASK.id)) document.body.classList.add('got');
+if (store.saved(TASK.id)) {
+  document.body.classList.add('got');
+  // 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
+  const [head, ...body] = TASK.successBody.split('\n\n');
+  setTimeout(() => showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), more: () => { location.href = V3 + 'paint.html'; } }), 0);
+}
 // 11/09 도입(et-intro.js · 3D) — 절벽 위 이젤의 빈 캔버스에 붓질로 에트르타가 그려지고 카메라가 물러나며 바다가 드러난다(그 장면이 배경으로 남음). 들어올 때마다(태그로 열림 · 동작 줄이기 제외)
 {
   const b = document.body, qs = new URLSearchParams(location.search);

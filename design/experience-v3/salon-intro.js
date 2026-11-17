@@ -166,9 +166,21 @@ export function buildSalon(scene, o) {
       items.forEach((it) => { const p = toWorld(it.x, cy + (R() - 0.5) * 0.06); slots[it.k].push({ ...p, w: it.w, h: it.h }); frames.push({ ...p, w: it.w + 2 * it.m, h: it.h + 2 * it.m }); });
       y -= rh + 0.2 + R() * 0.1;
     }
+    return y;
   }
   const BAND0 = DADO + 0.22, BAND1 = WALL_H - 0.55;
-  hang(-HW + 0.25, HW - 0.25, BAND0, BAND1, 0.95, 1.7, (x, y) => ({ x, y, z: 0, ry: 0 }), o.avoid);
+  // 11/17: 후보작이 한 줄로 낮게 걸려서 — 위는 후보작 띠 바로 위까지 빈틈없이, 띠 옆은 작은 그림으로 따로 채운다
+  const BW = (x, y) => ({ x, y, z: 0, ry: 0 }), XA = -HW + 0.25, XB = HW - 0.25;
+  const AV = o.avoid && o.avoid[0], YT = AV ? AV.y1 : BAND0;
+  let yUp = hang(XA, XB, YT, BAND1, 0.95, 1.7, BW, null);
+  for (let k = 0; k < 4 && yUp - YT > 0.42; k++) {   // 남은 높이에 맞춰 점점 작은 줄로
+    const hMax = Math.min(0.95, yUp - YT - 0.02), y2 = hang(XA, XB, YT, yUp, Math.max(0.38, hMax * 0.75), hMax, BW, null);
+    if (y2 === yUp) break; yUp = y2;
+  }
+  if (AV) {
+    let yS = hang(XA, XB, BAND0, YT - 0.05, 0.5, Math.min(1.2, YT - 0.05 - BAND0), BW, o.avoid);
+    if (yS - BAND0 > 0.45) hang(XA, XB, BAND0, yS, 0.38, Math.min(0.8, yS - BAND0 - 0.02), BW, o.avoid);
+  }
   for (const s of [-1, 1]) hang(0.5, L - 0.6, BAND0, BAND1, 1.1, 2.3, (u, y) => ({ x: s * HW, y, z: s < 0 ? u : L - u, ry: -s * Math.PI / 2 }), null);
   const frameMat = gilt, fd = 0.08, mx = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), v = new T.Vector3(), sc = new T.Vector3();
   const fr = new T.InstancedMesh(new T.BoxGeometry(1, 1, 1), frameMat, frames.length);

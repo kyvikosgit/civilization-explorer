@@ -20,6 +20,7 @@ import { $, $$, icons, toast, sleep, reduceMotion, haptic, saveChoice } from '..
 import { createMorrisViewer } from '../experience-v2/proto/js/morris-viewer-proto.js';
 import { ITEMS, NOTES, FILLER, BACKDROP, VISITORS } from '../experience-v2/proto/js/morris-items-proto.js';
 import { stampLine } from '../experience-v2/proto/js/crowd.js';
+import { store } from './store.js';
 import { drawSalon, drawExpo, drawExpoCover, drawSalonCover, drawClipping, loadImage, loadPosterFonts, imageURL } from '../experience-v2/proto/js/c1-posters.js';
 
 icons();
@@ -145,6 +146,7 @@ const waitFocus = (ms) => Promise.race([new Promise((r) => { focusWait = r; }), 
 let introDone = false;
 async function streetIntro() {
   const cover = document.getElementById('scCover'), uncover = () => { if (cover) { cover.classList.add('off'); setTimeout(() => cover.remove(), 400); } };
+  if (store.saved('flyer')) { uncover(); introDone = true; return; }   // 11/17: 이미 맞혔으면 도입 없이 — 결과 화면이 바로 뜬다(society-ar.js)
   if (reduceMotion) { uncover(); $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; showStanding(); return; }
   viewer?.pause();   // 도입 동안 칼럼 3D 는 쉬게(두 3D 가 함께 돌면 끊김)
   // 11/09: 35번지 방 안에서 창이 열리고 대로로 나가는 3D 도입(society-intro.js) — 끝나면 거리 그림이 그 구도 그대로 이어진다

@@ -11,8 +11,8 @@ import { store } from './store.js';
 const V3 = '../../experience-v3/';
 const task = ZONES.find((z) => z.id === 'salon').tasks[0];
 const targets = task.targets.map((t) => ({ ...t, img: V3 + t.img }));
-const RATIO = [0.724, 0.65, 0.839, 1.693, 0.574];   // 타깃 세로/가로 — .mind 컴파일 원본 비율(앱 mission-b 와 같은 값)
-const WALL = V3 + 'img/salon_wall.jpg';             // 후보작 벽 3D 시안(10/20) — 안내 그림 · 카메라 없이 고르기
+const RATIO = [1.416, 1.416, 0.706, 1.416, 1.416];   // 타깃 세로/가로 — .mind 컴파일 원본 비율(앱 mission-b 와 같은 값) · 11/17 전개도 최종 A1 재단본
+const WALL = V3 + 'img/salon_wall.jpg';             // 후보작 벽 — 11/17 전개도 최종 B 정면(안내 그림 · 카메라 없이 고르기). 이전 시안은 salon_wall_1020.jpg
 
 // 인식한 그림 위 효과 — 훑는 빛 한 번만. 테두리·후광·메달처럼 그림에 붙어 있는 효과는 그리지 않는다(추적이 흔들리면 떨리고 기울어 보인다)
 function fx({ THREE, anchors }) {
@@ -65,9 +65,10 @@ function begin() {
     onFound: async () => {
       picking = true;
       navigator.vibrate?.([18, 50, 24]);
-      await closeCam(true);
+      window.__salon.pick();   // 11/17: 카메라가 닫히기 전에 뒤 장면을 '비춘 그대로'(다섯 점 가로 한 줄)로 맞춰 두고
       guide.hide();
-      window.__salon.pick();
+      await closeCam(true);
+      window.__salon.arrange();   // 닫히면 그 자리에서 다섯 점이 세로 2 · 1 · 2 로 옮겨 간다
     },
   });
 }

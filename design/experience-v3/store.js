@@ -3,6 +3,12 @@ const K = 'm100v3';
 const read = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch { return {}; } };
 const write = (s) => { try { localStorage.setItem(K, JSON.stringify(s)); } catch {} };
 
+// 11/17: 앱(로그인 계정 · 이 기기)의 수집 목록을 주소로 받아 합친다 — 다른 기기에서 모은 것도 '이미 맞힘'으로(다시 들어오면 결과 화면)
+try {
+  const got = new URLSearchParams(location.search).get('got');
+  if (got) { const s = read(); s.saved ||= {}; s.solved ||= {}; got.split(',').filter(Boolean).forEach((id) => { s.saved[id] ||= Date.now(); s.solved[id] ||= Date.now(); }); write(s); }
+} catch {}
+
 export const store = {
   solved: (id) => !!read().solved?.[id],      // 정답을 맞힘
   saved: (id) => !!read().saved?.[id],        // 수집함에 담음

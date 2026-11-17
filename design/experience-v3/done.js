@@ -26,26 +26,33 @@ const CSS = `
 .v3-done .d-loc{text-align:center;font-size:13px;font-weight:700;color:var(--d-sub)}
 .v3-done .d-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 20px 24px}
 .v3-done .d-in{max-width:440px;margin:0 auto}
-.v3-done .d-cap{font-size:13px;font-weight:800;color:var(--d-pt);text-align:center;margin-top:6px}
-.v3-done .d-card{margin:12px auto 0;width:100%;height:min(30vh,240px);border-radius:14px;background:var(--d-panel);display:grid;place-items:center;overflow:hidden;transform:scale(.92);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
+.v3-done .d-cap{margin:10px auto 0;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;letter-spacing:.06em;color:var(--d-pt)}
+.v3-done .d-cap::before,.v3-done .d-cap::after{content:'';width:36px;height:10px;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 10'%3E%3Cpath d='M0 5h28' stroke='%23B08A3E' stroke-width='1'/%3E%3Cpath d='M32 2l3 3-3 3-3-3z' fill='%23B08A3E'/%3E%3C/svg%3E")}
+.v3-done .d-cap::after{transform:scaleX(-1)}
+.v3-done .d-cap small{display:block}
+.v3-done .d-card{margin:14px auto 0;width:100%;height:min(32vh,260px);border-radius:14px;background:var(--d-panel);display:flex;align-items:center;justify-content:center;overflow:hidden;transform:scale(.92);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
 .v3-done.on .d-card{transform:none;opacity:1}
-.v3-done .d-card img{max-width:86%;max-height:84%;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.18))}
+.v3-done .d-card img{max-width:86%;max-height:86%;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.18))}   /* 11/17: 세로로 긴 그림(전단지)이 위아래로 잘리지 않게 — 카드 높이 안에 다 들어감 */
 .v3-done .d-card img.cover{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:cover;filter:none}
-.v3-done .d-name{margin-top:14px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:21px;font-weight:800;line-height:1.3}
-.v3-done .d-sub{margin-top:4px;text-align:center;font-size:13.5px;color:var(--d-sub)}
+.v3-done .d-name{margin-top:16px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:23px;font-weight:800;line-height:1.3}
+.v3-done .d-sub{margin-top:5px;text-align:center;font-size:14px;color:var(--d-sub)}
 .v3-done .d-txt{margin-top:20px;padding-top:18px;border-top:1px solid var(--d-line);opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
 .v3-done.read .d-txt{opacity:1;transform:none}
-.v3-done .d-title{font-family:Paperlogy,Freesentation,sans-serif;font-size:18px;font-weight:800;line-height:1.4}
+.v3-done .d-title{font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;line-height:1.4}
 .v3-done .d-body{margin-top:8px;font-size:15.5px;line-height:1.7;white-space:pre-line}
-.v3-done .d-note{margin-top:12px;font-size:13.5px;line-height:1.6;color:var(--d-sub);white-space:pre-line}
+.v3-done .d-note{margin:34px auto 4px;max-width:320px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:15.5px;font-weight:600;line-height:1.8;letter-spacing:-.01em;color:var(--d-ink);white-space:pre-line;word-break:keep-all;opacity:0;transform:translateY(8px);transition:opacity 1s .6s,transform 1s .6s}
+.v3-done.read .d-note{opacity:1;transform:none}
+.v3-done .d-note::before,.v3-done .d-note::after{content:'';display:block;width:132px;height:10px;margin:0 auto;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 132 10'%3E%3Cpath d='M0 5h56M76 5h56' stroke='%23B08A3E' stroke-width='1'/%3E%3Cpath d='M66 1l4 4-4 4-4-4z' fill='%23B08A3E'/%3E%3C/svg%3E")}
+.v3-done .d-note::before{margin-bottom:14px}
+.v3-done .d-note::after{margin-top:14px;width:56px;opacity:.6;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 10'%3E%3Cpath d='M0 5h56' stroke='%23B08A3E' stroke-width='1'/%3E%3C/svg%3E")}
 .v3-done .d-foot{flex:none;padding:12px 20px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--d-line);background:var(--d-bg);opacity:0;transition:opacity .5s}
 .v3-done.read .d-foot{opacity:1}
 .v3-done .d-foot .v3-end{margin:0 auto;padding:0}
 .v3-done .d-foot .v3-end .ve-got{display:none}
 .v3-done .d-foot .v3-end .ve-more{margin-top:6px;padding:6px 12px}
-.v3-fly{position:fixed;z-index:9001;pointer-events:none;object-fit:cover;transform-origin:center;transition:transform .8s cubic-bezier(.6,0,.2,1)}
+.v3-fly{position:fixed;z-index:9001;pointer-events:none;object-fit:cover;box-shadow:0 8px 22px rgba(0,0,0,.18)}
 .v3-done .d-col{margin-top:16px;text-align:center}
-.v3-done .d-colt{font-size:12.5px;font-weight:700;color:var(--d-sub)}
+.v3-done .d-colt{font-size:13.5px;font-weight:700;color:var(--d-sub)}
 .v3-done .d-colt b{color:var(--d-ink)}
 .v3-done .d-slots{margin-top:8px;display:flex;justify-content:center;gap:8px}
 .v3-done .d-slots span{width:44px;height:44px;border-radius:8px;background:var(--d-panel);border:1px dashed #CFCBC2;overflow:hidden;display:block}
@@ -139,20 +146,24 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
   el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, more: more ? () => more(api) : undefined }));
   document.body.appendChild(el);
   const api = { el, hide() { el.classList.remove('on'); setTimeout(() => el.remove(), 350); } };
-  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on')));
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on'))); setTimeout(() => el.classList.add('on'), 80);   // 그리기가 잠깐 멈춘 화면(뒤 3D 로딩 중)에서도 뜨게
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const land = () => { const sp = el.querySelectorAll('.d-slots span')[slot]; if (sp) { sp.classList.add('on', 'pop'); sp.innerHTML = `<img src="${esc(img)}" alt="">`; } const n = el.querySelector('.d-colt b'); if (n) n.textContent = got; el.classList.add('read'); };
+  const land = (flew) => { const sp = el.querySelectorAll('.d-slots span')[slot]; if (sp) { sp.classList.add('on'); if (!flew) sp.classList.add('pop'); sp.innerHTML = `<img src="${esc(img)}" alt="">`; } const n = el.querySelector('.d-colt b'); if (n) n.textContent = got; el.classList.add('read'); };
   if (!img || reduce || slot < 0) { setTimeout(land, 500); return api; }
-  // 날아가는 사본 — 카드 속 사진 자리에서 보관함 아이콘 자리로
+  // 날아가는 사본 — 카드 속 사진 자리에서 수집품 칸으로. 크기 · 비율 · 모서리 둥글기를 한 번에 칸 모양으로 바꿔 가며 정확히 그 칸에 내려앉는다(11/17: 줄었다 다시 커지는 튐 없앰)
   setTimeout(() => {
-    const src = el.querySelector('.d-card img'), box = el.querySelectorAll('.d-slots span')[slot];
+    const src = el.querySelector('.d-card img'), card = el.querySelector('.d-card'), box = el.querySelectorAll('.d-slots span')[slot];
     const a = src.getBoundingClientRect(), b = box.getBoundingClientRect();
+    const r0 = parseFloat(getComputedStyle(card).borderRadius) || 14, r1 = parseFloat(getComputedStyle(box).borderRadius) || 8;
     const f = document.createElement('img'); f.src = img; f.className = 'v3-fly';
-    Object.assign(f.style, { left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px' });
+    Object.assign(f.style, { left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px', borderRadius: r0 + 'px' });
     document.body.appendChild(f);
-    const s = Math.min(b.width / a.width, b.height / a.height);
-    requestAnimationFrame(() => { f.style.transform = `translate(${b.left + b.width / 2 - (a.left + a.width / 2)}px, ${b.top + b.height / 2 - (a.top + a.height / 2)}px) scale(${s})`; });
-    setTimeout(() => { f.remove(); land(); }, 800);
+    const anim = f.animate([
+      { left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px', borderRadius: r0 + 'px', boxShadow: '0 8px 22px rgba(0,0,0,.18)' },
+      { left: b.left + 'px', top: b.top + 'px', width: b.width + 'px', height: b.height + 'px', borderRadius: r1 + 'px', boxShadow: '0 0 0 rgba(0,0,0,0)' },
+    ], { duration: 820, easing: 'cubic-bezier(.55,0,.2,1)', fill: 'forwards' });
+    const done = () => { land(true); requestAnimationFrame(() => f.remove()); };   // 칸 사진을 먼저 넣고 다음 프레임에 사본을 지운다(깜빡임 없게)
+    anim.finished.then(done, done);
   }, 1100);
   return api;
 }

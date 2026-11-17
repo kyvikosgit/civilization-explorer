@@ -61,6 +61,12 @@ function backToHub() {
   b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
   b.onclick = () => { location.href = '../../experience-v3/index.html'; };
 }
+// 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
+function showResult() {
+  const [head, ...body] = task.successBody.split('\n\n');
+  showComplete('industry', { item: task.item, title: head, body: body.join('\n\n'), note: task.after, more: (done) => { done.hide(); openMore(); } });
+}
+if (store.saved(task.id)) { won = true; setTimeout(showResult, 0); }
 async function win() {
   if (won) return;
   won = true;

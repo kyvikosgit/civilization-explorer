@@ -211,6 +211,8 @@ async function handoff(rect) {
   finishMission();
 }
 // 11/03: 영상 ↔ 그림 전환이 한 바퀴 돌면 수집품 — 끝 줄 [목록으로 | 다음 미션(출구)] · 체험 더보기(연작 보기)
+// 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
+if (store.saved(task.id)) setTimeout(() => finishMission(), 0);
 function finishMission() {
   // 11/06: 미션 완료는 구역 공통 화면(done.js) — 체험 더보기 = 연작 보기
   const [head, ...body] = task.successBody.split('\n\n');
