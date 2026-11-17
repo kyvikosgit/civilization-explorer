@@ -123,11 +123,11 @@ export function buildSalon(scene, o) {
   const velum = canvasTex(512, 1024, (g, w, h) => {
     const gr = g.createRadialGradient(w / 2, h * 0.3, 40, w / 2, h * 0.5, h * 0.7); gr.addColorStop(0, '#FFF9EC'); gr.addColorStop(1, '#E9DBBF'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 4000; i++) { g.fillStyle = `rgba(160,130,90,${Math.random() * 0.05})`; g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 1); }
-    g.fillStyle = 'rgba(90,64,38,.55)'; for (let x = 0; x <= w; x += w / 6) g.fillRect(x - 3, 0, 6, h); for (let y = 0; y <= h; y += h / 12) g.fillRect(0, y - 2, w, 4);
+    g.fillStyle = 'rgba(90,64,38,.3)'; for (let x = 0; x <= w; x += w / 6) g.fillRect(x - 3, 0, 6, h); for (let y = 0; y <= h; y += h / 12) g.fillRect(0, y - 2, w, 4);
     g.fillStyle = 'rgba(90,64,38,.18)'; for (let x = 0; x <= w; x += w / 24) g.fillRect(x - 1, 0, 2, h);
   });
   const ceilInW = HW2 - 2 * COVE - 1.2;
-  add(new T.PlaneGeometry(ceilInW, L - COVE - 0.6), new T.MeshBasicMaterial({ map: velum, color: 0xF2E7D2 }), 0, CEIL - 0.01, (L + COVE) / 2, 0, Math.PI / 2);
+  add(new T.PlaneGeometry(ceilInW, L - COVE - 0.6), new T.MeshBasicMaterial({ map: velum, color: 0xD8C6A4 })   /* 11/17: 흰빛 → 천을 거친 따뜻한 낮빛 */, 0, CEIL - 0.01, (L + COVE) / 2, 0, Math.PI / 2);
   // 천창 둘레 — 크림 띠와 금박 선
   const band = reg(new T.MeshLambertMaterial({ color: 0xB7A27F, side: T.DoubleSide }));
   add(new T.PlaneGeometry(HW2, L + 0.4), band, 0, CEIL, L / 2, 0, Math.PI / 2);
@@ -214,27 +214,124 @@ export function buildSalon(scene, o) {
     add(new T.BoxGeometry(0.9, 0.34, 2.4), woodDark, s * 2.9, 0.19, z);
   }
 
-  // ── 입구 — 바깥 대기실(어둡다) · 돌 벽 · 문틀 · 위의 명판 · 두 짝 문(안쪽으로 열린다)
-  const stone = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#6d6052'; g.fillRect(0, 0, w, h); for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '0,0,0' : '255,240,220'},${Math.random() * 0.05})`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } g.fillStyle = 'rgba(30,22,16,.55)'; for (let y = 0; y < h; y += 64) { g.fillRect(0, y, w, 3); for (let x = (y / 64) % 2 * 64; x < w; x += 128) g.fillRect(x, y, 3, 64); } });
-  stone.wrapS = stone.wrapT = T.RepeatWrapping;
-  const stoneMat = (rw, rh) => { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(rw / 1.6, rh / 1.6); return new T.MeshLambertMaterial({ map: t, color: 0x6a5c50 }); };
-  const DZ = L + 0.3, FW = (HW2 - DOOR_W) / 2;
-  for (const s of [-1, 1]) add(new T.BoxGeometry(FW, CEIL, 0.6), stoneMat(FW, CEIL), s * (DOOR_W / 2 + FW / 2), CEIL / 2, DZ);
-  add(new T.BoxGeometry(DOOR_W, CEIL - DOOR_H, 0.6), stoneMat(DOOR_W, CEIL - DOOR_H), 0, DOOR_H + (CEIL - DOOR_H) / 2, DZ);
-  // 문간 윗면(지나갈 때 올려다보이는 면) — 돌, 안쪽 빛을 받아 따뜻하게
-  { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(2, 0.4); add(new T.PlaneGeometry(DOOR_W, 0.6), new T.MeshBasicMaterial({ map: t, color: 0x9a8670 }), 0, DOOR_H - 0.002, DZ, 0, Math.PI / 2); }
-  for (const s of [-1, 1]) { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(0.4, 3); add(new T.PlaneGeometry(0.6, DOOR_H), new T.MeshLambertMaterial({ map: t, color: 0x7a6a5a }), s * (DOOR_W / 2 - 0.002), DOOR_H / 2, DZ, -s * Math.PI / 2); }
-  // 문틀(금박) · 문 위 처마 · 명판
-  const ext = new T.MeshStandardMaterial({ color: 0x7A5420, metalness: 1, roughness: 0.42, envMapIntensity: 0.3 });
-  for (const s of [-1, 1]) add(new T.BoxGeometry(0.26, DOOR_H + 0.26, 0.12), ext, s * (DOOR_W / 2 + 0.13), (DOOR_H + 0.26) / 2, DZ + 0.36);
-  add(new T.BoxGeometry(DOOR_W + 0.52, 0.26, 0.12), ext, 0, DOOR_H + 0.13, DZ + 0.36);
-  add(new T.BoxGeometry(DOOR_W + 1.3, 0.16, 0.34), ext, 0, DOOR_H + 0.42, DZ + 0.42);
-  for (const s of [-1, 1]) add(new T.BoxGeometry(0.5, DOOR_H + 0.6, 0.22), stoneMat(0.5, DOOR_H), s * (DOOR_W / 2 + 0.85), (DOOR_H + 0.6) / 2, DZ + 0.4);   // 문 옆 기둥(문 양옆, 가운데가 아니다)
-  const plaque = canvasTex(1024, 256, (g, w, h) => {
-    g.fillStyle = '#1d1410'; g.fillRect(0, 0, w, h); g.strokeStyle = '#C79A45'; g.lineWidth = 8; g.strokeRect(14, 14, w - 28, h - 28); g.lineWidth = 2; g.strokeRect(30, 30, w - 60, h - 60);
-    g.fillStyle = '#E8C77A'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '600 92px Georgia, "Times New Roman", serif'; g.fillText('SALON DE 1873', w / 2, h / 2 + 4);
+  // ── 입구 — 1873년 살롱이 열린 팔레 드 랭뒤스트리(1855, 샹젤리제)의 정문 그대로
+  //   고증: P. Blanchard 판화 〈Façade du pavillon et de l'entrée principale du Palais de l'industrie〉 1855(Brown Univ. Library · Wikimedia Commons)
+  //         Charles Marville 사진 〈Palais de l'Industrie, Porte principale〉 1878(Wikimedia Commons)
+  //   큰 아치 아래 둥근 아치문(위 반원 유리창 · 쇠살 / 아래 나무 문짝) · 장미꽃 장식이 박힌 아치 테 · 쐐기돌 · 받침대 위 홈 파인 코린트식 기둥
+  //   · 기둥 위 띠의 새긴 글씨 "A·L'INDUSTRIE·ET·AUX·ARTS·"(판화) · 톱니 처마 · 가로 줄눈이 깊은 돌 벽(사진)
+  const stone = canvasTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#ad9d80'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 26; i++) { const x = Math.random() * w, y = Math.random() * h, r = 40 + Math.random() * 120, gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, `rgba(${Math.random() < 0.5 ? '96,82,60' : '210,198,170'},.18)`); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r); }   // 얼룩진 돌 톤
+    for (let i = 0; i < 70; i++) { const x = Math.random() * w, y = Math.random() * h * 0.6, l = 60 + Math.random() * 220; const gr = g.createLinearGradient(0, y, 0, y + l); gr.addColorStop(0, 'rgba(70,58,42,.16)'); gr.addColorStop(1, 'rgba(70,58,42,0)'); g.fillStyle = gr; g.fillRect(x, y, 2 + Math.random() * 5, l); }   // 빗물 자국(세로로 흘러내린 때)
+    for (let i = 0; i < 9000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '70,58,44' : '255,248,232'},${Math.random() * 0.055})`; g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 3, 1 + Math.random() * 2); }
+    const CH = 128, CW = 340;                                           // 한 단 0.45m · 돌 길이 1.2m 안팎
+    for (let y = 0; y < h; y += CH) {
+      g.fillStyle = 'rgba(50,40,30,.55)'; g.fillRect(0, y, w, 6); g.fillStyle = 'rgba(255,250,236,.35)'; g.fillRect(0, y + 6, w, 3);   // 깊은 가로 줄눈(사진) — 그늘 + 아랫돌 윗모서리 빛
+      for (let x = ((y / CH) % 2) * CW / 2; x < w; x += CW) { g.fillStyle = 'rgba(60,48,36,.35)'; g.fillRect(x, y, 2, CH); }
+    }
   });
-  add(new T.PlaneGeometry(2.8, 0.7), new T.MeshLambertMaterial({ map: plaque, color: 0xffffff, emissive: 0x1a1006 }), 0, DOOR_H + 1.05, DZ + 0.31);
+  stone.wrapS = stone.wrapT = T.RepeatWrapping;
+  const stoneMat = (rw, rh, tint = 0x9c8b6f) => { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(rw / 1.6, rh / 1.8); return new T.MeshStandardMaterial({ map: t, color: tint, roughness: 0.9, metalness: 0, envMapIntensity: 0.12 }); };
+  const smooth = new T.MeshStandardMaterial({ color: 0x968466, roughness: 0.82, metalness: 0, envMapIntensity: 0.15 });
+  const smoothD = new T.MeshStandardMaterial({ color: 0x75664f, roughness: 0.85, metalness: 0, envMapIntensity: 0.12 });
+  const iron = new T.MeshStandardMaterial({ color: 0x1b1a18, roughness: 0.55, metalness: 0.6, envMapIntensity: 0.5 });
+  const ext = new T.MeshStandardMaterial({ color: 0x9A6A22, metalness: 1, roughness: 0.32, envMapIntensity: 0.9 });     // 금박(문 손잡이 둘레 등 최소)
+  const DZ = L + 0.3, FW = (HW2 - DOOR_W) / 2, FZ = DZ + 0.3, R0 = DOOR_W / 2, AY = DOOR_H, ATOP = AY + R0;   // 아치: 문 위 반원(반지름 = 문 폭 절반)
+  for (const s of [-1, 1]) add(new T.BoxGeometry(FW, CEIL, 0.6), stoneMat(FW, CEIL), s * (DOOR_W / 2 + FW / 2), CEIL / 2, DZ);
+  { // 문 위 벽 — 반원으로 파낸 돌(아치)
+    const sh = new T.Shape(); sh.moveTo(-R0, AY); sh.lineTo(-R0, CEIL); sh.lineTo(R0, CEIL); sh.lineTo(R0, AY); sh.absarc(0, AY, R0, 0, Math.PI, false);
+    const t = stone.clone(); t.needsUpdate = true; t.repeat.set(1 / 1.6, 1 / 1.8);
+    const m = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: 0.6, bevelEnabled: false, curveSegments: 48 }), new T.MeshStandardMaterial({ map: t, color: 0x9c8b6f, roughness: 0.9, envMapIntensity: 0.12 }));
+    m.position.set(0, 0, DZ - 0.3); scene.add(m);
+  }
+  // 문간 옆면(지나갈 때 보이는 두께)
+  for (const s of [-1, 1]) { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(0.4, 3); add(new T.PlaneGeometry(0.6, DOOR_H), new T.MeshLambertMaterial({ map: t, color: 0x9a8a76 }), s * (DOOR_W / 2 - 0.002), DOOR_H / 2, DZ, -s * Math.PI / 2); }
+  { const t = stone.clone(); t.needsUpdate = true; t.repeat.set(2, 0.4); add(new T.PlaneGeometry(DOOR_W, 0.6), new T.MeshBasicMaterial({ map: t, color: 0xb8a68c }), 0, DOOR_H - 0.002, DZ, 0, Math.PI / 2); }
+  // 반원 유리창(판화 · 사진: 아치 윗부분은 유리, 쇠살이 부채꼴로) — 안쪽 전시실 빛이 비친다
+  const fan = new T.Group(); fan.position.set(0, AY, DZ + 0.02); scene.add(fan);
+  fan.add(new T.Mesh(new T.CircleGeometry(R0, 48, 0, Math.PI), new T.MeshStandardMaterial({ color: 0x15130f, roughness: 0.12, metalness: 0.6, envMapIntensity: 1.1, transparent: true, opacity: 0.86 })   /* 11/17: 바깥에서 본 유리는 어둡게(사진) — 하늘빛만 살짝 비침 */));
+  { const bar = (w, h, x, y, rz) => { const m = new T.Mesh(new T.BoxGeometry(w, h, 0.04), iron); m.position.set(x, y, 0.02); m.rotation.z = rz; fan.add(m); };
+    bar(DOOR_W, 0.06, 0, 0.03, 0);                                                           // 문 위 가로대(문틀)
+    for (let k = 1; k < 6; k++) { const a = Math.PI * k / 6; bar(0.03, R0, Math.cos(a) * R0 / 2, Math.sin(a) * R0 / 2, a - Math.PI / 2); }   // 부채살
+    for (const r of [0.55, 1.05]) { const m = new T.Mesh(new T.TorusGeometry(r, 0.016, 6, 48, Math.PI), iron); m.position.z = 0.02; fan.add(m); }
+    const m = new T.Mesh(new T.TorusGeometry(R0 - 0.02, 0.03, 6, 64, Math.PI), iron); m.position.z = 0.02; fan.add(m); }
+  // 아치 테(판화: 여러 겹 띠 + 장미꽃 장식 줄) · 문 양옆으로 내려오는 띠 · 쐐기돌
+  const archBand = (r, tube, m, z) => { const t = new T.Mesh(new T.TorusGeometry(r, tube, 10, 72, Math.PI), m); t.position.set(0, AY, z); scene.add(t); for (const s of [-1, 1]) add(new T.BoxGeometry(tube * 2, AY, tube * 2), m, s * r, AY / 2, z); };
+  archBand(R0 + 0.06, 0.06, smooth, FZ + 0.04); archBand(R0 + 0.3, 0.07, smooth, FZ + 0.05); archBand(R0 + 0.42, 0.045, smoothD, FZ + 0.03);
+  { // 띠 사이 판(평평한 돌) + 장미꽃(둥근 꽃 장식) 줄
+    const sh = new T.Shape(); sh.absarc(0, 0, R0 + 0.36, 0, Math.PI, false); sh.lineTo(-(R0 + 0.36), -AY); sh.lineTo(-(R0 + 0.1), -AY); sh.absarc(0, 0, R0 + 0.1, Math.PI, 0, true); sh.lineTo(R0 + 0.1, -AY); sh.closePath();
+    const m = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: 0.05, bevelEnabled: false, curveSegments: 48 }), smoothD); m.position.set(0, AY, FZ); scene.add(m);
+    const ros = new T.CylinderGeometry(0.045, 0.045, 0.04, 16), cen = new T.SphereGeometry(0.022, 10, 8);
+    const put = (x, y) => { const r = new T.Mesh(ros, smooth); r.rotation.x = Math.PI / 2; r.position.set(x, y, FZ + 0.07); scene.add(r); const c = new T.Mesh(cen, smooth); c.position.set(x, y, FZ + 0.09); scene.add(c); };
+    for (let k = 1; k < 12; k++) { const a = Math.PI * k / 12; put(Math.cos(a) * (R0 + 0.18), AY + Math.sin(a) * (R0 + 0.18)); }
+    for (const s of [-1, 1]) for (let y = AY - 0.45; y > 0.5; y -= 0.62) put(s * (R0 + 0.18), y);
+  }
+  { // 쐐기돌 — 아래가 좁은 돌 + 둘레 잎 장식(판화)
+    const sh = new T.Shape(); sh.moveTo(-0.17, 0); sh.lineTo(0.17, 0); sh.lineTo(0.24, 0.62); sh.lineTo(-0.24, 0.62); sh.closePath();
+    const k = new T.Mesh(new T.ExtrudeGeometry(sh, { depth: 0.22, bevelEnabled: true, bevelSize: 0.015, bevelThickness: 0.015, bevelSegments: 2 }), smooth); k.position.set(0, ATOP - 0.08, FZ); scene.add(k);
+    const sc = new T.Mesh(new T.CylinderGeometry(0.1, 0.12, 0.05, 20), smoothD); sc.rotation.x = Math.PI / 2; sc.position.set(0, ATOP + 0.24, FZ + 0.25); scene.add(sc);
+    for (const s of [-1, 1]) for (let i = 0; i < 4; i++) { const lf = add(new T.SphereGeometry(0.05, 10, 6), smooth, s * (0.17 + i * 0.07), ATOP + 0.36 - i * 0.04, FZ + 0.16); lf.scale.set(1.4, 0.55, 0.45); lf.rotation.z = s * (0.5 - i * 0.18); }
+  }
+  // 기둥 — 받침대 · 받침(둥근 단 둘) · 홈 파인 몸(둥근 기둥) · 코린트식 머리(잎 두 줄 · 소용돌이 · 덮개판)
+  const CX = R0 + 0.72, CR = 0.2, PED = 0.95, SH0 = PED + 0.18, CAP0 = ATOP - 0.05, CAP1 = CAP0 + 0.5;
+  const flute = canvasTex(256, 64, (g, w, h) => {
+    g.fillStyle = '#c0b39c'; g.fillRect(0, 0, w, h);
+    const n = 20, fw = w / n;
+    for (let k = 0; k < n; k++) { const x = k * fw, gr = g.createLinearGradient(x, 0, x + fw, 0); gr.addColorStop(0, 'rgba(255,250,236,.6)'); gr.addColorStop(0.2, 'rgba(70,58,44,.45)'); gr.addColorStop(0.8, 'rgba(70,58,44,.12)'); gr.addColorStop(1, 'rgba(255,250,236,.5)'); g.fillStyle = gr; g.fillRect(x + fw * 0.12, 0, fw * 0.76, h); }
+  });
+  flute.wrapS = T.RepeatWrapping;
+  const fluteMat = new T.MeshStandardMaterial({ map: flute, color: 0x968668, roughness: 0.8, metalness: 0, envMapIntensity: 0.15 });
+  const leafGeo = new T.SphereGeometry(1, 10, 8);
+  for (const s of [-1, 1]) {
+    const x = s * CX;
+    add(new T.BoxGeometry(0.66, PED - 0.12, 0.66), smooth, x, (PED - 0.12) / 2, FZ + 0.33);                 // 받침대
+    add(new T.BoxGeometry(0.72, 0.12, 0.72), smoothD, x, PED - 0.06, FZ + 0.36);
+    add(new T.CylinderGeometry(CR + 0.07, CR + 0.08, 0.1, 32), smooth, x, PED + 0.05, FZ + 0.33);            // 받침 둥근 단
+    add(new T.TorusGeometry(CR + 0.03, 0.035, 10, 32), smooth, x, PED + 0.13, FZ + 0.33, 0, Math.PI / 2);
+    add(new T.CylinderGeometry(CR, CR + 0.01, CAP0 - SH0, 32, 1, true), fluteMat, x, (SH0 + CAP0) / 2, FZ + 0.33);   // 홈 파인 몸
+    add(new T.TorusGeometry(CR + 0.01, 0.02, 8, 32), smooth, x, CAP0 + 0.01, FZ + 0.33, 0, Math.PI / 2);      // 목 고리
+    add(new T.CylinderGeometry(CR + 0.11, CR, 0.42, 32), smoothD, x, CAP0 + 0.23, FZ + 0.33);                  // 머리 몸(종 모양)
+    for (let row = 0; row < 2; row++) for (let i = 0; i < 10; i++) {                                         // 아칸서스 잎 두 줄
+      const a = (i + row * 0.5) / 10 * Math.PI * 2, r = CR + 0.04 + row * 0.04, lf = new T.Mesh(leafGeo, smooth);
+      lf.position.set(x + Math.cos(a) * r, CAP0 + 0.1 + row * 0.15, FZ + 0.33 + Math.sin(a) * r); lf.scale.set(0.055, 0.12, 0.03); lf.lookAt(x + Math.cos(a) * 2, CAP0 + 0.4, FZ + 0.33 + Math.sin(a) * 2); scene.add(lf);
+    }
+    for (const sx of [-1, 1]) { const v = add(new T.TorusGeometry(0.045, 0.018, 8, 20), smooth, x + sx * (CR + 0.1), CAP1 - 0.1, FZ + 0.33 + CR + 0.08); }   // 모서리 소용돌이
+    add(new T.BoxGeometry(0.74, 0.08, 0.74), smooth, x, CAP1 - 0.04, FZ + 0.33);                              // 덮개판
+  }
+  // 띠(엔타블러처) — 아래띠 두 단 · 글씨 띠 · 톱니 처마
+  const EW = 2 * (CX + 0.42), E0 = CAP1, E1 = E0 + 0.3, E2 = E1 + 0.62, E3 = E2 + 0.42;
+  add(new T.BoxGeometry(EW, 0.14, 0.72), smooth, 0, E0 + 0.07, FZ + 0.36); add(new T.BoxGeometry(EW, 0.16, 0.76), smoothD, 0, E0 + 0.22, FZ + 0.38);
+  add(new T.BoxGeometry(EW, E2 - E1, 0.66), smooth, 0, (E1 + E2) / 2, FZ + 0.33);
+  const insc = canvasTex(2048, 300, (g, w, h) => {                                                          // 새긴 글씨 판(판화 그대로)
+    g.fillStyle = '#b9ac96'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 6000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '70,58,44' : '255,248,232'},${Math.random() * 0.05})`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+    g.strokeStyle = 'rgba(60,48,36,.7)'; g.lineWidth = 6; g.strokeRect(40, 34, w - 80, h - 68); g.strokeStyle = 'rgba(255,250,236,.55)'; g.lineWidth = 3; g.strokeRect(48, 42, w - 96, h - 84);
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '500 112px "Times New Roman", Georgia, serif';
+    const txt = 'A·L’INDUSTRIE·ET·AUX·ARTS·', sp = 14;
+    const chars = [...txt], widths = chars.map((c) => g.measureText(c).width + sp), tot = widths.reduce((a, b) => a + b, 0); let x = (w - tot) / 2;
+    chars.forEach((c, i) => { const cx = x + widths[i] / 2; g.fillStyle = 'rgba(255,250,236,.55)'; g.fillText(c, cx + 2, h / 2 + 7); g.fillStyle = 'rgba(48,38,28,.9)'; g.fillText(c, cx, h / 2 + 4); x += widths[i]; });   // 새긴 글자: 아랫모서리 빛 + 파인 그늘
+  });
+  const IW = 3.9;   // 글씨 판 폭 — 휴대폰 세로 화면에서 양끝 글자가 잘리지 않게
+  add(new T.PlaneGeometry(IW, IW * 300 / 2048), new T.MeshStandardMaterial({ map: insc, roughness: 0.85, envMapIntensity: 0.12, color: 0xa89878 }), 0, (E1 + E2) / 2, FZ + 0.665);
+  add(new T.BoxGeometry(EW + 0.1, 0.08, 0.8), smoothD, 0, E2 + 0.04, FZ + 0.4);
+  { const dn = Math.floor((EW + 0.1) / 0.13), dent = new T.InstancedMesh(new T.BoxGeometry(0.07, 0.1, 0.08), smooth, dn), m4 = new T.Matrix4();
+    for (let i = 0; i < dn; i++) { m4.makeTranslation(-EW / 2 + 0.06 + i * 0.13, E2 + 0.13, FZ + 0.84); dent.setMatrixAt(i, m4); } scene.add(dent); }
+  add(new T.BoxGeometry(EW + 0.3, 0.12, 0.98), smooth, 0, E2 + 0.24, FZ + 0.49); add(new T.BoxGeometry(EW + 0.4, 0.1, 1.04), smoothD, 0, E3 - 0.05, FZ + 0.52);
+  // 아치와 기둥 사이 귀퉁이(스팬드럴) — 둥근 메달(사진 · 판화) + 덩굴 잎 부조
+  const spandrel = canvasTex(1024, 512, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    const k = w / (2 * (CX - CR)), cx = w / 2, by = h;                                                       // 아치 밖 귀퉁이만
+    for (const s of [-1, 1]) {
+      const mx = cx + s * (R0 + 0.62) * k * 0.86, my = h * 0.3;
+      g.fillStyle = 'rgba(70,58,44,.55)'; g.beginPath(); g.arc(mx + 3, my + 4, 54, 0, Math.PI * 2); g.fill();
+      g.fillStyle = 'rgba(205,193,172,1)'; g.beginPath(); g.arc(mx, my, 54, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = 'rgba(80,66,50,.7)'; g.lineWidth = 5; g.beginPath(); g.arc(mx, my, 44, 0, Math.PI * 2); g.stroke();
+      for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; g.fillStyle = 'rgba(90,74,56,.55)'; g.beginPath(); g.ellipse(mx + Math.cos(a) * 24, my + Math.sin(a) * 24, 6, 13, a, 0, Math.PI * 2); g.fill(); }
+      g.strokeStyle = 'rgba(90,74,56,.55)'; g.lineWidth = 6;                                                  // 덩굴(메달 양옆으로 말리는 선)
+      for (const d of [-1, 1]) { g.beginPath(); g.moveTo(mx + d * 58, my + 6); g.bezierCurveTo(mx + d * 110, my - 40, mx + d * 150, my + 50, mx + d * 120, my + 90); g.stroke(); g.beginPath(); g.arc(mx + d * 112, my + 70, 18, 0, Math.PI * 1.6); g.stroke(); }
+    }
+  });
+  add(new T.PlaneGeometry(2 * (CX - CR), (2 * (CX - CR)) / 2), new T.MeshStandardMaterial({ map: spandrel, transparent: true, roughness: 0.85, envMapIntensity: 0.12, color: 0x9a8d77 }), 0, ATOP - 0.15, FZ + 0.012);
   // 대기실 — 바닥(흑백 대리석), 옆벽, 천장. 빛은 문틈과 양옆 벽등뿐이라 어둡게
   const marble = canvasTex(256, 256, (g, w, h) => { for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { g.fillStyle = (x + y) % 2 ? '#2a2420' : '#8b8278'; g.fillRect(x * 64, y * 64, 64, 64); } });
   marble.wrapS = marble.wrapT = T.RepeatWrapping; marble.repeat.set(4, 4);
@@ -242,9 +339,9 @@ export function buildSalon(scene, o) {
   for (const s of [-1, 1]) add(new T.PlaneGeometry(12, CEIL), stoneMat(12, CEIL), s * HW, CEIL / 2, L + 6.6, -s * Math.PI / 2);
   add(new T.PlaneGeometry(HW2, 12), new T.MeshLambertMaterial({ color: 0x0e0907, side: T.DoubleSide }), 0, CEIL, L + 6.6, 0, Math.PI / 2);
   const doorTex = (flip) => canvasTex(256, 864, (g, w, h) => {
-    const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, '#2c1a10'); gr.addColorStop(0.5, '#3b2414'); gr.addColorStop(1, '#2a170e'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, '#1f120a'); gr.addColorStop(0.5, '#2b190e'); gr.addColorStop(1, '#1c1009'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 1100; i++) { g.fillStyle = `rgba(0,0,0,${0.04 + Math.random() * 0.06})`; g.fillRect(Math.random() * w, Math.random() * h, 1, 8 + Math.random() * 40); }
-    const panel = (x, y, pw, ph) => { g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(x, y, pw, ph); g.strokeStyle = '#B98A3C'; g.lineWidth = 5; g.strokeRect(x, y, pw, ph); g.strokeStyle = 'rgba(255,226,150,.45)'; g.lineWidth = 1.5; g.strokeRect(x + 10, y + 10, pw - 20, ph - 20); };
+    const panel = (x, y, pw, ph) => { g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(x, y, pw, ph); g.strokeStyle = '#4a3220'; g.lineWidth = 5; g.strokeRect(x, y, pw, ph); g.strokeStyle = 'rgba(150,110,70,.35)'; g.lineWidth = 1.5; g.strokeRect(x + 10, y + 10, pw - 20, ph - 20); };
     panel(28, 30, w - 56, 300); panel(28, 360, w - 56, 150); panel(28, 540, w - 56, 300);
     const hx = flip ? 10 : w - 18; g.fillStyle = '#d8ad55'; g.fillRect(hx, 420, 8, 80); g.fillStyle = '#fff1c0'; g.fillRect(hx + 2, 424, 2, 70);
   });
@@ -254,6 +351,20 @@ export function buildSalon(scene, o) {
     const face = new T.MeshStandardMaterial({ map: doorTex(s > 0), roughness: 0.42, metalness: 0.1, envMapIntensity: 0.5 });
     const d = new T.Mesh(new T.BoxGeometry(DOOR_W / 2, DOOR_H, 0.09), [doorWood, doorWood, doorWood, doorWood, face, face]);
     d.position.set(-s * DOOR_W / 4, DOOR_H / 2, 0); hinge.add(d);
+    // 11/17: 판 둘레 돋은 몰딩(그림 판 자리 그대로) · 놋쇠 손잡이 — 문짝이 평평한 그림처럼 보이지 않게
+    const LW = DOOR_W / 2, kx = LW / 256, ky = DOOR_H / 864, mold = new T.MeshStandardMaterial({ color: 0x3a2214, roughness: 0.5, metalness: 0, envMapIntensity: 0.6 });
+    const rim = (x0, y0, pw, ph) => {
+      const cx = -LW / 2 + (x0 + pw / 2) * kx, cy = DOOR_H / 2 - (y0 + ph / 2) * ky, W2 = pw * kx, H2 = ph * ky, t = 0.035;
+      for (const [w, h, x, y] of [[W2 + t, t, cx, cy + H2 / 2], [W2 + t, t, cx, cy - H2 / 2], [t, H2, cx - W2 / 2, cy], [t, H2, cx + W2 / 2, cy]]) {
+        for (const zs of [1, -1]) { const m = new T.Mesh(new T.BoxGeometry(w, h, 0.03), mold); m.position.set(x, y, zs * 0.058); d.add(m); }
+      }
+    };
+    rim(28, 30, 200, 300); rim(28, 360, 200, 150); rim(28, 540, 200, 300);
+    const hx = (s > 0 ? -LW / 2 + 0.07 : LW / 2 - 0.07);
+    for (const zs of [1, -1]) {
+      const hd = new T.Mesh(new T.CylinderGeometry(0.018, 0.018, 0.5, 14), brass); hd.position.set(hx, DOOR_H / 2 - 0.65, zs * 0.11); d.add(hd);
+      for (const dy of [0.22, -0.22]) { const st = new T.Mesh(new T.CylinderGeometry(0.012, 0.012, 0.07, 10), brass); st.rotation.x = Math.PI / 2; st.position.set(hx, DOOR_H / 2 - 0.65 + dy, zs * 0.075); d.add(st); }
+    }
     return { hinge, s };
   });
   // 문틈의 빛 — 가운데 세로 한 줄(가늘게)과 문 아래 바닥으로 새는 빛

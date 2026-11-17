@@ -330,8 +330,8 @@ const CAMK = ['x', 'y', 'z', 'tx', 'ty', 'tz', 'nx', 'ny'];
 const cam = { x: 0, y: HALL.EYE, z: 10, tx: 0, ty: 4, tz: 0, nx: 0, ny: 0, sx: 0, sy: 0 };
 let camA = { ...cam }, camKey = 'wall', camT0 = 0, camMs = 1, camB = { ...cam };
 function camFor(k) {
-  if (k === 'door') {   // 대기실 — 문과 문틀, 위의 명판까지 한 화면에
-    return fit({ cx: 0, cy: 3.55, w: 4.3, h: 7.3, z: HALL.L + 0.7 }, { l: 0, r: W, t: H * 0.06, b: H * 0.97 }, HALL.EYE);
+  if (k === 'door') {   // 11/17 팔레 드 랭뒤스트리 정문 — 기둥 둘 · 아치 · 글씨 띠 · 처마까지 한 화면에
+    return fit({ cx: 0, cy: 4.35, w: 5.0, h: 9.0, z: HALL.L + 0.7 }, { l: 0, r: W, t: H * 0.06, b: H * 0.97 }, HALL.EYE);
   }
   if (k === 'wall') {   // 후보작 벽 — 역할 문장 아래부터 안내 위까지, 눈높이에서 정면
     const rb = roleEl.getBoundingClientRect(), top = Math.max(safeT + 96, rb.bottom - stage.getBoundingClientRect().top + 14);
