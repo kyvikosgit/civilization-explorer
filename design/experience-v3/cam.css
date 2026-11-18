@@ -178,6 +178,7 @@
 .v3-cam.sim-on.locked .sim{padding-bottom:46vh}
 .v3-cam .sim-view{position:relative;display:inline-flex;max-width:100%;max-height:100%;animation:v3hand 6s ease-in-out infinite alternate}
 @keyframes v3hand{from{transform:translate(-5px,-3px) scale(1)}to{transform:translate(5px,4px) scale(1.025)}}
+.v3-cam.locked .sim-view{animation-play-state:paused}   /* 11/18: 찾은 뒤엔 손떨림 흉내를 멈춘다 — 영상 · 그림 전환 때 틀이 흔들리지 않게 */
 .v3-cam .sim-art{display:block;max-width:100%;max-height:calc(100dvh - 210px);object-fit:contain;box-shadow:0 16px 40px rgba(0,0,0,.6);transition:max-height .45s cubic-bezier(.2,.8,.2,1),box-shadow .5s}
 .v3-cam.locked .sim-art{max-height:calc(54dvh - 74px)}
 .v3-cam.sim-on .err{display:none}

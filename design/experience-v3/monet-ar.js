@@ -9,6 +9,8 @@ import { store } from './store.js';
 import { collect, mountEnd, showComplete } from './done.js';
 
 const task = ZONES.find((z) => z.id === 'monet').tasks[0];
+// 11/18: 해돋이는 찾은 뒤 아래에 건너뛰기 단추 하나뿐 — 그림 칸을 위로 올리거나 줄이지 않는다(영상 · 그림 전환 때 틀이 움직이지 않게)
+{ const st = document.createElement('style'); st.textContent = '.v3-cam.sim-on.locked .sim{padding-bottom:150px}.v3-cam.locked .sim-art{max-height:calc(100dvh - 210px)}'; document.head.appendChild(st); }
 const V3 = '../../experience-v3/';
 // 11/18: 해돋이 원본 하나로 통일 — 마르모탕 원본(img/sunrise_original.jpg, design/sunrise-brief 5773px 축소) · 영상은 그 색에 맞춘 판(video/sunrise-scene-graded.mp4). sunrise_target.jpg 는 인식용으로 대비를 올린 판이라 화면에 쓰지 않는다
 const VIDEO = new URL(V3 + 'video/sunrise-scene-graded.mp4', document.baseURI).href;
@@ -194,7 +196,7 @@ function inPlace(rect, then, onSkip, follow) {
   el.querySelector('.bl-skip')?.addEventListener('click', end);
 }
 
-// ── 그림이 된 그 자리에서 → 페이지의 액자 자리로 옮겨 가며 카메라를 닫고 끝 줄
+// ── 그림이 된 그 자리에서 — 11/18: 옮겨 가지 않는다. 영상이 걷힌 그 자리에 원본 그림을 그대로 두고 카메라를 닫은 뒤 결과 화면으로
 async function handoff(rect) {
   const r = rect || centerRect();
   const el = document.createElement('div');
@@ -205,19 +207,16 @@ async function handoff(rect) {
   box(paint, r);
   await Promise.all([
     paint.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: 'forwards' }).finished,
-    bg.animate([{ opacity: 0 }, { opacity: 0.92 }], { duration: 450, easing: 'ease-out', fill: 'forwards' }).finished,
+    bg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out', fill: 'forwards' }).finished,
   ]);
   closeCam();
   window.__c5sun.endNow();
-  await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
-  const to = frameRect() || r;
-  const move = { duration: 1100, easing: EASE, fill: 'forwards' };
-  paint.animate([kf(r), kf(to)], move);
-  await bg.animate([{ opacity: 0.92 }, { opacity: 0 }], move).finished;
-  await el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).finished;
-  el.remove();
+  await wait(reduceMotionOn() ? 0 : 700);
   finishMission();
+  await wait(500);
+  el.remove();
 }
+const reduceMotionOn = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // 11/03: 영상 ↔ 그림 전환이 한 바퀴 돌면 수집품 — 끝 줄 [목록으로 | 다음 미션(출구)] · 체험 더보기(연작 보기)
 // 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
 //   11/18: 뒤 장면도 끝 상태로(안 그러면 '체험 더보기'로 연작 벽에 갔을 때 비추기 상태라 안내가 다시 뜬다)
