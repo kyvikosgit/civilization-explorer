@@ -10,9 +10,9 @@ import { collect, mountEnd, showComplete } from './done.js';
 
 const task = ZONES.find((z) => z.id === 'monet').tasks[0];
 const V3 = '../../experience-v3/';
-// 문서 기준(<base>)이 v2 폴더 — 영상 · 그림은 거기 있다
-const VIDEO = new URL('video/sunrise-scene.mp4', document.baseURI).href;
-const PAINT = new URL('img/c5/sunrise-painting.jpg', document.baseURI).href;
+// 11/18: 해돋이 원본 하나로 통일 — 인식 원본(img/sunrise_target.jpg)과 같은 그림 · 영상은 그 색에 맞춘 판(video/sunrise-scene-graded.mp4)
+const VIDEO = new URL(V3 + 'video/sunrise-scene-graded.mp4', document.baseURI).href;
+const PAINT = new URL(V3 + 'img/sunrise_target.jpg', document.baseURI).href;
 const VAR = 752 / 560;                                   // 영상 가로/세로
 // 타깃 세로/가로 — mind/sunrise.mind 컴파일 순서(해돋이 원본 img/sunrise_target.jpg · 생라자르 · 에트르타 · 수련)
 const RATIO = [1241 / 1600, 0.744, 0.801, 1.255];
@@ -21,7 +21,7 @@ const WIN = targets.findIndex((t) => t.correct);
 const guide = makeGuide();
 // 11/18: 르루아의 글은 가상의 관람객이 나누는 대화 — 원문에 충실한 번역만 쓰고, 비평가가 제목을 두고 한 말처럼 쓰지 않는다
 const INFO = {
-  coach: { img: V3 + 'img/hero_sunrise.jpg', kind: 'gilt', land: true },
+  coach: { img: V3 + 'img/sunrise_target.jpg', kind: 'gilt', land: true },
   title: '비평가가 비웃은 그림을 찾아\n카메라로 비춰 보세요',
   sub: '“막 그리기 시작한 벽지도\n이 바다 그림보다는 더 완성돼 있다.”',
   buttons: [{ label: '그림 찾기', cam: true, on: start }],
@@ -68,8 +68,8 @@ function start() {
         // 카메라 없이 고르기: 화면에 보이는 그 그림 자리에서 — 해설 판이 뜨면 그림이 위로 올라가며 작아진다(cam.css .locked, .45초). 다 옮겨 간 뒤에 잰다
         await wait(500);
         const r = ui.simRect?.();
-        await new Promise((done) => inPlace(r, done, (f) => { skip = f; }));
-        handoff(r);
+        await new Promise((done) => inPlace(r, done, (f) => { skip = f; }, () => ui.simRect?.()));   // 11/18: 그림 칸이 움직여도 영상이 금색 모서리 안에 맞게 따라간다
+        handoff(ui.simRect?.() || r);
       }
     },
   });
@@ -155,7 +155,7 @@ function sunFx({ THREE, mindar, anchors }) {
       const vis = anchors[WIN].group.visible;
       U.on.value += ((want && vis ? 1 : 0) - U.on.value) * (want ? 0.18 : 0.14);
       const now = performance.now();
-      if (want && vis && ref && now - last > 250) {
+      if (false && want && vis && ref && now - last > 250) {   // 11/18: 카메라 색 실시간 맞춤 끔 — 색이 누렇다 푸르다 오가던 원인. 영상은 원본 색으로 미리 맞춤
         last = now;
         const c = camStats();
         if (c) {
@@ -170,14 +170,16 @@ function sunFx({ THREE, mindar, anchors }) {
 }
 
 // ── 화면 위 고정 자리에서(카메라 없이 고르기 · 다시 보기): 그 그림 자리 그대로 영상이 살아났다가 다시 그림이 된다
-function inPlace(rect, then, onSkip) {
+function inPlace(rect, then, onSkip, follow) {
   const r = rect || centerRect();
   const el = document.createElement('div');
   el.className = 'v3-bloom';
   el.innerHTML = `<video playsinline muted autoplay preload="auto" src="${VIDEO}"></video>${onSkip ? '' : '<button class="bl-skip" type="button">건너뛰기</button>'}`;
   document.body.appendChild(el);
   const vid = el.querySelector('video');
-  box(vid, r); vid.play().catch(() => setTimeout(() => { if (vid.paused) end(); }, 1500));   // 재생이 막혀도(자동 재생 차단 등) 멈춰 있지 않게
+  box(vid, r);
+  if (follow) { const tick = () => { if (!el.isConnected) return; const n = follow(); if (n) box(vid, n); requestAnimationFrame(tick); }; requestAnimationFrame(tick); }
+  vid.play().catch(() => setTimeout(() => { if (vid.paused) end(); }, 1500));   // 재생이 막혀도(자동 재생 차단 등) 멈춰 있지 않게
   vid.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'ease-out', fill: 'forwards' });
   setTimeout(() => el.classList.add('open'), 900);
   let over = false;

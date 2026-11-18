@@ -147,7 +147,7 @@ export const ZONES = [
       cta: '이 그림',
       targets: [
         // sunrise.mind 컴파일 순서 그대로 — 해돋이가 0번(비율로 확인: 0.769 · 0.744 · 0.801 · 1.255)
-        { id: 's2', title: '인상, 해돋이', sub: '클로드 모네, 1872', img: 'img/hero_sunrise.jpg', correct: true },
+        { id: 's2', title: '인상, 해돋이', sub: '클로드 모네, 1872', img: 'img/sunrise_target.jpg', correct: true },
         { id: 's1', title: '생라자르역', sub: '클로드 모네, 1877', img: 'img/z_lazare.jpg' },
         { id: 's3', title: '에트르타의 마네포르트', sub: '클로드 모네, 1883', img: 'img/z_etretat.jpg' },
         { id: 's4', title: '수련 연못', sub: '클로드 모네, 1900', img: 'img/z_giverny.jpg' },
@@ -156,7 +156,7 @@ export const ZONES = [
       successTitle: '정답입니다',
       successBody: '비웃음에서 태어난 이름\n\n비평가 루이 르루아는 이 그림의 제목을 비꼬아, 전시를 다룬 글에 「인상주의자들의 전시회」라는 제목을 붙였습니다. 글 속 관람객은 이 그림 앞에서 이렇게 말합니다.\n"인상이라… 그럴 줄 알았지. 인상을 받았으니 뭔가 인상이 들어 있긴 하겠지."\n"막 그리기 시작한 벽지도 이 바다 그림보다는 더 완성돼 있다."\n비웃으며 붙인 이 이름은 그대로 한 화파의 이름이 되었습니다.',
       after: '1874년 봄, 나다르의 옛 사진관에서 열린 첫 전시.\n비웃음으로 붙은 그 이름은\n곧 그들 스스로의 이름이 되었다.',   // 11/18: 맺음줄
-      item: { name: '인상, 해돋이', sub: '클로드 모네, 1872', img: 'img/hero_sunrise.jpg' },
+      item: { name: '인상, 해돋이', sub: '클로드 모네, 1872', img: 'img/sunrise_target.jpg' },
     }],
   },
 ];
