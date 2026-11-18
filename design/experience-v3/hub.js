@@ -12,6 +12,7 @@ const CHEV = '<svg class="ico chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/>
 // 구역 이름(번호는 왼쪽 칸에 있다). 제목과 같으면 쓰지 않는다
 const place = (z) => { const l = z.loc.replace('4F · ', '').replace(`${z.no} `, ''); return l === z.title ? '' : l; };
 
+const nadarGot = () => { try { return !!JSON.parse(localStorage.getItem('m100v3_nadar') || 'null')?.id; } catch { return false; } };
 function render() {
   const got = COLLECT_IDS.filter((id) => store.saved(id));
   $('#tally').textContent = `${got.length} / ${COLLECT_IDS.length}`;
@@ -22,17 +23,18 @@ function render() {
   $('#rows').innerHTML = ZONES.map((z) => {
     const col = z.tasks.filter((t) => t.collect);
     let st = '', ok = false;
-    if (z.id === 'nadar') st = '촬영 · QR로 사진 받기';
-    else if (col.length && col.every((t) => store.saved(t.id))) { st = '수집함에 담음'; ok = true; }
+    // 11/18: 상태 낱말 통일 — 수집품은 '모음', 나다르는 사진을 받았으면(photo.html 이 m100v3_nadar 에 남김) '사진 받음'
+    if (z.id === 'nadar') { if (nadarGot()) { st = '사진 받음'; ok = true; } else st = '촬영 · QR로 사진 받기'; }
+    else if (col.length && col.every((t) => store.saved(t.id))) { st = '모음'; ok = true; }
     return `<a class="row" href="${PAGE[z.id]}"><span class="no">${esc(z.no)}</span>
       <span class="b"><span class="tt">${esc(z.title)}</span><span class="st${ok ? ' ok' : ''}">${esc([place(z), st].filter(Boolean).join(' · '))}</span></span>${CHEV}</a>`;
   }).join('') + `<a class="row exit" href="exit.html"><span class="no">출구</span><span class="b"><span class="tt">기념품 받기</span>
-    <span class="st">${store.redeemed() ? '기념품을 받았습니다' : got.length === COLLECT_IDS.length ? '모두 모았습니다 · 직원에게 보여 주세요' : `${COLLECT_IDS.length}가지를 모으면 · 지금 ${got.length}`}</span></span>${CHEV}</a>`;
+    <span class="st">${store.redeemed() ? '기념품을 받았습니다' : got.length === COLLECT_IDS.length ? '모두 모았습니다 · 직원에게 보여 주세요' : `${COLLECT_IDS.length}가지 중 ${got.length}가지 모음`}</span></span>${CHEV}</a>`;
 }
 $('#reset').onclick = () => {
   if (!confirm('수집·정답·기념품 기록을 모두 지울까요?')) return;
   store.reset();
-  try { localStorage.removeItem('m100v3_atelier_seen'); sessionStorage.clear(); } catch {}
+  try { localStorage.removeItem('m100v3_atelier_seen'); localStorage.removeItem('m100v3_nadar'); sessionStorage.clear(); } catch {}
   render();
 };
 addEventListener('pageshow', render);

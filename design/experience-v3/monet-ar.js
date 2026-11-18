@@ -19,15 +19,20 @@ const RATIO = [1241 / 1600, 0.744, 0.801, 1.255];
 const targets = task.targets.map((t) => ({ ...t, img: V3 + t.img }));
 const WIN = targets.findIndex((t) => t.correct);
 const guide = makeGuide();
+// 11/18: 르루아의 글은 가상의 관람객이 나누는 대화 — 원문에 충실한 번역만 쓰고, 비평가가 제목을 두고 한 말처럼 쓰지 않는다
 const INFO = {
   coach: { img: V3 + 'img/hero_sunrise.jpg', kind: 'gilt', land: true },
-  title: '“그냥 인상에 지나지 않는다”',
-  sub: '모네 전시관의 〈인상, 해돋이〉에 카메라를 비춰 보세요',
+  title: '비평가가 비웃은 그림을 찾아\n카메라로 비춰 보세요',
+  sub: '“막 그리기 시작한 벽지도\n이 바다 그림보다는 더 완성돼 있다.”',
   buttons: [{ label: '그림 찾기', cam: true, on: start }],
+  note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
 };
-function showGuide() { if (!guide.shown && window.__c5sun.state === 'scan') guide.show(INFO); }
-setTimeout(showGuide, 3200);                     // 조명이 다 켜진 뒤
+const SOLVED = store.saved(task.id);
+function showGuide() { if (!SOLVED && !guide.shown && window.__c5sun?.state === 'scan') guide.show(INFO); }
+const guideT = SOLVED ? 0 : setTimeout(showGuide, 3200);                     // 조명이 다 켜진 뒤
 window.addEventListener('c5:scan', showGuide);
+// 역할 줄 — 조명이 켜질 때(monet.js 의 lit, 1.9초) 함께
+if (!SOLVED) setTimeout(() => document.getElementById('role')?.classList.add('in'), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1900);
 // 다시 보기: 페이지 액자 속 그림이 그 자리에서 다시 장면이 된다
 window.addEventListener('c5:replay', () => {
   document.getElementById('sunEnd').classList.remove('on');
@@ -172,7 +177,7 @@ function inPlace(rect, then, onSkip) {
   el.innerHTML = `<video playsinline muted autoplay preload="auto" src="${VIDEO}"></video>${onSkip ? '' : '<button class="bl-skip" type="button">건너뛰기</button>'}`;
   document.body.appendChild(el);
   const vid = el.querySelector('video');
-  box(vid, r); vid.play().catch(() => {});
+  box(vid, r); vid.play().catch(() => setTimeout(() => { if (vid.paused) end(); }, 1500));   // 재생이 막혀도(자동 재생 차단 등) 멈춰 있지 않게
   vid.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'ease-out', fill: 'forwards' });
   setTimeout(() => el.classList.add('open'), 900);
   let over = false;
@@ -183,6 +188,7 @@ function inPlace(rect, then, onSkip) {
   };
   onSkip?.(end);
   vid.addEventListener('ended', end);
+  vid.addEventListener('error', end);   // 11/18: 영상을 못 불러오면 멈춰 있지 않고 바로 그림으로
   el.querySelector('.bl-skip')?.addEventListener('click', end);
 }
 
@@ -212,9 +218,11 @@ async function handoff(rect) {
 }
 // 11/03: 영상 ↔ 그림 전환이 한 바퀴 돌면 수집품 — 끝 줄 [목록으로 | 다음 미션(출구)] · 체험 더보기(연작 보기)
 // 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
-if (store.saved(task.id)) setTimeout(() => finishMission(), 0);
+//   11/18: 뒤 장면도 끝 상태로(안 그러면 '체험 더보기'로 연작 벽에 갔을 때 비추기 상태라 안내가 다시 뜬다)
+if (SOLVED) setTimeout(() => { clearTimeout(guideT); try { window.__c5sun?.endNow(); } catch {} finishMission(); }, 0);
 function finishMission() {
   // 11/06: 미션 완료는 구역 공통 화면(done.js) — 체험 더보기 = 연작 보기
+  //   11/18: 제목은 해설의 첫 줄(이름 줄과 겹치지 않게), 맺음줄 note
   const [head, ...body] = task.successBody.split('\n\n');
-  showComplete('monet', { item: task.item, title: head, body: body.join('\n\n'), more: (d) => { d.hide(); document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); setTimeout(() => b.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200); } });
+  showComplete('monet', { item: task.item, title: head, body: body.join('\n\n'), note: task.after, more: (d) => { d.hide(); document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); setTimeout(() => b.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200); } });
 }

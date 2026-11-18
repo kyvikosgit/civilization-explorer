@@ -16,8 +16,10 @@ const c1 = () => window.__c1;
 let stage = 'start', ended = false;
 
 // ── 거리에서: 칼럼으로
+// 11/18: 안내 그림은 글자 없는 빈 전단지 — 후보 전단지(오답 · 정답)를 미리 보여 주지 않는다
+const COACH = { img: V3 + 'img/coach_paper.svg', kind: 'paper' };
 const START = {
-  coach: { img: V3 + 'img/fl_bonmarche.jpg', kind: 'paper' },
+  coach: COACH,
   title: '모리스 칼럼의 전단지를 찾아 보세요',
   sub: '카페 게르부아에 매주 모이는 예술가들의 모임 이름이\n거리의 모리스 칼럼 전단지에 적혀 있습니다',
   buttons: [{ label: '칼럼으로 가기', on: () => toColumn() }],
@@ -57,7 +59,7 @@ function toColumn() { stage = 'walk'; document.body.classList.add('walked'); gui
 
 // ── 칼럼의 전단지
 const FLYER = {
-  coach: { img: V3 + 'img/fl_bonmarche.jpg', kind: 'paper' },
+  coach: COACH,
   title: '그 모임 이름이 뭐였더라?',
   sub: '칼럼에 붙은 전단지 가운데\n그 모임 이름이 적힌 것을 찾아 비춰 보세요',
   buttons: [{ label: '전단지 찾기', cam: true, on: openFlyer }],
@@ -94,7 +96,7 @@ async function win() {
 function showEnd() {
   // 11/06: 미션 완료는 구역 공통 화면(done.js) — 벽면 대화(체험 더보기)에서 돌아와도 같은 화면
   const [name, , ...rest] = flyer.successBody.split('\n');
-  showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), more: (d) => { d.hide(); openPeople(); } });
+  showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), note: flyer.note, more: (d) => { d.hide(); openPeople(); } });
 }
 
 // 끝난 뒤 뒤로 = 목록으로(옛 단계 — 칼럼 · 거리 — 로 되돌아가면 할 일이 없다)
@@ -109,7 +111,10 @@ window.addEventListener('c1:ready', () => {
   const t0 = Date.now();
   if (ended) return;
   // 11/17: '칼럼으로 가기' 단추 단계를 뺌 — 거리 첫 문장을 읽을 틈을 둔 뒤 저절로 칼럼 앞으로 걸어간다
-  const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => { if (stage === 'start') toColumn(); }, 1400); else setTimeout(go, 200); };
+  // 11/18: 역할 문장이 다 찍힌 뒤(글자 수 × 40ms, c1.css typeIn) 3초 동안 그대로 읽히게 두고 넘어간다
+  const n = document.querySelectorAll('.role-head h1 .ch').length || 30;
+  const READ = 150 + n * 40 + 340 + 3000;
+  const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => { if (stage === 'start') toColumn(); }, READ); else setTimeout(go, 200); };
   go();
 });
 window.addEventListener('c1:step', (e) => {

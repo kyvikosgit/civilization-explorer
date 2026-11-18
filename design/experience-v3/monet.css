@@ -8,3 +8,10 @@ body:not(.more) .series-link{visibility:hidden!important;pointer-events:none}
 /* 출구는 끝 줄의 [다음 미션으로 · 출구]가 맡는다 — 옛 '오늘의 관람객 보기' 링크는 늘 숨김 */
 .exit-link{display:none!important}
 .paused{letter-spacing:0!important}
+
+/* 11/18 역할 줄(guide.css .v3-role) — 예전 머리글 자리를 그대로 쓰되(조명 · 몰입 때 숨김 규칙 유지) 살롱과 같은 모양으로 화면 위에 겹친다 */
+body.c5 .room .role-hd.v3-role{position:fixed;left:0;right:0;max-width:480px;margin:0 auto;z-index:1;padding-top:calc(env(safe-area-inset-top) + 18px)}
+body.c5 .topbar{position:relative;z-index:42;background:transparent}
+/* 조명이 켜지는 동안의 어둠(.spot, z 40) 위에 — 역할 줄이 어둠에 묻히지 않게(조명과 함께 나타난다) */
+body.c5 .room .role-hd.v3-role{z-index:41}
+body.c5.spot-on .room .role-hd.v3-role{background:none}

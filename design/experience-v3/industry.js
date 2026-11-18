@@ -1,4 +1,4 @@
-// v3 사무실(11/03 미팅: 단순하게) — 생라자르 입장(v2) → "화가들을 밖으로 이끈 것은?" → 기차표 스캔
+// v3 사무실(11/03 미팅: 단순하게) — 생라자르 입장(v2) → 역할 줄 → 안내 시트(기차표를 찾아 비추기, 11/18: [사무실 살펴보기] 단계 없이 바로) → 기차표 스캔
 //   → 안내판 글자판이 넘어가며 지도 · 르아브르까지 노선이 그려지고 → v2 발권 연출(표가 쿵 · 날인 탁) → 표가 수집함으로 → 끝 줄 [목록으로 | 다음 미션]
 //   체험 더보기(메인 미션 뒤): 르아브르 이야기(그 자리 사진 · 거기서 그린 그림) · 사무실 자료
 import { ZONES } from './data.js';
@@ -19,17 +19,26 @@ $('#clueRow').insertAdjacentHTML('beforebegin', `<p class="clue-lead">${zone.wal
 //   아이폰 앱(빌드 9, 유니버설 링크): 카메라를 켜면 아이폰이 태그를 스스로 읽지 않는다 — 그래서 이 안내 화면(카메라 꺼짐)에서 태그를 대게 한다.
 //   대면 아이폰이 화면 위에 알림을 띄우고, 누르면 앱이 이 페이지에 넘긴다(window.__m100tag). 카메라는 [기차표 찾기]를 누를 때만
 const IOS_UL = !!(window.__m100app?.ul && window.ReactNativeWebView);
+// 11/18: 안내 그림은 글자 없는 빈 기차표 — 정답 표를 미리 보여 주지 않는다
 const ASK = {
-  coach: { img: V3 + 'img/t_ticket.png', kind: 'ticket' },
-  title: task.title,
-  sub: IOS_UL ? '책상 위에서 노르망디행 기차표를 찾아\n휴대폰 윗부분을 대 보세요\n화면 위에 알림이 뜨면 눌러 주세요' : '책상 위에서 노르망디행 기차표를 찾아 비춰 보세요',
+  coach: { img: V3 + 'img/coach_ticket.svg', kind: 'ticket' },
+  title: IOS_UL ? '책상 위의 기차표를 찾아\n휴대폰 윗부분을 대 보세요' : task.title,
+  sub: IOS_UL ? '화면 위에 알림이 뜨면 눌러 주세요' : '',
   buttons: [{ label: '기차표 찾기', cam: true, on: scan }],
+  note: IOS_UL ? '' : '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
 };
-$('#introGo').addEventListener('click', () => {
-  window.intro.finish();
+// 도입이 끝나면(또는 눌러 건너뛰면) 역할 줄을 읽을 틈을 두고 안내 시트가 올라온다 — 살롱과 같은 순서
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let askT = 0;
+function showAsk() {
+  if (won || guide.shown || document.body.classList.contains('more')) return;
   document.body.classList.add('asked');
-  setTimeout(() => guide.show(ASK), 300);
-});
+  guide.show(ASK);
+}
+// 안내판은 역할 줄 바로 아래 — 역할 줄 글 끝(설명 줄 아래)을 재서 넘긴다(글이 두 줄이 되는 좁은 폰에서도 겹치지 않게)
+function placeBoard() { const l = $('#role .lead'); if (l) $('#intro').style.setProperty('--role-b', `${l.offsetTop + l.offsetHeight}px`); }
+placeBoard(); addEventListener('resize', placeBoard); document.fonts?.ready.then(placeBoard);
+window.addEventListener('c2:played',() => { clearTimeout(askT); askT = setTimeout(showAsk, RM ? 0 : 1100); });
 function scan() {
   guide.busy('카메라를 켜는 중');
   openCam({
@@ -66,7 +75,7 @@ function showResult() {
   const [head, ...body] = task.successBody.split('\n\n');
   showComplete('industry', { item: task.item, title: head, body: body.join('\n\n'), note: task.after, more: (done) => { done.hide(); openMore(); } });
 }
-if (store.saved(task.id)) { won = true; setTimeout(showResult, 0); }
+if (store.saved(task.id)) { won = true; clearTimeout(askT); setTimeout(showResult, 0); }
 async function win() {
   if (won) return;
   won = true;

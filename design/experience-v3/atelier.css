@@ -55,3 +55,10 @@ html,body{overflow-x:hidden}
 .q-hd .eyebrow{color:#E9C77A;font-weight:700;letter-spacing:.02em}
 .q-hd h1{font-size:27px;line-height:1.25}
 .q-hd .sub{font-size:14.5px;line-height:1.55;color:rgba(255,247,234,.72)}
+
+/* 11/18 역할 줄(guide.css .v3-role) — 장면 위 왼쪽 위에 고정. 뒤로 단추(topbar z 30) 아래 */
+.tube .v3-role{position:fixed;max-width:480px;margin:0 auto;z-index:1}
+body.tube>.topbar{z-index:2}
+/* 안내 시트가 올라오면 장면(3D · 사진 한 몸)을 위로 올려, 이젤의 그림이 시트에 가리지 않게 — atelier.js 가 --lift 를 정한다 */
+.room-bg{transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+body.lifted .room-bg{transform:translateY(calc(-1 * var(--lift, 0px)))}

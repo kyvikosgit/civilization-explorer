@@ -1,5 +1,7 @@
-// v3 나다르 — v2 c4.js 사본. 입장 · 초상화 벽은 그대로. 바꾼 곳: 아래는 촬영 안내 + [QR 스캔] — 사진은 현장의 옛 카메라(nadar-booth.html)가 찍어 벽 액자(frame.html)에 걸고, 관람객은 QR 로 받는다(photo.html)
-// C4 나다르 사진관 — 두 화면(2D, 서버 없음 · 업로드 없음)
+// v3 나다르 — v2 c4.js 사본. 입장 · 초상화 벽은 그대로. 바꾼 곳: 역할 줄 + 아래 안내 시트(guide.js) [QR 스캔하고 사진 받기] — 사진은 현장의 옛 카메라(nadar-booth.html)가 찍으면
+//   서버에서 그 시대 사진관 화풍으로 바꿔 서버 저장소에 두고(일정 기간 뒤 자동 삭제) 벽 액자(frame.html)에 걸고, 관람객은 QR 로 받는다(photo.html)
+// (아래는 v2 원문 주석 — v2 당시: 2D, 서버 없음 · 업로드 없음)
+// C4 나다르 사진관 — 두 화면
 //   0. 들어가기: 나다르가 찍은 35, boulevard des Capucines 정면 사진을 밤으로 옮긴 판(img/c4n) — 서명 간판이 한 글자씩 · 창이 켜짐 · 다가감
 //      → 유리 스튜디오의 마그네슘 섬광 속으로 → 하얗게 바랜 화면 아래에서 초상화 벽이 깊이에서 밀려 나오고 연기가 흩어진다. 누르면 건너뜀
 //   1. 사진관 벽: 24명의 초상화를 화면 가득 살롱식으로(크기 · 모양 제각각, 초당 9px 위로, 두 벌을 이어 끊김 없이 — 한 화면에 같은 사람은 하나).
@@ -22,6 +24,7 @@ import { joinRoom, room } from './link.js';
 import { store } from './store.js';
 import { openQR } from './qrscan.js';
 import { mountEnd } from './done.js';
+import { makeGuide } from './guide.js';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (q) => Array.from(document.querySelectorAll(q));
@@ -443,7 +446,7 @@ const intro = $('#intro');
       setTimeout(() => sm.burst(innerWidth / 2, innerHeight * 0.5, 18, { speed: 200, size: [240, 400], life: [0.9, 1.5], alpha: 0.2 }), 130);
     } catch (e) { /* noop */ }
   };
-  const enter = () => { stage.classList.add('entered'); document.body.classList.remove('intro-on'); };
+  const enter = () => { stage.classList.add('entered'); document.body.classList.remove('intro-on'); window.dispatchEvent(new CustomEvent('c4:entered')); };
   const finish = (fast) => {
     if (done) return; done = true; introState = 'done';
     timers.forEach(clearTimeout);
@@ -641,7 +644,7 @@ $('#saveMe').addEventListener('click', () => {
   saveChoice('c4me', { kind: 'portrait-duo', img });
   markSaved(b, true); buzz(); toast('수집함에 저장했습니다');
 });
-// ── 벽의 액자로 — 현상한 사진(명함판)을 액자 화면으로 보낸다. 사진은 서버에 남지 않는다
+// ── 벽의 액자로(체험 더보기) — 폰에서 현상한 사진(명함판)을 실시간 연결(link.js)로 액자 화면에 보낸다
 const link = joinRoom({ ack: (p) => { if (p?.id === pending) { pending = null; clearTimeout(ackT); frameSt('벽의 액자를 보세요. 당신의 사진이 걸렸습니다.', 'ok'); buzz(); } } });
 let pending = null, ackT = 0;
 const frameSt = (t, c = '') => { const e = $('#frameSt'); e.textContent = t; e.className = `frame-st ${c}`; };
@@ -661,7 +664,18 @@ meState('idle');
 void loadImage; void room;
 // 더보기(내 초상)에도 공통 끝 줄 — 목록으로 · 다음 미션(모네 전시관)
 if (document.body.classList.contains('more')) mountEnd($('#meEnd'), 'nadar', {});
-$('#scanQR').addEventListener('click', () => openQR({ onUrl: (u) => { location.href = u; } }));
+// 11/18: 살롱과 같은 안내 시트 — 촬영 방식(nadar-booth.html: 누르는 순간 바로 찍힘)과 액자 시간(frame.html: 생성 약 30초 안 · 걸림 10초)에 맞춘 문장
+const guide = makeGuide();
+const SHOOT = {
+  coach: { img: '../../experience-v3/img/nadar_monet.jpg', kind: 'paper' },   // 평소 벽 액자에 걸린 사진(frame.html 의 평소 화면) — 비출 곳
+  title: '옛 카메라 앞에 앉아\n버튼을 누르면 바로 찍힙니다',
+  sub: '약 30초 뒤, 벽 액자에 그 시대 사진관의 사진으로 걸립니다',
+  buttons: [{ label: 'QR 스캔하고 사진 받기', on: () => openQR({ onUrl: (u) => { location.href = u; } }) }],
+  note: '사진은 액자에 약 10초 동안 걸립니다. 그동안 액자 옆 QR을 스캔하세요',
+  link: { label: '사진 없이 다음 미션으로', on: () => { document.body.classList.add('leaving'); setTimeout(() => { location.href = '../../experience-v3/monet.html'; }, REDUCED ? 0 : 430); } },
+};
+const showRole = () => { $('#role')?.classList.add('in'); if (!document.body.classList.contains('more')) setTimeout(() => { if (view === 'wall') guide.show(SHOOT); }, REDUCED ? 0 : 1100); };
+if (introState === 'done') showRole(); else window.addEventListener('c4:entered', showRole, { once: true });
 // 검수용
 window.__c4 = { get stance() { return stance; }, get intro() { return introState; }, get people() { return PEOPLE.length; }, get view() { return view; }, get mode() { return mode; },
   get photos() { return isPh.size; }, get flowing() { return wallAnims.some((a) => a.playState === 'running'); }, get qFlowing() { return qAnims.some((a) => a.playState === 'running'); },

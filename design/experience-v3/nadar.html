@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#0F0E0D">
-<title>C4 · 나다르 사진관</title>
+<title>C-4 · 나의 초상 사진</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
 <link rel="stylesheet" href="css/crowd.css">
@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="c4-fx.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <link rel="stylesheet" href="../../experience-v3/cam.css">
+<link rel="stylesheet" href="../../experience-v3/guide.css">
 <link rel="stylesheet" href="../../experience-v3/nadar.css">
 </head>
 <body class="page c4 intro-on">
@@ -52,19 +53,13 @@
     <div class="wall-bg" aria-hidden="true"></div>
     <div class="layer far" aria-hidden="true"><div class="track" id="far"></div></div>
     <div class="layer near"><div class="track" id="hang"></div></div>
-    <header class="w-head">
-      <h1>나다르 사진관에서<br>초상을 남기세요</h1>
-      <p class="w-lead">옛 카메라 앞에 앉으면, 그 시대 사진관의 사진으로 남겨 드립니다.</p>
+    <!-- 11/18 역할 줄(살롱과 같은 짜임) · 할 일은 아래 안내 시트(guide.js, nadar.js) 한 곳 — 촬영 안내 세 칸 · 흰 단추 · 두 줄 주석은 시트로 옮겼다 -->
+    <header class="v3-role has-back" id="role">
+      <p class="eyebrow">Nadar · 35 Bd des Capucines</p>
+      <h1>당신은 나다르의 손님입니다</h1>
+      <p class="lead">1874년, 나다르가 떠난 이 사진관에서 첫 인상주의 전시가 열렸습니다.</p>
     </header>
     <div class="w-foot shoot">
-      <ol class="shoot-steps">
-        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 4v12M23 4v12M9 9h14M8 16h16l-1 5H9zM10 21l-1 7M22 21l1 7"/></svg></span><b>의자에 앉아<br>렌즈를 바라보세요</b></li>
-        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="9" width="24" height="17" rx="2"/><circle cx="16" cy="17.5" r="5"/><path d="M11 9l2-3h6l2 3M23 5v2"/></svg></span><b>버튼을 누르면<br>3초 뒤 찍힙니다</b></li>
-        <li><span class="ic"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="4" width="22" height="24" rx="1"/><rect x="9" y="8" width="14" height="10"/><path d="M17 21h3v3h-3zM22 21h1M22 24h1M9 21h5v3H9z"/></svg></span><b>액자에 걸린 사진의<br>QR을 스캔하세요</b></li>
-      </ol>
-      <button class="btn white ask-btn" id="scanQR" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V5h4M16 5h4v4M20 15v4h-4M8 19H4v-4M8 9h3v3H8zM13 9h3M13 12h3v3M8 15h3"/></svg>QR 스캔하고 사진 받기</button>
-      <p class="shoot-note">사진은 그 시대 사진관의 화풍으로 바뀌어 벽 액자에 약 10초 동안 걸립니다<br>그동안 QR을 스캔해 받으세요</p>
-      <a class="skip-next" id="skipNext" href="../../experience-v3/monet.html">사진 없이 다음 미션으로</a>
       <!-- 기존 코드(c4.js 사본)가 찾는 요소 — 쓰지 않으니 숨겨 둔다 -->
       <div hidden><p id="wHint"></p><div id="wCap"><button id="capX" type="button"></button><b id="capName"></b><span id="capNow"></span><span id="capOther"></span></div><div id="seg"><button type="button" data-m="paint"></button><button type="button" data-m="photo"></button></div><button id="toQ" type="button"></button></div>
     </div>
@@ -108,7 +103,7 @@
 </main>
 
 <!-- ── 내 초상: 전면 카메라(또는 데모 이미지) → 노출 4초 → 같은 한 장에서 기기 안에서 두 벌 — 19세기 사진(카르트 드 비지트) · 아카데미 유화 초상(금박 액자)
-     → 한 틀 안에 겹쳐 놓고 가운데 막대를 끌어 비교(왼쪽 초상화 · 오른쪽 사진). AI · 서버 없음 -->
+     → 한 틀 안에 겹쳐 놓고 가운데 막대를 끌어 비교(왼쪽 초상화 · 오른쪽 사진). 이 비교 화면의 변환은 폰 안에서. 현장 촬영(nadar-booth.html)은 서버에서 그 시대 화풍으로 바꿔 액자에 건다 -->
 <main class="wrap screen" id="me" data-screen="me" hidden>
   <header class="me-head">
     <h1>내 초상</h1>

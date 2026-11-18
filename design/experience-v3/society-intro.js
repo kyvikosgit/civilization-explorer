@@ -118,7 +118,7 @@ export function playSocietyIntro({ onDone, onStart } = {}) {
     box(fr, WIN.H, d, woodMat, s * (lw - fr / 2), WIN.H / 2, 0, hinge);
     box(lw, fr, d, woodMat, s * lw / 2, fr / 2, 0, hinge);
     box(lw, fr, d, woodMat, s * lw / 2, WIN.H - fr / 2, 0, hinge);
-    box(lw, 0.22, d, woodMat, s * lw / 2, 0.42, 0, hinge);                     // 아래 판벽
+    box(lw, 0.46, d, woodMat, s * lw / 2, 0.30, 0, hinge);                     // 아래 판벽 — 11/18: 아래 가로대 위(0.07)부터 유리 밑(0.53)까지 채움(사이가 비어 바깥이 비치던 것)
     for (const y of [0.9, 1.45, 2.05]) box(lw - fr, 0.032, d * 0.8, woodMat, s * lw / 2, y, 0, hinge);   // 가로살
     const gl = new T.Mesh(new T.PlaneGeometry(lw - fr * 2, WIN.H - 0.6), glassMat); gl.position.set(s * lw / 2, 0.53 + (WIN.H - 0.6) / 2, 0); hinge.add(gl);
     const knob = new T.Mesh(new T.CylinderGeometry(0.012, 0.012, 0.32, 10), brassMat); knob.position.set(s * (lw - 0.06), 1.15, 0.05); hinge.add(knob);

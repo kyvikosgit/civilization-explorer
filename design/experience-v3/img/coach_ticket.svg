@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 352 186" width="352" height="186">
+  <!-- 안내 그림용 빈 기차표(글자 없음) — 정답 표 그림을 미리 보여 주지 않는다 -->
+  <defs>
+    <linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#EDE2C2"/><stop offset="1" stop-color="#DFD0A6"/></linearGradient>
+  </defs>
+  <rect width="352" height="186" rx="8" fill="url(#c)"/>
+  <rect x="30" y="12" width="292" height="162" fill="none" stroke="#4A413A" stroke-opacity=".55" stroke-width="2"/>
+  <rect x="35" y="17" width="282" height="152" fill="none" stroke="#4A413A" stroke-opacity=".35" stroke-width="1"/>
+  <path d="M35 62h282M35 136h282M110 62v74M242 62v74" stroke="#4A413A" stroke-opacity=".5" stroke-width="1.6"/>
+  <rect x="120" y="26" width="112" height="9" rx="2" fill="#4A413A" fill-opacity=".35"/>
+  <rect x="100" y="41" width="152" height="12" rx="2" fill="#4A413A" fill-opacity=".45"/>
+  <rect x="152" y="74" width="48" height="40" rx="3" fill="#4A413A" fill-opacity=".38"/>
+  <rect x="146" y="120" width="60" height="7" rx="2" fill="#4A413A" fill-opacity=".28"/>
+  <rect x="52" y="90" width="42" height="9" rx="2" fill="#4A413A" fill-opacity=".3"/>
+  <rect x="258" y="90" width="44" height="12" rx="2" fill="#4A413A" fill-opacity=".34"/>
+  <rect x="52" y="148" width="64" height="9" rx="2" fill="#4A413A" fill-opacity=".3"/>
+  <rect x="9" y="70" width="12" height="46" rx="2" fill="#4A413A" fill-opacity=".22"/>
+  <rect x="331" y="70" width="12" height="46" rx="2" fill="#4A413A" fill-opacity=".22"/>
+</svg>

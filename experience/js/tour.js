@@ -6,10 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=42';
+import SCENES from './scenes.js?v=43';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=44' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=45' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -26,7 +26,7 @@ const WALK = [
 // 현재 구역 판정(시선 앞 2.5 m 지점, Blender x/y): 평면도 강조와 번호 표시에 씀
 const REGIONS = [
   ['c0', 9.0, -4.25, 12.45, 0.40], ['c0', 6.6, -4.40, 9.0, 0.60], ['c5', -26.6, -2.75, -21.10, 0.60], ['c5', -21.10, -4.40, -17.80, 0.60],
-  ['c1', -2.20, -2.75, 2.20, 0.30], ['c2', -6.45, -2.75, -2.20, 0.30], ['c3', -10.70, -2.75, -6.45, 0.30], ['c4', -14.95, -2.75, -10.70, 0.30],
+  ['c1', -2.20, -2.75, 2.20, 0.30], ['c2', -5.05, -2.75, -2.20, 0.30], ['c3', -10.70, -2.75, -5.05, 0.30], ['c4', -14.95, -2.75, -10.70, 0.30],
 ];
 const EYE = 1.6;
 // 구역별 처음 자리: 스틸 카메라 위치(눈높이 1.6 m)와 시선 방향(렌즈 시프트는 살짝 올려다보는 각도로)

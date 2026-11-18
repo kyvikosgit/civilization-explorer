@@ -76,7 +76,7 @@ const CSS = `
 .v3-end .ve-more svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 `;
 let styled = false;
-function style() {
+export function style() {   // 11/18: 출구(exit.html)도 같은 판 모양(금장식 머리 · 수집품 칸 · 맺음줄)을 쓴다
   if (styled) return; styled = true;
   const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s);
 }

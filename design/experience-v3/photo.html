@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#16110c">
-<title>나다르 사진관 · 내 사진</title>
+<title>C-4 · 나의 초상 사진</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
@@ -37,7 +37,7 @@ h1{font-family:Paperlogy,sans-serif;font-weight:800;font-size:24px;margin-top:4p
 <button class="dl" id="dl" type="button" hidden>폰에 사진 저장</button>
 <div id="end"></div>
 <script type="module">
-// 사진은 벽 액자 화면이 들고 있다(최근 몇 장) — 같은 방에 '이 사진 주세요'(get)를 보내고 받는다. 서버에 저장하지 않으니 액자에 걸려 있는 동안 받아야 한다
+// 11/13~: 사진은 서버 저장소(nadar-photos)에 있다 — 주소로 바로 받는다(일정 기간 뒤 자동 삭제). 예전 방식 사진은 벽 액자 화면에 '이 사진 주세요'(get)를 보내 받는다
 import { joinRoom } from './link.js';
 import { showComplete } from './done.js';
 const $ = (s) => document.getElementById(s), id = new URLSearchParams(location.search).get('id');
@@ -53,7 +53,8 @@ function onImg(p) {
   // 받은 사진이 곧 수집품 — 저절로 담는다
   try { localStorage.setItem('m100v3_nadar', JSON.stringify({ id, img: got, at: Date.now() })); } catch {}
   navigator.vibrate?.(16);
-  showComplete('nadar', { cap: '사진 완성', item: { name: '나다르 사진관의 내 초상', sub: '1870년대 파리 · 나다르 사진관', img: got, contain: true }, body: '사진은 이 폰에만 남습니다. 아래 단추로 폰 사진첩에 저장해 두세요.', more: () => { location.href = 'nadar.html?more'; } });
+  // 11/18: 사진은 서버 저장소에 올라가고 일정 기간 뒤 자동으로 지워진다 — '이 폰에만 남는다'는 사실이 아니었다. 나다르가 35번지를 쓴 것은 1860년대~1872년
+  showComplete('nadar', { item: { name: '나다르 사진관의 내 초상', sub: '1860년대 파리 · 카퓌신 대로 35번지 나다르 사진관', img: got, contain: true }, body: '사진은 일정 기간이 지나면 자동으로 지워집니다. 아래 단추로 폰 사진첩에 저장해 두세요.', note: '1874년 봄, 나다르가 떠난 이 사진관에서\n첫 인상주의 전시가 열렸다.', more: () => { location.href = 'nadar.html?more'; } });
   // 공통 화면 위에 '폰에 사진 저장'을 올린다
   setTimeout(() => { const t = document.querySelector('.v3-done .d-txt'); const dl = $('dl'); if (t && dl) { dl.classList.add('in-done'); t.appendChild(dl); } }, 50);
 }

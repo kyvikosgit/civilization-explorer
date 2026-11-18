@@ -8,8 +8,6 @@ body:not(.more) .tabs,body:not(.more) #me,.w-cap,.seg{display:none!important}
 .shoot-steps .ic::after{content:counter(st);position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#1a0d08;background:#E9C77A}
 .shoot-steps svg{width:26px;height:26px;fill:none;stroke:#E9C77A;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .shoot-steps b{font-size:12.5px;font-weight:600;line-height:1.4;color:rgba(255,255,255,.86);word-break:keep-all}
-#scanQR{display:flex;align-items:center;justify-content:center;gap:8px}
-#scanQR svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .shoot-note{margin:0;text-align:center;font-size:12.5px;color:rgba(255,255,255,.55)}
 /* 11/04: 더보기(내 초상) 끝 — 액자로 보내기는 한 줄 가득, 다시 찍기는 그 아래, 공통 끝 줄은 맨 아래 */
 .me-end{grid-template-columns:1fr!important}
@@ -18,3 +16,21 @@ body:not(.more) .tabs,body:not(.more) #me,.w-cap,.seg{display:none!important}
 body:not(.more) #meEnd{display:none}
 .skip-next{display:flex;align-items:center;justify-content:center;gap:2px;margin:-4px auto 0;padding:8px 12px;font-size:14px;font-weight:600;color:rgba(255,255,255,.6);text-decoration:none}
 .skip-next::after{content:"";width:7px;height:7px;margin-left:4px;border-right:1.6px solid currentColor;border-top:1.6px solid currentColor;transform:rotate(45deg)}
+
+/* 11/18 살롱 기준 — 위: 역할 줄(guide.css .v3-role), 아래: 안내 시트(guide.js). 위 막대는 뒤로 단추만 장면 위에 겹친다(제목 없음)
+   v2 의 탭 자리(42px)를 빼던 높이(c4.css .stage) 때문에 아래에 검은 띠가 남던 것 — 탭이 없는 화면은 화면 높이 그대로 */
+body.c4:not(.more) .topbar{position:fixed;left:0;right:0;top:0;max-width:480px;margin:0 auto;background:transparent;z-index:20}
+body.c4:not(.more) .topbar .tb-title{visibility:hidden}
+body.c4:not(.more) .stage{height:100dvh}
+body.c4:not(.more) .w-foot.shoot{display:none}
+.wall-view .v3-role{z-index:5;padding-bottom:64px;background:linear-gradient(180deg,rgba(12,9,7,.9) 0,rgba(12,9,7,.78) 50%,rgba(12,9,7,.4) 78%,rgba(12,9,7,0) 100%)}
+body.c4.intro-on .v3-guide{display:none}
+/* 더보기(내 초상) 끝 — 빈 안내 줄이 자리를 차지하지 않게 */
+.frame-st:empty{display:none}
+/* c4.css 는 모든 글자의 자간을 없앤다(!important) — 역할 줄은 살롱과 같은 자간으로 되돌린다 */
+body.c4 .v3-role .eyebrow{letter-spacing:3px!important}
+body.c4 .v3-role h1{letter-spacing:-.02em!important}
+/* 섬광 연기(.smoke, z 101)가 안내 시트 글을 덮지 않게 */
+body.c4 .v3-guide{z-index:102}
+/* 체험 더보기(?more): 위 막대 · 탭이 따로 있어 역할 줄은 뒤로 단추 옆이 아니라 페이지 여백에서 */
+body.c4.more .wall-view .v3-role.has-back{padding-left:24px;padding-top:18px}

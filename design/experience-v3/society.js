@@ -19,6 +19,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, icons, toast, sleep, reduceMotion, haptic, saveChoice } from '../experience-v2/proto/js/proto-common.js';
 import { createMorrisViewer } from '../experience-v2/proto/js/morris-viewer-proto.js';
 import { ITEMS, NOTES, FILLER, BACKDROP, VISITORS } from '../experience-v2/proto/js/morris-items-proto.js';
+// 11/18: v2 칼럼 글(보관본)은 고치지 않고, 바뀐 사실 글만 v3 원고(data.js)로 덮는다 — 1867 박람회 '5만여 출품자'
+import { ZONES as V3Z } from './data.js';
+for (const t of V3Z.find((z) => z.id === 'society').tasks.find((t) => t.id === 'flyer').targets) { const it = ITEMS.find((x) => x.id === t.id); if (it && t.desc) it.body = t.desc; }
 import { stampLine } from '../experience-v2/proto/js/crowd.js';
 import { store } from './store.js';
 import { drawSalon, drawExpo, drawExpoCover, drawSalonCover, drawClipping, loadImage, loadPosterFonts, imageURL } from '../experience-v2/proto/js/c1-posters.js';

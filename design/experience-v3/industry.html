@@ -6,7 +6,7 @@
 <base href="../experience-v2/ticket/">
 <link rel="icon" href="data:,">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>산업혁명 · 기차표</title>
+<title>C-2 · 노르망디행 기차표</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="../proto/css/crowd.css">
@@ -187,7 +187,7 @@
       <div class="lamp" aria-hidden="true"><i></i></div>
       <div class="scene-dark" aria-hidden="true"></div>
     </div>
-    <div class="board" id="board" role="img" aria-label="출발 안내판: 르아브르 · 루앙 · 베르농 · 아르장퇴유 · 레지프">
+    <div class="board painted" id="board" role="img" aria-label="출발 안내판: 르아브르 · 루앙 · 베르농 · 아르장퇴유 · 레지프">
       <div class="bd-head"><span>Départs</span><span>Chemins de fer de l’Ouest</span></div>
       <div class="bd-rows" id="bdRows"></div>
     </div>
@@ -195,19 +195,14 @@
   <div class="scene-shade" aria-hidden="true"></div>
   <header class="quiz-bar intro-bar">
     <a class="icon-btn" id="introBack" href="../../experience-v3/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
-    <div class="quiz-title">INDUSTRIAL REVOLUTION</div>
+    <div class="quiz-title"></div>
     <span class="quiz-count"></span>
   </header>
-  <div class="intro-copy">
-    <p class="intro-credit ln">클로드 모네 〈생라자르역〉 1877 · 오르세 미술관 · 퍼블릭 도메인</p>
-    <div class="eyebrow ln">Gare Saint-Lazare · <span class="ko">1870년대</span></div>
-    <ul class="intro-lines">
-      <li class="ln">생라자르역은 노르망디로 가는 서부철도의 파리 출발역이었습니다.</li>
-      <li class="ln">파리–루앙(1843), 루앙–르아브르(1847) 철길이 열려, 파리 사람들은 하루 만에 바닷가에 닿을 수 있게 되었습니다.</li>
-      <li class="ln">아르장퇴유에 살던 모네도 이 역으로 파리를 오갔습니다.</li>
-    </ul>
-    <p class="intro-role ln">사업가의 사무실을 먼저 살펴보세요.</p>
-    <div class="intro-go ln"><button class="btn" id="introGo" type="button">사무실 살펴보기</button></div>
+  <!-- 11/18 역할 줄(살롱과 같은 짜임) — 영어 머리글 · 역사 세 줄 · [사무실 살펴보기] 단계를 대신한다. 도입이 끝나면 안내 시트가 바로 올라온다(industry.js) -->
+  <div class="v3-role has-back" id="role">
+    <p class="eyebrow">Gare Saint-Lazare · 1873</p>
+    <h1>당신은 노르망디행 승객입니다</h1>
+    <p class="lead">파리 사람들은 이제 하루 만에 바닷가에 닿을 수 있었습니다.</p>
   </div>
   <div class="flaps" id="flaps" aria-hidden="true"></div>
 </section>
@@ -1247,7 +1242,7 @@ window.flow = { issue, leave, R, layout, startBoard };
 <script type="module">
 // 0 들어가기 ↔ 1 지도: 지도 화면은 밑에서 그대로 그려 두고(레이아웃 유지) 들어가기 장면만 덮었다 걷는다
 //   들어가기(약 3.6초, 아무 데나 누르면 끝 장면으로): 어둠 → 그림 속 기관차에서 카메라가 물러나며 밝아짐 · 증기 · 빛줄기 · 앞등 → 안내판이 내려오고 글자판이 넘어간다 → 문장이 한 줄씩
-//   행선지 고르기(약 1.1초): 글이 내려가고 카메라가 안내판으로 → 안내판 글자판이 화면 가득 → 글자판이 가운데부터 넘어가며 지도가 다가온다
+//   행선지 고르기(약 1.1초, 체험 더보기에서만): 카메라가 안내판으로 다가가고 장면이 걷히며 지도 — 11/18: 글자판 넘김(20세기 물건)은 뺐다. 끝나면 c2:played → 안내 시트(industry.js)
 import { createSteam } from './fx.js';
 const $ = (s) => document.querySelector(s);
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1255,7 +1250,6 @@ const intro = $('#intro'), cam = $('#cam'), scene = $('#scene'), board = $('#boa
 const IMG_AR = 1600 / 1189;               // 그림 비율
 const LOCO = [0.479, 0.77];               // 그림 속 가운데 기관차(비율 좌표)
 const DEST = ['LE HAVRE', 'ROUEN', 'VERNON', 'ARGENTEUIL', 'LES IFS'];
-const COLS = 10, ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 let steam = null, playing = false, timers = [];
 const at = (ms, fn) => timers.push(setTimeout(fn, ms));
 
@@ -1268,37 +1262,11 @@ function frameScene() {
   if (steam) steam.resize();
 }
 
-// ── 글자판(스플릿 플랩): 칸마다 위·아래 반쪽 + 넘어가는 반쪽 둘
-function cellHTML(ch) { const c = ch === ' ' ? '&nbsp;' : ch; return `<span class="fl"><span class="h t"><b>${c}</b></span><span class="h b"><b>${c}</b></span><span class="h ft"><b>${c}</b></span><span class="h fb"><b>${c}</b></span></span>`; }
+// ── 안내판: 11/18 — 넘어가는 글자판(스플릿 플랩)은 20세기 물건이라 뺐다. 1870년대 역처럼 손으로 칠한 판에 행선지가 처음부터 적혀 있다
 function buildBoard() {
-  $('#bdRows').innerHTML = DEST.map((d) => `<div class="bd-row">${[...d.padEnd(COLS)].map(() => cellHTML(' ')).join('')}</div>`).join('');
+  $('#bdRows').innerHTML = DEST.map((d) => `<div class="bd-row"><span class="bd-t">${d}</span></div>`).join('');
 }
-function setCell(cell, from, to, dur = 64) {
-  const [t, b, ft, fb] = cell.children, put = (n, c) => { n.firstChild.innerHTML = c === ' ' ? '&nbsp;' : c; };
-  put(t, to); put(b, from); put(ft, from); put(fb, to);
-  if (RM) { put(b, to); return; }
-  ft.animate([{ transform: 'rotateX(0deg)' }, { transform: 'rotateX(-90deg)' }], { duration: dur, easing: 'ease-in', fill: 'forwards' });
-  const a = fb.animate([{ transform: 'rotateX(90deg)' }, { transform: 'rotateX(0deg)' }], { duration: dur, delay: dur, easing: 'ease-out', fill: 'backwards' });
-  a.onfinish = () => { put(b, to); put(ft, to); };
-}
-function flipBoard(final = false) {
-  const rows = [...document.querySelectorAll('#bdRows .bd-row')];
-  rows.forEach((row, r) => {
-    const target = DEST[r].padEnd(COLS);
-    [...row.children].forEach((cell, c) => {
-      const to = target[c];
-      if (final || RM) { setCell(cell, to, to); return; }
-      // 앞 칸부터, 위 줄부터 자리를 잡는다. 칸마다 무작위 글자 몇 장을 넘긴 뒤 멈춘다
-      const n = 3 + Math.round(c * 0.9 + r * 1.1 + Math.random() * 3);
-      let prev = ' ';
-      for (let i = 0; i < n; i++) {
-        const ch = i === n - 1 ? to : (to === ' ' && i > n - 3 ? ' ' : ABC[(Math.random() * 26) | 0]);
-        const p = prev; prev = ch;
-        at(i * 82 + r * 70, () => setCell(cell, p, ch));
-      }
-    });
-  });
-}
+function flipBoard() { /* 11/18: 넘기지 않는다 — 판은 buildBoard() 그대로 */ }
 
 // ── 들어가기
 function play() {
@@ -1327,7 +1295,8 @@ function play() {
   at(1150, () => flipBoard());                           // 글자판
   const lines = [...intro.querySelectorAll('.intro-copy .ln')];
   lines.forEach((n, i) => at(1300 + i * 380, () => n.classList.add('in')));
-  at(1300 + lines.length * 380 + 200, () => { playing = false; intro.classList.add('played'); });
+  at(1300, () => $('#role')?.classList.add('in'));        // 역할 줄
+  at(1300 + lines.length * 380 + 200, () => { playing = false; intro.classList.add('played'); window.dispatchEvent(new CustomEvent('c2:played')); });
 }
 // 누르면 끝 장면으로
 function finish() {
@@ -1335,7 +1304,9 @@ function finish() {
   scene.getAnimations().forEach((a) => a.finish());
   intro.classList.add('s-light', 's-lamp', 's-board', 'played');
   intro.querySelectorAll('.intro-copy .ln').forEach((n) => n.classList.add('in'));
+  $('#role')?.classList.add('in');
   flipBoard(true);
+  window.dispatchEvent(new CustomEvent('c2:played'));
 }
 intro.addEventListener('pointerdown', (e) => { if (playing && !e.target.closest('a, button')) finish(); });
 
@@ -1350,26 +1321,10 @@ function go() {
   cam.style.transformOrigin = `${bx}px ${by}px`;
   cam.animate([{ transform: 'none' }, { transform: `translate(${W / 2 - bx}px, ${H / 2 - by}px) scale(${k})` }], { duration: 820, easing: 'cubic-bezier(.7,0,.25,1)', fill: 'forwards' });
   scene.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, delay: 300, easing: 'ease-in', fill: 'forwards' });
-  // 화면 가득한 글자판 — 안내판이 펼쳐진 것처럼(같은 색·같은 경첩선)
-  const cw = Math.ceil(W / 6), ch = Math.round(cw * 1.32), cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
-  flaps.style.gridTemplateColumns = `repeat(${cols}, ${cw}px)`; flaps.style.gridAutoRows = `${ch}px`;
-  const word = 'LEHAVREROUENVERNONARGENTEUILLESIFS';
-  flaps.innerHTML = Array.from({ length: cols * rows }, (_, i) => `<i><b>${word[i % word.length]}</b></i>`).join('');
-  const tiles = [...flaps.children];
+  // 11/18: 화면 가득 글자판이 넘어가던 전환(20세기 글자판)은 뺐다 — 안내판으로 다가간 장면이 걷히며 뒤의 지도가 드러난다
   setTimeout(() => {
-    flaps.classList.add('on');
-    flaps.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
-  }, 470);
-  setTimeout(() => {
-    intro.classList.add('gone');                         // 바탕이 투명해진다 — 글자판 뒤는 이미 지도
-    cam.style.visibility = 'hidden';
+    intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 420, easing: 'ease-in-out', fill: 'forwards' });
     window.mapEnter && window.mapEnter('go');
-    tiles.forEach((t, i) => {
-      const c = i % cols, r = Math.floor(i / cols), x = (c + 0.5) * cw, y = (r + 0.5) * ch;
-      const d = Math.hypot(x - W / 2, y - H / 2) / Math.hypot(W / 2, H / 2);
-      t.animate([{ transform: 'perspective(500px) rotateX(0deg)', opacity: 1 }, { transform: 'perspective(500px) rotateX(-86deg)', opacity: 1, offset: 0.8 }, { transform: 'perspective(500px) rotateX(-92deg)', opacity: 0 }],
-        { duration: 340, delay: d * 300, easing: 'cubic-bezier(.5,0,.75,.4)', fill: 'both' });
-    });
   }, 640);
   setTimeout(() => hideIntro(false), 640 + 300 + 360);
 }
@@ -1381,7 +1336,7 @@ function hideIntro(instant) {
 }
 // 지도에서 뒤로: 장면이 다시 밝아진다(처음부터 다시 틀지 않는다)
 function backToIntro() {
-  cam.getAnimations().forEach((a) => a.cancel()); scene.getAnimations().forEach((a) => a.cancel());
+  cam.getAnimations().forEach((a) => a.cancel()); scene.getAnimations().forEach((a) => a.cancel()); intro.getAnimations().forEach((a) => a.cancel());
   cam.style.visibility = ''; cam.style.transform = '';
   intro.classList.remove('going', 'gone', 'off'); intro.setAttribute('aria-hidden', 'false'); intro.inert = false;
   if (!RM) { intro.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out' }); steam && steam.start(); }

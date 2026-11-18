@@ -462,8 +462,19 @@ export async function playIntro({ onDone, instant = false } = {}) {
 
   const render = () => renderer.render(scene, cam);
   let done = false, raf = 0;
+  // 11/18: 끝 장면에서 이젤 위 그림(캔버스)이 화면 어디에 있는지 — 안내 시트가 가리지 않게 atelier.js 가 장면을 올릴 때 쓴다
+  const canvasRect = () => {
+    const bx = new T.Box3().setFromObject(canvasMesh), p = new T.Vector3(); let t = Infinity, bt = -Infinity, l = Infinity, r = -Infinity;
+    for (let i = 0; i < 8; i++) {
+      p.set(i & 1 ? bx.max.x : bx.min.x, i & 2 ? bx.max.y : bx.min.y, i & 4 ? bx.max.z : bx.min.z).project(cam);
+      const x = (p.x * 0.5 + 0.5) * VW, y = (1 - (p.y * 0.5 + 0.5)) * VH;
+      t = Math.min(t, y); bt = Math.max(bt, y); l = Math.min(l, x); r = Math.max(r, x);
+    }
+    return { top: t + rb.top, bottom: bt + rb.top, left: l + rb.left, right: r + rb.left };
+  };
   function finish() {
     if (done) return; done = true; cancelAnimationFrame(raf);
+    try { window.__etCanvas = canvasRect(); } catch (e) { /* 없으면 장면을 올리지 않는다 */ }
     removeEventListener('pointerdown', skip, true);
     ui.classList.add('out'); host.classList.add('et3d-done'); onDone?.();
     setTimeout(() => ui.remove(), 900);

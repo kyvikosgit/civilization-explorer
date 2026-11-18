@@ -7,6 +7,14 @@
 import * as THREE from 'three';
 
 let cur = null;
+// MindAR 는 카메라를 못 켜면 이유 없이 실패한다(reject()) — 카메라 요청의 실제 오류(권한 거부 등)를 붙잡아 두었다가 넘긴다
+let lastCamErr = null;
+const md = navigator.mediaDevices;
+if (md?.getUserMedia && !md.__m100wrap) {
+  const gum = md.getUserMedia.bind(md);
+  md.getUserMedia = (c) => { lastCamErr = null; return gum(c).catch((e) => { lastCamErr = e; throw e; }); };
+  md.__m100wrap = true;
+}
 
 export async function startScan(container, mindUrl, count, { onFound, onLost, onError, onReady, setup, center = false }) {
   await stopScan();
@@ -61,7 +69,7 @@ export async function startScan(container, mindUrl, count, { onFound, onLost, on
     me.fxTick = fx?.tick;
     onReady?.();
   } catch (e) {
-    if (!me.stopped) onError?.(e);
+    if (!me.stopped) onError?.(e || lastCamErr || (navigator.mediaDevices?.getUserMedia ? new Error('camera start failed') : Object.assign(new Error('camera API unavailable'), { name: 'NotSupportedError' })));
   }
 }
 

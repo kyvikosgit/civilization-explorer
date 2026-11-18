@@ -18,3 +18,19 @@ body:not(.more) .more-end{display:none}
 /* 11/03: 이야기 · 끝 단추 판은 체험 더보기로 — 누르면(body.more) 이야기만 드러난다 */
 body:not(.more) #story,body:not(.more) .more-clues,#today{display:none!important}
 .more-clues{display:block;margin:18px auto 20px;padding:12px 18px;border-radius:10px;background:none;border:1px solid rgba(127,127,127,.4);color:inherit;font:inherit;font-size:15px;font-weight:700}
+
+/* 11/18 도입 — 역할 줄(guide.css .v3-role)이 위, 안내판은 그 아래. 예전 영어 머리글 · 역사 세 줄 · [사무실 살펴보기]는 없앴다 */
+.intro .v3-role{z-index:4}
+.intro-bar .quiz-title{visibility:hidden}
+.intro-copy{display:none}
+/* 안내판 자리: 역할 줄 바로 아래(industry.js 가 역할 줄 아래 끝을 --role-b 로 잰다) · 매단 줄은 짧게(제목 글자를 가로지르지 않게) */
+.board{top:calc(var(--role-b, 150px) + 14px)}
+.board::before,.board::after{top:-14px;height:14px;background:linear-gradient(rgba(107,82,51,0),#6b5233)}
+/* 손으로 칠한 출발 안내판 — 넘어가는 글자판 대신 검은 판에 크림색 글씨가 처음부터 적혀 있다 */
+.board.painted{padding:9px 14px 10px;background:linear-gradient(180deg,#26221D,#171512);min-width:222px}
+.board.painted .bd-head{padding:0 0 7px;margin-bottom:6px;border-bottom:1px solid rgba(217,199,158,.35)}
+.board.painted .bd-rows{gap:0}
+.board.painted .bd-row{display:block;padding:4px 0 3px;border-bottom:1px solid rgba(217,199,158,.12)}
+.board.painted .bd-row:last-child{border-bottom:0}
+.board.painted .bd-t{display:block;font-family:'Old Standard TT',Georgia,serif;font-weight:700;font-size:17px;line-height:1.25;letter-spacing:.16em;color:#EFE3C4;text-shadow:0 0 1px rgba(239,227,196,.45)}
+.intro-bar{z-index:5}   /* 뒤로 단추가 역할 줄의 어둠 아래로 묻히지 않게 */

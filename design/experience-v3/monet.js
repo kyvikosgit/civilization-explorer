@@ -385,7 +385,8 @@ window.__c5sun = sun;
 {
   const wrap = document.querySelector('.sun-wrap'), hd = document.querySelector('.room .role-hd'), tb = document.querySelector('.topbar');
   const blk = () => ['.sun-wrap', '.series-link', '.exit-link'].reduce((a, q) => a + document.querySelector(q).offsetHeight, 0);
-  const center = () => { if (!document.getElementById('wall').hidden) return; const free = window.innerHeight - tb.offsetHeight - hd.offsetHeight - blk() - 24; wrap.style.marginTop = `${Math.max(8, Math.round(free / 2))}px`; };
+  // 11/18: 머리글이 역할 줄(화면 위에 겹침)이 되었다 — 틀은 역할 줄 설명 바로 아래(22px)에. 아래쪽은 안내 시트 자리라 가운데로 내리지 않는다
+  const center = () => { if (!document.getElementById('wall').hidden) return; const lead = hd.querySelector('.lead') || hd; wrap.style.marginTop = `${Math.max(8, lead.offsetTop + lead.offsetHeight + 22 - tb.offsetHeight)}px`; void blk; };
   center(); window.addEventListener('resize', center); document.fonts && document.fonts.ready.then(center);
   document.getElementById('sunImg').decode?.().then(center).catch(() => {});
 }

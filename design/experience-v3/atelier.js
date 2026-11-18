@@ -10,7 +10,7 @@
 // 실물 오브제의 NFC 태그 = 이 페이지 주소 + ?o=물건 → 그 물건 카드가 바로 열린다. Android 크롬은 Web NFC 로 페이지 안에서 읽는다(새로 열리지 않음).
 //
 // 사실 근거
-//  · 주석 튜브: 존 고프 랜드(John Goffe Rand, 미국 초상화가, 런던 거주) — 1841년 영국 특허, 1842년 미국 특허. Smithsonian Magazine "Without This Invention, Impressionism Wouldn't Exist"(2013),
+//  · 주석 튜브: 존 고프 랜드(John Goffe Rand, 미국 초상화가, 런던 거주) — 미국 특허 제2,252호(1841년 9월 11일). Smithsonian Magazine "Without This Invention, Impressionism Wouldn't Exist"(2013),
 //    Wikipedia "John Goffe Rand"
 //  · 돼지 방광: 안료를 기름에 개어 방광에 담아 묶고, 쓸 때 압정·바늘로 구멍을 내 짜고 다시 막았다. 잘 터지고 굳었다 — 같은 출처
 //  · 르누아르의 말: Jean Renoir, "Renoir, My Father"(1962) — "Without colours in tubes, there would be no Cézanne, no Monet, no Pissarro, and no Impressionism."
@@ -139,8 +139,12 @@ function choose(id) {
   closeAll(true);
   if (!store.saved(TASK.id)) { store.solve(TASK.id); collect(TASK.id); }
   // 11/06: 미션 완료는 구역 공통 화면(done.js)
+  showResult();
+}
+// 11/18: 체험 더보기(v2 paint.html — 옛 판, 그림 분류도 틀림)는 결과 화면에서 뺐다. paint.html 파일은 그대로 둔다
+function showResult() {
   const [head, ...body] = TASK.successBody.split('\n\n');
-  showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), more: () => { location.href = V3 + 'paint.html'; } });   // 체험 더보기 = 튜브물감을 들고 밖으로 나가 칠하기
+  showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), note: TASK.after });
 }
 // 체험 더보기 — 결과를 닫고 소품 칸(둘러보기)으로. 밖으로 나가 칠하기도 여기
 function moreEnd() {
@@ -156,30 +160,31 @@ function browse() {
   window.scrollTo(0, 0);
 }
 // 11/06: 모은 뒤에도 같은 화면(튜브물감 찾기) — 소품 넷 둘러보기는 없앴다. 아래에 밖으로 나가 칠하기 · 끝 줄
-if (store.saved(TASK.id)) {
+const SOLVED = store.saved(TASK.id);
+if (SOLVED) {
   document.body.classList.add('got');
-  // 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)
-  const [head, ...body] = TASK.successBody.split('\n\n');
-  setTimeout(() => showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), more: () => { location.href = V3 + 'paint.html'; } }), 0);
+  // 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라) — 11/18: 뒤에서 3D 도입 · 안내를 돌리지 않는다(배터리)
+  setTimeout(showResult, 0);
 }
 // 11/09 도입(et-intro.js · 3D) — 절벽 위 이젤의 빈 캔버스에 붓질로 에트르타가 그려지고 카메라가 물러나며 바다가 드러난다(그 장면이 배경으로 남음). 들어올 때마다(태그로 열림 · 동작 줄이기 제외)
-{
+if (!SOLVED) {
   const b = document.body, qs = new URLSearchParams(location.search);
-  if (qs.get('o') || qs.get('tag') || REDUCED) { b.classList.add('et-ready'); playIntro({ instant: true }); setTimeout(showGuide, 300); }
+  const ready = () => { b.classList.remove('intro-run'); b.classList.add('et-ready'); $('#role')?.classList.add('in'); };
+  if (qs.get('o') || qs.get('tag') || REDUCED) { ready(); playIntro({ instant: true }); setTimeout(showGuide, 300); }
   else {
     b.classList.add('intro-run');
-    playIntro({ onDone: () => { b.classList.remove('intro-run'); b.classList.add('et-ready'); setTimeout(showGuide, 450); } });
+    playIntro({ onDone: () => { ready(); setTimeout(showGuide, 1100); } });   // 역할 줄을 읽을 틈을 두고 안내(살롱과 같은 간격)
   }
 }
 function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; }
 
 // ── NFC: 태그로 열린 경우(?o=물건 — 아이폰 알림 · 다른 기기) 그 칸을 드러낸다
 const q = new URLSearchParams(location.search).get('o') || new URLSearchParams(location.search).get('tag');
-if (q === 'tube') { document.body.classList.add('no-intro'); setTimeout(() => reveal(q), REDUCED ? 0 : 450); }
+if (q === 'tube' && !SOLVED) { document.body.classList.add('no-intro'); setTimeout(() => reveal(q), REDUCED ? 0 : 450); }
 
 // ── 스캔: [소품 비추기] → 카메라 → 소품을 알아보면 카메라가 닫히고 그 칸이 드러나 카드가 열린다
 const scanBtn = $('#scanBtn');
-if (IOS_UL) setTimeout(() => toast('튜브물감 상자에 휴대폰 윗부분을 대 보세요 · 화면 위에 알림이 뜨면 눌러 주세요'), 2600);
+if (IOS_UL && !SOLVED) setTimeout(() => toast('튜브물감 상자에 휴대폰 윗부분을 대 보세요 · 화면 위에 알림이 뜨면 눌러 주세요'), 2600);
 document.body.classList.add('can-scan');
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
 const MODEL = V3 + 'model/props.tflite';
@@ -198,14 +203,21 @@ const NFC_KEYS = { easel: 0, pochade: 0, canvas: 1, stool: 2, tube: 3 };
 const guide = makeGuide();
 function showGuide() {
   if (guide.shown || document.body.classList.contains('modal')) return;
-  guide.show({
+  // 11/18: 제목은 할 일 한 줄(역할 줄의 질문을 되풀이하지 않는다)
+  const h = guide.show({
     coach: { img: src('tube'), kind: 'photo' },
-    title: '화가를 밖으로 이끈 것은?',
-    sub: IOS_UL ? '에트르타 작업 공간에서 튜브물감을 찾아\n휴대폰 윗부분을 대 보세요' : '에트르타 작업 공간에서 튜브물감을 찾아 비춰 보세요',
+    title: IOS_UL ? '화구 상자 속 튜브물감을 찾아\n휴대폰 윗부분을 대 보세요' : '화구 상자 속 튜브물감을 찾아\n카메라로 비춰 보세요',
     buttons: [{ label: '튜브물감 찾기', cam: true, on: startScan }],
-    note: "카메라 권한을 물으면 '허용'을 눌러 주세요",
+    note: IOS_UL ? '' : '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
     // 11/09: 밖으로 나가 칠하기 등 체험 더보기는 미션 완료 화면에서만(시작 화면에 내놓지 않음)
   });
+  // 11/18: 시트가 이젤 위 그림을 가리지 않게 장면을 올린다 — 그림 아래 끝이 시트의 어두운 부분(위 64px 지나서)보다 위에 오게, 역할 줄 아래로는 내려가지 않게
+  const c = window.__etCanvas, role = $('#role .lead');
+  if (c) {
+    const sheetTop = innerHeight - h + 34, roleB = role ? role.getBoundingClientRect().bottom + 12 : 0;
+    const lift = Math.max(0, Math.min(c.bottom - sheetTop, c.top - roleB));
+    document.body.style.setProperty('--lift', `${Math.round(lift)}px`); document.body.classList.toggle('lifted', lift > 0);
+  }
 }
 scanBtn.addEventListener('click', () => startScan());
 function startScan() {
