@@ -53,7 +53,9 @@ const SCENE_READY = true;                                     // 실제 영상(1
 // 실제 영상을 그림에 맞추는 값 — 해 · 작은 배 위치를 재서 맞춤(가운데 기준 1.05배 · 아래로 높이의 2.5%). 해·배 오차 0.6% 이내, 가장자리 빈틈 없음
 const SCENE_FIT = { s: 1.05, x: 0, y: 0.025 };
 const SCENE_PLACEHOLDER = 'video/sunrise-placeholder.mp4';    // 임시 영상(video/make-placeholder.py) — 쓰는 동안 "임시 영상" 표시
-// ════════ 들어가기 — 완전한 어둠 → 그림이 걸린 벽에 조명 하나가 데워지며 켜진다(빛줄기 · 먼지) → 그 빛 안에 비추기 틀
+// ════════ 들어가기 — 완전한 어둠 → 그림이 걸린 벽에 조명이 데워지며 켜진다 → 흐린 그림이 빛 안에 드러난다
+//   11/18: 천장에서 내려오는 원뿔 빛줄기 · 그 속 먼지 · 그림 둘레 네 귀(틀)는 뺐다("짜친다") — 그림을 비추는 부드러운 빛 웅덩이만
+const NO_DUST = true;   // 11/18 빛줄기를 뺐으니 그 속 먼지도 없다
 const spotlight = (() => {
   const el = document.getElementById('spot'), cv = document.getElementById('spBeam'), st = document.getElementById('sunStage'), body = document.body;
   let raf = 0, alive = true, beam = null, W = 0, H = 0, geo = '', t0 = performance.now();
@@ -73,19 +75,15 @@ const spotlight = (() => {
     const lx = sx * dpr, ly = Math.max(-40, r.top - sr.top - r.height * 1.35) * dpr, bw = r.width * 0.62 * dpr, by = (r.top - sr.top + r.height * 1.06) * dpr;
     lamp = { lx, ly, bw, by, top: (r.top - sr.top) * dpr };
     beam = document.createElement('canvas'); beam.width = W; beam.height = H; const b = beam.getContext('2d');
-    b.filter = `blur(${14 * dpr}px)`;
-    const grd = b.createLinearGradient(0, ly, 0, by); grd.addColorStop(0, 'rgba(255,232,196,.30)'); grd.addColorStop(0.55, 'rgba(255,226,186,.12)'); grd.addColorStop(1, 'rgba(255,220,176,.05)');
-    b.fillStyle = grd; b.beginPath(); b.moveTo(lx - 10 * dpr, ly); b.lineTo(lx + 10 * dpr, ly); b.lineTo(lx + bw, by); b.lineTo(lx - bw, by); b.closePath(); b.fill();
-    b.filter = 'none';
-    const pool = b.createRadialGradient(lx, (r.top - sr.top + r.height / 2) * dpr, 0, lx, (r.top - sr.top + r.height / 2) * dpr, r.width * 0.7 * dpr);
-    pool.addColorStop(0, 'rgba(255,226,186,.16)'); pool.addColorStop(1, 'rgba(255,226,186,0)'); b.fillStyle = pool; b.fillRect(0, 0, W, H);
+    const pool = b.createRadialGradient(lx, (r.top - sr.top + r.height / 2) * dpr, 0, lx, (r.top - sr.top + r.height / 2) * dpr, r.width * 0.75 * dpr);
+    pool.addColorStop(0, 'rgba(255,226,186,.20)'); pool.addColorStop(1, 'rgba(255,226,186,0)'); b.fillStyle = pool; b.fillRect(0, 0, W, H);
   }
   function frame(now) {
     raf = 0; if (!alive) return;
     measure(); if (!g) { raf = requestAnimationFrame(frame); return; }
     g.clearRect(0, 0, W, H); g.drawImage(beam, 0, 0);
     const t = (now - t0) / 1000, { lx, ly, bw, by } = lamp;
-    for (const d of dust) {
+    for (const d of (NO_DUST ? [] : dust)) {
       // 빛줄기 안에서만 보이는 먼지 — 아주 느리게 내려오고 옆으로 흔들린다
       const v = (d.v + t * 0.012 * d.sp) % 1, y = ly + (by - ly) * (0.1 + 0.9 * v), half = 10 * dpr + (bw - 10 * dpr) * ((y - ly) / (by - ly));
       const u = ((d.u + Math.sin(t * 0.3 * d.sp + d.ph) * 0.05 + t * d.dr) % 1 + 1) % 1, x = lx + (u * 2 - 1) * half * 0.92;

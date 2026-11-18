@@ -15,3 +15,6 @@ body.c5 .topbar{position:relative;z-index:42;background:transparent}
 /* 조명이 켜지는 동안의 어둠(.spot, z 40) 위에 — 역할 줄이 어둠에 묻히지 않게(조명과 함께 나타난다) */
 body.c5 .room .role-hd.v3-role{z-index:41}
 body.c5.spot-on .room .role-hd.v3-role{background:none}
+
+/* 11/18: 그림 둘레 네 귀(비추기 틀)는 보이지 않게 — 자리 · 크기 계산은 그대로 쓰므로 display 대신 visibility */
+body.c5 .sun-stage .scan-frame{visibility:hidden}
