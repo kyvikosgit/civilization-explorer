@@ -11,25 +11,43 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <link rel="stylesheet" href="v3.css">
 <style>
-/* 11/18 출구 — 미션 완료 화면(done.js)과 같은 판: 흰 바탕 · 가운데 · 금장식 머리 · 나의 수집품 칸 · 금장식 맺음줄 */
+/* 11/18 출구 — 미션 완료 화면(done.js)과 같은 판. 가운데 완주 엠블럼(모네 서거 100주년 기념 메달, brand/exit_emblem/emblem.py 렌더)
+   다섯 수집품은 그림으로만(상태 낱말 없이), 기념품은 교환권 한 장 */
 body{max-width:none}
 .v3-done.exit{position:static;min-height:100dvh;opacity:1}
-.v3-done.exit .d-scroll{overflow:visible;padding-bottom:calc(36px + env(safe-area-inset-bottom))}
-.v3-done.exit .d-lead{margin:12px auto 0;max-width:320px;text-align:center;font-size:15px;line-height:1.6;color:var(--d-sub)}
-.v3-done.exit .d-col{margin-top:22px}
-.v3-done.exit .d-colt{font-size:15px}
-.v3-done.exit .d-slots span{width:52px;height:52px}
-.v3-done.exit .d-slots span.contain img{object-fit:contain;padding:4px}
-.v3-done.exit .goods{margin:18px 0 0;padding:20px 18px;border:1px solid var(--d-line);border-radius:14px;background:var(--d-panel);text-align:center}
-.v3-done.exit .goods .big{font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:28px;color:var(--d-pt)}
-.v3-done.exit .goods p{margin-top:6px;color:var(--d-sub);font-size:15px}
-.v3-done.exit .goods.got .big{color:#3E8A6B}
-.v3-done.exit .goods .btn{margin-top:14px;height:52px;border-radius:12px;background:var(--d-ink);color:#fff;font-weight:800;font-size:16px}
-.v3-done.exit .missing{margin:18px 0 0;padding:0;font-size:15px}
-.v3-done.exit .missing li{list-style:none;padding:12px 2px;border-bottom:1px solid var(--d-line);display:flex;justify-content:space-between;gap:12px}
-.v3-done.exit .missing li span{color:var(--d-sub);font-size:14px;text-align:right}
-.v3-done.exit .missing li.ok span{color:#3E8A6B}
-.v3-done.exit .d-note{opacity:1;transform:none;margin-top:30px}
+.v3-done.exit .d-scroll{overflow:visible;padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+.ex-hero{position:relative;display:flex;flex-direction:column;align-items:center;padding-top:6px}
+.ex-medal{position:relative;width:min(64vw,248px);aspect-ratio:1}
+.ex-medal img{width:100%;height:100%;display:block;filter:drop-shadow(0 18px 26px rgba(80,52,16,.28))}
+.ex-medal::before{content:'';position:absolute;inset:-18%;border-radius:50%;background:radial-gradient(closest-side,rgba(236,196,120,.32),transparent 72%);opacity:0;transition:opacity 1.2s}
+.done .ex-medal::before{opacity:1}
+.not .ex-medal img{filter:grayscale(1) contrast(.85) brightness(1.18) drop-shadow(0 12px 18px rgba(0,0,0,.12));opacity:.5}
+.ex-cap{margin:22px 0 0}
+.ex-title{margin:10px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:26px;line-height:1.3;text-align:center;letter-spacing:-.01em;color:var(--d-ink)}
+.ex-sub{margin:8px auto 0;max-width:300px;text-align:center;font-size:15px;line-height:1.6;color:var(--d-sub)}
+.ex-row{margin:30px 0 0;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.ex-it{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.ex-it i{width:100%;aspect-ratio:1;border-radius:10px;background:var(--d-panel);overflow:hidden;display:block;box-shadow:inset 0 0 0 1px var(--d-line)}
+.ex-it i img{width:100%;height:100%;object-fit:cover;display:block}
+.ex-it i.contain img{object-fit:contain;padding:5px}
+.ex-it.off i{background:transparent;box-shadow:inset 0 0 0 1.5px var(--d-line);background-image:repeating-linear-gradient(135deg,transparent 0 7px,rgba(0,0,0,.025) 7px 8px)}
+.ex-it b{font-size:11.5px;font-weight:700;line-height:1.3;text-align:center;color:var(--d-ink);word-break:keep-all}
+.ex-it.off b{color:var(--d-sub);font-weight:600}
+.ex-it small{font-size:10.5px;color:var(--d-sub);margin-top:-5px}
+.v3-done.exit .d-note{opacity:1;transform:none;margin-top:34px}
+.ticket{margin:34px 0 0;position:relative;border-radius:14px;background:var(--d-panel);padding:22px 20px 20px;text-align:center;overflow:hidden}
+.ticket::before,.ticket::after{content:'';position:absolute;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:var(--d-bg)}
+.ticket::before{left:-9px}.ticket::after{right:-9px}
+.ticket .k{font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:12px;letter-spacing:.2em;color:#B08A3E}
+.ticket h3{margin:8px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:20px}
+.ticket p{margin:6px 0 0;font-size:14.5px;color:var(--d-sub)}
+.ticket .hold{margin-top:16px;width:100%;height:52px;border:0;border-radius:12px;background:var(--d-ink);color:#fff;font:800 16px Freesentation,sans-serif;position:relative;overflow:hidden}
+.ticket .hold i{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);background:rgba(255,255,255,.18)}
+.ticket .hold.ing i{transform:scaleX(1);transition:transform 1.6s linear}
+.ticket .hold span{position:relative}
+.ticket.used{background:transparent;box-shadow:inset 0 0 0 1.5px var(--d-line)}
+.ticket .stamp{position:relative;margin:0 auto 12px;width:82px;height:82px;border-radius:50%;border:2.5px solid rgba(176,138,62,.85);color:rgba(176,138,62,.95);display:grid;place-items:center;transform:rotate(-14deg);font-family:Paperlogy,sans-serif;font-weight:800;font-size:13px;line-height:1.25;text-align:center}
+.ticket .stamp small{display:block;font-weight:600;font-size:10px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -37,33 +55,31 @@ body{max-width:none}
 <script type="module">
 // 앱 웹 버전(iframe) 안이면 앱의 완주 엠블럼 화면으로(11/06 출구 · 엠블럼 합침)
 if (window.parent !== window && !window.ReactNativeWebView) { try { window.parent.postMessage({ m100: 'emblem' }, '*'); } catch {} }
-// 출구 — 다섯 가지를 모두 모았으면 직원에게 이 화면을 보여 준다. 직원이 단추를 길게 누르면 '수령 완료'(이 폰에서 한 번만)
+// 출구 — 다섯 가지를 모두 모으면 엠블럼이 완성되고, 교환권을 직원에게 보여 준다(직원이 단추를 길게 누르면 교환 완료)
 import { COLLECT_IDS, findTask, COMPLETE_MESSAGE } from './data.js';
 import { store } from './store.js';
 import { style } from './done.js';
 style();
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const page = document.getElementById('page');
-const fmt = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const fmt = (t) => { const d = new Date(t); return `${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const BACK = '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>';
 function render() {
-  const got = COLLECT_IDS.filter((id) => store.saved(id)), all = got.length === COLLECT_IDS.length, red = store.redeemed();
+  const got = COLLECT_IDS.filter((id) => store.saved(id)), n = got.length, all = n === COLLECT_IDS.length, red = store.redeemed();
   let h = `<div class="d-bar"><a href="index.html" aria-label="체험 목록으로">${BACK}</a><div class="d-loc">출구</div><span></span></div><div class="d-scroll"><div class="d-in">`;
-  h += `<p class="d-cap">기념품 받기</p>`;
+  h += `<section class="ex-hero ${all ? 'done' : 'not'}"><div class="ex-medal"><img src="img/emblem_medal.webp" alt="모네 서거 100주년 기념 메달"></div>
+        <p class="d-cap ex-cap">MONET 100</p>
+        <h1 class="ex-title">${all ? '변화의 시대를<br>지나왔습니다' : `${n} / ${COLLECT_IDS.length}`}</h1>
+        <p class="ex-sub">${all ? '다섯 이야기를 모두 모아 기념 메달이 완성되었습니다' : '다섯 이야기를 모두 모으면 기념 메달이 완성되고, 출구에서 기념품을 드립니다'}</p></section>`;
+  h += `<div class="ex-row">${COLLECT_IDS.map((id) => { const { zone, task } = findTask(id); const it = task.item, on = store.saved(id);
+    return `<div class="ex-it ${on ? '' : 'off'}"><i class="${it.contain ? 'contain' : ''}">${on ? `<img src="${esc(it.img)}" alt="">` : ''}</i><b>${esc(it.name)}</b>${on ? '' : `<small>${esc(zone.no)}</small>`}</div>`; }).join('')}</div>`;
   if (all) {
+    h += `<p class="d-note">${esc(COMPLETE_MESSAGE)}</p>`;
     h += red
-      ? `<div class="goods got"><div class="big">수령 완료</div><p>${fmt(red)} · 이 폰으로는 한 번만 받을 수 있습니다</p></div>`
-      : `<div class="goods"><div class="big">${COLLECT_IDS.length} / ${COLLECT_IDS.length}</div><p>직원에게 이 화면을 보여 주세요</p>
-          <button class="btn hold" id="hold"><i></i><span>직원 확인 · 길게 누르기</span></button></div>`;
-  } else {
-    h += `<p class="d-lead">다섯 가지를 모두 모으면 출구에서 기념품을 드립니다.</p>`;
+      ? `<div class="ticket used"><div class="stamp"><div>교환 완료<small>${fmt(red)}</small></div></div><p class="k">SOUVENIR</p><h3>기념품을 받으셨습니다</h3><p>MONET 100을 함께해 주셔서 고맙습니다</p></div>`
+      : `<div class="ticket"><p class="k">SOUVENIR</p><h3>기념품 교환권</h3><p>출구 데스크에서 이 화면을 보여 주세요</p>
+          <button class="hold" id="hold" type="button"><i></i><span>직원 확인 · 길게 누르기</span></button></div>`;
   }
-  // 나의 수집품 — 결과 화면 · 목록과 같은 칸
-  h += `<div class="d-col"><p class="d-colt">나의 수집품 <b>${got.length}</b> / ${COLLECT_IDS.length}</p><div class="d-slots">${COLLECT_IDS.map((id) => { const it = findTask(id).task.item; const on = store.saved(id);
-    return `<span class="${on ? 'on' : ''}${it.contain ? ' contain' : ''}">${on ? `<img src="${esc(it.img)}" alt="">` : ''}</span>`; }).join('')}</div></div>`;
-  h += `<ul class="missing">${COLLECT_IDS.map((id) => { const { zone, task } = findTask(id); const ok = store.saved(id);
-    return `<li class="${ok ? 'ok' : ''}">${esc(task.item.name)}<span>${ok ? '모음' : esc(zone.loc.replace('4F · ', ''))}</span></li>`; }).join('')}</ul>`;
-  if (all) h += `<p class="d-note">${esc(COMPLETE_MESSAGE)}</p>`;
   h += `</div></div>`;
   page.innerHTML = h;
   const b = document.getElementById('hold');
