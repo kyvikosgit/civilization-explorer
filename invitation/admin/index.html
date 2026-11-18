@@ -87,7 +87,7 @@ td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
   </form>
 
   <div id="list" hidden>
-    <div class="mode screen-only" role="tablist" aria-label="명단 종류"><button type="button" data-m="car">차량 명단</button><button type="button" data-m="rsvp">RSVP 회신</button></div>
+    <div class="mode screen-only" role="tablist" aria-label="명단 종류"><button type="button" data-m="rsvp">회신 명단 (성함 · 주소 · 차량)</button><button type="button" data-m="car">주차 출력용 차량 명단</button></div>
     <div class="tabs" role="tablist" aria-label="행사">
       <button type="button" role="tab" data-ev="vip">VIP 오프닝<small>12월 4일 (금)</small></button>
       <button type="button" role="tab" data-ev="press">프레스데이<small>12월 3일 (목)</small></button>
@@ -121,8 +121,8 @@ td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
   function pretty(v) { var t = String(v).replace(/\s+/g, ''), m = t.match(/^([가-힣]{2})?(\d{1,3})([가-힣])?(\d{4})$/); return m && (m[1] || m[3]) ? (m[1] ? m[1] + ' ' : '') + m[2] + (m[3] || '') + ' ' + m[4] : v; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var EV = { vip: { name: 'VIP 오프닝', date: '2026. 12. 4 (금) 16:00 – 19:30' }, press: { name: '프레스데이', date: '2026. 12. 3 (목) 10:30 – 18:00' } };
-  var tab = /[?&]e=press/.test(location.search) ? 'press' : 'vip', all = [], rsvp = [], mode = /[?&]m=rsvp/.test(location.search) ? 'rsvp' : 'car';
-  try { var m0 = sessionStorage.getItem('ip_mode'); if (m0 && !/[?&]m=/.test(location.search)) mode = m0; } catch (e) {}
+  var tab = /[?&]e=press/.test(location.search) ? 'press' : 'vip', all = [], rsvp = [], mode = /[?&]m=car/.test(location.search) ? 'car' : 'rsvp';  // 11/18: 기본은 회신 명단(성함 · 주소 · 차량 다 보이게)
+  try { var m0 = sessionStorage.getItem('ip_mode2'); if (m0 && !/[?&]m=/.test(location.search)) mode = m0; } catch (e) {}
   try { var t0 = sessionStorage.getItem('ip_tab'); if (t0 && !/[?&]e=/.test(location.search)) tab = t0; } catch (e) {}
   function cur() { var src = mode === 'rsvp' ? rsvp : all; return tab === 'all' ? src : src.filter(function (r) { return (r.event || 'vip') === tab; }); }
   function renderRsvp() {
@@ -152,7 +152,7 @@ td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
     $('csv').hidden = mode !== 'rsvp'; document.title = (mode === 'rsvp' ? 'RSVP 회신 명단' : '사전 차량 등록 명단') + ' · MONET 100';
     document.querySelector('h1.screen').textContent = mode === 'rsvp' ? 'RSVP 회신 명단' : '사전 차량 등록 명단';
     if (mode === 'rsvp') return renderRsvp();
-    $('thead').innerHTML = '<tr><th>번호</th><th>차량 번호</th><th>행사</th><th>등록 시각</th><th class="x"></th></tr>';
+    $('thead').innerHTML = '<tr><th>번호</th><th>차량 번호</th><th>성함</th><th>행사</th><th>등록 시각</th><th class="x"></th></tr>';
     $('empty').textContent = '아직 등록된 차량이 없습니다.';
     var rows = cur();
     document.querySelectorAll('.tabs button').forEach(function (b) { var on = b.dataset.ev === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
@@ -162,7 +162,8 @@ td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
     $('ntext').innerHTML = '등록 <b id="cnt">' + rows.length + '</b>대'; $('empty').hidden = rows.length > 0;
     $('rows').innerHTML = rows.map(function (r, i) {
       var ev = r.event || 'vip';
-      return '<tr><td class="no">' + (i + 1) + '</td><td class="pl">' + esc(pretty(r.plate)) + '</td><td class="ev"><i class="' + ev + '">' + EV[ev].name + '</i></td><td class="at">' + fmt.format(new Date(r.created_at)) + '</td><td class="x"><button class="del" type="button" data-id="' + r.id + '" data-pl="' + esc(pretty(r.plate)) + '" data-ev="' + EV[ev].name + '">삭제</button></td></tr>';
+      var who = rsvp.filter(function (x) { return x.plate === r.plate && (x.event || 'vip') === ev; }).map(function (x) { return x.name; }).join(', ');
+      return '<tr><td class="no">' + (i + 1) + '</td><td class="pl">' + esc(pretty(r.plate)) + '</td><td class="nm">' + esc(who) + '</td><td class="ev"><i class="' + ev + '">' + EV[ev].name + '</i></td><td class="at">' + fmt.format(new Date(r.created_at)) + '</td><td class="x"><button class="del" type="button" data-id="' + r.id + '" data-pl="' + esc(pretty(r.plate)) + '" data-ev="' + EV[ev].name + '">삭제</button></td></tr>';
     }).join('');
     $('pdate').textContent = (e ? e.date + '\n' : '') + '출력 ' + fmtFull.format(new Date()) + ' · 총 ' + rows.length + '대';
   }
@@ -180,7 +181,7 @@ td.pl2{white-space:nowrap;font-weight:600;letter-spacing:.03em}
       .catch(function (j) { $('err').textContent = j && j.message === 'denied' ? '비밀번호가 맞지 않습니다.' : '불러오지 못했습니다. 다시 시도해 주세요.'; });
   });
   document.querySelector('.mode').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return; mode = b.dataset.m; try { sessionStorage.setItem('ip_mode', mode); } catch (x) {} render();
+    var b = e.target.closest('button'); if (!b) return; mode = b.dataset.m; try { sessionStorage.setItem('ip_mode2', mode); } catch (x) {} render();
   });
   // 우편 발송용 — 엑셀에서 바로 열리게 BOM 붙인 CSV
   $('csv').addEventListener('click', function () {
