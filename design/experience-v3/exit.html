@@ -90,7 +90,7 @@ function emblem(done) {
 
 function render() {
   const got = COLLECT_IDS.filter((id) => store.saved(id)), n = got.length, all = n === COLLECT_IDS.length, red = store.redeemed();
-  let h = `<div class="d-bar"><a href="index.html" aria-label="체험 목록으로">${BACK}</a><div class="d-loc">출구</div><span></span></div><div class="d-scroll"><div class="d-in">`;
+  let h = `<div class="d-bar"><a href="index.html" aria-label="체험 목록으로">${BACK}</a><div class="d-loc"></div><span></span></div><div class="d-scroll"><div class="d-in">`;
   h += `<section class="ex-hero ${all ? 'done' : 'not'}"><div class="ex-medal">${emblem(all)}</div>
         <h1 class="ex-title">${all ? '변화의 시대를<br>지나왔습니다' : `${n} / ${COLLECT_IDS.length}`}</h1>
         <p class="ex-sub">${all ? '다섯 이야기를 모두 모아 완주 엠블럼이 완성되었습니다' : '다섯 이야기를 모두 모으면 완주 엠블럼이 완성되고, 출구에서 기념품을 드립니다'}</p></section>`;
