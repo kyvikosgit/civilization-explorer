@@ -55,7 +55,7 @@ body{max-width:none}
 <main class="v3-done exit on read" id="page"></main>
 <script type="module">
 // 앱 웹 버전(iframe) 안이면 앱의 완주 엠블럼 화면으로(11/06 출구 · 엠블럼 합침)
-if (window.parent !== window && !window.ReactNativeWebView) { try { window.parent.postMessage({ m100: 'emblem' }, '*'); } catch {} }
+// 11/18: 앱도 이 화면을 그대로 쓴다(예전엔 앱의 /emblem 으로 보냈다 — 지금 보내면 같은 화면을 되풀이해 연다)
 // 출구 — 다섯 가지를 모두 모으면 엠블럼이 완성되고, 교환권을 직원에게 보여 준다(직원이 단추를 길게 누르면 교환 완료)
 import { COLLECT_IDS, findTask, COMPLETE_MESSAGE } from './data.js';
 import { store } from './store.js';
