@@ -10,9 +10,9 @@ import { collect, mountEnd, showComplete } from './done.js';
 
 const task = ZONES.find((z) => z.id === 'monet').tasks[0];
 const V3 = '../../experience-v3/';
-// 11/18: 해돋이 원본 하나로 통일 — 인식 원본(img/sunrise_target.jpg)과 같은 그림 · 영상은 그 색에 맞춘 판(video/sunrise-scene-graded.mp4)
+// 11/18: 해돋이 원본 하나로 통일 — 마르모탕 원본(img/sunrise_original.jpg, design/sunrise-brief 5773px 축소) · 영상은 그 색에 맞춘 판(video/sunrise-scene-graded.mp4). sunrise_target.jpg 는 인식용으로 대비를 올린 판이라 화면에 쓰지 않는다
 const VIDEO = new URL(V3 + 'video/sunrise-scene-graded.mp4', document.baseURI).href;
-const PAINT = new URL(V3 + 'img/sunrise_target.jpg', document.baseURI).href;
+const PAINT = new URL(V3 + 'img/sunrise_original.jpg', document.baseURI).href;
 const VAR = 752 / 560;                                   // 영상 가로/세로
 // 타깃 세로/가로 — mind/sunrise.mind 컴파일 순서(해돋이 원본 img/sunrise_target.jpg · 생라자르 · 에트르타 · 수련)
 const RATIO = [1241 / 1600, 0.744, 0.801, 1.255];
@@ -21,7 +21,7 @@ const WIN = targets.findIndex((t) => t.correct);
 const guide = makeGuide();
 // 11/18: 르루아의 글은 가상의 관람객이 나누는 대화 — 원문에 충실한 번역만 쓰고, 비평가가 제목을 두고 한 말처럼 쓰지 않는다
 const INFO = {
-  coach: { img: V3 + 'img/sunrise_target.jpg', kind: 'gilt', land: true },
+  coach: { img: V3 + 'img/sunrise_original.jpg', kind: 'gilt', land: true },
   title: '비평가가 비웃은 그림을 찾아\n카메라로 비춰 보세요',
   sub: '“막 그리기 시작한 벽지도\n이 바다 그림보다는 더 완성돼 있다.”',
   buttons: [{ label: '그림 찾기', cam: true, on: start }],
