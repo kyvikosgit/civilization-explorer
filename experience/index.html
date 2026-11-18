@@ -474,8 +474,8 @@ a{color:inherit}
   <p class="zintro">넓힌 중앙 부스의 오른쪽 절반, 19세기 사업가의 사무실입니다. 세계지도와 열차 시간표, 기관차 사진, 우키요에로 철도와 교역이 넓힌 세계를 보여 주고, 왼쪽 에트르타 야외 작업 공간으로 이어집니다.</p>
   <figure class="viz">
     <div class="shot main">
-      <img src="img/r_C2.jpg?v=29" alt="산업혁명 사무실 공간 시각화">
-      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:47.7%;top:69.59%">1</li><li data-n="2" style="left:46.86%;top:33.7%">2</li><li data-n="3" style="left:82.14%;top:27.31%">3</li></ol>
+      <img src="img/r_C2.jpg?v=30" alt="산업혁명 사무실 공간 시각화">
+      <ol class="pins" aria-hidden="true"><li data-n="1" style="left:54.56%;top:71.05%">1</li><li data-n="2" style="left:46.86%;top:33.7%">2</li><li data-n="3" style="left:82.14%;top:27.31%">3</li></ol>
     </div>
     <div class="viztools"><a class="fly" href="#tour" data-fly="c2">3D에서 이 공간 보기</a><figcaption>사업가의 사무실 (중앙 부스 오른쪽)</figcaption></div>
   </figure>
@@ -647,7 +647,7 @@ const onZone = (z) => {
 function start() {
   if (!tourP) {
     stage.querySelector('.poster')?.remove();
-    tourP = import('./js/tour.js?v=34' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
+    tourP = import('./js/tour.js?v=35' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : '')).then((m) => m.createTour({ stage, plan, onZone, onPin: (z, n) => showDevice(z, n) }));
   }
   return tourP;
 }
