@@ -16,39 +16,40 @@
 body{max-width:none}
 .v3-done.exit{position:static;min-height:100dvh;opacity:1}
 .v3-done.exit .d-scroll{overflow:visible;padding-bottom:calc(40px + env(safe-area-inset-bottom))}
+.v3-done.exit .d-loc{font-size:16px;color:var(--d-ink)}
 .ex-hero{position:relative;display:flex;flex-direction:column;align-items:center;padding-top:6px}
-.ex-medal{position:relative;width:min(80vw,300px);aspect-ratio:1}
+.ex-medal{position:relative;width:min(calc(100vw - 36px),350px);aspect-ratio:1}
 .ex-medal .emb{width:100%;height:100%;display:block}
 .ex-medal .emb.not{opacity:.22}
 .ex-medal .emb.done{filter:drop-shadow(0 .6px .4px rgba(90,65,25,.35))}
 .ex-medal::before{content:'';position:absolute;inset:-18%;border-radius:50%;background:radial-gradient(closest-side,rgba(236,196,120,.32),transparent 72%);opacity:0;transition:opacity 1.2s}
-.done .ex-medal::before{opacity:0}
+.ex-medal::before{display:none} /* 쓰지 않는 빛무리 — 남겨 두면 엠블럼을 키웠을 때 화면 옆으로 삐져나가 가로 스크롤이 생긴다 */
 .ex-cap{margin:22px 0 0}
-.ex-title{margin:18px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:26px;line-height:1.3;text-align:center;letter-spacing:-.01em;color:var(--d-ink)}
-.ex-sub{margin:8px auto 0;max-width:300px;text-align:center;font-size:15px;line-height:1.6;color:var(--d-sub)}
-.ex-row{margin:30px 0 0;display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.ex-title{margin:18px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:28px;line-height:1.3;text-align:center;letter-spacing:-.01em;color:var(--d-ink)}
+.ex-sub{margin:10px auto 0;max-width:320px;text-align:center;font-size:16.5px;line-height:1.6;color:var(--d-sub)}
+.ex-row{margin:32px 0 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .ex-it{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
 .ex-it i{width:100%;aspect-ratio:1;border-radius:10px;background:var(--d-panel);overflow:hidden;display:block;box-shadow:inset 0 0 0 1px var(--d-line)}
 .ex-it i img{width:100%;height:100%;object-fit:cover;display:block}
 .ex-it i.contain img{object-fit:contain;padding:5px}
 .ex-it.off i{background:transparent;box-shadow:inset 0 0 0 1.5px var(--d-line);background-image:repeating-linear-gradient(135deg,transparent 0 7px,rgba(0,0,0,.025) 7px 8px)}
-.ex-it b{font-size:11.5px;font-weight:700;line-height:1.3;text-align:center;color:var(--d-ink);word-break:keep-all}
+.ex-it b{font-size:13.5px;font-weight:700;line-height:1.3;letter-spacing:-.03em;text-align:center;color:var(--d-ink);word-break:keep-all}
 .ex-it.off b{color:var(--d-sub);font-weight:600}
-.ex-it small{font-size:10.5px;color:var(--d-sub);margin-top:-5px}
+.ex-it small{font-size:13px;font-weight:600;color:var(--d-sub);margin-top:-4px}
 .v3-done.exit .d-note{opacity:1;transform:none;margin-top:34px}
-.ticket{margin:34px 0 0;position:relative;border-radius:14px;background:var(--d-panel);padding:22px 20px 20px;text-align:center;overflow:hidden}
+.ticket{margin:34px 0 0;position:relative;border-radius:16px;background:var(--d-panel);padding:28px 20px 22px;text-align:center;overflow:hidden}
 .ticket::before,.ticket::after{content:'';position:absolute;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:var(--d-bg)}
 .ticket::before{left:-9px}.ticket::after{right:-9px}
-.ticket .k{font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:12px;letter-spacing:.2em;color:#B08A3E}
-.ticket h3{margin:8px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:20px}
-.ticket p{margin:6px 0 0;font-size:14.5px;color:var(--d-sub)}
-.ticket .hold{margin-top:16px;width:100%;height:52px;border:0;border-radius:12px;background:var(--d-ink);color:#fff;font:800 16px Freesentation,sans-serif;position:relative;overflow:hidden}
+.ticket .k{font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:14px;letter-spacing:.2em;color:#B08A3E}
+.ticket h3{margin:10px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:26px}
+.ticket p{margin:8px 0 0;font-size:17px;line-height:1.5;color:var(--d-sub)}
+.ticket .hold{margin-top:20px;width:100%;height:58px;border:0;border-radius:12px;background:var(--d-ink);color:#fff;font:800 18px Freesentation,sans-serif;position:relative;overflow:hidden}
 .ticket .hold i{position:absolute;inset:0;transform-origin:left;transform:scaleX(0);background:rgba(255,255,255,.18)}
 .ticket .hold.ing i{transform:scaleX(1);transition:transform 1.6s linear}
 .ticket .hold span{position:relative}
 .ticket.used{background:transparent;box-shadow:inset 0 0 0 1.5px var(--d-line)}
-.ticket .stamp{position:relative;margin:0 auto 12px;width:82px;height:82px;border-radius:50%;border:2.5px solid rgba(176,138,62,.85);color:rgba(176,138,62,.95);display:grid;place-items:center;transform:rotate(-14deg);font-family:Paperlogy,sans-serif;font-weight:800;font-size:13px;line-height:1.25;text-align:center}
-.ticket .stamp small{display:block;font-weight:600;font-size:10px;margin-top:2px}
+.ticket .stamp{position:relative;margin:0 auto 12px;width:104px;height:104px;border-radius:50%;border:3px solid rgba(176,138,62,.85);color:rgba(176,138,62,.95);display:grid;place-items:center;transform:rotate(-14deg);font-family:Paperlogy,sans-serif;font-weight:800;font-size:17px;line-height:1.25;text-align:center}
+.ticket .stamp small{display:block;font-weight:600;font-size:13px;margin-top:3px}
 </style>
 </head>
 <body>
@@ -69,10 +70,10 @@ const BACK = '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>';
 // 괘선 장식은 1874년 첫 인상주의 전시 카탈로그 표지(BnF)에서 따온 인쇄 장식. 모으는 중엔 흐린 먹색, 다 모으면 금박
 const EMB = { line: '클로드 모네 서거 100주년 기념', date: '2026. 12. 5 – 2027. 2. 28', place: '신세계본점 더 헤리티지 4F 뮤지엄', logo: 'img/emblem/lockup_tight.png', rule: 'img/emblem/orn_rule.png', logoAR: 1599 / 571 };
 function emblem(done) {
-  const c = 190, R = 178, N = 104, LW = 196, LH = Math.round(LW / EMB.logoAR);
+  const c = 190, R = 178, N = 104, LW = 184, LH = Math.round(LW / EMB.logoAR);
   const fill = done ? 'url(#embFoil)' : '#231E1A';
   let dots = ''; for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2; dots += `<circle cx="${(c + (R - 7) * Math.cos(a)).toFixed(1)}" cy="${(c + (R - 7) * Math.sin(a)).toFixed(1)}" r="2.1"/>`; }
-  const y = { t: 77, r1: 112, logo: 140, r2: 140 + LH + 22, date: 140 + LH + 52, place: 140 + LH + 81 };
+  const y = { t: 105, r1: 120, logo: 139, r2: 139 + LH + 15, date: 139 + LH + 49, place: 139 + LH + 79 };  // 11/18 글자 키움: 글줄 간격을 줄여 넓은 줄을 원 가운데 쪽으로
   const m = (id, href, x, yy, w, h) => `<mask id="${id}" maskUnits="userSpaceOnUse" style="mask-type:alpha"><image href="${href}" x="${x}" y="${yy}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid meet"/></mask><rect x="${x}" y="${yy}" width="${w}" height="${h}" fill="${fill}" mask="url(#${id})"/>`;
   return `<svg class="emb ${done ? 'done' : 'not'}" viewBox="0 0 380 380" role="img" aria-label="MONET 100 완주 엠블럼">
     <defs><linearGradient id="embFoil" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#93733A"/><stop offset=".3" stop-color="#E6CF98"/><stop offset=".5" stop-color="#AE8848"/><stop offset=".68" stop-color="#F1E0B6"/><stop offset="1" stop-color="#9B783B"/></linearGradient></defs>
@@ -80,10 +81,10 @@ function emblem(done) {
       <circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke-width="2.4"/><g stroke="none">${dots}</g>
       <circle cx="${c}" cy="${c}" r="${R - 14}" fill="none" stroke-width="1.1"/><circle cx="${c}" cy="${c}" r="${R - 19}" fill="none" stroke-width=".6"/>
     </g>
-    <text x="${c}" y="${y.t + 11}" text-anchor="middle" fill="${fill}" style="font:600 13px Paperlogy,sans-serif;letter-spacing:.04em">${EMB.line}</text>
+    <text x="${c}" y="${y.t}" text-anchor="middle" fill="${fill}" style="font:600 15px Paperlogy,sans-serif;letter-spacing:.02em">${EMB.line}</text>
     ${m('embR1', EMB.rule, c - 60, y.r1, 120, 6)}${m('embL', EMB.logo, c - LW / 2, y.logo, LW, LH)}${m('embR2', EMB.rule, c - 60, y.r2, 120, 6)}
-    <text x="${c}" y="${y.date + 14}" text-anchor="middle" fill="${fill}" style="font:700 16px Freesentation,sans-serif;letter-spacing:.02em">${EMB.date}</text>
-    <text x="${c}" y="${y.place + 11}" text-anchor="middle" fill="${fill}" fill-opacity=".85" style="font:500 12.5px Freesentation,sans-serif">${EMB.place}</text>
+    <text x="${c}" y="${y.date}" text-anchor="middle" fill="${fill}" style="font:700 20px Freesentation,sans-serif;letter-spacing:.01em">${EMB.date}</text>
+    <text x="${c}" y="${y.place}" text-anchor="middle" fill="${fill}" fill-opacity=".9" style="font:600 16.5px Freesentation,sans-serif">${EMB.place}</text>
   </svg>`;
 }
 
