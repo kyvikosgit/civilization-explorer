@@ -6,13 +6,13 @@ import { store } from './store.js';
 
 const V3 = new URL('./', import.meta.url).href;
 export const HUB = V3 + 'index.html';
-// 관람 동선 순서 — 다음 미션
-const ORDER = ['salon', 'society', 'industry', 'atelier', 'nadar', 'monet'];
+// 관람 동선 순서 — 다음 미션. 11/18: 나다르(C-4)는 앱 미션이 아니라 현장 촬영이라 사슬에서 뺀다(에트르타 → 모네). 나다르 화면 자체의 다음은 모네
+const ORDER = ['salon', 'society', 'industry', 'atelier', 'monet'];
 const PAGE = { salon: 'salon.html', society: 'society.html', industry: 'industry.html', atelier: 'atelier.html', nadar: 'nadar.html', monet: 'monet.html' };
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export function nextOf(zoneId) {
-  const n = ORDER[ORDER.indexOf(zoneId) + 1];
+  const n = zoneId === 'nadar' ? 'monet' : ORDER[ORDER.indexOf(zoneId) + 1];
   return n ? { href: V3 + PAGE[n], title: ZONES.find((z) => z.id === n).title } : { href: V3 + 'exit.html', title: '완주 엠블럼 · 기념품' };
 }
 
