@@ -68,6 +68,10 @@
       "dest": "/z/index.html"
     },
     {
+      "src": "/live/?",
+      "dest": "/design/experience-v3/nadar-live.html"
+    },
+    {
       "handle": "filesystem"
     },
     {
