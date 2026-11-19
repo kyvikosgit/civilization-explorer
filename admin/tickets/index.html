@@ -229,6 +229,7 @@ dialog .db{padding:22px 24px}
 .chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .rgin.dates input{font:500 15px/1.3 var(--sans);letter-spacing:0;text-align:left;height:46px;padding:0 12px}
 .rf .err:empty,.fld .st:empty{display:none}
+.rf input[list]::-webkit-calendar-picker-indicator{display:none!important;opacity:0}
 .rf .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 #dReg .db{max-height:calc(100vh - 120px);overflow:auto}
 @media (max-width:560px){.rf .two{grid-template-columns:1fr}}
@@ -419,10 +420,10 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
       <div class="rgin dates"><input type="date" id="rFrom" min="2026-12-05" max="2027-02-28" aria-label="사용 시작일"><span class="til">~</span><input type="date" id="rTo" min="2026-12-05" max="2027-02-28" aria-label="사용 종료일"></div></div>
     <div class="two">
       <div class="fld"><label class="lb" for="rOd">발주일자<em>선택</em></label><input type="date" id="rOd"></div>
-      <div class="fld"><label class="lb" for="rMemo">비고</label><input id="rMemo" placeholder="예: 11/12 전달 완료"></div>
     </div>
     <div class="fld"><label class="lb" for="rEn">입장안내</label><input id="rEn" list="enList" placeholder="예: 18:30 이후 입장 시 관람시간 제한 안내"><datalist id="enList"></datalist></div>
     <div class="fld"><label class="lb" for="rPk">주차안내</label><input id="rPk" list="pkList" placeholder="예: 본점 주차장 이용 불가"><datalist id="pkList"></datalist></div>
+    <div class="fld"><label class="lb" for="rMemo">비고</label><input id="rMemo" placeholder="예: 11/12 전달 완료"></div>
     <p class="err" id="rErr" role="alert"></p>
     <div class="row"><button type="button" class="link danger" id="rDel" hidden>삭제</button><span class="sp"></span><button type="button" class="ghost" data-close>취소</button><button type="submit" id="rSave">저장</button></div>
   </form>
