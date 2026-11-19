@@ -97,6 +97,8 @@ if (EMBED) {
     const a = e.target?.closest?.('a[href]'); if (!a) return;
     const u = new URL(a.getAttribute('href'), location.href);
     if (/\/experience-v3\/(index\.html)?$/.test(u.pathname)) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ m100: 'home' }, '*'); }
+    // 11/18 미팅: 앱에서는 '다음'이 다음 체험이 아니라 다음 구역(그 구역 도슨트부터) — 앱이 정한다
+    else if (/\/experience-v3\/(salon|society|industry|atelier|nadar|monet|exit)\.html$/.test(u.pathname) && u.pathname !== location.pathname) { e.preventDefault(); e.stopPropagation(); window.parent.postMessage({ m100: 'next' }, '*'); }
   }, true);
 }
 
@@ -104,11 +106,13 @@ if (EMBED) {
 export function endRow(zoneId, { item, got = '수집품을 받았습니다', more, moreLabel = '체험 더보기', light = false } = {}) {
   style();
   const nx = nextOf(zoneId);
+  // 앱 안(웹뷰 · 앱 웹 버전 iframe)에서는 다음 구역으로 — 앱이 그 구역 도슨트부터 이어 준다(어느 구역인지는 앱 동선이 정함)
+  const inApp = !!window.__m100app || EMBED;
   const el = document.createElement('div');
   el.className = 'v3-end' + (light ? ' light' : '');
   const pic = item?.img ? `<img src="${esc(new URL(item.img, V3).href)}" alt=""${item.contain ? ' class="contain"' : ''}>` : '';
   el.innerHTML = `${item ? `<p class="ve-got">${pic}<span>${esc(got)} · <b>${esc(item.name)}</b></span></p>` : ''}
-    <div class="ve-btns"><a class="ve-btn line" href="${esc(HUB)}">목록으로 돌아가기</a><a class="ve-btn fill" href="${esc(nx.href)}">다음 미션으로<small>${esc(nx.title)}</small></a></div>
+    <div class="ve-btns"><a class="ve-btn line" href="${esc(HUB)}">목록으로 돌아가기</a><a class="ve-btn fill" href="${esc(nx.href)}">${inApp ? '다음 구역으로' : `다음 미션으로<small>${esc(nx.title)}</small>`}</a></div>
     ${more ? `<button class="ve-more" type="button">${esc(moreLabel)}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>` : ''}`;
   if (more) el.querySelector('.ve-more').onclick = more;
   return el;

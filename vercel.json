@@ -12,6 +12,19 @@
       "has": [
         {
           "type": "host",
+          "value": "www.it-ta.com"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "https://it-ta.com/$1"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "has": [
+        {
+          "type": "host",
           "value": "www.monet100.com"
         }
       ],
@@ -49,6 +62,10 @@
     {
       "src": "/invita(t?)ion/?",
       "dest": "/invitation/index.html"
+    },
+    {
+      "src": "/z/[^/]+/?",
+      "dest": "/z/index.html"
     },
     {
       "handle": "filesystem"
