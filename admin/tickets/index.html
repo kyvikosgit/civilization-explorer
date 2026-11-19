@@ -190,12 +190,13 @@ dialog .dh{display:flex;align-items:center;gap:12px;padding:20px 24px;border-bot
 dialog .dh h2{margin:0;font-size:17px;margin-right:auto;letter-spacing:-.01em}
 dialog .db{padding:22px 24px}
 /* 탭 */
-.tabs{display:flex;gap:4px;margin:-12px 0 28px;border-bottom:1px solid var(--line2)}
-.tabs button{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;color:var(--sub);font-size:16px;font-weight:700;padding:12px 4px 13px;margin-right:20px;margin-bottom:-1px}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:-12px 0 32px;padding:6px;background:var(--soft);border:1px solid var(--line2);border-radius:12px}
+.tabs button{height:72px;border:0;border-radius:8px;background:transparent;color:var(--sub);font-size:22px;font-weight:700;letter-spacing:-.01em}
+.tabs button:hover{color:var(--ink);background:#fff}
+.tabs button[aria-selected="true"]{background:var(--ink);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 #app.on-du .p-only,#app:not(.on-du) .d-only{display:none!important}
 #tabDu>.sec:first-child,#secCheck{border-top:0;padding-top:4px}
-/* 바우처 입력 */
+/* 모바일 티켓 입력 */
 .duwrap{flex:1;display:flex;align-items:center;height:112px;border:1.5px solid var(--ink);border-radius:8px;background:#fff;padding-left:24px;min-width:0;cursor:text}
 .duwrap span{font:600 56px/1 var(--mono);letter-spacing:.06em;color:var(--faint)}
 .big .duwrap input{border:0;height:100%;padding:0 12px 0 8px;text-align:left;letter-spacing:.1em;background:transparent;flex:1;min-width:0}
@@ -264,7 +265,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   .brk td.rg{width:auto;font-size:11.5px}.brk td.u{display:none}.brk td.r{width:64px}
   .big input{font-size:40px;height:96px;padding:0 10px}.big button{padding:0 22px;height:96px;font-size:18px}
   .duwrap{height:96px;padding-left:12px}.duwrap span,.big .duwrap input{font-size:26px}.big .duwrap input{padding:0 6px 0 4px;letter-spacing:.04em}
-  .tabs{margin-top:-8px}
+  .tabs{margin-top:-8px}.tabs button{height:60px;font-size:18px}
   .st th,.st td{padding:11px 8px}
   .rgin input{font-size:18px;height:48px}.qty{min-width:0;font-size:15px}
   .hund{grid-template-columns:1fr;gap:4px}
@@ -309,16 +310,16 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
 
     <nav class="tabs" role="tablist" aria-label="티켓 종류">
       <button type="button" role="tab" data-tab="paper" aria-selected="true">종이 티켓</button>
-      <button type="button" role="tab" data-tab="du" aria-selected="false">업비트 바우처</button>
+      <button type="button" role="tab" data-tab="du" aria-selected="false">모바일 티켓</button>
     </nav>
 
     <main id="tabDu" class="d-only">
-      <section class="sec" aria-label="업비트 바우처 확인">
-        <div class="h"><h2>업비트 바우처 확인</h2><p>고객 휴대폰의 업비트 바우처 화면에서 QR을 찍거나, DU 뒤 숫자 8자리를 입력합니다. 8자리를 다 치면 바로 확인합니다.</p></div>
+      <section class="sec" aria-label="모바일 티켓 확인">
+        <div class="h"><h2>모바일 티켓 확인</h2><p>고객 휴대폰 화면의 QR을 찍거나, DU 뒤 숫자 8자리를 입력합니다. 8자리를 다 치면 바로 확인합니다.</p></div>
         <div class="body ck">
           <div class="main">
             <form class="big" id="duF" autocomplete="off">
-              <label class="duwrap"><span>DU</span><input id="duIn" inputmode="numeric" enterkeyhint="go" maxlength="14" placeholder="00000000" aria-label="바우처 코드 DU 뒤 8자리"></label>
+              <label class="duwrap"><span>DU</span><input id="duIn" inputmode="numeric" enterkeyhint="go" maxlength="14" placeholder="00000000" aria-label="모바일 티켓 코드 DU 뒤 8자리"></label>
               <button type="submit">확인</button>
             </form>
             <div class="opts">
@@ -338,10 +339,10 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
           </div>
         </div>
       </section>
-      <section class="sec" aria-label="바우처 현황">
-        <div class="h"><h2>현황</h2><p>두나무에 나간 바우처 중 입장에 쓴 코드입니다.</p></div>
+      <section class="sec" aria-label="모바일 티켓 현황">
+        <div class="h"><h2>현황</h2><p>두나무(업비트)로 나간 모바일 티켓 중 입장에 쓴 코드입니다.</p></div>
         <div class="body"><div class="kpis" id="duKpis"></div>
-          <div class="tablebox"><table class="st"><thead><tr><th>순번</th><th>바우처 코드</th><th>사용 일시</th><th class="act"></th></tr></thead><tbody id="duTb"></tbody></table></div></div>
+          <div class="tablebox"><table class="st"><thead><tr><th>순번</th><th>티켓 코드</th><th>사용 일시</th><th class="act"></th></tr></thead><tbody id="duTb"></tbody></table></div></div>
       </section>
     </main>
 
@@ -732,7 +733,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   $('reload').addEventListener('click', function () { load().catch(function (err) { alert(err.message); }); });
   var rT; addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(renderMap, 120); });
 
-  // ── 탭: 종이 티켓 / 업비트 바우처
+  // ── 탭: 종이 티켓 / 모바일 티켓
   var tab = 'paper';
   try { if (localStorage.getItem('tk_tab') === 'du') tab = 'du'; } catch (e) {}
   function setTab(t) {
@@ -743,7 +744,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   }
   document.querySelector('.tabs').addEventListener('click', function (e) { var b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
 
-  // ── 업비트 바우처(DU 코드): 판정은 서버 du_check (형식 · 발급 범위 · 검증 숫자 · 사용 여부)
+  // ── 모바일 티켓(두나무 DU 코드): 판정은 서버 du_check (형식 · 발급 범위 · 검증 숫자 · 사용 여부)
   var DU = { issued: 0, uses: [] };
   var dus = function (n) { return String(n).padStart(4, '0'); };
   function duNorm(v) { var s = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); var m = s.match(/DU(\d{8})/); if (m) return m[1]; return s.replace(/^DU/, '').replace(/\D/g, ''); }
@@ -754,15 +755,15 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     var n = DU.uses.length;
     $('duKpis').innerHTML = '<div class="kpi"><b>' + cnt(DU.issued) + '</b><span>발급</span></div><div class="kpi"><b>' + cnt(n) + '</b><span>사용 · ' + pctS(n, DU.issued) + '</span></div><div class="kpi"><b>' + cnt(DU.issued - n) + '</b><span>남음</span></div>';
     var row = function (u) { return '<tr><td class="num">' + dus(u.seq) + '</td><td class="rg">' + esc(u.code) + '</td><td>' + dtfmt.format(new Date(u.used_at)) + '</td><td class="act"><button type="button" class="link" data-duun="' + u.seq + '">취소</button></td></tr>'; };
-    $('duTb').innerHTML = n ? DU.uses.slice().sort(function (a, b) { return a.seq - b.seq; }).map(row).join('') : '<tr><td colspan="4" style="color:var(--sub)">아직 사용 처리한 바우처가 없습니다.</td></tr>';
+    $('duTb').innerHTML = n ? DU.uses.slice().sort(function (a, b) { return a.seq - b.seq; }).map(row).join('') : '<tr><td colspan="4" style="color:var(--sub)">아직 사용 처리한 모바일 티켓이 없습니다.</td></tr>';
     $('duRecent').innerHTML = n ? DU.uses.slice(0, 10).map(function (u) { return '<li><span class="tm">' + tfmt.format(new Date(u.used_at)) + '</span><span class="num"><b>' + dus(u.seq) + '</b></span><span class="hd">' + esc(u.code) + '</span><button type="button" class="link" data-duun="' + u.seq + '">취소</button></li>'; }).join('')
-      : '<li class="empty" style="display:block">아직 사용 처리한 바우처가 없습니다.</li>';
+      : '<li class="empty" style="display:block">아직 사용 처리한 모바일 티켓이 없습니다.</li>';
   }
   function duFlash(cls, html) { var f = $('duFlash'); f.className = 'flash on ' + cls; f.innerHTML = html; }
   function duShow(j) {
-    var no = '<span class="no">' + esc(j.code || '') + '</span>', sq = j.seq ? '<dl><dt>순번</dt><dd>' + dus(j.seq) + '번째 바우처</dd>' + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>' : '';
+    var no = '<span class="no">' + esc(j.code || '') + '</span>', sq = j.seq ? '<dl><dt>순번</dt><dd>' + dus(j.seq) + '번째 티켓</dd>' + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>' : '';
     if (j.status === 'ok') return duFlash('ok', '<div class="st">' + no + '입장 확인 · 사용 처리됨</div>' + sq + '<div class="acts"><button type="button" class="ghost" data-duun="' + j.seq + '">사용 취소</button></div>');
-    if (j.status === 'already') return duFlash('bad', '<div class="st">' + no + '이미 사용된 바우처</div>' + sq + '<div class="acts"><button type="button" class="ghost" data-duun="' + j.seq + '">사용 취소</button></div>');
+    if (j.status === 'already') return duFlash('bad', '<div class="st">' + no + '이미 사용된 티켓</div>' + sq + '<div class="acts"><button type="button" class="ghost" data-duun="' + j.seq + '">사용 취소</button></div>');
     if (j.status === 'test') return duFlash('mute', '<div class="st">' + no + '테스트 코드 · 입장 불가</div><p>두나무 개발 확인용으로 보낸 코드입니다.</p>');
     if (j.status === 'invalid') return duFlash('bad', '<div class="st">' + no + '무효 코드</div><p>' + esc(j.reason || '') + ' 코드를 다시 확인해 주세요.</p>');
     duFlash('info', '<div class="st" style="color:var(--ok)">' + no + '사용 가능</div>' + sq + '<div class="acts"><button type="button" class="go" data-duuse="' + esc(j.code) + '">사용 처리</button></div>');
@@ -783,8 +784,8 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   $('duAuto').addEventListener('change', function () { try { localStorage.setItem('du_auto', this.checked ? '1' : '0'); } catch (e) {} $('duAutoHint').textContent = this.checked ? '확인과 동시에 사용 처리합니다' : '조회만 합니다. 결과에서 사용 처리를 누르세요'; });
   try { if (localStorage.getItem('du_auto') === '0') { $('duAuto').checked = false; $('duAutoHint').textContent = '조회만 합니다. 결과에서 사용 처리를 누르세요'; } } catch (e) {}
   function duUnuse(seq) {
-    if (!confirm(dus(seq) + '번 바우처 사용을 취소할까요?')) return;
-    rpc('du_unuse', { p_seq: seq }).then(function () { duFlash('mute', '<div class="st">' + dus(seq) + '번 바우처 사용 취소됨</div>'); return duLoad(); }).catch(function (x) { alert(x.message); });
+    if (!confirm(dus(seq) + '번 모바일 티켓 사용을 취소할까요?')) return;
+    rpc('du_unuse', { p_seq: seq }).then(function () { duFlash('mute', '<div class="st">' + dus(seq) + '번 모바일 티켓 사용 취소됨</div>'); return duLoad(); }).catch(function (x) { alert(x.message); });
   }
   document.addEventListener('click', function (e) {
     var t = e.target.closest('[data-duun],[data-duuse]'); if (!t) return;
@@ -797,7 +798,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   function camStop() { clearTimeout(cam.raf); if (cam.stream) cam.stream.getTracks().forEach(function (k) { k.stop(); }); cam.stream = null; $('duCam').hidden = true; }
   function camHit(text) {
     var d = duNorm(text), now = Date.now();
-    if (d.length !== 8) { $('duCamMsg').textContent = '바우처 QR이 아닙니다'; return; }
+    if (d.length !== 8) { $('duCamMsg').textContent = '모바일 티켓 QR이 아닙니다'; return; }
     if (d === cam.last && now - cam.lastAt < 4000) return;   // 같은 화면 연속 인식 방지
     cam.last = d; cam.lastAt = now; $('duCamMsg').textContent = 'DU' + d + ' 확인 중…'; duSubmit(d).then(function () { var s = $('duFlash').querySelector('.st'); $('duCamMsg').textContent = s ? s.textContent : ''; clearTimeout(cam.msgT); cam.msgT = setTimeout(function () { $('duCamMsg').textContent = 'QR을 네모 안에 맞춰 주세요'; }, 4000); });
   }
@@ -826,8 +827,8 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   $('duCamX').addEventListener('click', camStop);
   $('duCsv').addEventListener('click', function () {
     duLoad().then(function () {
-      var rows = [['순번', '바우처 코드', '사용 일시']].concat(DU.uses.slice().sort(function (a, b) { return a.seq - b.seq; }).map(function (u) { return [dus(u.seq), u.code, dtfmt.format(new Date(u.used_at))]; }));
-      dl('업비트바우처_사용내역', rows);
+      var rows = [['순번', '티켓 코드', '사용 일시']].concat(DU.uses.slice().sort(function (a, b) { return a.seq - b.seq; }).map(function (u) { return [dus(u.seq), u.code, dtfmt.format(new Date(u.used_at))]; }));
+      dl('모바일티켓_사용내역', rows);
     }).catch(function (x) { alert(x.message); });
   });
 
