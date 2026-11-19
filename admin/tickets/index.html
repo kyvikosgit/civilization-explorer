@@ -12,7 +12,7 @@
   --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;--sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.55 var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
-.wrap{max-width:1160px;margin:0 auto;padding:40px max(20px,env(safe-area-inset-left,0px)) 96px}
+.wrap{max-width:1360px;margin:0 auto;padding:40px max(20px,env(safe-area-inset-left,0px)) 96px}
 button{font:600 13px/1 var(--sans);border-radius:6px;padding:10px 14px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;white-space:nowrap}
 button.ghost{background:#fff;color:var(--ink);border-color:var(--line2)}
 button.ghost:hover{border-color:var(--ink)}
@@ -180,6 +180,9 @@ table.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .st tr.sum td:first-child{padding-left:0}
 .st tr.sum td{font-weight:700;border-top:1px solid var(--ink);border-bottom:0}
 .st td.act{width:1%;white-space:nowrap;text-align:right;padding-right:0}
+.st td.act0,.st th.act0{width:1%;padding-left:0;padding-right:4px}
+.st td.act0 .rowbtn{font-size:13px;padding:8px 12px}
+.st td.use small{display:block;font-size:11.5px;color:var(--sub);margin-top:2px}
 .st td.act .menu summary{opacity:.4;padding:6px 9px;border-radius:5px;cursor:pointer;font-size:16px;line-height:1;color:var(--sub)}
 .st tr:hover td.act .menu summary,.st td.act .menu summary:focus-visible,.st td.act .menu[open] summary{opacity:1;background:var(--soft)}
 @media (hover:none){.st td.act .menu summary{opacity:1}}
@@ -278,7 +281,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   @page{size:A4 landscape;margin:12mm}
   html,body{background:#fff;font-size:9.5pt}
   .wrap{max-width:none;padding:0}
-  header.top,.tabs,#tabDu,#secCheck,td.act,th.act,dialog{display:none!important}
+  header.top,.tabs,#tabDu,#secCheck,td.act,th.act,td.act0,th.act0,dialog{display:none!important}
   .sec{display:block;padding:0 0 6mm;border:0;box-shadow:none;background:none}.sec>.h p{display:none}
   .printhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5px solid #000;padding-bottom:3mm;margin-bottom:5mm}
   .printhead h1{font-size:15pt}.printhead span{font-size:9pt}
@@ -388,10 +391,10 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
 
 
       <section class="sec" id="secTable" aria-label="현황표">
-        <div class="h"><h2>현황표</h2><p>번호 순서대로 받은 곳 · 사용 가능 기간 · 사용 현황입니다. 행을 누르면 번호별 사용 현황이 열립니다.</p></div>
+        <div class="h"><h2>현황표</h2><p>번호 순서대로 받은 곳 · 사용 가능 기간 · 사용 현황입니다. 줄을 누르거나 [수정]을 누르면 고칠 수 있습니다. 번호별 사용 현황은 위 번호 지도에서 구간을 누르세요.</p></div>
         <div class="body tablebox">
           <table class="st">
-            <thead><tr><th>발주일자</th><th>구분</th><th>사용 기간</th><th>티켓 일련번호</th><th class="r">수량</th><th>입장안내</th><th>주차안내</th><th>비고</th><th class="r">사용</th><th class="r">사용률</th><th class="act"></th></tr></thead>
+            <thead><tr><th class="act0"></th><th>발주일자</th><th>구분</th><th>사용 기간</th><th>티켓 일련번호</th><th class="r">수량</th><th>입장안내</th><th>주차안내</th><th>비고</th><th class="r">사용</th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
@@ -531,8 +534,8 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     var tb = '', tot = 0, used = 0, segs = allSegs();
     segs.forEach(function (g) {
       tot += g.q; used += g.u;
-      var menu = '<details class="menu"><summary aria-label="' + esc(g.who) + ' 메뉴">⋯</summary><div class="pop"><button type="button" data-ed="' + g.key + '">수정</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>';
-      tb += '<tr class="seg-row' + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '">'
+      var menu = '<button type="button" class="rowbtn" data-ed="' + g.key + '">수정</button>';
+      tb += '<tr class="seg-row' + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '"><td class="act0">' + menu + '</td>'
         + '<td class="od">' + esc(g.a && g.a.order_date || '') + '</td>'
         + '<td class="who"><i></i>' + esc(segLabel(g)) + '</td>'
         + '<td class="per">' + esc(g.b.period) + '</td>'
@@ -541,10 +544,9 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
         + '<td class="memo">' + esc(g.a && g.a.entry_note || '') + '</td>'
         + '<td class="memo">' + esc(g.a && g.a.parking_note || '') + '</td>'
         + '<td class="memo">' + esc(segMemo(g)) + '</td>'
-        + '<td class="r">' + cnt(g.u) + '</td>'
-        + '<td class="r"><div class="pct"><span class="pb"><i style="width:' + (g.q ? g.u / g.q * 100 : 0) + '%"></i></span>' + pctS(g.u, g.q) + '</div></td><td class="act">' + menu + '</td></tr>';
+        + '<td class="r use">' + cnt(g.u) + '<small>' + pctS(g.u, g.q) + '</small></td></tr>';
     });
-    if (segs.length) tb += '<tr class="sum"><td colspan="3">합계</td><td class="rg">' + rng(segs[0].s, segs[segs.length - 1].e) + '</td><td class="r">' + cnt(tot) + '</td><td></td><td></td><td></td><td class="r">' + cnt(used) + '</td><td class="r">' + pctS(used, tot) + '</td><td class="act"></td></tr>';
+    if (segs.length) tb += '<tr class="sum"><td></td><td colspan="3">합계</td><td class="rg">' + rng(segs[0].s, segs[segs.length - 1].e) + '</td><td class="r">' + cnt(tot) + '</td><td></td><td></td><td></td><td class="r use">' + cnt(used) + '<small>' + pctS(used, tot) + '</small></td></tr>';
     $('tb').innerHTML = tb;
     $('topSub').textContent = '받은 곳을 정하지 않은 번호는 모두 큐비크스 보유로 집계됩니다.';
     $('pdate').textContent = '출력 ' + dtfmt.format(new Date()) + ' · 총 ' + cnt(tot) + '장 · 사용 ' + cnt(used) + '장';
@@ -724,7 +726,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     if (t.dataset.unuse) { unuseOne(+t.dataset.unuse); return; }
     if (t.dataset.use) { useOne(+t.dataset.use, false); return; }
     if (t.dataset.force) { useOne(+t.dataset.force, true); return; }
-    if (t.dataset.row && !e.target.closest('td.act')) { selKey = t.dataset.row; openGrid(selKey); }
+    if (t.dataset.row && !e.target.closest('td.act0')) { selKey = t.dataset.row; openReg(segByKey(selKey)); }
   });
   document.addEventListener('click', function (e) { document.querySelectorAll('details.menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; }); });
   $('btnReg').addEventListener('click', function () { openReg(null); });
