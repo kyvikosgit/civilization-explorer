@@ -23,13 +23,17 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:var(--fit,cover);
 .btns button{font:600 15px Freesentation,sans-serif;color:#141210;background:#F2EDE2;border:0;border-radius:10px;padding:12px 16px}
 .waitbox{position:fixed;inset:0;display:grid;place-items:center;text-align:center;font-size:20px;line-height:1.6;color:#B9B2A4;pointer-events:none}
 .waitbox[hidden]{display:none}
+.waitbox>div{max-width:min(720px,90vw);display:flex;flex-direction:column;gap:14px}
+#wstep{color:#F2EDE2;font-size:22px;font-weight:600;word-break:keep-all}
+#wsub{font-size:14px;color:#9C958A;word-break:keep-all}
+.dbg{display:block;font-size:12.5px;color:#B9B2A4;margin-top:4px}
 </style>
 </head>
 <body>
 <video id="v" playsinline muted autoplay></video>
-<div class="waitbox" id="wait">촬영기를 기다리는 중<br><small id="wsub">촬영기 폰에서 nadar-booth.html 을 열어 두세요</small></div>
+<div class="waitbox" id="wait"><div><div id="wstep">촬영기를 기다리는 중</div><small id="wsub"></small></div></div>
 <div class="hud" id="hud">
-  <span><i class="dot wait" id="dot"></i><span id="st">연결 중</span> · 방 <b id="room"></b> · <span id="res">-</span></span>
+  <span><i class="dot wait" id="dot"></i><span id="st">연결 중</span> · 방 <b id="room"></b> · <span id="res">-</span><span class="dbg" id="dbg"></span></span>
   <span class="btns"><button type="button" id="mir">좌우 반전 켬</button><button type="button" id="fit">꽉 채움</button><button type="button" id="fs">전체 화면</button></span>
 </div>
 <script type="module">
@@ -62,6 +66,7 @@ liveViewer(KEY, {
   onStream: (st) => { video.srcObject = st; video.play().catch(() => {}); },
   onMeta: (m) => { if (m && m.z) root.setProperty('--z', m.z); },
   onState: state,
+  onDebug: (step, detail) => { $('wstep').textContent = step; $('wsub').textContent = detail; $('dbg').textContent = detail; },
 }).catch((e) => { $('st').textContent = '연결 실패 · 인터넷 확인'; $('dot').className = 'dot bad'; console.warn(e); });
 // 받는 해상도 · 초당 장면 수 표시
 let last = { t: 0, f: 0 };

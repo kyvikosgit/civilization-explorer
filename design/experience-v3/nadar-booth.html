@@ -17,6 +17,8 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}
 .hud.off{opacity:0}
 video{transform:scale(var(--z,1));transform-origin:50% 50%}
 .hud b{color:#E9C77A}
+.lv{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:rgba(0,0,0,.62);font-size:13px;line-height:1.5;color:#F2EDE2;transition:opacity .6s;word-break:keep-all}
+.lv.off{opacity:0}.lv b{color:#E9C77A}.lv.ok b{color:#6FD39A}
 .shot{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none}
 .shot.go{animation:sh .5s ease-out}
 @keyframes sh{0%{opacity:.95}100%{opacity:0}}
@@ -24,6 +26,7 @@ video{transform:scale(var(--z,1));transform-origin:50% 50%}
 </head>
 <body>
 <video id="v" playsinline muted autoplay></video>
+<div class="lv" id="lv"><b>미리보기</b> 준비 중</div>
 <div class="shot" id="shot"></div>
 <div class="hud" id="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 줌 <b id="zm"></b> · 버튼(엔터) · 화면 누름으로 촬영</span></div>
 <script type="module">
@@ -62,7 +65,13 @@ async function startCam() {
 }
 await startCam();
 // 태블릿 실시간 미리보기(nadar-live.html) — 영상은 기기끼리 직접, 서버는 연결 신호만
-import('./live.js').then((m) => m.liveSender(() => video.srcObject, KEY, () => ({ z: cropZ }))).then((l) => { live = l; }).catch((e) => console.warn('[live]', e));
+// 위쪽 줄: 태블릿 연결 상황(연결되면 10초 뒤 숨김, ?debug=1 이면 계속)
+let lvT = 0;
+const lvSay = (txt, ok) => {
+  const el = $('lv'); el.innerHTML = '<b>' + (ok ? '태블릿 연결됨' : '태블릿 미리보기') + '</b> · ' + txt.replace(/</g, '&lt;'); el.classList.toggle('ok', !!ok);
+  if (ok && !DEBUG) { if (!lvT) lvT = setTimeout(() => el.classList.add('off'), 10000); } else { clearTimeout(lvT); lvT = 0; el.classList.remove('off'); }
+};
+import('./live.js').then((m) => m.liveSender(() => video.srcObject, KEY, () => ({ z: cropZ }), lvSay)).then((l) => { live = l; }).catch((e) => { console.warn('[live]', e); lvSay('오류: ' + e.message, false); });
 // 화면 꺼짐 막기 — 화면이 다시 보이면 다시 잡는다(카메라도 다시)
 let lock = null;
 async function keepAwake() { try { lock = await navigator.wakeLock?.request('screen'); } catch {} }
