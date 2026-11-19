@@ -43,6 +43,7 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
     const st = getStream(); const tr = st?.getVideoTracks()[0];
     if (!tr) { onDebug(`미리보기 · 태블릿이 불렀지만 카메라가 아직 안 켜짐`, false); return; }
     const pc = new RTCPeerConnection({ iceServers: ICE }); const P = { pc, step: '부름 받음', lc: {}, rc: {}, q: [], at: Date.now(), sid: Math.random().toString(36).slice(2, 10) }; D.peers.set(vid, P);
+    try { tr.contentHint = 'detail'; } catch {}   // 선명함 우선
     const sender = pc.addTrack(tr, st);
     pc.onicecandidate = (e) => { if (e.candidate) { tally(P.lc, candType(e.candidate)); L.send('ice', { vid, sid: P.sid, from: 's', c: e.candidate.toJSON() }); say(); } };
     pc.oniceconnectionstatechange = say;
@@ -51,11 +52,11 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
       if (s === 'closed') close(vid);
     };
     await pc.setLocalDescription(await pc.createOffer());
-    // 원본은 최대 4032px — 미리보기는 긴 변 1280px 정도로 줄여 보낸다(촬영 화질과 무관)
+    // 원본은 최대 4032px — 미리보기는 긴 변 1920px(풀HD) · 초당 8Mbps 로 보낸다(촬영 화질과 무관)
     try {
       const s = tr.getSettings(), long = Math.max(s.width || 1280, s.height || 720);
       const p = sender.getParameters(); p.encodings = p.encodings?.length ? p.encodings : [{}];
-      p.encodings[0].scaleResolutionDownBy = Math.max(1, long / 1280); p.encodings[0].maxBitrate = 3_000_000; p.degradationPreference = 'maintain-resolution';
+      p.encodings[0].scaleResolutionDownBy = Math.max(1, long / 1920); p.encodings[0].maxBitrate = 8_000_000; p.degradationPreference = 'maintain-resolution';
       await sender.setParameters(p);
     } catch {}
     P.step = '제안 보냄'; say();
@@ -110,7 +111,7 @@ export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () 
       if (mine === pc) await flushCand(mine, q);
       // 처음부터 높은 비트레이트로 시작(기본은 낮게 시작해 15초쯤 걸려 화질이 오름)
       const ans = await mine.createAnswer();
-      ans.sdp = ans.sdp.replace(/(a=fmtp:\d+ [^\r\n]*)/g, '$1;x-google-start-bitrate=2500;x-google-min-bitrate=800');
+      ans.sdp = ans.sdp.replace(/(a=fmtp:\d+ [^\r\n]*)/g, '$1;x-google-start-bitrate=6000;x-google-min-bitrate=1500;x-google-max-bitrate=8000');
       await mine.setLocalDescription(ans);
     } catch (e) { if (mine === pc) { step = '연결 준비 오류: ' + e.message; say(); } return; }
     if (mine !== pc) return;
