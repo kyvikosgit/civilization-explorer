@@ -156,14 +156,15 @@ main{display:flex;flex-direction:column}
 .tablebox{overflow-x:auto}
 table.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .st th,.st td{padding:13px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-.st th:first-child,.st td.grp{padding-left:0}
+.st th:first-child,.st td:first-child{padding-left:0}
+.st td.memo{color:var(--sub);font-size:13px;max-width:260px;white-space:normal;word-break:keep-all}
 .st thead th{font-size:12px;font-weight:600;color:var(--sub);border-bottom:1px solid var(--ink);white-space:nowrap;padding-top:0}
 .st td.r,.st th.r{text-align:right}
 .st td.grp{font-weight:700;white-space:nowrap;vertical-align:top}
 .st td.grp small{display:block;margin-top:3px;font-size:12px;font-weight:500;color:var(--sub)}
 .f .note{font-weight:400;color:var(--sub);font-size:11.5px}
 .f input[readonly]{background:var(--soft,#F4F3EF);color:var(--sub)}
-.st td.per{color:var(--sub);white-space:nowrap;vertical-align:top}
+.st td.per{color:var(--ink2);white-space:nowrap}
 .st tr.gs td{border-top:1px solid var(--line2)}
 .st tbody tr.seg-row{cursor:pointer}
 .st tbody tr.seg-row:hover td:not(.grp):not(.per){background:var(--soft)}
@@ -326,10 +327,10 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
 
 
       <section class="sec" id="secTable" aria-label="현황표">
-        <div class="h"><h2>현황표</h2><p>기간 · 받은 곳별 장수와 사용 현황입니다. 행을 누르면 번호별 사용 현황이 열립니다.</p></div>
+        <div class="h"><h2>현황표</h2><p>번호 순서대로 받은 곳 · 사용 가능 기간 · 사용 현황입니다. 행을 누르면 번호별 사용 현황이 열립니다.</p></div>
         <div class="body tablebox">
           <table class="st">
-            <thead><tr><th>구분</th><th>사용 기간</th><th>받은 곳</th><th>티켓 번호</th><th class="r">수량</th><th class="r">사용</th><th class="r">미사용</th><th class="r">사용률</th><th class="act"></th></tr></thead>
+            <thead><tr><th>티켓 번호</th><th>받은 곳</th><th>사용 가능 기간</th><th>비고</th><th class="r">수량</th><th class="r">사용</th><th class="r">미사용</th><th class="r">사용률</th><th class="act"></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
@@ -428,7 +429,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     S.batches.forEach(function (b) {
       var gs = segs.filter(function (g) { return g.b === b; }); if (!gs.length) return;
       var l = gs[0].p0, w = gs.reduce(function (t, g) { return t + g.pw; }, 0), q = b.e - b.s + 1;
-      h += '<div class="pd" title="' + esc(b.kind + ' 티켓 · ' + (b.purpose || '') + ' · ' + b.period + ' · ' + cnt(q) + '장') + '" style="left:' + l + '%;width:' + w + '%"><b>' + esc(b.kind) + ' 티켓<em>' + esc(b.purpose || '') + '</em></b><span class="pp">' + esc(b.period) + '<span class="pq"> · ' + cnt(q) + '장</span></span></div>';
+      h += '<div class="pd" title="' + esc('사용 가능 ' + b.period + ' · ' + cnt(q) + '장') + '" style="left:' + l + '%;width:' + w + '%"><b>' + esc(b.period) + '</b><span class="pp"><span class="pq">' + cnt(q) + '장</span></span></div>';
     });
     h += '</div><div class="bar">';
     segs.forEach(function (g) {
@@ -451,25 +452,23 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
       if (d.scrollWidth > d.clientWidth + 1) { var bb = d.querySelector('b'), em = bb && bb.querySelector('em'); if (bb && em) bb.textContent = em.textContent; }
       if (d.scrollWidth > d.clientWidth + 1) d.style.padding = '6px 3px 0';
     });
-    void [].map(function (g) { return '<tr data-seg="' + g.key + '" class="' + (selKey === g.key ? 'sel' : '') + '" style="' + cvars(g.who) + '"><td class="c"><i></i></td><td class="w">' + esc(g.who) + '</td><td class="p">' + esc(g.b.kind) + ' · ' + esc(g.b.period) + '</td><td class="rg">' + rng(g.s, g.e) + '</td><td class="r"><b>' + cnt(g.q) + '</b>장</td><td class="pc">' + pctS(g.q, tot) + '</td><td class="u">사용 ' + cnt(g.u) + ' · ' + pctS(g.u, g.q) + '</td></tr>'; }).join('');
   }
 
   // ── 현황표
   function renderTable() {
-    var tb = '', tot = 0, used = 0, minS = Infinity, maxE = 0;
-    S.batches.forEach(function (b) {
-      var seg = segments(b); minS = Math.min(minS, b.s); maxE = Math.max(maxE, b.e);
-      seg.forEach(function (g, i) {
-        tot += g.q; used += g.u;
-        var head = i === 0 ? '<td class="grp" rowspan="' + seg.length + '">' + esc(b.kind) + ' 티켓<small>' + esc(b.purpose || '') + '</small></td><td class="per" rowspan="' + seg.length + '">' + esc(b.period) + '</td>' : '';
-        var menu = '<details class="menu"><summary aria-label="' + esc(g.who) + ' 메뉴">⋯</summary><div class="pop"><button type="button" data-ed="' + g.key + '">수정</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>';
-        tb += '<tr class="seg-row' + (i === 0 ? ' gs' : '') + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '">' + head
-          + '<td class="who"><i></i>' + esc(g.who === HOLD ? HOLD : g.who) + (g.a && g.a.memo ? '<small>' + esc(g.a.memo) + '</small>' : '') + '</td>'
-          + '<td class="rg">' + rng(g.s, g.e) + '</td><td class="r">' + cnt(g.q) + '</td><td class="r">' + cnt(g.u) + '</td><td class="r">' + cnt(g.q - g.u) + '</td>'
-          + '<td class="r"><div class="pct"><span class="pb"><i style="width:' + (g.q ? g.u / g.q * 100 : 0) + '%"></i></span>' + pctS(g.u, g.q) + '</div></td><td class="act">' + menu + '</td></tr>';
-      });
+    var tb = '', tot = 0, used = 0, segs = allSegs();
+    segs.forEach(function (g) {
+      tot += g.q; used += g.u;
+      var menu = '<details class="menu"><summary aria-label="' + esc(g.who) + ' 메뉴">⋯</summary><div class="pop"><button type="button" data-ed="' + g.key + '">수정</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>';
+      tb += '<tr class="seg-row' + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '">'
+        + '<td class="rg">' + rng(g.s, g.e) + '</td>'
+        + '<td class="who"><i></i>' + esc(g.who) + '</td>'
+        + '<td class="per">' + esc(g.b.period) + '</td>'
+        + '<td class="memo">' + esc(g.a && g.a.memo || '') + '</td>'
+        + '<td class="r">' + cnt(g.q) + '</td><td class="r">' + cnt(g.u) + '</td><td class="r">' + cnt(g.q - g.u) + '</td>'
+        + '<td class="r"><div class="pct"><span class="pb"><i style="width:' + (g.q ? g.u / g.q * 100 : 0) + '%"></i></span>' + pctS(g.u, g.q) + '</div></td><td class="act">' + menu + '</td></tr>';
     });
-    if (S.batches.length) tb += '<tr class="sum"><td colspan="2">합계</td><td></td><td class="rg">' + rng(minS, maxE) + '</td><td class="r">' + cnt(tot) + '</td><td class="r">' + cnt(used) + '</td><td class="r">' + cnt(tot - used) + '</td><td class="r">' + pctS(used, tot) + '</td><td class="act"></td></tr>';
+    if (segs.length) tb += '<tr class="sum"><td>합계</td><td></td><td></td><td></td><td class="r">' + cnt(tot) + '</td><td class="r">' + cnt(used) + '</td><td class="r">' + cnt(tot - used) + '</td><td class="r">' + pctS(used, tot) + '</td><td class="act"></td></tr>';
     $('tb').innerHTML = tb;
     $('topSub').textContent = '받은 곳을 정하지 않은 번호는 모두 큐비크스 보유로 집계됩니다.';
     $('pdate').textContent = '출력 ' + dtfmt.format(new Date()) + ' · 총 ' + cnt(tot) + '장 · 사용 ' + cnt(used) + '장';
@@ -492,8 +491,8 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   var lastInfo = null, armed = false;
   function flash(cls, html) { var f = $('flash'); f.className = 'flash on ' + cls; f.innerHTML = html; }
   function infoDl(j) {
-    return '<dl><dt>기간</dt><dd>' + esc(j.kind) + ' 티켓 · ' + esc(j.purpose || '') + ' · ' + esc(j.period) + (j.in_period ? '<span class="pill y">사용 가능</span>' : '<span class="pill n">기간 아님</span>') + '</dd>'
-      + '<dt>배포처</dt><dd>' + esc(j.holder) + (j.alloc_s ? ' <span style="color:var(--sub)">(' + rng(j.alloc_s, j.alloc_e) + ')</span>' : '') + '</dd>'
+    return '<dl><dt>기간</dt><dd>' + esc(j.period) + (j.in_period ? '<span class="pill y">사용 가능</span>' : '<span class="pill n">기간 아님</span>') + '</dd>'
+      + '<dt>받은 곳</dt><dd>' + esc(j.holder) + (j.alloc_s ? ' <span style="color:var(--sub)">(' + rng(j.alloc_s, j.alloc_e) + ')</span>' : '') + '</dd>'
       + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>';
   }
   function show(j) {
@@ -660,16 +659,16 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   }
   var tx = function (n) { return '="' + n6(n) + '"'; };
   $('csv1').addEventListener('click', function () {
-    var rows = [['구분', '명목', '사용 기간', '배포처', '티켓 번호', '시작', '끝', '수량', '사용', '미사용', '사용률', '메모']], tot = 0, used = 0;
-    allSegs().forEach(function (g) { tot += g.q; used += g.u; rows.push([g.b.kind + ' 티켓', g.b.purpose || '', g.b.period, g.who, rng(g.s, g.e), tx(g.s), tx(g.e), g.q, g.u, g.q - g.u, pctS(g.u, g.q), g.a && g.a.memo || '']); });
-    rows.push(['합계', '', '', '', '', '', '', tot, used, tot - used, pctS(used, tot), '']); dl('티켓현황', rows); $('expMenu').open = false;
+    var rows = [['티켓 번호', '시작', '끝', '받은 곳', '사용 가능 기간', '비고', '수량', '사용', '미사용', '사용률']], tot = 0, used = 0;
+    allSegs().forEach(function (g) { tot += g.q; used += g.u; rows.push([rng(g.s, g.e), tx(g.s), tx(g.e), g.who, g.b.period, g.a && g.a.memo || '', g.q, g.u, g.q - g.u, pctS(g.u, g.q)]); });
+    rows.push(['합계', '', '', '', '', '', tot, used, tot - used, pctS(used, tot)]); dl('티켓현황', rows); $('expMenu').open = false;
   });
   $('csv2').addEventListener('click', function () {
     var btn = this; btn.disabled = true;
     rpc('ticket_uses_list').then(function (list) {
       var when = {}; list.forEach(function (x) { when[x[0]] = x[1]; });
-      var rows = [['번호', '구분', '명목', '사용 기간', '배포처', '사용 여부', '사용 일시']];
-      allSegs().forEach(function (g) { for (var n = g.s; n <= g.e; n++) rows.push([tx(n), g.b.kind + ' 티켓', g.b.purpose || '', g.b.period, g.who, when[n] ? '사용' : '미사용', when[n] ? dtfmt.format(new Date(when[n])) : '']); });
+      var rows = [['번호', '받은 곳', '사용 가능 기간', '사용 여부', '사용 일시']];
+      allSegs().forEach(function (g) { for (var n = g.s; n <= g.e; n++) rows.push([tx(n), g.who, g.b.period, when[n] ? '사용' : '미사용', when[n] ? dtfmt.format(new Date(when[n])) : '']); });
       dl('번호별_사용내역', rows); $('expMenu').open = false;
     }).catch(function (err) { alert(err.message); }).finally(function () { btn.disabled = false; });
   });
