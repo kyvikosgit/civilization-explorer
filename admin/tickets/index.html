@@ -180,8 +180,10 @@ table.st{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .st tr.sum td:first-child{padding-left:0}
 .st tr.sum td{font-weight:700;border-top:1px solid var(--ink);border-bottom:0}
 .st td.act{width:1%;white-space:nowrap;text-align:right;padding-right:0}
-.st td.act0,.st th.act0{width:1%;padding-left:0;padding-right:4px}
-.st td.act0 .rowbtn{font-size:13px;padding:8px 12px}
+.st td.act0,.st th.act0{width:1%;text-align:right;padding-right:0;position:sticky;right:0;background:var(--bg);box-shadow:-12px 0 12px -8px rgba(0,0,0,.06)}
+.st td.act0 .rowbtn{font-size:13px;padding:8px 14px;background:#fff;color:var(--ink);border-color:var(--line2)}
+.st td.act0 .rowbtn:hover{border-color:var(--ink)}
+.st tr.seg-row.sel td.act0{background:#F2F5F9}
 .st td.use small{display:block;font-size:11.5px;color:var(--sub);margin-top:2px}
 .st td.act .menu summary{opacity:.4;padding:6px 9px;border-radius:5px;cursor:pointer;font-size:16px;line-height:1;color:var(--sub)}
 .st tr:hover td.act .menu summary,.st td.act .menu summary:focus-visible,.st td.act .menu[open] summary{opacity:1;background:var(--soft)}
@@ -394,7 +396,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
         <div class="h"><h2>현황표</h2><p>번호 순서대로 받은 곳 · 사용 가능 기간 · 사용 현황입니다. 줄을 누르거나 [수정]을 누르면 고칠 수 있습니다. 번호별 사용 현황은 위 번호 지도에서 구간을 누르세요.</p></div>
         <div class="body tablebox">
           <table class="st">
-            <thead><tr><th class="act0"></th><th>발주일자</th><th>구분</th><th>사용 기간</th><th>티켓 일련번호</th><th class="r">수량</th><th>입장안내</th><th>주차안내</th><th>비고</th><th class="r">사용</th></tr></thead>
+            <thead><tr><th>발주일자</th><th>구분</th><th>사용 기간</th><th>티켓 일련번호</th><th class="r">수량</th><th>입장안내</th><th>주차안내</th><th>비고</th><th class="r">사용</th><th class="act0"></th></tr></thead>
             <tbody id="tb"></tbody>
           </table>
         </div>
@@ -535,7 +537,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
     segs.forEach(function (g) {
       tot += g.q; used += g.u;
       var menu = '<button type="button" class="rowbtn" data-ed="' + g.key + '">수정</button>';
-      tb += '<tr class="seg-row' + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '"><td class="act0">' + menu + '</td>'
+      tb += '<tr class="seg-row' + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '">'
         + '<td class="od">' + esc(g.a && g.a.order_date || '') + '</td>'
         + '<td class="who"><i></i>' + esc(segLabel(g)) + '</td>'
         + '<td class="per">' + esc(g.b.period) + '</td>'
@@ -544,9 +546,9 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
         + '<td class="memo">' + esc(g.a && g.a.entry_note || '') + '</td>'
         + '<td class="memo">' + esc(g.a && g.a.parking_note || '') + '</td>'
         + '<td class="memo">' + esc(segMemo(g)) + '</td>'
-        + '<td class="r use">' + cnt(g.u) + '<small>' + pctS(g.u, g.q) + '</small></td></tr>';
+        + '<td class="r use">' + cnt(g.u) + '<small>' + pctS(g.u, g.q) + '</small></td><td class="act0">' + menu + '</td></tr>';
     });
-    if (segs.length) tb += '<tr class="sum"><td></td><td colspan="3">합계</td><td class="rg">' + rng(segs[0].s, segs[segs.length - 1].e) + '</td><td class="r">' + cnt(tot) + '</td><td></td><td></td><td></td><td class="r use">' + cnt(used) + '<small>' + pctS(used, tot) + '</small></td></tr>';
+    if (segs.length) tb += '<tr class="sum"><td colspan="3">합계</td><td class="rg">' + rng(segs[0].s, segs[segs.length - 1].e) + '</td><td class="r">' + cnt(tot) + '</td><td></td><td></td><td></td><td class="r use">' + cnt(used) + '<small>' + pctS(used, tot) + '</small></td><td class="act0"></td></tr>';
     $('tb').innerHTML = tb;
     $('topSub').textContent = '받은 곳을 정하지 않은 번호는 모두 큐비크스 보유로 집계됩니다.';
     $('pdate').textContent = '출력 ' + dtfmt.format(new Date()) + ' · 총 ' + cnt(tot) + '장 · 사용 ' + cnt(used) + '장';
