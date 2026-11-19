@@ -204,11 +204,8 @@ dialog .db{padding:22px 24px}
 .chips button{background:#fff;color:var(--ink);border:1px solid var(--line2);font-weight:600;padding:9px 14px;border-radius:999px}
 .chips button:hover{border-color:var(--ink)}
 .chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.perbox{display:flex;flex-direction:column;gap:10px}
-.perbox .seg3{align-self:flex-start}
-.perbox .dates{display:flex;align-items:center;gap:10px}
-.perbox .note{margin:0;font-size:12.5px;color:var(--sub)}
-.rf .err:empty{display:none}
+.rgin.dates input{font:500 15px/1.3 var(--sans);letter-spacing:0;text-align:left;height:46px;padding:0 12px}
+.rf .err:empty,.fld .st:empty{display:none}
 .rf .row{display:flex;gap:8px;align-items:center}
 .rf .row .sp{flex:1}
 button.link.danger{color:var(--bad);padding-left:0}
@@ -344,25 +341,15 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
 <dialog id="dReg" aria-labelledby="dRegT">
   <div class="dh"><h2 id="dRegT">번호 등록</h2><button type="button" class="link" data-close>닫기</button></div>
   <form class="db rf" id="rF" novalidate autocomplete="off">
-    <div class="fld"><span class="lb">티켓 번호</span>
+    <div class="fld"><label class="lb" for="rS">티켓 번호</label>
       <div class="rgin"><input id="rS" inputmode="numeric" maxlength="6" placeholder="000001" aria-label="시작 번호"><span class="til">~</span><input id="rE" inputmode="numeric" maxlength="6" placeholder="000400" aria-label="끝 번호"><b class="qty" id="rQ"></b></div>
       <p class="st" id="rSt"></p></div>
-    <div class="fld"><span class="lb">받은 곳</span>
-      <div class="chips" id="rChips"></div>
-      <input id="rCo" placeholder="새 이름 입력" aria-label="받은 곳"></div>
-    <div class="fld" id="rPerF"><span class="lb">사용 기간</span><div class="perbox" data-pb="r"></div></div>
-    <div class="fld" id="rMemoF"><span class="lb">메모<em>선택</em></span><input id="rMemo" placeholder="예: 담당자, 전달일"></div>
+    <div class="fld"><label class="lb" for="rCo">받은 곳</label><input id="rCo" list="coList" placeholder="예: 신세계"><datalist id="coList"></datalist></div>
+    <div class="fld"><span class="lb">사용 가능 기간</span>
+      <div class="rgin dates"><input type="date" id="rFrom" min="2026-12-05" max="2027-02-28" aria-label="사용 시작일"><span class="til">~</span><input type="date" id="rTo" min="2026-12-05" max="2027-02-28" aria-label="사용 종료일"></div></div>
+    <div class="fld"><label class="lb" for="rMemo">비고</label><input id="rMemo" placeholder="예: 담당자, 전달일"></div>
     <p class="err" id="rErr" role="alert"></p>
-    <div class="row"><button type="button" class="link danger" id="rDel" hidden>삭제 (큐비크스 보유로)</button><span class="sp"></span><button type="button" class="ghost" data-close>취소</button><button type="submit" id="rSave">저장</button></div>
-  </form>
-</dialog>
-
-<dialog id="dPer" aria-labelledby="dPerT">
-  <div class="dh"><h2 id="dPerT">사용 기간</h2><button type="button" class="link" data-close>닫기</button></div>
-  <form class="db rf" id="pF" novalidate>
-    <div class="fld"><span class="lb" id="pLb"></span><div class="perbox" data-pb="p"></div></div>
-    <p class="err" id="pErr" role="alert"></p>
-    <div class="row"><button type="button" class="link danger" id="pDel">이 번호 등록 삭제</button><span class="sp"></span><button type="button" class="ghost" data-close>취소</button><button type="submit">저장</button></div>
+    <div class="row"><button type="button" class="link danger" id="rDel" hidden>삭제</button><span class="sp"></span><button type="button" class="ghost" data-close>취소</button><button type="submit" id="rSave">저장</button></div>
   </form>
 </dialog>
 
@@ -475,8 +462,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
       seg.forEach(function (g, i) {
         tot += g.q; used += g.u;
         var head = i === 0 ? '<td class="grp" rowspan="' + seg.length + '">' + esc(b.kind) + ' 티켓<small>' + esc(b.purpose || '') + '</small></td><td class="per" rowspan="' + seg.length + '">' + esc(b.period) + '</td>' : '';
-        var menu = g.a ? '<details class="menu"><summary aria-label="' + esc(g.who) + ' 배포 메뉴">⋯</summary><div class="pop"><button type="button" data-ed="' + g.a.id + '">수정</button><button type="button" data-per="' + b.id + '">사용 기간 변경</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>'
-          : '<details class="menu"><summary aria-label="큐비크스 보유 메뉴">⋯</summary><div class="pop"><button type="button" data-give="' + g.key + '">받은 곳 정하기</button><button type="button" data-per="' + b.id + '">' + (seg.length === 1 ? '사용 기간 변경 · 삭제' : '사용 기간 변경') + '</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>';
+        var menu = '<details class="menu"><summary aria-label="' + esc(g.who) + ' 메뉴">⋯</summary><div class="pop"><button type="button" data-ed="' + g.key + '">수정</button><button type="button" data-grid="' + g.key + '">번호판 열기</button></div></details>';
         tb += '<tr class="seg-row' + (i === 0 ? ' gs' : '') + (selKey === g.key ? ' sel' : '') + '" data-row="' + g.key + '" style="' + cvars(g.who) + '">' + head
           + '<td class="who"><i></i>' + esc(g.who === HOLD ? HOLD : g.who) + (g.a && g.a.memo ? '<small>' + esc(g.a.memo) + '</small>' : '') + '</td>'
           + '<td class="rg">' + rng(g.s, g.e) + '</td><td class="r">' + cnt(g.q) + '</td><td class="r">' + cnt(g.u) + '</td><td class="r">' + cnt(g.q - g.u) + '</td>'
@@ -602,135 +588,60 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   });
   $('dGrid').addEventListener('close', function () { gridSeg = null; });
 
-  // ── 번호 등록 · 수정 (한 창): 새 번호면 기간까지 등록, 이미 등록된 번호면 받은 곳만 정한다
-  var SHOW0 = '2026-12-05', SHOW1 = '2027-02-28', perBatch = null;
-  var dot = function (d) { return String(d || '').replace(/-/g, '.'); };
-  function perInit(box) {
-    box.innerHTML = '<div class="seg3" role="group" aria-label="사용 기간"><button type="button" data-pk="full">전 기간</button><button type="button" data-pk="part">기간 지정</button></div>'
-      + '<div class="dates" hidden><input type="date" min="' + SHOW0 + '" max="' + SHOW1 + '" aria-label="시작일"><span class="til">~</span><input type="date" min="' + SHOW0 + '" max="' + SHOW1 + '" aria-label="종료일"></div>'
-      + '<p class="note"></p>';
-    box.querySelector('.seg3').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) perSet(box, b.dataset.pk === 'full' ? null : box._f, b.dataset.pk === 'full' ? null : box._t, b.dataset.pk); });
-  }
-  function perSet(box, f, t, mode) {
-    var full = mode ? mode === 'full' : (!f || (f === SHOW0 && t === SHOW1));
-    box.querySelectorAll('[data-pk]').forEach(function (b) { b.classList.toggle('on', (b.dataset.pk === 'full') === full); });
-    var d = box.querySelector('.dates'), ins = d.querySelectorAll('input'); d.hidden = full;
-    if (!full) { var keep = (f && f !== SHOW0) || (t && t !== SHOW1); ins[0].value = keep ? f || '' : ''; ins[1].value = keep ? t || '' : ''; }
-    box.querySelector('.note').textContent = full ? '전시 전 기간 ' + dot(SHOW0) + ' ~ ' + dot(SHOW1) : '전시 기간(' + dot(SHOW0) + ' ~ ' + dot(SHOW1) + ') 안에서 고르세요';
-  }
-  function perGet(box) {
-    if (box.querySelector('.dates').hidden) return { kind: '전기간', f: SHOW0, t: SHOW1 };
-    var ins = box.querySelectorAll('.dates input'), f = ins[0].value, t = ins[1].value;
-    if (!f || !t) return { err: '사용 기간 날짜를 골라 주세요.' };
-    if (f > t) return { err: '시작일이 종료일보다 늦습니다.' };
-    if (f < SHOW0 || t > SHOW1) return { err: '전시 기간(' + dot(SHOW0) + ' ~ ' + dot(SHOW1) + ') 안에서 골라 주세요.' };
-    return { kind: f === SHOW0 && t === SHOW1 ? '전기간' : '부분 기간', f: f, t: t };
-  }
-  document.querySelectorAll('.perbox').forEach(perInit);
-  var rBox = document.querySelector('[data-pb="r"]'), pBox = document.querySelector('[data-pb="p"]');
-
-  // 입력한 범위가 새 번호인지, 등록된 번호 안인지, 걸쳐 있는지
-  function analyze(s, e) {
-    if (!s || !e) return { st: 'empty' };
-    if (s > e) return { st: 'err', msg: '시작 번호가 끝 번호보다 큽니다.' };
-    var hit = S.batches.filter(function (b) { return b.s <= e && b.e >= s; });
-    if (!hit.length) return { st: 'new' };
-    if (hit.length === 1 && hit[0].s <= s && hit[0].e >= e) {
-      var c = S.allocs.filter(function (a) { return a.id !== editId && a.s <= e && a.e >= s; })[0];
-      if (c) return { st: 'err', msg: c.company + '에 준 번호(' + rng(c.s, c.e) + ')와 겹칩니다.' };
-      return { st: 'in', b: hit[0] };
-    }
-    return { st: 'err', msg: '이미 등록된 번호(' + rng(hit[0].s, hit[0].e) + ')에 일부만 걸쳐 있습니다. 그 안쪽이나 바깥쪽 번호로 나눠 넣어 주세요.' };
-  }
-  function lastNo() { return S.batches.reduce(function (m, b) { return Math.max(m, b.e); }, 0); }
+  // ── 번호 등록 · 수정: 번호 몇~몇 · 받은 곳 · 사용 가능 기간 · 비고 (나누고 합치는 건 서버 ticket_range_save 가 함)
+  var SHOW0 = '2026-12-05', SHOW1 = '2027-02-28', regSeg = null;
   function regSync() {
-    var s = num($('rS').value), e = num($('rE').value), A = analyze(s, e), st = $('rSt');
+    var s = num($('rS').value), e = num($('rE').value), st = $('rSt'), ed = regSeg && regSeg.a ? regSeg.a.id : null;
     $('rQ').textContent = s && e && s <= e ? cnt(e - s + 1) + '장' : '';
-    st.className = 'st';
-    if (A.st === 'empty') { var L = lastNo(); st.innerHTML = L ? '지금까지 등록된 마지막 번호 <b>' + n6(L) + '</b>' : ''; }
-    else if (A.st === 'err') { st.className = 'st bad'; st.textContent = A.msg; }
-    else if (A.st === 'new') { st.className = 'st ok'; st.textContent = '새 번호로 등록됩니다.'; }
-    else st.innerHTML = '등록된 번호 · ' + esc(A.b.kind) + ' · ' + esc(A.b.period);
-    $('rPerF').hidden = A.st !== 'new';
-    var co = $('rCo').value.trim();
-    $('rChips').querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.co === co || (!co && b.dataset.co === '')); });
-    $('rMemoF').hidden = !co;
-    return A;
+    st.className = 'st'; st.textContent = '';
+    if (s && e && s > e) { st.className = 'st bad'; st.textContent = '앞 번호가 뒤 번호보다 큽니다.'; return; }
+    if (!s || !e) return;
+    var c = S.allocs.filter(function (a) { return a.id !== ed && a.company !== HOLD && a.s <= e && a.e >= s; })[0];
+    if (c) { st.className = 'st bad'; st.textContent = c.company + '에 나간 번호(' + rng(c.s, c.e) + ')와 겹칩니다. 그 줄을 먼저 고쳐 주세요.'; }
   }
   ['rS', 'rE'].forEach(function (id) {
     $(id).addEventListener('input', function () { $('rErr').textContent = ''; regSync(); });
     $(id).addEventListener('blur', function () { var n = num($(id).value); if (n) $(id).value = n6(n); });
   });
-  $('rCo').addEventListener('input', regSync);
-  $('rChips').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; $('rCo').value = b.dataset.co; regSync(); });
-  function openReg(a, seg) {
-    editId = a ? a.id : null; $('rF').reset(); $('rErr').textContent = '';
-    var names = Object.keys(colorOf).filter(function (c) { return c !== HOLD; });
-    $('rChips').innerHTML = '<button type="button" data-co="">' + HOLD + '</button>' + names.map(function (c) { return '<button type="button" data-co="' + esc(c) + '">' + esc(c) + '</button>'; }).join('');
-    perSet(rBox, null, null, 'full');
-    if (a) { $('rS').value = n6(a.s); $('rE').value = n6(a.e); $('rCo').value = a.company; $('rMemo').value = a.memo || ''; }
-    else if (seg) { $('rS').value = n6(seg.s); $('rE').value = n6(seg.e); }
-    $('dRegT').textContent = a ? '수정 — ' + a.company : '번호 등록';
-    $('rDel').hidden = !a;
-    regSync(); $('dReg').showModal(); (a || seg ? $('rCo') : $('rS')).focus();
+  function openReg(seg) {
+    regSeg = seg || null; $('rF').reset(); $('rErr').textContent = '';
+    $('coList').innerHTML = Object.keys(colorOf).concat([HOLD]).filter(function (c, i, arr) { return arr.indexOf(c) === i; }).map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
+    $('rFrom').value = seg ? seg.b.start_date : SHOW0; $('rTo').value = seg ? seg.b.end_date : SHOW1;
+    if (seg) { $('rS').value = n6(seg.s); $('rE').value = n6(seg.e); $('rCo').value = seg.who; $('rMemo').value = seg.a && seg.a.memo || ''; }
+    $('dRegT').textContent = seg ? '수정 — ' + rng(seg.s, seg.e) : '번호 등록';
+    $('rDel').hidden = !seg;
+    regSync(); $('dReg').showModal(); $(seg ? 'rCo' : 'rS').focus();
   }
   $('rF').addEventListener('submit', function (e) {
     e.preventDefault(); var err = $('rErr'); err.textContent = '';
-    var s = num($('rS').value), en = num($('rE').value), A = regSync(), co = $('rCo').value.trim(), memo = $('rMemo').value;
-    if (co === HOLD) co = '';
-    if (A.st === 'empty') { err.textContent = '티켓 번호를 입력해 주세요.'; $(s ? 'rE' : 'rS').focus(); return; }
-    if (A.st === 'err') { err.textContent = A.msg; return; }
-    var job;
-    var alloc = function (bid) { return co ? rpc('ticket_alloc_save', { p_id: editId, p_batch: bid, p_company: co, p_s: s, p_e: en, p_memo: memo }) : (editId ? rpc('ticket_alloc_delete', { p_id: editId }) : null); };
-    if (A.st === 'new') {
-      var P = perGet(rBox); if (P.err) { err.textContent = P.err; return; }
-      job = rpc('ticket_batch_save', { p_id: null, p_kind: P.kind, p_purpose: '일반', p_start: P.f, p_end: P.t, p_s: s, p_e: en }).then(alloc);
-    } else {
-      if (!co && !editId) { err.textContent = '이미 등록된 번호입니다. 받은 곳을 골라 주세요.'; $('rCo').focus(); return; }
-      job = Promise.resolve(alloc(A.b.id));
-    }
+    var s = num($('rS').value), en = num($('rE').value), co = $('rCo').value.trim(), f = $('rFrom').value, to = $('rTo').value;
+    if (!s || !en) { err.textContent = '티켓 번호를 입력해 주세요.'; $(s ? 'rE' : 'rS').focus(); return; }
+    if (s > en) { err.textContent = '앞 번호가 뒤 번호보다 큽니다.'; return; }
+    if (!co) { err.textContent = '받은 곳을 입력해 주세요.'; $('rCo').focus(); return; }
+    if (!f || !to) { err.textContent = '사용 가능 기간을 입력해 주세요.'; return; }
+    if (f > to) { err.textContent = '사용 시작일이 종료일보다 늦습니다.'; return; }
     $('rSave').disabled = true;
-    job.then(function () { $('dReg').close(); editId = null; return load(); })
+    rpc('ticket_range_save', { p_alloc_id: regSeg && regSeg.a ? regSeg.a.id : null, p_s: s, p_e: en, p_company: co, p_memo: $('rMemo').value, p_start: f, p_end: to })
+      .then(function () { $('dReg').close(); return load(); })
       .catch(function (x) { err.textContent = x.message; }).finally(function () { $('rSave').disabled = false; });
   });
   $('rDel').addEventListener('click', function () {
-    var a = S.allocs.filter(function (x) { return x.id === editId; })[0]; if (!a) return;
-    if (!confirm(a.company + ' ' + rng(a.s, a.e) + ' 을(를) 지울까요?\n번호는 큐비크스 보유로 돌아갑니다.')) return;
-    rpc('ticket_alloc_delete', { p_id: a.id }).then(function () { $('dReg').close(); return load(); }).catch(function (x) { $('rErr').textContent = x.message; });
-  });
-
-  // ── 사용 기간 변경 · 등록 삭제 (번호 묶음 단위)
-  function openPer(b) {
-    perBatch = b; $('pErr').textContent = '';
-    $('dPerT').textContent = '사용 기간 — ' + rng(b.s, b.e);
-    $('pLb').textContent = cnt(b.e - b.s + 1) + '장 전체에 적용됩니다';
-    pBox._f = b.start_date; pBox._t = b.end_date;
-    perSet(pBox, b.start_date, b.end_date);
-    $('pDel').hidden = S.allocs.some(function (a) { return a.batch_id === b.id; });
-    $('dPer').showModal();
-  }
-  $('pF').addEventListener('submit', function (e) {
-    e.preventDefault(); var b = perBatch, P = perGet(pBox); if (!b) return;
-    if (P.err) { $('pErr').textContent = P.err; return; }
-    rpc('ticket_batch_save', { p_id: b.id, p_kind: P.kind, p_purpose: b.purpose || '일반', p_start: P.f, p_end: P.t, p_s: b.s, p_e: b.e })
-      .then(function () { $('dPer').close(); return load(); }).catch(function (x) { $('pErr').textContent = x.message; });
-  });
-  $('pDel').addEventListener('click', function () {
-    var b = perBatch; if (!b || !confirm(rng(b.s, b.e) + ' (' + cnt(b.e - b.s + 1) + '장) 등록을 지울까요?')) return;
-    rpc('ticket_batch_delete', { p_id: b.id }).then(function () { $('dPer').close(); return load(); }).catch(function (x) { $('pErr').textContent = x.message; });
+    var g = regSeg; if (!g) return;
+    var msg = g.a && g.who !== HOLD ? g.who + ' ' + rng(g.s, g.e) + ' 줄을 지울까요?\n번호는 큐비크스 보유로 돌아갑니다.' : rng(g.s, g.e) + ' (' + cnt(g.q) + '장) 번호 등록을 지울까요?';
+    if (!confirm(msg)) return;
+    var body = g.a && g.who !== HOLD ? { p_alloc_id: g.a.id, p_s: null, p_e: null } : { p_alloc_id: null, p_s: g.s, p_e: g.e };
+    rpc('ticket_range_delete', body).then(function () { $('dReg').close(); return load(); }).catch(function (x) { $('rErr').textContent = x.message; });
   });
 
   // ── 공통 클릭
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-close],[data-seg],[data-row],[data-ed],[data-give],[data-grid],[data-per],[data-unuse],[data-use],[data-force]');
+    var t = e.target.closest('[data-close],[data-seg],[data-row],[data-ed],[data-grid],[data-unuse],[data-use],[data-force]');
     if (!t) return;
     var m = t.closest('details.menu'); if (m && !t.matches('summary')) m.open = false;
     if (t.dataset.close != null) { t.closest('dialog').close(); return; }
     if (t.dataset.seg) { selKey = t.dataset.seg; renderAll(); var row = document.querySelector('[data-row="' + selKey + '"]'); if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' }); openGrid(selKey); return; }
     if (t.dataset.grid) { openGrid(t.dataset.grid); return; }
-    if (t.dataset.ed) { openReg(S.allocs.filter(function (a) { return a.id === +t.dataset.ed; })[0]); return; }
-    if (t.dataset.give) { openReg(null, segByKey(t.dataset.give)); return; }
-    if (t.dataset.per) { openPer(S.batches.filter(function (b) { return b.id === +t.dataset.per; })[0]); return; }
+    if (t.dataset.ed) { openReg(segByKey(t.dataset.ed)); return; }
     if (t.dataset.unuse) { unuseOne(+t.dataset.unuse); return; }
     if (t.dataset.use) { useOne(+t.dataset.use, false); return; }
     if (t.dataset.force) { useOne(+t.dataset.force, true); return; }
