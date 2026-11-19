@@ -13,10 +13,12 @@
 <style>
 /* 태블릿: 촬영기 폰 카메라가 보는 화면을 실시간으로(거울처럼 좌우 반전)
    관람객 모드(기본, it-ta.com/live): 만져도 아무 반응 없음 — 버튼 · 확대 · 길게 누르기 · 선택 전부 막음. 연결이 끊겼을 때만 상태 글자
-   직원 모드(it-ta.com/live?staff=1): 촬영기 줌 · 좌우 반전 · 채움 · 설정 비교 · 전체 화면. [관람객 모드로] 누르면 그 자리에서 잠금(새로고침하면 관람객 모드) */
+   직원 모드(it-ta.com/live?staff=1): 좌우 반전 · 설정 비교 · 전체 화면 · 상태 숫자(줌은 촬영기 폰 화면에서 두 손가락으로). [관람객 모드로] 누르면 그 자리에서 잠금(새로고침하면 관람객 모드) */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavior:none}
-video{position:fixed;inset:0;width:100%;height:100%;object-fit:var(--fit,cover);transform:scaleX(var(--m,-1)) scale(var(--z,1));transform-origin:50% 50%;background:#000;pointer-events:none}
+/* 뷰파인더 = 찍히는 범위 그대로(촬영기 줌 배율 · 3:4 가운데). 남는 곳은 검은 여백 */
+.vf{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scaleX(var(--m,-1));overflow:hidden;background:#000;pointer-events:none}
+.vf video{position:absolute;max-width:none}
 .waitbox{position:fixed;inset:0;display:grid;place-items:center;text-align:center;line-height:1.6;pointer-events:none}
 .waitbox[hidden]{display:none}
 .waitbox>div{max-width:min(720px,90vw);display:flex;flex-direction:column;gap:14px}
@@ -30,26 +32,20 @@ video{position:fixed;inset:0;width:100%;height:100%;object-fit:var(--fit,cover);
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .staff button{font:600 15px Freesentation,sans-serif;color:#141210;background:#F2EDE2;border:0;border-radius:10px;padding:12px 16px;min-height:48px}
 .staff button.dark{background:rgba(255,255,255,.14);color:#F2EDE2}
-.zoom{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:12px;padding:4px}
-.zoom button{min-width:56px;font-size:22px;padding:6px 0}
-.zoom output{min-width:84px;text-align:center;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
 .sp{flex:1}
 .dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#888;margin-right:6px}
 .dot.ok{background:#4CC27A}.dot.wait{background:#E9C77A}.dot.bad{background:#E5404F}
 </style>
 </head>
 <body>
-<video id="v" playsinline muted autoplay></video>
+<div class="vf" id="vf"><video id="v" playsinline muted autoplay></video></div>
 <div class="waitbox" id="wait"><div><div id="wstep">촬영기를 기다리는 중</div><small id="wsub"></small></div></div>
 <div class="staff" id="staff" hidden>
   <div class="info"><i class="dot wait" id="dot"></i><span id="st">연결 중</span> · <span id="res">-</span><br><span id="zinfo">촬영기 줌 정보 기다리는 중</span><br><span id="dbg"></span></div>
   <div class="row">
-    <span class="zoom"><button type="button" id="zm">−</button><output id="zv">1.0배</output><button type="button" id="zp">+</button></span>
-    <button type="button" class="dark" id="z1">1배로</button>
     <span class="sp"></span>
     <button type="button" class="dark" id="qb">예전 설정</button>
     <button type="button" class="dark" id="mir">좌우 반전 켬</button>
-    <button type="button" class="dark" id="fit">꽉 채움</button>
     <button type="button" class="dark" id="fs">전체 화면</button>
     <button type="button" id="lock">관람객 모드로</button>
   </div>
@@ -69,26 +65,28 @@ const block = (e) => { if (!STAFF || !e.target.closest?.('.staff')) e.preventDef
 document.addEventListener('touchmove', block, { passive: false });
 document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
-let mirror = pref('m100-live-mirror', '1') === '1', cover = pref('m100-live-fit', 'cover') === 'cover';
+let mirror = pref('m100-live-mirror', '1') === '1';
 let profile = pref('m100-live-prof2', 'old'), LV = null, zoom = 1, cropZ = 1;
+// 찍히는 범위만 꼭 맞게 — 촬영기 shoot() 의 자르기와 같은 계산(받는 영상은 촬영기 원본과 같은 비율)
+function fitFrame() {
+  const iw = video.videoWidth, ih = video.videoHeight, vf = $('vf'); if (!iw) return;
+  let cw = iw / cropZ, ch = ih / cropZ; if (cw / ch > 3 / 4) cw = ch * 3 / 4; else ch = cw * 4 / 3;
+  const W = innerWidth, H = innerHeight; let fw = W, fh = W * 4 / 3; if (fh > H) { fh = H; fw = H * 3 / 4; }
+  const s = fw / cw; vf.style.width = fw + 'px'; vf.style.height = fh + 'px';
+  Object.assign(video.style, { width: iw * s + 'px', height: ih * s + 'px', left: (fw - iw * s) / 2 + 'px', top: (fh - ih * s) / 2 + 'px' });
+}
+addEventListener('resize', fitFrame); video.addEventListener('loadedmetadata', fitFrame); video.addEventListener('resize', fitFrame);
 function apply() {
-  root.setProperty('--m', mirror ? -1 : 1); root.setProperty('--fit', cover ? 'cover' : 'contain');
-  $('mir').textContent = mirror ? '좌우 반전 켬' : '좌우 반전 끔'; $('fit').textContent = cover ? '꽉 채움' : '전체 보기';
+  root.setProperty('--m', mirror ? -1 : 1);
+  $('mir').textContent = mirror ? '좌우 반전 켬' : '좌우 반전 끔';
   $('qb').textContent = profile === 'new' ? '지금 설정 (1920)' : '예전 설정 (1280)';
-  $('zv').textContent = zoom.toFixed(1) + '배';
 }
 apply();
 $('staff').hidden = !STAFF;
 $('mir').onclick = () => { mirror = !mirror; save('m100-live-mirror', mirror ? '1' : '0'); apply(); };
-$('fit').onclick = () => { cover = !cover; save('m100-live-fit', cover ? 'cover' : 'contain'); apply(); };
 $('fs').onclick = () => document.documentElement.requestFullscreen?.().catch(() => {});
 $('qb').onclick = () => { profile = profile === 'new' ? 'old' : 'new'; save('m100-live-prof2', profile); apply(); $('res').textContent = '-'; LV?.setProfile(profile); };
 $('lock').onclick = () => { document.documentElement.requestFullscreen?.().catch(() => {}); STAFF = false; $('staff').hidden = true; };
-// 줌: 0.1배씩 — 촬영기 폰이 카메라 줌(안 되면 잘라서)으로 걸고, 사진도 같은 배율로 찍힌다
-let zT = 0;
-const setZ = (z) => { zoom = Math.round(Math.min(Math.max(z, 1), 10) * 10) / 10; apply(); clearTimeout(zT); zT = setTimeout(() => LV?.zoom(zoom), 120); };
-$('zm').onclick = () => setZ(zoom - 0.1); $('zp').onclick = () => setZ(zoom + 0.1); $('z1').onclick = () => setZ(1);
-
 const state = (s) => {
   $('dot').className = 'dot ' + (s === 'connected' ? 'ok' : s === 'lost' ? 'bad' : 'wait');
   $('st').textContent = s === 'connected' ? '실시간 연결됨' : s === 'lost' ? '끊김 · 다시 연결 중' : '연결 중';
@@ -100,10 +98,9 @@ liveViewer(KEY, {
   onStream: (st) => { video.srcObject = st; video.play().catch(() => {}); },
   onMeta: (m) => {
     if (!m) return;
-    cropZ = m.z || 1; root.setProperty('--z', cropZ);
-    if (m.zoom) { zoom = m.zoom; apply(); }
-    $('zinfo').innerHTML = m.cap ? `촬영기 카메라 줌 지원 <b>${(+m.cap.min).toFixed(1)}~${(+m.cap.max).toFixed(1)}배</b> · 지금 <b>${(m.zoom || 1).toFixed(1)}배</b>` + (cropZ > 1 ? ' (최대를 넘는 만큼 잘라서)' : '')
-      : `촬영기 카메라 줌 <b>지원 안 함</b> · 화면을 잘라서 <b>${(m.zoom || 1).toFixed(1)}배</b>`;
+    cropZ = m.z || 1; zoom = m.zoom || 1; fitFrame();
+    $('zinfo').innerHTML = m.cap ? `촬영기 줌 <b>${(m.zoom || 1).toFixed(1)}배</b> · 카메라 줌 지원 ${(+m.cap.min).toFixed(1)}~${(+m.cap.max).toFixed(1)}배` + (cropZ > 1 ? ' (최대를 넘는 만큼 잘라서)' : '')
+      : `촬영기 줌 <b>${(m.zoom || 1).toFixed(1)}배</b> · 카메라 줌 지원 안 함(화면을 잘라서)`;
   },
   onState: state,
   onDebug: (step, detail) => { $('wstep').textContent = step; $('wsub').textContent = detail; $('dbg').textContent = detail; },
