@@ -45,21 +45,38 @@ const DEBUG = new URLSearchParams(location.search).has('debug');
 let hudT = 0;
 function status(t, keep) { $('st').textContent = t; $('hud').classList.remove('off'); clearTimeout(hudT); if (!keep && !DEBUG) hudT = setTimeout(() => $('hud').classList.add('off'), 8000); }
 // 줌: 광각 렌즈(상덕 0.45X) 귀퉁이 검은 테를 잘라 내는 배율. 주소 ?zoom=2 (한 번 열면 이 기기에 기억). 카메라가 줌을 지원하면 카메라에서, 아니면 가운데를 잘라서
-const ZOOM = (() => { const q = parseFloat(new URLSearchParams(location.search).get('zoom')); try { if (q > 0) localStorage.setItem('m100-booth-zoom', String(q)); return q > 0 ? q : parseFloat(localStorage.getItem('m100-booth-zoom')) || 1; } catch { return q > 0 ? q : 1; } })();
-let cropZ = 1;   // 카메라 줌이 안 되면 사진에서 잘라 낼 배율
+let ZOOM = (() => { const q = parseFloat(new URLSearchParams(location.search).get('zoom')); try { if (q > 0) localStorage.setItem('m100-booth-zoom', String(q)); return q > 0 ? q : parseFloat(localStorage.getItem('m100-booth-zoom')) || 1; } catch { return q > 0 ? q : 1; } })();
+let cropZ = 1;   // 카메라 줌이 안 되면(또는 카메라 최대를 넘으면) 사진에서 잘라 낼 배율
+let camZoom = null;   // 카메라가 알려 준 줌 범위 {min,max,step} — 없으면 잘라서만
 let live = null;   // 태블릿 실시간 미리보기 연결(live.js)
+// 줌 걸기: 카메라가 줌을 지원하면 카메라에서(최대를 넘는 만큼만 잘라서), 아니면 가운데를 잘라서. 사진도 같은 배율
+async function applyZoom() {
+  const tr = video.srcObject?.getVideoTracks()[0]; if (!tr) return;
+  const cap = tr.getCapabilities?.() || {}; camZoom = cap.zoom && cap.zoom.max > cap.zoom.min ? { min: cap.zoom.min, max: cap.zoom.max, step: cap.zoom.step || 0.1 } : null;
+  cropZ = ZOOM;
+  if (camZoom) {
+    const z = Math.min(Math.max(ZOOM, camZoom.min), camZoom.max);
+    try { await tr.applyConstraints({ advanced: [{ zoom: z }] }); cropZ = Math.max(1, ZOOM / z); } catch {}
+  }
+  document.documentElement.style.setProperty('--z', cropZ);
+  $('zm').textContent = ZOOM === 1 ? '없음' : `${ZOOM}배(${cropZ === 1 ? '카메라' : camZoom ? '카메라+잘라서' : '잘라서'})`;
+  try { live?.meta(); } catch {}
+}
+// 태블릿(직원 모드)에서 보낸 줌 — 이 기기에 기억
+async function setZoom(z) {
+  ZOOM = Math.round(Math.min(Math.max(+z || 1, 1), 10) * 10) / 10;
+  try { localStorage.setItem('m100-booth-zoom', String(ZOOM)); } catch {}
+  await applyZoom();
+}
 async function startCam() {
   try {
     video.srcObject?.getTracks().forEach((t) => t.stop());
     const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 4032 }, height: { ideal: 3024 }, aspectRatio: { ideal: 4 / 3 } }, audio: false });   // 누르는 순간 이 영상 화면을 그대로 씀 — 가능한 최대 해상도
     video.srcObject = st; await video.play();
-    const tr = st.getVideoTracks()[0]; cropZ = ZOOM;
+    const tr = st.getVideoTracks()[0];
     tr.addEventListener('ended', () => { status('카메라가 꺼짐 · 다시 켜는 중', true); setTimeout(startCam, 1500); });
-    const cap = tr.getCapabilities?.() || {};
-    if (ZOOM > 1 && cap.zoom && cap.zoom.max >= ZOOM) { try { await tr.applyConstraints({ advanced: [{ zoom: ZOOM }] }); cropZ = 1; } catch {} }
-    document.documentElement.style.setProperty('--z', cropZ);
-    $('zm').textContent = ZOOM === 1 ? '없음' : `${ZOOM}배(${cropZ === 1 ? '카메라' : '잘라서'})`;
-    try { live?.restream(); live?.meta(); } catch {}
+    try { live?.restream(); } catch {}
+    await applyZoom();
     return true;
   } catch (e) { status('카메라를 켜지 못함 · 권한 확인', true); setTimeout(startCam, 4000); return false; }
 }
@@ -71,7 +88,7 @@ const lvSay = (txt, ok) => {
   const el = $('lv'); el.innerHTML = '<b>' + (ok ? '태블릿 연결됨' : '태블릿 미리보기') + '</b> · ' + txt.replace(/</g, '&lt;'); el.classList.toggle('ok', !!ok);
   if (ok && !DEBUG) { if (!lvT) lvT = setTimeout(() => el.classList.add('off'), 10000); } else { clearTimeout(lvT); lvT = 0; el.classList.remove('off'); }
 };
-import('./live.js').then((m) => m.liveSender(() => video.srcObject, KEY, () => ({ z: cropZ }), lvSay)).then((l) => { live = l; }).catch((e) => { console.warn('[live]', e); lvSay('오류: ' + e.message, false); });
+import('./live.js').then((m) => m.liveSender(() => video.srcObject, KEY, () => ({ z: cropZ, zoom: ZOOM, cap: camZoom }), lvSay, { zoom: setZoom })).then((l) => { live = l; }).catch((e) => { console.warn('[live]', e); lvSay('오류: ' + e.message, false); });
 // 화면 꺼짐 막기 — 화면이 다시 보이면 다시 잡는다(카메라도 다시)
 let lock = null;
 async function keepAwake() { try { lock = await navigator.wakeLock?.request('screen'); } catch {} }

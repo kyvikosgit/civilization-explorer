@@ -1,0 +1,22 @@
+{
+ "name": "나다르 사진관 미리보기",
+ "short_name": "미리보기",
+ "start_url": "/live",
+ "scope": "/",
+ "display": "fullscreen",
+ "orientation": "any",
+ "background_color": "#000000",
+ "theme_color": "#000000",
+ "icons": [
+  {
+   "src": "/design/experience-v3/img/live-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "/design/experience-v3/img/live-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

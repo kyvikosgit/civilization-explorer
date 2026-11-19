@@ -30,10 +30,10 @@ export const PROFILES = {
   old: { label: '예전 · 1280px · 3Mbps', long: 1280, bps: 3_000_000, hint: '', sdp: ';x-google-start-bitrate=2500;x-google-min-bitrate=800' },
   new: { label: '지금 · 1920px · 8Mbps', long: 1920, bps: 8_000_000, hint: 'detail', sdp: ';x-google-start-bitrate=6000;x-google-min-bitrate=1500;x-google-max-bitrate=8000' },
 };
-const prof = (p) => PROFILES[p] || PROFILES.new;
+const prof = (p) => PROFILES[p] || PROFILES.old;
 
 // ── 보내는 쪽(촬영기 폰). getStream: 지금 카메라 스트림, getMeta: 보는 쪽에 같이 줄 값(줌 배율 등), onDebug(글): 연결 상황 한 줄
-export async function liveSender(getStream, key, getMeta = () => ({}), onDebug = () => {}) {
+export async function liveSender(getStream, key, getMeta = () => ({}), onDebug = () => {}, cmds = {}) {
   const { name, tag } = await chanName(key);
   const D = { sub: '접속 중', peers: new Map() };   // 보는 화면 id → { pc, step, lc, rc, cq(후보 대기), prof, track }
   const say = () => {
@@ -77,7 +77,9 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
     P.step = '제안 보냄'; say();
     L.send('offer', { vid, sid: P.sid, prof: pf, sdp: pc.localDescription.toJSON(), meta: getMeta(), tag });
   }
-  L.ch.on('broadcast', { event: 'hello' }, ({ payload }) => connect(payload.vid, payload.prof || 'new'));
+  L.ch.on('broadcast', { event: 'hello' }, ({ payload }) => connect(payload.vid, payload.prof || 'old'));
+  // 태블릿(직원 모드)의 명령 — 같은 키 채널에서만 옴
+  L.ch.on('broadcast', { event: 'zoom' }, async ({ payload }) => { try { await cmds.zoom?.(payload.z); } catch {} L.send('meta', getMeta()); });
   L.ch.on('broadcast', { event: 'answer' }, async ({ payload }) => { const P = D.peers.get(payload.vid); if (P && P.sid === payload.sid && !P.pc.currentRemoteDescription) try { await P.pc.setRemoteDescription(payload.sdp); await flushCand(P.pc, P.cq); P.step = '응답 받음 · 영상 길 찾는 중'; say(); } catch (e) { P.step = '응답 오류'; say(); } });
   L.ch.on('broadcast', { event: 'ice' }, async ({ payload }) => { if (payload.from !== 'v') return; const P = D.peers.get(payload.vid); if (P && P.sid === payload.sid) { tally(P.rc, candType(payload.c)); await addCand(P.pc, P.cq, payload.c); say(); } });
   say();
@@ -96,7 +98,7 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
 }
 
 // ── 보는 쪽(태블릿). onStream(stream), onMeta(meta), onState('connecting'|'connected'|'lost'), onDebug(단계 글, 자세한 글), onStats(지연 · 화질 숫자)
-export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () => {}, onStats = () => {}, profile = 'new' }) {
+export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () => {}, onStats = () => {}, profile = 'old' }) {
   const { name, tag } = await chanName(key);
   const vid = Math.random().toString(36).slice(2, 10);
   let pc = null, cq = [], sid = '', offerAt = 0, helloN = 0, lc = {}, rc = {}, step = '신호 서버 접속 중';
@@ -107,7 +109,7 @@ export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () 
   const hello = () => { helloN++; L.send('hello', { vid, prof: profile }); say(); };
   const L = join(name, (s) => { if (s !== 'SUBSCRIBED') { step = '신호 서버 ' + s; say(); } });
   L.ch.on('broadcast', { event: 'offer' }, async ({ payload }) => {
-    if (payload.vid !== vid || (payload.prof || 'new') !== profile) return;   // 지금 고른 설정의 제안만
+    if (payload.vid !== vid || (payload.prof || 'old') !== profile) return;   // 지금 고른 설정의 제안만
     offerAt = Date.now(); lc = {}; rc = {}; sid = payload.sid; cq = [];
     try { pc?.close(); } catch {}
     pc = new RTCPeerConnection({ iceServers: ICE });
@@ -166,6 +168,7 @@ export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () 
   return {
     tag,
     // 설정 바꾸기 — 지금 연결을 끊고 그 설정으로 처음부터 다시 맺는다
+    zoom(z) { L.send('zoom', { z }); },
     setProfile(p) { profile = p; try { pc?.close(); } catch {} pc = null; prev = null; step = prof(p).label + ' 로 다시 연결 중'; onState('connecting'); hello(); },
   };
 }
