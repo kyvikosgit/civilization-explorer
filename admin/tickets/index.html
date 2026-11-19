@@ -189,6 +189,21 @@ dialog::backdrop{background:rgba(20,20,22,.4)}
 dialog .dh{display:flex;align-items:center;gap:12px;padding:20px 24px;border-bottom:1px solid var(--line)}
 dialog .dh h2{margin:0;font-size:17px;margin-right:auto;letter-spacing:-.01em}
 dialog .db{padding:22px 24px}
+/* 탭 */
+.tabs{display:flex;gap:4px;margin:-12px 0 28px;border-bottom:1px solid var(--line2)}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;color:var(--sub);font-size:16px;font-weight:700;padding:12px 4px 13px;margin-right:20px;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+#app.on-du .p-only,#app:not(.on-du) .d-only{display:none!important}
+#tabDu>.sec:first-child,#secCheck{border-top:0;padding-top:4px}
+/* 바우처 입력 */
+.duwrap{flex:1;display:flex;align-items:center;height:112px;border:1.5px solid var(--ink);border-radius:8px;background:#fff;padding-left:24px;min-width:0;cursor:text}
+.duwrap span{font:600 56px/1 var(--mono);letter-spacing:.06em;color:var(--faint)}
+.big .duwrap input{border:0;height:100%;padding:0 12px 0 8px;text-align:left;letter-spacing:.1em;background:transparent;flex:1;min-width:0}
+.cam{position:relative;margin-top:16px;border-radius:8px;overflow:hidden;background:#000;max-width:520px}
+.cam video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.cam .aim{position:absolute;left:50%;top:calc(50% - 28px);width:56%;aspect-ratio:1;transform:translate(-50%,-50%);border:3px solid rgba(255,255,255,.9);border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
+.cam .camb{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:rgba(0,0,0,.55);color:#fff;font-size:13.5px}
+.cam .camb button{background:#fff}
 /* 번호 등록 창 */
 .rf{display:flex;flex-direction:column;gap:24px}
 .fld{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -248,6 +263,8 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   .axis span{font-size:10.5px}
   .brk td.rg{width:auto;font-size:11.5px}.brk td.u{display:none}.brk td.r{width:64px}
   .big input{font-size:40px;height:96px;padding:0 10px}.big button{padding:0 22px;height:96px;font-size:18px}
+  .duwrap{height:96px;padding-left:12px}.duwrap span,.big .duwrap input{font-size:26px}.big .duwrap input{padding:0 6px 0 4px;letter-spacing:.04em}
+  .tabs{margin-top:-8px}
   .st th,.st td{padding:11px 8px}
   .rgin input{font-size:18px;height:48px}.qty{min-width:0;font-size:15px}
   .hund{grid-template-columns:1fr;gap:4px}
@@ -256,7 +273,7 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   @page{size:A4 landscape;margin:12mm}
   html,body{background:#fff;font-size:9.5pt}
   .wrap{max-width:none;padding:0}
-  header.top,#secCheck,td.act,th.act,dialog{display:none!important}
+  header.top,.tabs,#tabDu,#secCheck,td.act,th.act,dialog{display:none!important}
   .sec{display:block;padding:0 0 6mm;border:0;box-shadow:none;background:none}.sec>.h p{display:none}
   .printhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5px solid #000;padding-bottom:3mm;margin-bottom:5mm}
   .printhead h1{font-size:15pt}.printhead span{font-size:9pt}
@@ -279,17 +296,56 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
 
   <div id="app" hidden>
     <header class="top">
-      <div class="t"><p class="kick">MONET 100 · STAFF ONLY</p><h1>티켓 일련번호 관리</h1><p class="sub" id="topSub"></p></div>
+      <div class="t"><p class="kick">MONET 100 · STAFF ONLY</p><h1>티켓 관리</h1><p class="sub p-only" id="topSub"></p></div>
       <div class="tools">
-        <button type="button" id="btnReg">번호 등록</button>
-        <details class="menu" id="expMenu"><summary class="sumtag">엑셀 내보내기 ▾</summary>
+        <button type="button" id="btnReg" class="p-only">번호 등록</button>
+        <button type="button" class="ghost d-only" id="duCsv">사용 내역 엑셀</button>
+        <details class="menu p-only" id="expMenu"><summary class="sumtag">엑셀 내보내기 ▾</summary>
           <div class="pop"><button type="button" id="csv1">현황표 (구간별)</button><button type="button" id="csv2">번호별 사용 내역</button></div></details>
-        <button type="button" class="ghost" id="print">인쇄</button>
+        <button type="button" class="ghost p-only" id="print">인쇄</button>
         <button type="button" class="ghost" id="reload" aria-label="새로고침">↻</button>
       </div>
     </header>
 
-    <main>
+    <nav class="tabs" role="tablist" aria-label="티켓 종류">
+      <button type="button" role="tab" data-tab="paper" aria-selected="true">종이 티켓</button>
+      <button type="button" role="tab" data-tab="du" aria-selected="false">업비트 바우처</button>
+    </nav>
+
+    <main id="tabDu" class="d-only">
+      <section class="sec" aria-label="업비트 바우처 확인">
+        <div class="h"><h2>업비트 바우처 확인</h2><p>고객 휴대폰의 업비트 바우처 화면에서 QR을 찍거나, DU 뒤 숫자 8자리를 입력합니다. 8자리를 다 치면 바로 확인합니다.</p></div>
+        <div class="body ck">
+          <div class="main">
+            <form class="big" id="duF" autocomplete="off">
+              <label class="duwrap"><span>DU</span><input id="duIn" inputmode="numeric" enterkeyhint="go" maxlength="14" placeholder="00000000" aria-label="바우처 코드 DU 뒤 8자리"></label>
+              <button type="submit">확인</button>
+            </form>
+            <div class="opts">
+              <button type="button" class="ghost" id="duScan">QR 찍기</button>
+              <label class="sw"><input type="checkbox" id="duAuto" checked> 바로 사용 처리</label>
+              <small id="duAutoHint">확인과 동시에 사용 처리합니다</small>
+            </div>
+            <div class="flash" id="duFlash" role="status" aria-live="assertive"></div>
+            <div class="cam" id="duCam" hidden>
+              <video id="duVid" playsinline muted></video><i class="aim" aria-hidden="true"></i>
+              <div class="camb"><span id="duCamMsg">QR을 네모 안에 맞춰 주세요</span><button type="button" class="ghost" id="duCamX">카메라 닫기</button></div>
+            </div>
+          </div>
+          <div class="side recent">
+            <h3>최근 처리 <small>10건</small></h3>
+            <ol id="duRecent"></ol>
+          </div>
+        </div>
+      </section>
+      <section class="sec" aria-label="바우처 현황">
+        <div class="h"><h2>현황</h2><p>두나무에 나간 바우처 중 입장에 쓴 코드입니다.</p></div>
+        <div class="body"><div class="kpis" id="duKpis"></div>
+          <div class="tablebox"><table class="st"><thead><tr><th>순번</th><th>바우처 코드</th><th>사용 일시</th><th class="act"></th></tr></thead><tbody id="duTb"></tbody></table></div></div>
+      </section>
+    </main>
+
+    <main id="tabPaper" class="p-only">
       <div class="printhead"><h1>MONET 100 티켓 일련번호 현황</h1><span id="pdate"></span></div>
       <section class="sec" id="secCheck" aria-label="티켓 사용 확인">
         <div class="h"><h2>티켓 사용 확인</h2><p>입구에서 받은 티켓의 6자리 번호를 입력합니다. 앞자리 0은 빼고 입력해도 됩니다.</p></div>
@@ -676,12 +732,111 @@ dialog.grid .db{max-height:calc(100vh - 180px);overflow:auto;padding-top:10px}
   $('reload').addEventListener('click', function () { load().catch(function (err) { alert(err.message); }); });
   var rT; addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(renderMap, 120); });
 
+  // ── 탭: 종이 티켓 / 업비트 바우처
+  var tab = 'paper';
+  try { if (localStorage.getItem('tk_tab') === 'du') tab = 'du'; } catch (e) {}
+  function setTab(t) {
+    tab = t; $('app').classList.toggle('on-du', t === 'du');
+    document.querySelectorAll('.tabs [data-tab]').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.tab === t ? 'true' : 'false'); });
+    try { localStorage.setItem('tk_tab', t); } catch (e) {}
+    if (t === 'du') { duLoad().catch(function () {}); $('duIn').focus(); } else { camStop(); $('chkIn').focus(); }
+  }
+  document.querySelector('.tabs').addEventListener('click', function (e) { var b = e.target.closest('[data-tab]'); if (b) setTab(b.dataset.tab); });
+
+  // ── 업비트 바우처(DU 코드): 판정은 서버 du_check (형식 · 발급 범위 · 검증 숫자 · 사용 여부)
+  var DU = { issued: 0, uses: [] };
+  var dus = function (n) { return String(n).padStart(4, '0'); };
+  function duNorm(v) { var s = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); var m = s.match(/DU(\d{8})/); if (m) return m[1]; return s.replace(/^DU/, '').replace(/\D/g, ''); }
+  function duLoad() {
+    return rpc('du_state').then(function (j) { DU = j; duRender(); });
+  }
+  function duRender() {
+    var n = DU.uses.length;
+    $('duKpis').innerHTML = '<div class="kpi"><b>' + cnt(DU.issued) + '</b><span>발급</span></div><div class="kpi"><b>' + cnt(n) + '</b><span>사용 · ' + pctS(n, DU.issued) + '</span></div><div class="kpi"><b>' + cnt(DU.issued - n) + '</b><span>남음</span></div>';
+    var row = function (u) { return '<tr><td class="num">' + dus(u.seq) + '</td><td class="rg">' + esc(u.code) + '</td><td>' + dtfmt.format(new Date(u.used_at)) + '</td><td class="act"><button type="button" class="link" data-duun="' + u.seq + '">취소</button></td></tr>'; };
+    $('duTb').innerHTML = n ? DU.uses.slice().sort(function (a, b) { return a.seq - b.seq; }).map(row).join('') : '<tr><td colspan="4" style="color:var(--sub)">아직 사용 처리한 바우처가 없습니다.</td></tr>';
+    $('duRecent').innerHTML = n ? DU.uses.slice(0, 10).map(function (u) { return '<li><span class="tm">' + tfmt.format(new Date(u.used_at)) + '</span><span class="num"><b>' + dus(u.seq) + '</b></span><span class="hd">' + esc(u.code) + '</span><button type="button" class="link" data-duun="' + u.seq + '">취소</button></li>'; }).join('')
+      : '<li class="empty" style="display:block">아직 사용 처리한 바우처가 없습니다.</li>';
+  }
+  function duFlash(cls, html) { var f = $('duFlash'); f.className = 'flash on ' + cls; f.innerHTML = html; }
+  function duShow(j) {
+    var no = '<span class="no">' + esc(j.code || '') + '</span>', sq = j.seq ? '<dl><dt>순번</dt><dd>' + dus(j.seq) + '번째 바우처</dd>' + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>' : '';
+    if (j.status === 'ok') return duFlash('ok', '<div class="st">' + no + '입장 확인 · 사용 처리됨</div>' + sq + '<div class="acts"><button type="button" class="ghost" data-duun="' + j.seq + '">사용 취소</button></div>');
+    if (j.status === 'already') return duFlash('bad', '<div class="st">' + no + '이미 사용된 바우처</div>' + sq + '<div class="acts"><button type="button" class="ghost" data-duun="' + j.seq + '">사용 취소</button></div>');
+    if (j.status === 'test') return duFlash('mute', '<div class="st">' + no + '테스트 코드 · 입장 불가</div><p>두나무 개발 확인용으로 보낸 코드입니다.</p>');
+    if (j.status === 'invalid') return duFlash('bad', '<div class="st">' + no + '무효 코드</div><p>' + esc(j.reason || '') + ' 코드를 다시 확인해 주세요.</p>');
+    duFlash('info', '<div class="st" style="color:var(--ok)">' + no + '사용 가능</div>' + sq + '<div class="acts"><button type="button" class="go" data-duuse="' + esc(j.code) + '">사용 처리</button></div>');
+  }
+  var duBusy = false;
+  function duSubmit(raw, use) {
+    var d = duNorm(raw); if (duBusy) return Promise.resolve();
+    if (d.length !== 8) { duFlash('mute', '<div class="st">DU 뒤 숫자 8자리를 입력해 주세요</div>'); return Promise.resolve(); }
+    duBusy = true;
+    return rpc('du_check', { p_code: 'DU' + d, p_use: use == null ? $('duAuto').checked : use }).then(function (j) {
+      duShow(j); if (navigator.vibrate) navigator.vibrate(j.status === 'ok' ? 60 : [80, 60, 80]);
+      $('duIn').value = ''; if ($('duCam').hidden) $('duIn').focus();
+      if (j.status === 'ok') return duLoad();
+    }).catch(function (x) { duFlash('bad', '<div class="st">처리하지 못했습니다</div><p>' + esc(x.message) + '</p>'); }).finally(function () { duBusy = false; });
+  }
+  $('duF').addEventListener('submit', function (e) { e.preventDefault(); if (!duNorm($('duIn').value)) { $('duIn').focus(); return; } duSubmit($('duIn').value); });
+  $('duIn').addEventListener('input', function () { var d = duNorm(this.value); if (this.value !== d) this.value = d; if (d.length === 8) duSubmit(d); });
+  $('duAuto').addEventListener('change', function () { try { localStorage.setItem('du_auto', this.checked ? '1' : '0'); } catch (e) {} $('duAutoHint').textContent = this.checked ? '확인과 동시에 사용 처리합니다' : '조회만 합니다. 결과에서 사용 처리를 누르세요'; });
+  try { if (localStorage.getItem('du_auto') === '0') { $('duAuto').checked = false; $('duAutoHint').textContent = '조회만 합니다. 결과에서 사용 처리를 누르세요'; } } catch (e) {}
+  function duUnuse(seq) {
+    if (!confirm(dus(seq) + '번 바우처 사용을 취소할까요?')) return;
+    rpc('du_unuse', { p_seq: seq }).then(function () { duFlash('mute', '<div class="st">' + dus(seq) + '번 바우처 사용 취소됨</div>'); return duLoad(); }).catch(function (x) { alert(x.message); });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-duun],[data-duuse]'); if (!t) return;
+    if (t.dataset.duun) duUnuse(+t.dataset.duun); else duSubmit(t.dataset.duuse, true);
+  });
+
+  // QR 카메라: BarcodeDetector(안드로이드 크롬 등) → 없으면 jsQR
+  var cam = { stream: null, raf: 0, last: '', lastAt: 0, det: null, cv: null };
+  function loadJsQR() { return window.jsQR ? Promise.resolve() : new Promise(function (ok, no) { var s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; s.onload = ok; s.onerror = function () { no(new Error('QR 판독기를 불러오지 못했습니다')); }; document.head.appendChild(s); }); }
+  function camStop() { clearTimeout(cam.raf); if (cam.stream) cam.stream.getTracks().forEach(function (k) { k.stop(); }); cam.stream = null; $('duCam').hidden = true; }
+  function camHit(text) {
+    var d = duNorm(text), now = Date.now();
+    if (d.length !== 8) { $('duCamMsg').textContent = '바우처 QR이 아닙니다'; return; }
+    if (d === cam.last && now - cam.lastAt < 4000) return;   // 같은 화면 연속 인식 방지
+    cam.last = d; cam.lastAt = now; $('duCamMsg').textContent = 'DU' + d + ' 확인 중…'; duSubmit(d).then(function () { var s = $('duFlash').querySelector('.st'); $('duCamMsg').textContent = s ? s.textContent : ''; clearTimeout(cam.msgT); cam.msgT = setTimeout(function () { $('duCamMsg').textContent = 'QR을 네모 안에 맞춰 주세요'; }, 4000); });
+  }
+  function camLoop() {
+    var v = $('duVid');
+    if (!cam.stream) return;
+    if (v.readyState >= 2 && !duBusy) {
+      if (cam.det) { cam.det.detect(v).then(function (r) { if (r && r[0]) camHit(r[0].rawValue); }).catch(function () {}); }
+      else if (window.jsQR) {
+        var w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 720 / Math.max(w, h)); cam.cv = cam.cv || document.createElement('canvas');
+        cam.cv.width = w * s | 0; cam.cv.height = h * s | 0; var g = cam.cv.getContext('2d', { willReadFrequently: true }); g.drawImage(v, 0, 0, cam.cv.width, cam.cv.height);
+        var r = jsQR(g.getImageData(0, 0, cam.cv.width, cam.cv.height).data, cam.cv.width, cam.cv.height, { inversionAttempts: 'dontInvert' }); if (r) camHit(r.data);
+      }
+    }
+    cam.raf = setTimeout(function () { requestAnimationFrame(camLoop); }, 120);
+  }
+  $('duScan').addEventListener('click', function () {
+    if (cam.stream) { camStop(); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { duFlash('bad', '<div class="st">이 기기에서는 카메라를 쓸 수 없습니다</div><p>코드를 직접 입력해 주세요.</p>'); return; }
+    var prep = ('BarcodeDetector' in window) ? BarcodeDetector.getSupportedFormats().then(function (f) { if (f.indexOf('qr_code') >= 0) cam.det = new BarcodeDetector({ formats: ['qr_code'] }); else return loadJsQR(); }).catch(loadJsQR) : loadJsQR();
+    prep.then(function () { return navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); })
+      .then(function (s) { cam.stream = s; var v = $('duVid'); v.srcObject = s; $('duCam').hidden = false; return v.play(); })
+      .then(function () { cam.last = ''; camLoop(); })
+      .catch(function (x) { camStop(); duFlash('bad', '<div class="st">카메라를 켜지 못했습니다</div><p>' + esc(/denied|NotAllowed/i.test(x.name + x.message) ? '브라우저 설정에서 이 사이트의 카메라를 허용해 주세요.' : x.message) + '</p>'); });
+  });
+  $('duCamX').addEventListener('click', camStop);
+  $('duCsv').addEventListener('click', function () {
+    duLoad().then(function () {
+      var rows = [['순번', '바우처 코드', '사용 일시']].concat(DU.uses.slice().sort(function (a, b) { return a.seq - b.seq; }).map(function (u) { return [dus(u.seq), u.code, dtfmt.format(new Date(u.used_at))]; }));
+      dl('업비트바우처_사용내역', rows);
+    }).catch(function (x) { alert(x.message); });
+  });
+
   $('login').addEventListener('submit', function (e) {
     e.preventDefault(); pw = $('pw').value.trim(); $('lerr').textContent = '';
-    load().then(function () { try { sessionStorage.setItem('tk_pw', pw); } catch (e) {} $('chkIn').focus(); })
+    load().then(function () { try { sessionStorage.setItem('tk_pw', pw); } catch (e) {} setTab(tab); })
       .catch(function (err) { $('lerr').textContent = /비밀번호/.test(err.message) ? '비밀번호가 맞지 않습니다.' : '불러오지 못했습니다. 다시 시도해 주세요.'; });
   });
-  if (pw) load().catch(function () { pw = ''; try { sessionStorage.removeItem('tk_pw'); } catch (e) {} });
+  if (pw) load().then(function () { setTab(tab); }).catch(function () { pw = ''; try { sessionStorage.removeItem('tk_pw'); } catch (e) {} });
 })();
 </script>
 </body>
