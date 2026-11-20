@@ -24,7 +24,8 @@
 /* 벽의 액자 안에 다는 화면(아이패드 · TV). 평소엔 벽의 다른 사진들처럼 나다르 사진관의 모네 초상, 관람객이 보내면 그 사진으로 천천히 바뀐다 */
 :root{color-scheme:dark}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
+html,body{height:100%;background:#16110c;overflow:hidden}
+html.idle,html.idle *{cursor:none!important}   /* 11/20: 마우스를 3초 안 움직이면 숨김(움직이면 다시 보임) */
 .stage{position:fixed;inset:0;display:grid;place-items:center;padding:3vmin}
 .stage img{position:absolute;max-width:94vw;max-height:94vh;object-fit:contain;opacity:0;transition:opacity 1.6s ease;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 .stage img.on{opacity:1}
@@ -207,6 +208,8 @@ if (!FKEY) { const h = document.getElementById('hint'); h.textContent = '촬영�
 link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
 // 11/20: 배포하면 쉬는 틈(사진 · 진행 표시가 없을 때)에 스스로 최신 화면으로 — 화면에는 아무것도 더 띄우지 않음
 import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['link.js', 'ink.js'], isBusy: () => pgOn || document.body.classList.contains('withqr') })).catch(() => {});
+{ let t = 0; const idle = () => { document.documentElement.classList.remove('idle'); clearTimeout(t); t = setTimeout(() => document.documentElement.classList.add('idle'), 3000); };
+  ['mousemove', 'mousedown', 'touchstart'].forEach((e) => addEventListener(e, idle, { passive: true })); idle(); }
 document.body.addEventListener('click', async () => {
   if (window.top !== window) { parent.postMessage('m100-frame-fs', location.origin); document.getElementById('hint').classList.add('off'); return; }   // 돌려 담긴 화면 — 바깥이 전체 화면
   try { await document.documentElement.requestFullscreen?.(); } catch {}

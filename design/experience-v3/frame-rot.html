@@ -10,7 +10,7 @@
 <style>
 /* 11/20: 세워 단 TV(화면 회전 메뉴 없음)용 — 가로로 나오는 화면 안에 세로 액자 화면(frame.html)을 90° 돌려 꽉 채운다.
    frame.html 은 iframe 안에서 세로 화면(예: 1080×1920)으로 그대로 그려지므로 글자 · 사진 크기가 세로 기준으로 맞는다 */
-html,body{margin:0;height:100%;background:#16110c;overflow:hidden;cursor:none}
+html,body{margin:0;height:100%;background:#16110c;overflow:hidden}   /* 커서는 안쪽(frame.html)이 3초 멈추면 숨김 */
 iframe{position:fixed;left:50%;top:50%;width:100vh;height:100vw;border:0;transform:translate(-50%,-50%) rotate(var(--r,90deg));background:#16110c}
 </style>
 </head>
