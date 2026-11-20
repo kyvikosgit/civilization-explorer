@@ -8,6 +8,17 @@
 <title>나다르 사진관 · 액자 화면</title>
 <base href="/design/experience-v3/">  <!-- 11/20: it-ta.com/frame 짧은 주소로 열어도 link.js · 그림을 같은 곳에서 찾게 -->
 <link rel="icon" href="data:,">
+<script>
+// 11/20: 세워 단 TV(회전 메뉴 없음) — ?r=90(시계) · ?r=270(반시계) 로 한 번 열면 이 기기에 기억, ?r=0 이면 회전 끔.
+// 회전은 frame-rot.html 이 이 화면을 돌려 담는 방식(안쪽에서는 다시 돌리지 않음)
+(() => {
+  if (window.top !== window) return;
+  const q = new URLSearchParams(location.search); let r = q.get('r');
+  try { if (r !== null) { if (r === '90' || r === '270') localStorage.setItem('m100-frame-r', r); else localStorage.removeItem('m100-frame-r'); } else r = localStorage.getItem('m100-frame-r'); } catch {}
+  if (r !== '90' && r !== '270') return;
+  q.set('r', r); location.replace('frame-rot.html?' + q.toString());
+})();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <style>
 /* 벽의 액자 안에 다는 화면(아이패드 · TV). 평소엔 벽의 다른 사진들처럼 나다르 사진관의 모네 초상, 관람객이 보내면 그 사진으로 천천히 바뀐다 */
@@ -197,6 +208,7 @@ link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(
 // 11/20: 배포하면 쉬는 틈(사진 · 진행 표시가 없을 때)에 스스로 최신 화면으로 — 화면에는 아무것도 더 띄우지 않음
 import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['link.js', 'ink.js'], isBusy: () => pgOn || document.body.classList.contains('withqr') })).catch(() => {});
 document.body.addEventListener('click', async () => {
+  if (window.top !== window) { parent.postMessage('m100-frame-fs', location.origin); document.getElementById('hint').classList.add('off'); return; }   // 돌려 담긴 화면 — 바깥이 전체 화면
   try { await document.documentElement.requestFullscreen?.(); } catch {}
   try { await navigator.wakeLock?.request('screen'); } catch {}
   document.getElementById('hint').classList.add('off');
