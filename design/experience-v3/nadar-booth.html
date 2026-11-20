@@ -221,7 +221,8 @@ function holdStart() {
 }
 // ── 매일 점검 판(왼쪽 위 구석 3초): 카메라 · 액자 화면 · 태블릿 · AI 서버 · 촬영 버튼 · 시험 촬영 — 전부 초록 체크면 '모두 정상'
 //   [점검 닫기]를 누를 때까지 열려 있다(새로고침해도 유지)
-let aiState = 'wait', aiT = 0, btnOk = false, openedAt = 0;
+let aiState = 'wait', aiT = 0, btnOk = false, openedAt = 0, newVer = false;
+import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['live.js', 'link.js'], onNew: () => { newVer = true; } })).catch(() => {});
 async function aiCheck() {   // AI 서버 · 충전 상태(사진 변환 없이 확인만 — 비용 없음)
   if (!KEY) { aiState = 'nokey'; return; }
   try {
@@ -245,13 +246,14 @@ function dbgInfo() {
     ['태블릿 미리보기', tabs ? ['ok', '연결됨'] : ['bad', '연결 안 됨 — 태블릿 화면이 켜져 있는지 확인']],
     ['AI 사진 서버', ai],
     ['촬영 버튼', btnOk ? ['ok', '눌림 확인'] : ['wait', '촬영 버튼을 한 번 눌러 보세요(시험 촬영이 됩니다)']],
+    ...(newVer ? [['새 버전', ['warn', '화면이 업데이트됐습니다 — 쉬는 시간에 [새로고침]을 눌러 주세요']]] : []),
     ['시험 촬영', !tested ? ['wait', '버튼이나 [시험 촬영]으로 한 장 찍고, 액자에 사진이 뜨는지 보세요']
       : last.how === 'AI' ? ['ok', `AI 사진 정상 · ${last.sec}초 걸림`] : ['bad', 'AI 실패 — 기기 사진으로 나감(관리자에게 알려 주세요)']],
   ];
   $('dbgi').innerHTML = rows.map(([n, [st, d]]) => CK(st, n, d)).join('');
   const sts = rows.map(([, [st]]) => st), bad = sts.filter((s) => s === 'bad').length, wait = sts.filter((s) => s === 'wait').length;
   const sum = $('ckSum'); sum.className = 'ck-sum ' + (bad ? 'bad' : wait ? 'wait' : sts.includes('warn') ? 'warn' : 'ok');
-  sum.innerHTML = bad ? `<i>!</i><span>확인 필요 ${bad}개</span>` : wait ? `<i>…</i><span>${rows[4][1][0] === 'wait' || rows[5][1][0] === 'wait' ? '시험 촬영을 한 번 해 주세요' : '확인 중'}</span>` : '<i>✓</i><span>모두 정상</span>';
+  sum.innerHTML = bad ? `<i>!</i><span>확인 필요 ${bad}개</span>` : wait ? `<i>…</i><span>${rows.some(([n, [st]]) => (n === '촬영 버튼' || n === '시험 촬영') && st === 'wait') ? '시험 촬영을 한 번 해 주세요' : '확인 중'}</span>` : '<i>✓</i><span>모두 정상</span>';
   $('ckZoom').textContent = `줌 ${ZOOM.toFixed(1)}배` + (cropZ > 1 ? ' · 화면을 잘라서 키우는 중(많이 키우면 사진이 흐려짐)' : '');
 }
 setInterval(dbgInfo, 1000);

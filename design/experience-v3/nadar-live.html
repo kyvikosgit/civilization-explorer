@@ -130,14 +130,16 @@ const CK = (st, name, detail) => `<div class="ck ${st}"><i>${st === 'ok' ? '✓'
 function ckDraw() {
   const rows = [
     ['촬영기 폰 연결', conn === 'connected' ? ['ok', '연결됨'] : conn === 'lost' ? ['bad', '끊김 — 촬영기 폰 화면이 켜져 있는지, 같은 와이파이인지 확인'] : ['wait', '촬영기를 찾는 중 — 오래 걸리면 촬영기 폰 화면이 켜져 있는지 확인']],
-    ['화면 늦음', conn !== 'connected' || delayMs == null ? ['wait', '-'] : delayMs < 1000 ? ['ok', delayMs < 100 ? '0.1초 미만' : `약 ${(delayMs / 1000).toFixed(1)}초`] : ['warn', `약 ${(delayMs / 1000).toFixed(1)}초 — 느림(와이파이 확인)`]],
+    ['미리보기 지연', conn !== 'connected' || delayMs == null ? ['wait', '-'] : delayMs < 1000 ? ['ok', `정상 (${delayMs < 100 ? '0.1초 미만' : '약 ' + (delayMs / 1000).toFixed(1) + '초'})`] : ['warn', `느림 (약 ${(delayMs / 1000).toFixed(1)}초) — 와이파이 확인`]],
   ];
   $('ckList').innerHTML = rows.map(([n, [st, d]]) => CK(st, n, d)).join('');
   const sts = rows.map(([, [st]]) => st), sum = $('ckSum');
   const k = sts.includes('bad') ? 'bad' : sts.includes('wait') ? 'wait' : sts.includes('warn') ? 'warn' : 'ok';
-  sum.className = 'ck-sum ' + k; sum.innerHTML = k === 'ok' ? '<i>✓</i><span>모두 정상</span>' : k === 'bad' ? '<i>!</i><span>확인 필요</span>' : k === 'warn' ? '<i>!</i><span>느림</span>' : '<i>…</i><span>확인 중</span>';
+  sum.className = 'ck-sum ' + k; sum.innerHTML = k === 'ok' ? '<i>✓</i><span>모두 정상</span>' : k === 'bad' ? '<i>!</i><span>확인 필요</span>' : k === 'warn' ? '<i>!</i><span>미리보기가 느림</span>' : '<i>…</i><span>확인 중</span>';
 }
 ckDraw();
+// 배포하면 스스로 최신 화면으로(미리보기만 하는 화면이라 바로 새로고침)
+import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['live.js'] })).catch(() => {});
 liveViewer(KEY, {
   profile,
   onStats: (s) => { delayMs = s.delay; ckDraw(); },
