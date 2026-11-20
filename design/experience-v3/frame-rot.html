@@ -25,9 +25,11 @@ document.getElementById('f').src = 'frame.html?' + q.toString();
 // 전체 화면 · 화면 꺼짐 방지: 안쪽 화면을 누르면 바깥(이 페이지)이 처리 — 안쪽만 전체 화면이 되면 회전이 풀린다
 addEventListener('message', async (e) => {
   if (e.origin !== location.origin || e.data !== 'm100-frame-fs') return;
-  try { await document.documentElement.requestFullscreen?.(); } catch {}
+  try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen?.(); } catch {}
   try { await navigator.wakeLock?.request('screen'); } catch {}
 });
+// 관리 화면 F2 — 안쪽 화면에 초점이 없을 때도
+addEventListener('keydown', (e) => { if (e.key === 'F2') { e.preventDefault(); try { document.getElementById('f').contentWindow.m100AdminToggle?.(); } catch {} } });
 </script>
 </body>
 </html>
