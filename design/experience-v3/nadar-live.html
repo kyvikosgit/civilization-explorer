@@ -71,6 +71,7 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
 </div>
 <script type="module">
 import { liveViewer, PROFILES } from './live.js';
+import { joinRoom } from './link.js';
 const $ = (s) => document.getElementById(s), video = $('v'), root = document.documentElement.style;
 const q = new URLSearchParams(location.search);
 const KEY = (() => { const k = q.get('k'); try { if (k) localStorage.setItem('m100-booth-k', k); return k || localStorage.getItem('m100-booth-k'); } catch { return k; } })();
@@ -125,17 +126,34 @@ const state = (s) => {
   $('wait').hidden = s === 'connected';
 };
 // 11/20 매일 점검: 촬영기 폰 연결 · 화면 늦음 — 전부 초록이면 '모두 정상'
+const T0 = Date.now();
 let conn = 'connecting', delayMs = null;
+// 액자 화면 · AI 서버도 태블릿에서 확인 — 액자는 같은 키 방에 '켜져 있나' 물어 대답(pong)을 보고, AI 서버는 충전 상태만 묻는다(사진 변환 없음 · 비용 없음)
+let pongAt = 0, aiState = 'wait';
+const room = joinRoom({ pong: () => { pongAt = Date.now(); ckDraw(); } }, KEY);
+room.ready.then(() => { const ping = () => room.send('ping', {}).catch(() => {}); ping(); setInterval(ping, 5000); }).catch(() => {});
+async function aiCheck() {
+  if (!KEY) { aiState = 'nokey'; return ckDraw(); }
+  try {
+    const r = await fetch('https://bttjtkhfyzapcsqocick.supabase.co/functions/v1/nadar-photo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: KEY, check: true }) });
+    const d = await r.json().catch(() => ({})); aiState = r.status === 401 ? 'nokey' : (d.ai || 'err');
+  } catch { aiState = 'err'; }
+  ckDraw();
+}
+aiCheck(); setInterval(aiCheck, 60000); setInterval(() => ckDraw(), 2000);
 const CK = (st, name, detail) => `<div class="ck ${st}"><i>${st === 'ok' ? '✓' : st === 'wait' ? '…' : '!'}</i><b>${name}</b><small>${detail}</small></div>`;
 function ckDraw() {
   const rows = [
     ['촬영기 폰 연결', conn === 'connected' ? ['ok', '연결됨'] : conn === 'lost' ? ['bad', '끊김 — 촬영기 폰 화면이 켜져 있는지, 같은 와이파이인지 확인'] : ['wait', '촬영기를 찾는 중 — 오래 걸리면 촬영기 폰 화면이 켜져 있는지 확인']],
+    ['액자 화면', Date.now() - pongAt < 12000 ? ['ok', '연결됨'] : pongAt || Date.now() - T0 > 8000 ? ['bad', '응답 없음 — 액자 화면(컴퓨터 · TV)이 켜져 있는지 확인'] : ['wait', '확인 중']],
+    ['AI 사진 서버', ({ ok: ['ok', '정상'], low: ['warn', '정상 · 충전 잔액이 얼마 안 남음(관리자에게 알려 주세요)'], empty: ['bad', '충전 필요 — 지금은 AI 없이 기기 사진으로 나갑니다(관리자에게 알려 주세요)'],
+      nokey: ['bad', '연결 키 없음 — 처음 받은 연결 주소(QR)로 다시 열어 주세요'], err: ['bad', '서버에 연결 안 됨 — 인터넷(와이파이) 확인'] })[aiState] || ['wait', '확인 중']],
     ['미리보기 지연', conn !== 'connected' || delayMs == null ? ['wait', '-'] : delayMs < 1000 ? ['ok', `정상 (${delayMs < 100 ? '0.1초 미만' : '약 ' + (delayMs / 1000).toFixed(1) + '초'})`] : ['warn', `느림 (약 ${(delayMs / 1000).toFixed(1)}초) — 와이파이 확인`]],
   ];
   $('ckList').innerHTML = rows.map(([n, [st, d]]) => CK(st, n, d)).join('');
   const sts = rows.map(([, [st]]) => st), sum = $('ckSum');
   const k = sts.includes('bad') ? 'bad' : sts.includes('wait') ? 'wait' : sts.includes('warn') ? 'warn' : 'ok';
-  sum.className = 'ck-sum ' + k; sum.innerHTML = k === 'ok' ? '<i>✓</i><span>모두 정상</span>' : k === 'bad' ? '<i>!</i><span>확인 필요</span>' : k === 'warn' ? '<i>!</i><span>미리보기가 느림</span>' : '<i>…</i><span>확인 중</span>';
+  sum.className = 'ck-sum ' + k; sum.innerHTML = k === 'ok' ? '<i>✓</i><span>모두 정상</span>' : k === 'bad' ? `<i>!</i><span>확인 필요 ${sts.filter((x) => x === 'bad').length}개</span>` : k === 'warn' ? '<i>!</i><span>미리보기가 느림</span>' : '<i>…</i><span>확인 중</span>';
 }
 ckDraw();
 // 배포하면 스스로 최신 화면으로(미리보기만 하는 화면이라 바로 새로고침)

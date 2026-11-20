@@ -14,27 +14,6 @@
 :root{color-scheme:dark}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
-body.ckon{cursor:default}
-/* 11/20 매일 점검(현장 직원용): 항목마다 초록 체크 · 빨간 표시 — 전부 초록이면 '모두 정상' */
-.ck-sum{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;padding:4px 2px 2px}
-.ck-sum i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:18px;flex:none}
-.ck-list{display:flex;flex-direction:column;gap:2px}
-.ck{display:grid;grid-template-columns:30px 1fr;column-gap:10px;align-items:center;padding:7px 2px;border-top:1px solid rgba(255,255,255,.08)}
-.ck i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:15px;font-weight:700;grid-row:1/span 2}
-.ck b{font-size:15px;font-weight:600;color:#F2EDE2}
-.ck small{font-size:12.5px;color:#B9B2A6;line-height:1.4}
-.ok i,.ck-sum.ok i{background:#2FA866;color:#fff}
-.bad i,.ck-sum.bad i{background:#D9443F;color:#fff}
-.warn i,.ck-sum.warn i{background:#E0A93B;color:#141210}
-.wait i{background:rgba(255,255,255,.16);color:#F2EDE2}
-.ck-note{font-size:13px;color:#B9B2A6}
-.ckp{position:fixed;left:3vmin;top:3vmin;width:min(460px,90vw);background:rgba(10,12,11,.92);color:#F2EDE2;border-radius:16px;padding:16px 18px;font-family:Freesentation,sans-serif;z-index:50;display:flex;flex-direction:column;gap:10px}
-.ckp[hidden]{display:none}
-.ckp .row{display:flex;gap:8px}
-.ckp button{font:600 15px Freesentation,sans-serif;background:rgba(255,255,255,.14);color:#F2EDE2;border:0;border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer}
-.ckp button.on{background:#F2EDE2;color:#141210}
-.hold{position:fixed;left:2vmin;top:2vmin;width:44px;height:44px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s;background:conic-gradient(#E9C77A calc(var(--p,0)*1turn),rgba(255,255,255,.18) 0);-webkit-mask:radial-gradient(circle,transparent 15px,#000 16px);mask:radial-gradient(circle,transparent 15px,#000 16px);z-index:60}
-.hold.on{opacity:1}
 .stage{position:fixed;inset:0;display:grid;place-items:center;padding:3vmin}
 .stage img{position:absolute;max-width:94vw;max-height:94vh;object-fit:contain;opacity:0;transition:opacity 1.6s ease;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 .stage img.on{opacity:1}
@@ -109,8 +88,6 @@ body.ckon{cursor:default}
 <body>
 <div class="stage"><img id="a" alt=""><img id="b" alt=""></div>
 <p class="hint" id="hint">화면을 한 번 누르면 전체 화면으로 바뀝니다</p>
-<div class="hold" id="hold"></div>
-<div class="ckp" id="ckp" hidden><div class="ck-sum wait" id="ckSum"><i>…</i><span>확인 중</span></div><div class="ck-list" id="ckList"></div><div class="row"><button type="button" id="ckRe">새로고침</button><button type="button" class="on" id="ckX">점검 닫기</button></div></div>
 <i class="dot" id="dot" title="연결 상태"></i>
 <div class="plate" id="plate"><div class="expo"></div><img class="neg" id="neg" alt=""><img class="pos" id="pos" alt=""><div class="rim"></div></div>
 <div class="smoke" id="smoke"><i style="left:10%;--dx:-6vmin;animation-delay:0s"></i><i style="left:30%;--dx:4vmin;animation-delay:.15s"></i><i style="left:48%;--dx:-3vmin;animation-delay:.05s"></i><i style="left:62%;--dx:7vmin;animation-delay:.25s"></i><i style="left:76%;--dx:2vmin;animation-delay:.1s"></i></div>
@@ -192,14 +169,14 @@ showSrc(IDLE);
 // 11/20: 액자 키(?k=, 이 기기에 기억) — 촬영기 · 서버와 같은 키여야 촬영기 사진이 온다. 키 없이 열면 아래 글자로 알림
 const FKEY = (() => { const k = new URLSearchParams(location.search).get('k'); try { if (k) localStorage.setItem('m100-frame-k', k); return k || localStorage.getItem('m100-frame-k'); } catch { return k; } })();
 const H = {
-  ping: () => { pingAt = Date.now(); link.send('pong', {}).catch(() => {}); },   // 11/20: 촬영기 폰이 '액자 화면 켜져 있나' 확인(액자 점검 판은 이걸로 '촬영기 연결'을 본다)
+  ping: () => { link.send('pong', {}).catch(() => {}); },   // 11/20: 촬영기 폰이 '액자 화면 켜져 있나' 확인
   photo: (p, via = link) => {
     const src = p?.url || p?.img; if (!src) return;
     const show = () => {
       clearTimeout(devT); ink.finish();
       setTimeout(() => {   // 타원 액자가 마저 닫히고 → 잉크 화면이 걷히며 사진이 떠오름
         showSrc(src); ink.stop(); progHide(); $('icap').classList.remove('on'); plate.classList.remove('on'); plateReset();
-        KEEP.set(p.id, src); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value); if (via === link) photoAt = Date.now();
+        KEEP.set(p.id, src); if (KEEP.size > 12) KEEP.delete(KEEP.keys().next().value);
         drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
         clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
       }, 0);
@@ -216,50 +193,10 @@ const link = joinRoom(H, FKEY);
 // 공개 방: 관람객 폰이 '벽의 액자로' 보내는 사진 · QR 사진 받기 예비 요청만(촬영기 사진은 여기로 오지 않음)
 const pub = FKEY ? joinRoom({ photo: (p) => H.photo(p, pub), get: (p) => H.get(p, pub) }) : link;
 if (!FKEY) { const h = document.getElementById('hint'); h.textContent = '촬영기 사진이 오지 않습니다 — 액자 연결 주소(QR)로 열어 주세요'; h.dataset.keep = '1'; }
-let pingAt = 0, photoAt = 0, netOk = false, wake = null;
-link.ready.then(() => { netOk = true; document.getElementById('dot').classList.add('on'); }).catch(() => {});
-// ── 매일 점검 판(왼쪽 위 구석 3초): 연결 키 · 인터넷 · 촬영기 폰 · 전체 화면 · 마지막 사진 — 전부 초록이면 '모두 정상'. [점검 닫기]까지 유지
-const $c = (id) => document.getElementById(id);
-const CK = (st, name, detail) => `<div class="ck ${st}"><i>${st === 'ok' ? '✓' : st === 'wait' ? '…' : '!'}</i><b>${name}</b><small>${detail}</small></div>`;
-const hm = (t) => new Date(t).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-function ckDraw() {
-  if ($c('ckp').hidden) return;
-  const rows = [
-    ['연결 키', FKEY ? ['ok', '있음'] : ['bad', '없음 — 액자 연결 주소(키 포함)로 다시 열어 주세요']],
-    ['인터넷', netOk ? ['ok', '연결됨'] : ['bad', '연결 안 됨 — 와이파이 · 랜선 확인']],
-    ['촬영기 폰', Date.now() - pingAt < 12000 ? ['ok', '연결됨'] : ['bad', '응답 없음 — 촬영기 폰 화면이 켜져 있는지 확인']],
-    ['전체 화면', document.fullscreenElement ? ['ok', '켜짐'] : ['warn', '꺼짐 — 점검을 닫고 화면을 한 번 누르세요']],
-    ['마지막 사진', photoAt ? ['ok', `${hm(photoAt)}에 받음`] : ['wait', '아직 없음 — 촬영기에서 시험 촬영을 해 보세요']],
-  ];
-  $c('ckList').innerHTML = rows.map(([n, [st, d]]) => CK(st, n, d)).join('');
-  const sts = rows.map(([, [st]]) => st), k = sts.includes('bad') ? 'bad' : sts.includes('warn') ? 'warn' : sts.includes('wait') ? 'wait' : 'ok';
-  const nb = sts.filter((s) => s === 'bad' || s === 'warn').length;
-  $c('ckSum').className = 'ck-sum ' + k;
-  $c('ckSum').innerHTML = k === 'ok' ? '<i>✓</i><span>모두 정상</span>' : k === 'wait' ? '<i>…</i><span>시험 촬영을 한 번 해 주세요</span>' : `<i>!</i><span>확인 필요 ${nb}개</span>`;
-}
-setInterval(ckDraw, 1000);
-function ckOpen(on) {
-  $c('ckp').hidden = !on; document.body.classList.toggle('ckon', on);
-  try { on ? localStorage.setItem('m100-frame-admin', '1') : localStorage.removeItem('m100-frame-admin'); } catch {}
-  ckDraw();
-}
-$c('ckRe').onclick = (e) => { e.stopPropagation(); location.reload(); };
-$c('ckX').onclick = (e) => { e.stopPropagation(); ckOpen(false); };
-try { if (localStorage.getItem('m100-frame-admin') === '1') ckOpen(true); } catch {}
-let holdT = 0, holdA = 0;
-const holdStop = () => { clearTimeout(holdT); cancelAnimationFrame(holdA); $c('hold').classList.remove('on'); $c('hold').style.setProperty('--p', 0); };
-document.addEventListener('pointerdown', (e) => {
-  if (e.clientX >= 100 || e.clientY >= 100 || e.target.closest?.('.ckp')) return;
-  holdStop(); const t0 = performance.now();
-  const step = () => { const p = (performance.now() - t0) / 3000; if (p > 0.15) $c('hold').classList.add('on'); $c('hold').style.setProperty('--p', Math.min(1, p)); holdA = requestAnimationFrame(step); };
-  holdA = requestAnimationFrame(step);
-  holdT = setTimeout(() => { holdStop(); ckOpen($c('ckp').hidden); }, 3000);
-});
-['pointerup', 'pointercancel'].forEach((ev) => document.addEventListener(ev, holdStop));
-// 배포하면 쉬는 틈(사진 · 진행 표시가 없을 때)에 스스로 최신 화면으로
+link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
+// 11/20: 배포하면 쉬는 틈(사진 · 진행 표시가 없을 때)에 스스로 최신 화면으로 — 화면에는 아무것도 더 띄우지 않음
 import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['link.js', 'ink.js'], isBusy: () => pgOn || document.body.classList.contains('withqr') })).catch(() => {});
-document.body.addEventListener('click', async (e) => {
-  if (e.target.closest?.('.ckp')) return;
+document.body.addEventListener('click', async () => {
   try { await document.documentElement.requestFullscreen?.(); } catch {}
   try { await navigator.wakeLock?.request('screen'); } catch {}
   document.getElementById('hint').classList.add('off');
