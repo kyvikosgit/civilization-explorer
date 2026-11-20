@@ -26,6 +26,10 @@
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#16110c;overflow:hidden}
 html.idle,html.idle *{cursor:none!important}   /* 11/20: 마우스를 3초 안 움직이면 숨김(움직이면 다시 보임) */
+/* 11/20: 화면 회전 단추 — 마우스를 움직일 때만 보임(관람객 화면에는 안 보임) */
+.rot{position:fixed;top:2vmin;right:2vmin;z-index:50;display:flex;align-items:center;gap:8px;padding:12px 18px;border:0;border-radius:999px;background:rgba(242,237,226,.92);color:#2A2119;font:600 16px Freesentation,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;transition:opacity .4s}
+.rot small{font-weight:500;opacity:.6}
+html.idle .rot{opacity:0;pointer-events:none}
 .stage{position:fixed;inset:0;display:grid;place-items:center;padding:3vmin}
 .stage img{position:absolute;max-width:94vw;max-height:94vh;object-fit:contain;opacity:0;transition:opacity 1.6s ease;box-shadow:0 10px 40px rgba(0,0,0,.5)}
 .stage img.on{opacity:1}
@@ -99,6 +103,7 @@ html.idle,html.idle *{cursor:none!important}   /* 11/20: 마우스를 3초 안 �
 </head>
 <body>
 <div class="stage"><img id="a" alt=""><img id="b" alt=""></div>
+<button class="rot" id="rot" type="button">⟳ 화면 회전 <small id="rotS"></small></button>
 <p class="hint" id="hint">화면을 한 번 누르면 전체 화면으로 바뀝니다</p>
 <i class="dot" id="dot" title="연결 상태"></i>
 <div class="plate" id="plate"><div class="expo"></div><img class="neg" id="neg" alt=""><img class="pos" id="pos" alt=""><div class="rim"></div></div>
@@ -210,6 +215,17 @@ link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(
 import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['link.js', 'ink.js'], isBusy: () => pgOn || document.body.classList.contains('withqr') })).catch(() => {});
 { let t = 0; const idle = () => { document.documentElement.classList.remove('idle'); clearTimeout(t); t = setTimeout(() => document.documentElement.classList.add('idle'), 3000); };
   ['mousemove', 'mousedown', 'touchstart'].forEach((e) => addEventListener(e, idle, { passive: true })); idle(); }
+// 화면 회전: 가로 → 세로(시계) → 세로(반시계) → 가로. 이 기기에 기억(다음에 열어도 그대로)
+{ const ORDER = ['0', '90', '270'], NAME = { 0: '지금 가로', 90: '지금 세로', 270: '지금 세로(반대)' };
+  let cur = '0'; try { cur = localStorage.getItem('m100-frame-r') || '0'; } catch {}
+  if (window.top === window) cur = '0';   // 돌려 담기지 않았으면 가로
+  $('rotS').textContent = NAME[cur];
+  $('rot').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const next = ORDER[(ORDER.indexOf(cur) + 1) % ORDER.length];
+    const q = new URLSearchParams(window.top.location.search); q.delete('in'); q.set('r', next);
+    window.top.location.replace(new URL('frame.html?' + q.toString(), document.baseURI).href);
+  }); }
 document.body.addEventListener('click', async () => {
   if (window.top !== window) { parent.postMessage('m100-frame-fs', location.origin); document.getElementById('hint').classList.add('off'); return; }   // 돌려 담긴 화면 — 바깥이 전체 화면
   try { await document.documentElement.requestFullscreen?.(); } catch {}
