@@ -46,7 +46,7 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
 <div class="waitbox" id="wait"><div><div id="wstep">촬영기를 기다리는 중</div><small id="wsub"></small></div></div>
 <div class="hold" id="hold"></div>
 <div class="staff" id="staff" hidden>
-  <div class="info"><i class="dot wait" id="dot"></i><span id="st">연결 중</span> · <span id="res">-</span><br><span id="zinfo">촬영기 줌 정보 기다리는 중</span><br><span id="dbg"></span></div>
+  <div class="info"><i class="dot wait" id="dot"></i><span id="st">연결 중</span> · <span id="res">-</span><br><span id="zinfo">촬영기 줌 -</span><br><span id="dbg"></span></div>
   <div class="row">
     <span class="sp"></span>
     <button type="button" class="dark" id="fs">전체 화면</button>
@@ -109,13 +109,12 @@ const state = (s) => {
 };
 liveViewer(KEY, {
   profile,
-  onStats: (s) => { $('res').textContent = `${PROFILES[profile].label.split(' · ')[0]} 설정 · ${s.w}×${s.h} · ${s.fps}fps · ${s.mbps.toFixed(1)}Mbps · 지연 약 ${Math.round(s.delay)}ms`; },
+  onStats: (s) => { $('res').textContent = `화면 늦음 ${s.delay < 100 ? '0.1초 미만' : '약 ' + (s.delay / 1000).toFixed(1) + '초'} · 1초에 ${s.fps}장`; },
   onStream: (st) => { video.srcObject = st; video.play().catch(() => {}); },
   onMeta: (m) => {
     if (!m) return;
     cropZ = m.z || 1; zoom = m.zoom || 1; fitFrame();
-    $('zinfo').innerHTML = m.cap ? `촬영기 줌 <b>${(m.zoom || 1).toFixed(1)}배</b> · 카메라 줌 지원 ${(+m.cap.min).toFixed(1)}~${(+m.cap.max).toFixed(1)}배` + (cropZ > 1 ? ' (최대를 넘는 만큼 잘라서)' : '')
-      : `촬영기 줌 <b>${(m.zoom || 1).toFixed(1)}배</b> · 카메라 줌 지원 안 함(화면을 잘라서)`;
+    $('zinfo').innerHTML = `촬영기 줌 <b>${(m.zoom || 1).toFixed(1)}배</b>` + (cropZ > 1 ? ' · 화면을 잘라서 키우는 중(많이 키우면 사진이 흐려짐)' : '');
   },
   onState: state,
   onDebug: (step, detail) => { $('wstep').textContent = step; $('wsub').textContent = detail; $('dbg').textContent = detail; },

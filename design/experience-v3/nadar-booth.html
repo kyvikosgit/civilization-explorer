@@ -44,7 +44,7 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
 <div class="shot" id="shot"></div>
 <div class="hold" id="hold"></div>
 <div class="dbgp" id="dbgp" hidden><div class="info" id="dbgi"></div><div class="row"><button type="button" class="on" id="dShot">촬영</button><button type="button" id="dZ1">줌 1배로</button><button type="button" id="dCam">카메라 다시 켜기</button><button type="button" id="dRe">새로고침</button><button type="button" id="dX">닫기</button></div></div>
-<div class="hud" id="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 줌 <b id="zm"></b> · 버튼(엔터)으로 촬영</span></div>
+<div class="hud" id="hud"><span id="st">카메라를 켜는 중</span><span>줌 <b id="zm"></b> · 버튼(엔터)으로 촬영</span></div>
 <script type="module">
 // 촬영 → 액자에 3·2·1 → 찍고 → 액자에 '현상 중' → 서버(Supabase 함수 nadar-photo · Seedream 5.5, 예비 5.0 Flash · 25초 안)가 1870년대 나다르 사진관 사진으로 → 액자로
 //   키: 이 기기 주소 ?k=촬영기키 (한 번 열면 이 기기에 기억). 키가 없거나 변환이 안 되면 기기 안 처리(booth/js/nadar.js) 사진을 보낸다
@@ -53,7 +53,6 @@ import { joinRoom, room } from './link.js';
 import * as N from '../../booth/js/nadar.js';
 const $ = (s) => document.getElementById(s), video = $('v');
 const KEY = (() => { const q = new URLSearchParams(location.search).get('k'); try { if (q) localStorage.setItem('m100-booth-k', q); return q || localStorage.getItem('m100-booth-k'); } catch { return q; } })();
-$('room').textContent = room();
 const link = joinRoom({});
 link.ready.then(() => { if (KEY_OK()) status('대기 중 · 액자와 연결됨'); else status('액자와 연결됨 · AI 키 없음(주소에 ?k= 필요 — 지금은 기기 안 처리)', true); }).catch(() => { status('액자와 연결되지 않음 · 인터넷 확인', true); });
 // 상태 글자: 뷰파인더에 비치므로 켤 때 8초 · 문제가 있을 때만(?debug=1 이면 계속)
@@ -75,7 +74,7 @@ async function applyZoom() {
     try { await tr.applyConstraints({ advanced: [{ zoom: z }] }); cropZ = Math.max(1, ZOOM / z); } catch {}
   }
   fitFrame();
-  $('zm').textContent = ZOOM === 1 ? '없음' : `${ZOOM}배(${cropZ === 1 ? '카메라' : camZoom ? '카메라+잘라서' : '잘라서'})`;
+  $('zm').textContent = `${ZOOM.toFixed(1)}배`;
   try { live?.meta(); } catch {}
 }
 // 화면에 찍히는 범위(줌 · 3:4 가운데)만 꼭 맞게 — shoot() 의 자르기와 같은 계산
@@ -110,7 +109,7 @@ await startCam();
 // 위쪽 줄: 태블릿 연결 상황(연결되면 10초 뒤 숨김, ?debug=1 이면 계속)
 let lvT = 0;
 const lvSay = (txt, ok) => {
-  const el = $('lv'); el.innerHTML = '<b>' + (ok ? '태블릿 연결됨' : '태블릿 미리보기') + '</b> · ' + txt.replace(/</g, '&lt;'); el.classList.toggle('ok', !!ok);
+  const el = $('lv'); el.innerHTML = '<b>태블릿</b> · ' + txt.replace(/</g, '&lt;'); el.classList.toggle('ok', !!ok);
   if (ok && !DEBUG) { if (!lvT) lvT = setTimeout(() => el.classList.add('off'), 10000); } else { clearTimeout(lvT); lvT = 0; el.classList.remove('off'); }
 };
 import('./live.js').then((m) => m.liveSender(() => video.srcObject, KEY, () => ({ z: cropZ, zoom: ZOOM, cap: camZoom }), lvSay)).then((l) => { live = l; }).catch((e) => { console.warn('[live]', e); lvSay('오류: ' + e.message, false); });
@@ -199,11 +198,12 @@ function holdStart() {
 }
 function dbgInfo() {
   if (!DEBUG) return;
-  const tr = video.srcObject?.getVideoTracks()[0], st = tr?.getSettings?.() || {};
-  let last = ''; try { const l = JSON.parse(localStorage.getItem('m100-booth-last') || 'null'); if (l) last = `${l.how} ${l.sec}초 · ${new Date(l.at).toLocaleTimeString('ko-KR')}`; } catch {}
-  $('dbgi').innerHTML = [`방 <b>${room()}</b> · 키 <b>${live?.tag || '-'}</b> · AI 키 ${KEY ? '있음' : '<b>없음</b>'}`,
-    `줌 <b>${ZOOM.toFixed(1)}배</b> · ${camZoom ? `카메라 줌 ${(+camZoom.min).toFixed(1)}~${(+camZoom.max).toFixed(1)}배` : '카메라 줌 지원 안 함(잘라서)'}${cropZ > 1 ? ` · 잘라서 ${cropZ.toFixed(2)}배` : ''}`,
-    `카메라 ${st.width || '-'}×${st.height || '-'} · 태블릿 ${live?.count?.() ?? '-'}대`, `마지막 촬영 ${last || '-'}`].join('<br>');
+  let last = ''; try { const l = JSON.parse(localStorage.getItem('m100-booth-last') || 'null'); if (l) last = `${new Date(l.at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${l.how === 'AI' ? 'AI 사진' : '기기 사진(AI 실패)'} · ${l.sec}초 걸림`; } catch {}
+  const n = live?.count?.() || 0;
+  $('dbgi').innerHTML = [`태블릿 <b>${n ? n + '대 연결됨' : '연결 안 됨'}</b> · 연결 짝 <b>${live?.tag || '-'}</b>(태블릿 관리자 화면의 네 글자와 같아야 함)`,
+    KEY ? 'AI 사진 변환 준비됨' : '<b>AI 사진 변환 안 됨</b> — 처음 받은 주소(QR)로 다시 열어 주세요',
+    `줌 <b>${ZOOM.toFixed(1)}배</b>` + (cropZ > 1 ? ' · 화면을 잘라서 키우는 중(많이 키우면 사진이 흐려짐)' : ''),
+    `마지막 촬영 ${last || '-'}`].join('<br>');
 }
 setInterval(dbgInfo, 1000);
 function setDebug(on) {

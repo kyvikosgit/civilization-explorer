@@ -38,10 +38,13 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
   const D = { sub: '접속 중', peers: new Map() };   // 보는 화면 id → { pc, step, lc, rc, cq(후보 대기), prof, track }
   const say = () => {
     const ps = [...D.peers.values()];
-    const head = `미리보기 · 방 ${room()} · 키 ${tag} · 신호 ${D.sub}`;
-    if (!ps.length) return onDebug(head + ' · 태블릿 없음', false);
-    const ok = ps.filter((p) => p.pc.connectionState === 'connected').length;
-    onDebug(head + ` · 태블릿 ${ps.length}대 ` + ps.map((p) => `[${prof(p.prof).label} · ${p.step} · ICE ${p.pc.iceConnectionState} · 내 후보 ${fmtC(p.lc)} · 상대 ${fmtC(p.rc)}]`).join(' '), ok === ps.length);
+    // 11/20: 직원이 볼 것만 — 태블릿 몇 대 붙었는지 · 연결 짝 표식(네 글자). 기술 용어 없이
+    const pair = ` · 연결 짝 ${tag}`;
+    if (D.sub !== '접속됨') return onDebug('인터넷 연결 확인 중' + pair, false);
+    if (!ps.length) return onDebug('태블릿 없음' + pair, false);
+    const ok = ps.filter((p) => p.pc.connectionState === 'connected').length, bad = ps.filter((p) => p.pc.connectionState === 'failed').length, mid = ps.length - ok - bad;
+    const parts = [ok && `${ok}대 연결됨`, mid && `${mid}대 연결하는 중`, bad && `${bad}대 실패(같은 와이파이인지 확인)`].filter(Boolean);
+    onDebug(parts.join(' · ') + pair, ok === ps.length);
   };
   const L = join(name, (s) => { D.sub = s === 'SUBSCRIBED' ? '접속됨' : s; say(); });
   const close = (vid) => { const P = D.peers.get(vid); try { P?.pc.close(); } catch {} try { P?.track.stop(); } catch {} D.peers.delete(vid); say(); };
@@ -61,7 +64,7 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
     if (cur && cur.prof === pf && Date.now() - cur.at < 8000 && !['failed', 'closed', 'disconnected'].includes(cur.pc.connectionState)) return;   // 같은 설정으로 이미 잇는 중 — 중복 부름 무시
     close(vid);
     const st = getStream(); const tr = st?.getVideoTracks()[0];
-    if (!tr) { onDebug(`미리보기 · 태블릿이 불렀지만 카메라가 아직 안 켜짐`, false); return; }
+    if (!tr) { onDebug('태블릿이 찾는데 카메라가 아직 안 켜짐', false); return; }
     const pc = new RTCPeerConnection({ iceServers: ICE });
     const P = { pc, step: '부름 받음', lc: {}, rc: {}, cq: [], at: Date.now(), sid: Math.random().toString(36).slice(2, 10), prof: pf };
     P.track = clone(tr, P); D.peers.set(vid, P);
@@ -99,13 +102,13 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
 export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () => {}, onStats = () => {}, profile = 'old' }) {
   const { name, tag } = await chanName(key);
   const vid = Math.random().toString(36).slice(2, 10);
-  let pc = null, cq = [], sid = '', offerAt = 0, helloN = 0, lc = {}, rc = {}, step = '신호 서버 접속 중';
+  let pc = null, cq = [], sid = '', offerAt = 0, helloN = 0, lc = {}, rc = {}, step = '인터넷 연결 중';
   const say = () => {
     const ice = pc ? pc.iceConnectionState : '-';
-    onDebug(step, `방 ${room()} · 키 ${tag} · ${prof(profile).label} · 부른 횟수 ${helloN} · ICE ${ice} · 내 후보 ${fmtC(lc)} · 촬영기 후보 ${fmtC(rc)}`);
+    onDebug(step, `연결 짝 ${tag} — 촬영기 폰 관리자 화면의 네 글자와 같아야 연결됩니다`);
   };
   const hello = () => { helloN++; L.send('hello', { vid, prof: profile }); say(); };
-  const L = join(name, (s) => { if (s !== 'SUBSCRIBED') { step = '신호 서버 ' + s; say(); } });
+  const L = join(name, (s) => { if (s !== 'SUBSCRIBED') { step = '인터넷 연결 확인 중'; say(); } });
   L.ch.on('broadcast', { event: 'offer' }, async ({ payload }) => {
     if (payload.vid !== vid || (payload.prof || 'old') !== profile) return;   // 지금 고른 설정의 제안만
     offerAt = Date.now(); lc = {}; rc = {}; sid = payload.sid; cq = [];
@@ -119,19 +122,19 @@ export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () 
       if (mine !== pc) return;
       const s = mine.connectionState;
       if (s === 'connected') { step = '연결됨'; onState('connected'); }
-      else if (s === 'failed') { step = '영상 길을 못 찾음 — 폰과 태블릿이 같은 와이파이인지, 와이파이가 기기끼리 통신을 막지 않는지 확인'; onState('lost'); }
+      else if (s === 'failed') { step = '연결 실패 — 폰과 태블릿이 같은 와이파이인지 확인'; onState('lost'); }
       else if (s === 'disconnected' || s === 'closed') { step = '끊김 · 다시 연결 중'; onState('lost'); }
       say();
     };
     if (payload.meta) onMeta(payload.meta);
-    step = '촬영기 찾음 · 영상 길 찾는 중'; say();
+    step = '촬영기 찾음 · 연결하는 중'; say();
     try {
       await mine.setRemoteDescription(payload.sdp);
       if (mine === pc) await flushCand(mine, cq);
       const ans = await mine.createAnswer();
       ans.sdp = ans.sdp.replace(/(a=fmtp:\d+ [^\r\n]*)/g, '$1' + prof(myProf).sdp);   // 시작 · 최소 · 최대 비트레이트(설정별)
       await mine.setLocalDescription(ans);
-    } catch (e) { if (mine === pc) { step = '연결 준비 오류: ' + e.message; say(); } return; }
+    } catch (e) { if (mine === pc) { step = '연결 오류 — 새로고침해 보세요'; say(); } return; }
     if (mine !== pc) return;
     L.send('answer', { vid, sid: mySid, sdp: mine.localDescription.toJSON() });
   });
@@ -139,7 +142,7 @@ export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () 
   L.ch.on('broadcast', { event: 'meta' }, ({ payload }) => onMeta(payload));
   L.ch.on('broadcast', { event: 'up' }, hello);
   say();
-  await L.ready; step = '촬영기 찾는 중 — 촬영기 폰 화면이 켜져 있고, 방 · 키 표식이 같은지 확인'; onState('connecting'); hello();
+  await L.ready; step = '촬영기를 찾는 중 — 촬영기 폰 화면이 켜져 있는지 확인'; onState('connecting'); hello();
   // 연결이 안 됐거나 끊기면 3초마다 다시 부른다
   setInterval(() => {
     const s = pc?.connectionState;
