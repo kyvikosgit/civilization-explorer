@@ -116,8 +116,8 @@ export function endRow(zoneId, { item, got = '수집품을 받았습니다', mor
       // 11/20: 앱 안에서는 [다음] 하나 — 누르면 구역 화면으로 돌아가며 이 화면이 체험 카드로 줄어든다(앱 src/lib/expReturn.ts)
       ? `<div class="ve-btns"><a class="ve-btn fill" href="${esc(nx.href)}" style="flex:1">다음</a></div>`
       : `<div class="ve-btns"><a class="ve-btn line" href="${esc(HUB)}">목록으로 돌아가기</a><a class="ve-btn fill" href="${esc(nx.href)}">다음 미션으로<small>${esc(nx.title)}</small></a></div>`}
-    ${more ? `<button class="ve-more" type="button">${esc(moreLabel)}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>` : ''}`;
-  if (more) el.querySelector('.ve-more').onclick = more;
+`;   // 11/20: 체험 더보기는 모두 뺌(사용자 지시) — more · moreLabel 은 받기만 함
+  void more; void moreLabel;
   return el;
 }
 
@@ -131,8 +131,11 @@ export function mountEnd(host, zoneId, opts) {
 // ── 미션 완료 공통 화면 — 정답 연출이 끝난 뒤 부른다
 //   item: { name, sub, img, contain } · title · body · note · more(체험 더보기) · cap(머리 한 줄)
 //   수집품 사진이 가운데 크게 → 그 사진이 오른쪽 위 보관함으로 날아 들어가 숫자가 오른다 → 해설 · 끝 줄
+// 이 페이지를 열 때 이미 담겨 있던 수집품(앱이 ?got= 으로 넘김) — 다시 들어왔을 때 담기는 연출을 되풀이하지 않게
+const SAVED0 = new Set(COLLECT_IDS.filter((id) => store.saved(id)));
 export function showComplete(zoneId, { item, title = '', body = '', note = '', more, cap = '미션 완료' } = {}) {
   style();
+  void more;
   const zone = ZONES.find((z) => z.id === zoneId);
   const total = COLLECT_IDS.length, got = COLLECT_IDS.filter((id) => store.saved(id)).length;
   const img = item?.img ? new URL(item.img, V3).href : '';
@@ -150,12 +153,17 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
       <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}</div>
     </div></div>
     <div class="d-foot"></div>`;
-  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, more: more ? () => more(api) : undefined }));
+  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true }));
   document.body.appendChild(el);
   const api = { el, hide() { el.classList.remove('on'); setTimeout(() => el.remove(), 350); } };
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on'))); setTimeout(() => el.classList.add('on'), 80);   // 그리기가 잠깐 멈춘 화면(뒤 3D 로딩 중)에서도 뜨게
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const land = (flew) => { const sp = el.querySelectorAll('.d-slots span')[slot]; if (sp) { sp.classList.add('on'); if (!flew) sp.classList.add('pop'); sp.innerHTML = `<img src="${esc(img)}" alt="">`; } const n = el.querySelector('.d-colt b'); if (n) n.textContent = got; el.classList.add('read'); };
+  // 11/20: 이미 담아 둔 수집품(다시 들어온 경우) — 담기는 연출 없이, 칸에 이미 들어 있는 완료 화면만
+  if (slot >= 0 && SAVED0.has(COLLECT_IDS[slot])) {
+    const sp = el.querySelectorAll('.d-slots span')[slot]; if (sp) { sp.classList.add('on'); if (img) sp.innerHTML = `<img src="${esc(img)}" alt="">`; }
+    const n = el.querySelector('.d-colt b'); if (n) n.textContent = got; el.classList.add('read'); return api;
+  }
   if (!img || reduce || slot < 0) { setTimeout(land, 500); return api; }
   // 날아가는 사본 — 카드 속 사진 자리에서 수집품 칸으로. 크기 · 비율 · 모서리 둥글기를 한 번에 칸 모양으로 바꿔 가며 정확히 그 칸에 내려앉는다(11/17: 줄었다 다시 커지는 튐 없앰)
   setTimeout(() => {
