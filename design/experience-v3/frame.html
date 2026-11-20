@@ -27,12 +27,30 @@
 html,body{height:100%;background:#16110c;overflow:hidden}
 html.idle,html.idle *{cursor:none!important}   /* 11/20: 마우스를 3초 안 움직이면 숨김(움직이면 다시 보임) */
 /* 11/20: 화면 회전 단추 — 마우스를 움직일 때만 보임(관람객 화면에는 안 보임) */
-.rot{position:fixed;top:2vmin;right:2vmin;z-index:50;display:flex;align-items:center;gap:8px;padding:12px 18px;border:0;border-radius:999px;background:rgba(242,237,226,.92);color:#2A2119;font:600 16px Freesentation,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;transition:opacity .4s}
+.tools{position:fixed;top:2vmin;right:2vmin;z-index:50;display:flex;gap:10px;transition:opacity .4s}
+html.idle:not(.guide) .tools{opacity:0;pointer-events:none}
+.rot{display:flex;align-items:center;gap:8px;padding:12px 18px;border:0;border-radius:999px;background:rgba(242,237,226,.92);color:#2A2119;font:600 16px Freesentation,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;transition:opacity .4s}
 .rot small{font-weight:500;opacity:.6}
-html.idle .rot{opacity:0;pointer-events:none}
+/* 11/20: 사진 위치 가이드 — 화면 가운데 십자 · 3등분선 · 전체 사진 중 보이는 범위 · 잘리는 양. 방향키 · 끌기로 위치 조정(이 기기에 기억) */
+.gd{position:fixed;inset:0;z-index:40;display:none;cursor:grab}
+html.guide .gd{display:block}
+html.guide.idle .gd{cursor:grab!important}
+.gd .ln{position:absolute;background:rgba(255,80,60,.9)}
+.gd .v{left:50%;top:0;bottom:0;width:2px;margin-left:-1px}.gd .h{top:50%;left:0;right:0;height:2px;margin-top:-1px}
+.gd .t{position:absolute;background:rgba(255,255,255,.35)}
+.gd .t.v1{left:33.333%;top:0;bottom:0;width:1px}.gd .t.v2{left:66.666%;top:0;bottom:0;width:1px}.gd .t.h1{top:33.333%;left:0;right:0;height:1px}.gd .t.h2{top:66.666%;left:0;right:0;height:1px}
+.gd .cd{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border:3px solid #FFD84A;border-radius:50%;box-shadow:0 0 0 2px rgba(0,0,0,.5)}
+.gd .pn{position:absolute;left:50%;bottom:4vmin;transform:translateX(-50%);display:flex;gap:16px;align-items:center;padding:16px 18px;border-radius:16px;background:rgba(20,16,12,.88);color:#F2EDE2;font:500 15px/1.5 Freesentation,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.5);cursor:default;max-width:92vw}
+.gd .pn b{font-weight:700;font-size:17px}
+.gd .mini{position:relative;flex:none;width:120px;background:#000}
+.gd .mini img{display:block;width:100%}
+.gd .mini i{position:absolute;border:2px solid #FFD84A;box-shadow:0 0 0 999px rgba(0,0,0,.55)}
+.gd .mini{overflow:hidden}
+.gd .bt{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.gd .bt button{padding:8px 12px;border:0;border-radius:999px;background:#F2EDE2;color:#2A2119;font:600 14px Freesentation,sans-serif;cursor:pointer}
 .stage{position:fixed;inset:0}
 /* 11/20: 액자 TV 화면 전체를 사진으로 채움(여백 없음) — 비율이 다르면 가장자리를 잘라 맞춤, 얼굴이 있는 위쪽을 살림 */
-.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 35%;opacity:0;transition:opacity 1.6s ease}
+.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--px,50%) var(--py,35%);opacity:0;transition:opacity 1.6s ease}
 .stage img.on{opacity:1}
 .hint{position:fixed;left:0;right:0;bottom:2vh;text-align:center;font-family:Freesentation,sans-serif;font-size:13px;color:rgba(242,237,226,.45);transition:opacity .6s}
 .hint.off{opacity:0}
@@ -103,7 +121,11 @@ html.idle .rot{opacity:0;pointer-events:none}
 </head>
 <body>
 <div class="stage"><img id="a" alt=""><img id="b" alt=""></div>
-<button class="rot" id="rot" type="button">⟳ 화면 회전 <small id="rotS"></small></button>
+<div class="tools"><button class="rot" id="gdB" type="button">✛ 위치 가이드</button><button class="rot" id="rot" type="button">⟳ 화면 회전 <small id="rotS"></small></button></div>
+<div class="gd" id="gd"><i class="t v1"></i><i class="t v2"></i><i class="t h1"></i><i class="t h2"></i><i class="ln v"></i><i class="ln h"></i><i class="cd" id="gdC"></i>
+  <div class="pn" id="gdP"><div class="mini" id="gdM"><img id="gdI" alt=""><i id="gdR"></i></div>
+    <div><b id="gdT"></b><div id="gdS"></div><div style="opacity:.65">빨간 십자 = 화면 가운데 · 노란 원 = 사진 가운데 · 화면을 끌거나 방향키로 옮기면 저장</div>
+      <div class="bt"><button id="gdSample" type="button">관람객 사진(3:4)으로 보기</button><button id="gdReset" type="button">처음 위치로</button><button id="gdX" type="button">가이드 닫기</button></div></div></div></div>
 <p class="hint" id="hint">화면을 한 번 누르면 전체 화면으로 바뀝니다</p>
 <i class="dot" id="dot" title="연결 상태"></i>
 <div class="plate" id="plate"><div class="expo"></div><img class="neg" id="neg" alt=""><img class="pos" id="pos" alt=""><div class="rim"></div></div>
@@ -179,7 +201,7 @@ ink.onTick = (t) => {
 function waitStart() { if (!ink.on) ink.start(); clearTimeout(devT); devT = setTimeout(() => { ink.stop(); progHide(); $('icap').classList.remove('on'); }, 45000); }   // 촬영기가 아예 죽으면 45초 뒤 평소 화면
 function showSrc(src) {
   const next = imgs[1 - front];
-  next.onload = () => { next.classList.add('on'); imgs[front].classList.remove('on'); front = 1 - front; };
+  next.onload = () => { next.classList.add('on'); imgs[front].classList.remove('on'); front = 1 - front; if (typeof gdDraw === 'function') gdDraw(); };
   next.src = src;
 }
 showSrc(IDLE);
@@ -215,6 +237,67 @@ link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(
 import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['link.js', 'ink.js'], isBusy: () => pgOn || document.body.classList.contains('withqr') })).catch(() => {});
 { let t = 0; const idle = () => { document.documentElement.classList.remove('idle'); clearTimeout(t); t = setTimeout(() => document.documentElement.classList.add('idle'), 3000); };
   ['mousemove', 'mousedown', 'touchstart'].forEach((e) => addEventListener(e, idle, { passive: true })); idle(); }
+// 11/20: 사진 위치 가이드(설치용) — 가로 · 세로 위치(%)는 이 기기에 기억, 평소 화면에도 그대로 적용
+const POS = (() => { try { return JSON.parse(localStorage.getItem('m100-frame-pos')) || { x: 50, y: 35 }; } catch { return { x: 50, y: 35 }; } })();
+const posApply = () => { document.documentElement.style.setProperty('--px', POS.x + '%'); document.documentElement.style.setProperty('--py', POS.y + '%'); };
+posApply();
+let sampleOn = false, sampleUrl = '';
+function sampleImg() {   // 관람객 사진과 같은 3:4 시험 그림 — 격자 · 가운데 표시 · 가장자리 눈금
+  if (sampleUrl) return sampleUrl;
+  const c = document.createElement('canvas'); c.width = 768; c.height = 1024; const g = c.getContext('2d');
+  g.fillStyle = '#C9B48E'; g.fillRect(0, 0, 768, 1024);
+  g.strokeStyle = 'rgba(60,40,20,.35)'; g.lineWidth = 2;
+  for (let i = 1; i < 8; i++) { g.beginPath(); g.moveTo(i * 96, 0); g.lineTo(i * 96, 1024); g.stroke(); }
+  for (let i = 1; i < 8; i++) { g.beginPath(); g.moveTo(0, i * 128); g.lineTo(768, i * 128); g.stroke(); }
+  g.fillStyle = '#3A2A1C'; g.font = '700 30px sans-serif'; g.textAlign = 'center';
+  for (let i = 0; i <= 8; i++) { g.fillText(`${i * 12.5}%`.replace('.0', ''), Math.min(740, Math.max(28, i * 96)), 40); g.fillText(`${i * 12.5}%`.replace('.0', ''), Math.min(740, Math.max(28, i * 96)), 1004); }
+  g.beginPath(); g.ellipse(384, 400, 120, 160, 0, 0, 7); g.lineWidth = 6; g.strokeStyle = '#3A2A1C'; g.stroke();   // 얼굴 자리(대략)
+  g.fillText('얼굴 자리(대략)', 384, 610); g.font = '700 44px sans-serif'; g.fillText('관람객 사진 3:4', 384, 820);
+  g.lineWidth = 4; g.beginPath(); g.moveTo(384, 0); g.lineTo(384, 1024); g.moveTo(0, 512); g.lineTo(768, 512); g.strokeStyle = 'rgba(160,40,30,.6)'; g.stroke();
+  return (sampleUrl = c.toDataURL('image/jpeg', .9));
+}
+function gdDraw() {
+  if (!document.documentElement.classList.contains('guide')) return;
+  const im = imgs[front], iw = im.naturalWidth, ih = im.naturalHeight; if (!iw) return;
+  const W = innerWidth, H = innerHeight, s = Math.max(W / iw, H / ih), dw = iw * s, dh = ih * s;
+  const x0 = (W - dw) * POS.x / 100, y0 = (H - dh) * POS.y / 100;
+  $('gdC').style.left = (x0 + dw / 2) + 'px'; $('gdC').style.top = (y0 + dh / 2) + 'px';
+  $('gdI').src = im.src;
+  Object.assign($('gdR').style, { left: (-x0 / dw * 100) + '%', top: (-y0 / dh * 100) + '%', width: (W / dw * 100) + '%', height: (H / dh * 100) + '%' });
+  const f = (v) => (Math.round(v * 10) / 10) + '%';
+  const cutX = (dw - W) / dw * 100, cutY = (dh - H) / dh * 100;
+  $('gdT').textContent = `사진 ${iw}×${ih} → 화면 ${W}×${H}`;
+  $('gdS').textContent = cutX > .1 ? `좌우 잘림: 왼쪽 ${f(-x0 / dw * 100)} · 오른쪽 ${f(cutX + x0 / dw * 100)} (가로 위치 ${Math.round(POS.x)}%)`
+    : cutY > .1 ? `위아래 잘림: 위 ${f(-y0 / dh * 100)} · 아래 ${f(cutY + y0 / dh * 100)} (세로 위치 ${Math.round(POS.y)}%)` : '잘림 없음';
+}
+function posMove(dx, dy) {
+  POS.x = Math.max(0, Math.min(100, POS.x + dx)); POS.y = Math.max(0, Math.min(100, POS.y + dy));
+  posApply(); try { localStorage.setItem('m100-frame-pos', JSON.stringify(POS)); } catch {} gdDraw();
+}
+function guide(on) {
+  document.documentElement.classList.toggle('guide', on);
+  if (!on && sampleOn) { sampleOn = false; showSrc(IDLE); }
+  gdDraw();
+}
+$('gdB').addEventListener('click', (e) => { e.stopPropagation(); guide(!document.documentElement.classList.contains('guide')); });
+$('gdX').addEventListener('click', (e) => { e.stopPropagation(); guide(false); });
+$('gdReset').addEventListener('click', (e) => { e.stopPropagation(); POS.x = 50; POS.y = 35; posMove(0, 0); });
+$('gdSample').addEventListener('click', (e) => { e.stopPropagation(); sampleOn = !sampleOn; $('gdSample').textContent = sampleOn ? '모네 초상으로 보기' : '관람객 사진(3:4)으로 보기'; showSrc(sampleOn ? sampleImg() : IDLE); });
+$('gdP').addEventListener('pointerdown', (e) => e.stopPropagation());
+{ let drag = null;
+  $('gd').addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; $('gd').setPointerCapture(e.pointerId); });
+  $('gd').addEventListener('pointermove', (e) => {
+    if (!drag) return; const im = imgs[front], iw = im.naturalWidth, ih = im.naturalHeight; if (!iw) return;
+    const W = innerWidth, H = innerHeight, s = Math.max(W / iw, H / ih), ow = iw * s - W, oh = ih * s - H;
+    posMove(ow > 1 ? -(e.clientX - drag.x) / ow * 100 : 0, oh > 1 ? -(e.clientY - drag.y) / oh * 100 : 0); drag = { x: e.clientX, y: e.clientY };
+  });
+  $('gd').addEventListener('pointerup', () => { drag = null; }); }
+addEventListener('keydown', (e) => {
+  if (!document.documentElement.classList.contains('guide')) return;
+  const k = e.shiftKey ? 5 : 1, m = { ArrowLeft: [-k, 0], ArrowRight: [k, 0], ArrowUp: [0, -k], ArrowDown: [0, k] }[e.key];
+  if (m) { e.preventDefault(); posMove(m[0], m[1]); }
+});
+addEventListener('resize', gdDraw);
 // 화면 회전: 가로 → 세로(시계) → 세로(반시계) → 가로. 이 기기에 기억(다음에 열어도 그대로)
 { const ORDER = ['0', '90', '270'], NAME = { 0: '지금 가로', 90: '지금 세로', 270: '지금 세로(반대)' };
   let cur = '0'; try { cur = localStorage.getItem('m100-frame-r') || '0'; } catch {}
