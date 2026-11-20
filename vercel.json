@@ -1,6 +1,16 @@
 {
   "routes": [
     {
+      "src": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "app.it-ta.com"
+        }
+      ],
+      "dest": "https://civilization-explorer-app.vercel.app/$1"
+    },
+    {
       "src": "/.well-known/apple-app-site-association",
       "headers": {
         "Content-Type": "application/json"
