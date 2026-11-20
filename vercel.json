@@ -72,6 +72,10 @@
       "dest": "/design/experience-v3/nadar-live.html"
     },
     {
+      "src": "/frame/?",
+      "dest": "/design/experience-v3/frame.html"
+    },
+    {
       "handle": "filesystem"
     },
     {

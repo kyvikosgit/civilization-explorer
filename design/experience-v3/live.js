@@ -38,13 +38,12 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
   const D = { sub: '접속 중', peers: new Map() };   // 보는 화면 id → { pc, step, lc, rc, cq(후보 대기), prof, track }
   const say = () => {
     const ps = [...D.peers.values()];
-    // 11/20: 직원이 볼 것만 — 태블릿 몇 대 붙었는지 · 연결 짝 표식(네 글자). 기술 용어 없이
-    const pair = ` · 연결 짝 ${tag}`;
-    if (D.sub !== '접속됨') return onDebug('인터넷 연결 확인 중' + pair, false);
-    if (!ps.length) return onDebug('태블릿 없음' + pair, false);
+    // 11/20: 직원이 볼 것만 — 태블릿 몇 대 붙었는지. 기술 용어 없이
+    if (D.sub !== '접속됨') return onDebug('인터넷 연결 확인 중', false);
+    if (!ps.length) return onDebug('연결 안 됨 — 태블릿을 처음 받은 연결 주소(QR)로 열었는지 확인', false);
     const ok = ps.filter((p) => p.pc.connectionState === 'connected').length, bad = ps.filter((p) => p.pc.connectionState === 'failed').length, mid = ps.length - ok - bad;
     const parts = [ok && `${ok}대 연결됨`, mid && `${mid}대 연결하는 중`, bad && `${bad}대 실패(같은 와이파이인지 확인)`].filter(Boolean);
-    onDebug(parts.join(' · ') + pair, ok === ps.length);
+    onDebug(parts.join(' · '), ok === ps.length);
   };
   const L = join(name, (s) => { D.sub = s === 'SUBSCRIBED' ? '접속됨' : s; say(); });
   const close = (vid) => { const P = D.peers.get(vid); try { P?.pc.close(); } catch {} try { P?.track.stop(); } catch {} D.peers.delete(vid); say(); };
@@ -105,7 +104,7 @@ export async function liveViewer(key, { onStream, onMeta, onState, onDebug = () 
   let pc = null, cq = [], sid = '', offerAt = 0, helloN = 0, lc = {}, rc = {}, step = '인터넷 연결 중';
   const say = () => {
     const ice = pc ? pc.iceConnectionState : '-';
-    onDebug(step, `연결 짝 ${tag} — 촬영기 폰 관리자 화면의 네 글자와 같아야 연결됩니다`);
+    onDebug(step, pc?.connectionState === 'connected' ? '' : '오래 걸리면 태블릿을 처음 받은 연결 주소(QR)로 다시 열어 주세요');
   };
   const hello = () => { helloN++; L.send('hello', { vid, prof: profile }); say(); };
   const L = join(name, (s) => { if (s !== 'SUBSCRIBED') { step = '인터넷 연결 확인 중'; say(); } });

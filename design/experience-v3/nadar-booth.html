@@ -53,8 +53,17 @@ import { joinRoom, room } from './link.js';
 import * as N from '../../booth/js/nadar.js';
 const $ = (s) => document.getElementById(s), video = $('v');
 const KEY = (() => { const q = new URLSearchParams(location.search).get('k'); try { if (q) localStorage.setItem('m100-booth-k', q); return q || localStorage.getItem('m100-booth-k'); } catch { return q; } })();
-const link = joinRoom({});
-link.ready.then(() => { if (KEY_OK()) status('대기 중 · 액자와 연결됨'); else status('액자와 연결됨 · AI 키 없음(주소에 ?k= 필요 — 지금은 기기 안 처리)', true); }).catch(() => { status('액자와 연결되지 않음 · 인터넷 확인', true); });
+const link = joinRoom({ pong: () => { pongAt = Date.now(); frameCheck(); } }, KEY);   // 11/20: 키 방 — 액자도 같은 키로 열어야 연결
+// 11/20: '액자 연결됨'은 액자 화면(frame.html)이 실제로 대답할 때만 — 5초마다 'ping', 액자가 'pong'. 12초 넘게 대답이 없으면 '액자 화면 없음'
+let frameOk = false, pongAt = 0;
+function frameCheck() {
+  const ok = Date.now() - pongAt < 12000; if (ok === frameOk && frameCheck.done) return; frameOk = ok; frameCheck.done = true;
+  if (busy) return;
+  if (!KEY_OK()) status('AI 사진 변환 안 됨 — 처음 받은 주소(QR)로 다시 열어 주세요', true);
+  else status(ok ? '대기 중 · 액자 화면 연결됨' : '액자 화면 없음 — 액자 화면이 켜져 있는지 확인', !ok);
+}
+link.ready.then(() => { link.send('ping', {}).catch(() => {}); setInterval(() => { link.send('ping', {}).catch(() => {}); frameCheck(); }, 5000); setTimeout(frameCheck, 3000); })
+  .catch(() => { status('인터넷 연결 안 됨 — 와이파이 확인', true); });
 // 상태 글자: 뷰파인더에 비치므로 켤 때 8초 · 문제가 있을 때만(?debug=1 이면 계속)
 let DEBUG = new URLSearchParams(location.search).has('debug');   // 주소 ?debug=1 또는 왼쪽 위 구석 3초 누르기
 let hudT = 0;
@@ -200,7 +209,8 @@ function dbgInfo() {
   if (!DEBUG) return;
   let last = ''; try { const l = JSON.parse(localStorage.getItem('m100-booth-last') || 'null'); if (l) last = `${new Date(l.at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${l.how === 'AI' ? 'AI 사진' : '기기 사진(AI 실패)'} · ${l.sec}초 걸림`; } catch {}
   const n = live?.count?.() || 0;
-  $('dbgi').innerHTML = [`태블릿 <b>${n ? n + '대 연결됨' : '연결 안 됨'}</b> · 연결 짝 <b>${live?.tag || '-'}</b>(태블릿 관리자 화면의 네 글자와 같아야 함)`,
+  $('dbgi').innerHTML = [`액자 화면 <b>${frameOk ? '연결됨' : '없음'}</b>` + (frameOk ? '' : ' — 액자 화면이 켜져 있는지 확인'),
+    `태블릿 <b>${n ? n + '대 연결됨' : '연결 안 됨'}</b>` + (n ? '' : ' — 태블릿을 처음 받은 연결 주소(QR)로 열었는지 확인'),
     KEY ? 'AI 사진 변환 준비됨' : '<b>AI 사진 변환 안 됨</b> — 처음 받은 주소(QR)로 다시 열어 주세요',
     `줌 <b>${ZOOM.toFixed(1)}배</b>` + (cropZ > 1 ? ' · 화면을 잘라서 키우는 중(많이 키우면 사진이 흐려짐)' : ''),
     `마지막 촬영 ${last || '-'}`].join('<br>');

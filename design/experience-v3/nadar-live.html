@@ -117,7 +117,7 @@ liveViewer(KEY, {
     $('zinfo').innerHTML = `촬영기 줌 <b>${(m.zoom || 1).toFixed(1)}배</b>` + (cropZ > 1 ? ' · 화면을 잘라서 키우는 중(많이 키우면 사진이 흐려짐)' : '');
   },
   onState: state,
-  onDebug: (step, detail) => { $('wstep').textContent = step; $('wsub').textContent = detail; $('dbg').textContent = detail; },
+  onDebug: (step, detail) => { $('wstep').textContent = step; $('wsub').textContent = detail; $('dbg').textContent = detail; $('dbg').hidden = !detail; },
 }).then((v) => { LV = v; }).catch((e) => { $('wstep').textContent = '연결 실패 · 인터넷 확인'; console.warn(e); });
 // 화면 꺼짐 막기
 let lock = null; const awake = async () => { try { lock = await navigator.wakeLock?.request('screen'); } catch {} };

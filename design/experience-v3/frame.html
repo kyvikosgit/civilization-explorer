@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#16110c">
 <title>나다르 사진관 · 액자 화면</title>
+<base href="/design/experience-v3/">  <!-- 11/20: it-ta.com/frame 짧은 주소로 열어도 link.js · 그림을 같은 곳에서 찾게 -->
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <style>
@@ -99,13 +100,13 @@ html,body{height:100%;background:#16110c;overflow:hidden;cursor:none}
 <script type="module">
 import { joinRoom } from './link.js';
 import { inkLoader, SCENE_SEC } from './ink.js';
-setTimeout(() => document.getElementById('hint').classList.add('off'), 6000);   // 설치할 때만 보이면 된다
+setTimeout(() => { const h = document.getElementById('hint'); if (!h.dataset.keep) h.classList.add('off'); }, 6000);   // 설치할 때만 보이면 된다(키 없음 알림은 계속)
 const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
 const HOLD = 10000;                          // 11/03 미팅: 관람객 사진은 약 10초 걸어 두고 평소로 — 그동안 QR 로 받는다(받는 건 최근 12장까지 그 뒤에도 됨)
 const KEEP = new Map();                      // 최근 사진 — QR 로 찾아오면 여기서 보낸다(서버에 저장하지 않음)
 const roomName = new URLSearchParams(location.search).get('room') || 'c4';
 function drawQR(id) {
-  const url = new URL(`photo.html?room=${encodeURIComponent(roomName)}&id=${id}`, location.href).href;
+  const url = new URL(`photo.html?room=${encodeURIComponent(roomName)}&id=${id}`, document.baseURI).href;
   const q = qrcode(0, 'M'); q.addData(url); q.make();
   const n = q.getModuleCount(), cv = document.getElementById('qrc'), k = 6, pad = 2; cv.width = cv.height = (n + pad * 2) * k;
   const g = cv.getContext('2d'); g.fillStyle = '#F7F0DF'; g.fillRect(0, 0, cv.width, cv.height); g.fillStyle = '#2A2119';
@@ -165,8 +166,11 @@ function showSrc(src) {
   next.src = src;
 }
 showSrc(IDLE);
-const link = joinRoom({
-  photo: (p) => {
+// 11/20: 액자 키(?k=, 이 기기에 기억) — 촬영기 · 서버와 같은 키여야 촬영기 사진이 온다. 키 없이 열면 아래 글자로 알림
+const FKEY = (() => { const k = new URLSearchParams(location.search).get('k'); try { if (k) localStorage.setItem('m100-frame-k', k); return k || localStorage.getItem('m100-frame-k'); } catch { return k; } })();
+const H = {
+  ping: () => { link.send('pong', {}).catch(() => {}); },   // 11/20: 촬영기 폰이 '액자 화면 켜져 있나' 확인
+  photo: (p, via = link) => {
     const src = p?.url || p?.img; if (!src) return;
     const show = () => {
       clearTimeout(devT); ink.finish();
@@ -176,15 +180,19 @@ const link = joinRoom({
         drawQR(p.id); document.getElementById('qr').classList.add('on'); document.body.classList.add('withqr');
         clearTimeout(back); back = setTimeout(() => { showSrc(IDLE); document.getElementById('qr').classList.remove('on'); document.body.classList.remove('withqr'); }, HOLD);
       }, 0);
-      link.send('ack', { id: p.id });
+      via.send('ack', { id: p.id });
     };
     const im = new Image(); im.onload = show; im.onerror = show; im.src = src;   // 다 받은 뒤에 바꿈(반쯤 그려진 사진이 안 보이게)
   },
   dev: () => {},   // 11/13: 찍은 사진을 미리 보여 주지 않음 — 잉크 대기 화면
   prog: (p) => { if (!pgOn) { progShow(p?.id); waitStart(); } lastBeat = Date.now(); pgT = p?.t ?? pgT; $('prog').classList.remove('stall'); progDraw(p?.stage); ink.progress(pgT / EXPECT); },
   count: (p) => { if (p?.n === 0) { magnesium(); setTimeout(waitStart, 450); } },   // 찰칵: 섬광 → 잉크 대기 화면
-  get: (p) => { const v = KEEP.get(p?.id); if (!v) link.send('img', { id: p?.id, missing: true }); else if (v.startsWith('http')) link.send('img', { id: p.id, url: v }); else link.sendBig('img', { id: p.id, img: v }, 'img'); },
-});
+  get: (p, via = link) => { const v = KEEP.get(p?.id); if (!v) via.send('img', { id: p?.id, missing: true }); else if (v.startsWith('http')) via.send('img', { id: p.id, url: v }); else via.sendBig('img', { id: p.id, img: v }, 'img'); },
+};
+const link = joinRoom(H, FKEY);
+// 공개 방: 관람객 폰이 '벽의 액자로' 보내는 사진 · QR 사진 받기 예비 요청만(촬영기 사진은 여기로 오지 않음)
+const pub = FKEY ? joinRoom({ photo: (p) => H.photo(p, pub), get: (p) => H.get(p, pub) }) : link;
+if (!FKEY) { const h = document.getElementById('hint'); h.textContent = '촬영기 사진이 오지 않습니다 — 액자 연결 주소(QR)로 열어 주세요'; h.dataset.keep = '1'; }
 link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
 document.body.addEventListener('click', async () => {
   try { await document.documentElement.requestFullscreen?.(); } catch {}
