@@ -8,7 +8,7 @@ let sb = null;
 const client = () => (sb ||= createClient(URL_, KEY, { auth: { persistSession: false, autoRefreshToken: false } }));
 
 // room = 액자 하나(여러 대를 달면 액자마다 다른 이름). 주소 ?room= 으로 바꾼다
-export const room = () => new URLSearchParams(location.search.replace(/\?/g, '&')).get('room') || 'c4';
+export const room = () => new URLSearchParams(location.search).get('room') || 'c4';
 
 // 큰 사진(원본 크기 JPEG)은 한 메시지 한도를 넘으므로 조각으로 나눠 보내고 받는 쪽에서 다시 합친다 — 서버에는 여전히 남기지 않는다
 const CHUNK = 120000;

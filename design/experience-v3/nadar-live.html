@@ -57,9 +57,8 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
 <script type="module">
 import { liveViewer, PROFILES } from './live.js';
 const $ = (s) => document.getElementById(s), video = $('v'), root = document.documentElement.style;
-const q = new URLSearchParams(location.search.replace(/\?/g, '&'));
-// 11/20: 주소를 …?k=키?staff=1 처럼 붙여도 되게(? 를 & 로 읽음) · 키는 영숫자만 — 이상한 값은 쓰지도 저장하지도 않는다
-const KEY = (() => { const k = (q.get('k') || '').match(/^[A-Za-z0-9_-]+/)?.[0] || null; try { if (k) localStorage.setItem('m100-booth-k', k); return k || localStorage.getItem('m100-booth-k'); } catch { return k; } })();
+const q = new URLSearchParams(location.search);
+const KEY = (() => { const k = q.get('k'); try { if (k) localStorage.setItem('m100-booth-k', k); return k || localStorage.getItem('m100-booth-k'); } catch { return k; } })();
 const pref = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 let STAFF = q.has('staff');
