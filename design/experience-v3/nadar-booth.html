@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <style>
 /* 옛 카메라 하우징 안의 폰(퀀텀4, 화면이 뒤 = 주름상자 쪽). 화면은 볼록렌즈로 뒤 틀 반투명 아크릴에 비친다(뷰파인더) — 그래서 평소엔 미리보기만, 글자 · 숫자 없음.
-   촬영: 받침 상자 3키 패드(USB, 엔터) 또는 화면 누름. 상태 글자는 켤 때 8초 · 문제가 있을 때만 보이고, 주소에 ?debug=1 이면 계속 보임 */
+   촬영: 받침 상자 3키 패드(USB, 엔터) 또는 디버그 판의 [촬영] — 11/20 화면을 눌러서는 찍히지 않음(설정하다 잘못 찍히지 않게). 상태 글자는 켤 때 8초 · 문제가 있을 때만 보이고, 주소에 ?debug=1 이면 계속 보임 */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sans-serif;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* 화면 = 찍히는 범위 그대로(줌 배율 · 3:4). 남는 곳은 검은 여백 */
@@ -43,8 +43,8 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
 <div class="lv" id="lv"><b>미리보기</b> 준비 중</div>
 <div class="shot" id="shot"></div>
 <div class="hold" id="hold"></div>
-<div class="dbgp" id="dbgp" hidden><div class="info" id="dbgi"></div><div class="row"><button type="button" id="dZ1">줌 1배로</button><button type="button" id="dCam">카메라 다시 켜기</button><button type="button" id="dRe">새로고침</button><button type="button" class="on" id="dX">닫기</button></div></div>
-<div class="hud" id="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 줌 <b id="zm"></b> · 버튼(엔터) · 화면 누름으로 촬영</span></div>
+<div class="dbgp" id="dbgp" hidden><div class="info" id="dbgi"></div><div class="row"><button type="button" class="on" id="dShot">촬영</button><button type="button" id="dZ1">줌 1배로</button><button type="button" id="dCam">카메라 다시 켜기</button><button type="button" id="dRe">새로고침</button><button type="button" id="dX">닫기</button></div></div>
+<div class="hud" id="hud"><span id="st">카메라를 켜는 중</span><span>방 <b id="room"></b> · 줌 <b id="zm"></b> · 버튼(엔터)으로 촬영</span></div>
 <script type="module">
 // 촬영 → 액자에 3·2·1 → 찍고 → 액자에 '현상 중' → 서버(Supabase 함수 nadar-photo · Seedream 5.5, 예비 5.0 Flash · 25초 안)가 1870년대 나다르 사진관 사진으로 → 액자로
 //   키: 이 기기 주소 ?k=촬영기키 (한 번 열면 이 기기에 기억). 키가 없거나 변환이 안 되면 기기 안 처리(booth/js/nadar.js) 사진을 보낸다
@@ -182,8 +182,8 @@ async function shoot() {
   clearInterval(hb); try { localStorage.setItem('m100-booth-last', JSON.stringify({ id, how, sec: sec(), at: new Date().toISOString() })); } catch {}
   busy = false;
 }
-// 화면 손짓: 한 손가락 = 촬영(두 번째 손가락이 0.15초 안에 오면 촬영 안 함), 두 손가락 벌리기 · 오므리기 = 줌(1~10배, 이 기기에 기억)
-const pts = new Map(); let pinch = null, tapT = 0, zBusy = false, zWant = 0, zlT = 0;
+// 화면 손짓: 두 손가락 벌리기 · 오므리기 = 줌(1~10배, 이 기기에 기억). 11/20: 한 손가락 누름으로는 찍지 않음 — 촬영은 3키 패드(엔터)나 디버그 판 [촬영]만
+const pts = new Map(); let pinch = null, zBusy = false, zWant = 0, zlT = 0;
 const zLabel = () => { const el = $('zl'); el.innerHTML = ZOOM.toFixed(1) + '배<small>' + (camZoom ? (cropZ > 1 ? '카메라 최대 + 잘라서' : '카메라 줌') : '화면을 잘라서') + '</small>'; el.classList.add('on'); clearTimeout(zlT); zlT = setTimeout(() => el.classList.remove('off', 'on'), 1500); };
 async function zoomTo(z) { zWant = z; if (zBusy) return; zBusy = true; while (zWant) { const w = zWant; zWant = 0; await setZoom(w); zLabel(); } zBusy = false; }
 const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
@@ -211,6 +211,7 @@ function setDebug(on) {
   if (on) { clearTimeout(hudT); clearTimeout(lvT); lvT = 0; $('hud').classList.remove('off'); $('lv').classList.remove('off'); dbgInfo(); }
   else { $('hud').classList.add('off'); if ($('lv').classList.contains('ok')) $('lv').classList.add('off'); }
 }
+$('dShot').onclick = () => shoot();
 $('dZ1').onclick = async () => { await setZoom(1); zLabel(); dbgInfo(); };
 $('dCam').onclick = () => { startCam(); };
 $('dRe').onclick = () => location.reload();
@@ -220,8 +221,7 @@ document.addEventListener('pointerdown', (e) => {
   if (e.target.closest?.('.dbgp')) return;   // 디버그 판 단추 = 촬영 아님
   if (CORNER(e)) { holdStart(); return; }
   pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pts.size === 1 && !pinch) { clearTimeout(tapT); tapT = setTimeout(() => { if (!pinch) shoot(); }, 150); }
-  if (pts.size === 2) { clearTimeout(tapT); pinch = { d0: dist(), z0: ZOOM }; }
+  if (pts.size === 2) pinch = { d0: dist(), z0: ZOOM };
 });
 document.addEventListener('pointermove', (e) => {
   if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
