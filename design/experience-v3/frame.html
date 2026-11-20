@@ -121,12 +121,12 @@ html.guide .gd{display:block}
 </head>
 <body>
 <div class="stage"><img id="a" alt=""><img id="b" alt=""></div>
-<div class="tools"><button class="rot" id="fsB" type="button">⤢ 전체 화면</button><button class="rot" id="gdB" type="button">✛ 위치 가이드</button><button class="rot" id="rot" type="button">⟳ 화면 회전 <small id="rotS"></small></button><button class="rot ex" id="exB" type="button">전시 모드로</button></div>
+<div class="tools"><button class="rot" id="fsB" type="button">⤢ 전체 화면</button><button class="rot" id="gdB" type="button">✛ 위치 가이드</button><button class="rot" id="rot" type="button">⟳ 화면 회전 <small id="rotS"></small></button></div>
 <div class="gd" id="gd"><i class="t v1"></i><i class="t v2"></i><i class="t h1"></i><i class="t h2"></i><i class="ln v"></i><i class="ln h"></i><i class="cd" id="gdC"></i>
   <div class="pn" id="gdP"><div class="mini" id="gdM"><img id="gdI" alt=""><i id="gdR"></i></div>
     <div><b id="gdT"></b><div id="gdS"></div><div style="opacity:.65">빨간 십자 = 화면 가운데 · 노란 원 = 사진 가운데 · 화면을 끌거나 방향키로 옮기면 저장</div>
       <div class="bt"><button id="gdSample" type="button">관람객 사진(3:4)으로 보기</button><button id="gdReset" type="button">처음 위치로</button><button id="gdX" type="button">가이드 닫기</button></div></div></div></div>
-<p class="hint" id="hint">관리 화면: 왼쪽 위 모서리를 3초 누르기 (키보드 F2)</p>
+<p class="hint" id="hint">더블클릭 또는 [전체 화면] → 전시 모드 · 더블클릭 또는 Esc → 관리 화면</p>
 <i class="dot" id="dot" title="연결 상태"></i>
 <div class="plate" id="plate"><div class="expo"></div><img class="neg" id="neg" alt=""><img class="pos" id="pos" alt=""><div class="rim"></div></div>
 <div class="smoke" id="smoke"><i style="left:10%;--dx:-6vmin;animation-delay:0s"></i><i style="left:30%;--dx:4vmin;animation-delay:.15s"></i><i style="left:48%;--dx:-3vmin;animation-delay:.05s"></i><i style="left:62%;--dx:7vmin;animation-delay:.25s"></i><i style="left:76%;--dx:2vmin;animation-delay:.1s"></i></div>
@@ -139,7 +139,7 @@ html.guide .gd{display:block}
 <script type="module">
 import { joinRoom } from './link.js';
 import { inkLoader, SCENE_SEC } from './ink.js';
-setTimeout(() => { const h = document.getElementById('hint'); if (!h.dataset.keep) h.classList.add('off'); }, 6000);   // 설치할 때만 보이면 된다(키 없음 알림은 계속)
+// 안내 글자: 관리 화면에서만(전시 모드에서는 숨김). 키 없음 알림(data-keep)은 전시 모드에서도 보임
 const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
 const HOLD = 10000;                          // 11/03 미팅: 관람객 사진은 약 10초 걸어 두고 평소로 — 그동안 QR 로 받는다(받는 건 최근 12장까지 그 뒤에도 됨)
 const KEEP = new Map();                      // 최근 사진 — QR 로 찾아오면 여기서 보낸다(서버에 저장하지 않음)
@@ -234,7 +234,7 @@ const pub = FKEY ? joinRoom({ photo: (p) => H.photo(p, pub), get: (p) => H.get(p
 if (!FKEY) { const h = document.getElementById('hint'); h.textContent = '촬영기 사진이 오지 않습니다 — 액자 연결 주소(QR)로 열어 주세요'; h.dataset.keep = '1'; }
 link.ready.then(() => document.getElementById('dot').classList.add('on')).catch(() => {});
 // 11/20: 배포하면 쉬는 틈(사진 · 진행 표시가 없을 때)에 스스로 최신 화면으로 — 화면에는 아무것도 더 띄우지 않음
-import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['link.js', 'ink.js'], isBusy: () => pgOn || document.body.classList.contains('withqr') })).catch(() => {});
+import('./autoupdate.js').then((m) => m.autoUpdate({ files: ['link.js', 'ink.js'], isBusy: () => pgOn || document.body.classList.contains('withqr') || !!topDoc().fullscreenElement })).catch(() => {});   // 전체 화면(전시 모드)은 새로 고치면 풀리므로 그동안 미룸
 // 11/20: 사진 위치 가이드(설치용) — 가로 · 세로 위치(%)는 이 기기에 기억, 평소 화면에도 그대로 적용
 const POS = (() => { try { return JSON.parse(localStorage.getItem('m100-frame-pos')) || { x: 50, y: 35 }; } catch { return { x: 50, y: 35 }; } })();
 const posApply = () => { document.documentElement.style.setProperty('--px', POS.x + '%'); document.documentElement.style.setProperty('--py', POS.y + '%'); };
@@ -309,28 +309,28 @@ addEventListener('resize', gdDraw);
   }); }
 // 11/20: 전체 화면은 단추로만(화면 클릭으로는 안 바뀜). 돌려 담긴 화면이면 바깥(frame-rot)이 전체 화면
 const topDoc = () => { try { return window.top.document; } catch { return document; } };
-const fsLabel = () => { $('fsB').textContent = topDoc().fullscreenElement ? '⤢ 전체 화면 끄기' : '⤢ 전체 화면'; };
-$('fsB').addEventListener('click', async (e) => {
-  e.stopPropagation();
+const fsLabel = () => { $('fsB').textContent = '⤢ 전체 화면 (전시 모드)'; };
+// 11/20: 전체 화면 = 전시 모드(단추 · 커서 · 안내 전부 숨김), 전체 화면이 아니면 = 관리 화면.
+//   들어가기: [전체 화면] 단추 또는 화면 더블클릭 / 나오기: 더블클릭 또는 Esc
+async function fsToggle() {
   if (window.top !== window) parent.postMessage('m100-frame-fs', location.origin);
   else { try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen?.(); } catch {} }
   try { await navigator.wakeLock?.request('screen'); } catch {}
-  setTimeout(fsLabel, 400);
-});
-try { topDoc().addEventListener('fullscreenchange', fsLabel); } catch {}
-fsLabel();
-// 11/20: 전시 모드(기본) = 단추 · 커서 전부 숨김, 마우스를 움직여도 안 나옴. 관리 화면은 왼쪽 위 모서리 3초 누르기(촬영기 · 태블릿과 같음) 또는 F2
+}
+// 브라우저 전체 화면(F11 · 키오스크)도 전시 모드로 본다
+function isFS() { const d = topDoc(), w = window.top; try { return !!d.fullscreenElement || (w.innerWidth >= screen.width && w.innerHeight >= screen.height); } catch { return !!document.fullscreenElement; } }
 function admin(on) {
   document.documentElement.classList.toggle('admin', on);
   if (!on) guide(false);
+  $('hint').classList.toggle('off', !on && !$('hint').dataset.keep);
   fsLabel();
 }
-$('exB').addEventListener('click', (e) => { e.stopPropagation(); admin(false); });
-window.m100AdminToggle = () => admin(!document.documentElement.classList.contains('admin'));   // 돌려 담긴 화면에서 바깥이 F2 를 받았을 때
-addEventListener('keydown', (e) => { if (e.key === 'F2') { e.preventDefault(); admin(!document.documentElement.classList.contains('admin')); } });
-{ let t = 0;
-  addEventListener('pointerdown', (e) => { if (e.clientX < 120 && e.clientY < 120) t = setTimeout(() => admin(!document.documentElement.classList.contains('admin')), 3000); });
-  ['pointerup', 'pointercancel'].forEach((n) => addEventListener(n, () => clearTimeout(t))); }
+const modeSync = () => admin(!isFS());
+$('fsB').addEventListener('click', (e) => { e.stopPropagation(); fsToggle(); });
+addEventListener('dblclick', (e) => { if (!e.target.closest('.pn,.tools')) fsToggle(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && topDoc().fullscreenElement) topDoc().exitFullscreen().catch(() => {}); });   // 브라우저가 Esc 를 먼저 처리하지만 혹시 몰라
+try { topDoc().addEventListener('fullscreenchange', modeSync); window.top.addEventListener('resize', modeSync); } catch {}
+modeSync();
 </script>
 </body>
 </html>

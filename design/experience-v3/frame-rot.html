@@ -27,9 +27,6 @@ addEventListener('message', async (e) => {
   if (e.origin !== location.origin || e.data !== 'm100-frame-fs') return;
   try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen?.(); } catch {}
   try { await navigator.wakeLock?.request('screen'); } catch {}
-});
-// 관리 화면 F2 — 안쪽 화면에 초점이 없을 때도
-addEventListener('keydown', (e) => { if (e.key === 'F2') { e.preventDefault(); try { document.getElementById('f').contentWindow.m100AdminToggle?.(); } catch {} } });
-</script>
+});</script>
 </body>
 </html>
