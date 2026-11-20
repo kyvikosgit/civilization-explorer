@@ -20,8 +20,10 @@ iframe{position:fixed;left:50%;top:50%;width:100vh;height:100vw;border:0;transfo
 const q = new URLSearchParams(location.search);
 const r = q.get('r') === '270' ? 270 : 90;   // 90 = 시계 방향, 270 = 반시계 방향(TV를 반대로 세웠을 때)
 document.documentElement.style.setProperty('--r', r + 'deg');
-q.delete('r'); q.set('in', '1');
-document.getElementById('f').src = 'frame.html?' + q.toString();
+q.delete('r');
+document.getElementById('f').src = 'frame.html?' + q.toString() + (q.toString() ? '&' : '') + 'in=1';
+// 주소창은 원래 액자 주소(/frame?k=…) 그대로 — 회전은 이 기기에 기억돼 있어 그 주소로 다시 열어도 세로
+history.replaceState(null, '', '/frame' + (q.toString() ? '?' + q.toString() : ''));
 // 전체 화면 · 화면 꺼짐 방지: 안쪽 화면을 누르면 바깥(이 페이지)이 처리 — 안쪽만 전체 화면이 되면 회전이 풀린다
 addEventListener('message', async (e) => {
   if (e.origin !== location.origin || e.data !== 'm100-frame-fs') return;
