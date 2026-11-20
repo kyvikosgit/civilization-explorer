@@ -406,7 +406,7 @@ dialog{border-radius:20px}
       <section class="sec" aria-label="모바일 초대권 현황표">
         <div class="h"><h2>현황표</h2></div>
         <div class="body tablebox">
-          <table class="st"><thead><tr><th>구분</th><th>받은 곳</th><th>초대권 번호</th><th class="r">수량</th><th class="r">사용</th><th class="act0"></th></tr></thead><tbody id="duTb"></tbody></table>
+          <table class="st"><thead><tr><th>발주일자</th><th>구분</th><th>사용 기간</th><th>초대권 번호</th><th class="r">수량</th><th>입장안내</th><th>주차안내</th><th>비고</th><th class="r">사용</th><th class="act0"></th></tr></thead><tbody id="duTb"></tbody></table>
         </div>
       </section>
     </main>
@@ -738,9 +738,21 @@ dialog{border-radius:20px}
   }
   ['rS', 'rE'].forEach(function (id) {
     $(id).addEventListener('input', function () { $('rErr').textContent = ''; regSync(); });
-    $(id).addEventListener('blur', function () { var n = num($(id).value); if (n) $(id).value = n6(n); });
+    $(id).addEventListener('blur', function () { if ($(id).readOnly) return; var n = num($(id).value); if (n) $(id).value = n6(n); });
   });
+  // 11/20: 모바일 초대권 줄 수정 — 같은 수정 창, 번호(DU0001 – 발급 수)는 고정 · 삭제 없음, 저장은 du_meta_save
+  var regDu = false;
+  function openDuReg() {
+    openReg(null); regDu = true; var M = DU.meta || {};
+    ['rS', 'rE'].forEach(function (id) { $(id).readOnly = true; });
+    $('rS').value = duCode(1); $('rE').value = duCode(DU.issued); $('rQ').textContent = cnt(DU.issued) + '장'; $('rSt').textContent = '';
+    $('rCo').value = M.company || DUWHO; $('rLb').value = M.label || ''; $('rFrom').value = M.start_date || SHOW0; $('rTo').value = M.end_date || SHOW1;
+    $('rOd').value = M.order_date || ''; $('rEn').value = M.entry_note || ''; $('rPk').value = M.parking_note || ''; $('rMemo').value = M.memo || '';
+    $('dRegT').textContent = '수정 — 모바일 초대권 ' + duCode(1) + ' – ' + duCode(DU.issued); $('rDel').hidden = true; $('rCo').focus();
+  }
+  $('dReg').addEventListener('close', function () { regDu = false; ['rS', 'rE'].forEach(function (id) { $(id).readOnly = false; }); });
   function openReg(seg) {
+    regDu = false; ['rS', 'rE'].forEach(function (id) { $(id).readOnly = false; });
     regSeg = seg || null; $('rF').reset(); $('rErr').textContent = '';
     $('coList').innerHTML = Object.keys(colorOf).concat([HOLD]).filter(function (c, i, arr) { return arr.indexOf(c) === i; }).map(function (c) { return '<option value="' + esc(c) + '">'; }).join('');
     var opts = function (f) { return S.allocs.map(function (a) { return a[f]; }).filter(function (v, i, arr) { return v && arr.indexOf(v) === i; }).map(function (v) { return '<option value="' + esc(v) + '">'; }).join(''); };
@@ -753,6 +765,15 @@ dialog{border-radius:20px}
   }
   $('rF').addEventListener('submit', function (e) {
     e.preventDefault(); var err = $('rErr'); err.textContent = '';
+    if (regDu) {
+      if (!$('rCo').value.trim()) { err.textContent = '받은 곳을 입력해 주세요.'; $('rCo').focus(); return; }
+      if (!$('rFrom').value || !$('rTo').value || $('rFrom').value > $('rTo').value) { err.textContent = '사용 가능 기간을 확인해 주세요.'; return; }
+      $('rSave').disabled = true;
+      rpc('du_meta_save', { p_company: $('rCo').value.trim(), p_label: $('rLb').value, p_start: $('rFrom').value, p_end: $('rTo').value, p_order_date: $('rOd').value || null, p_entry: $('rEn').value, p_parking: $('rPk').value, p_memo: $('rMemo').value })
+        .then(function () { $('dReg').close(); return duLoad(); })
+        .catch(function (x) { err.textContent = x.message; }).finally(function () { $('rSave').disabled = false; });
+      return;
+    }
     var s = num($('rS').value), en = num($('rE').value), co = $('rCo').value.trim(), f = $('rFrom').value, to = $('rTo').value;
     if (!s || !en) { err.textContent = '초대권 번호를 입력해 주세요.'; $(s ? 'rE' : 'rS').focus(); return; }
     if (s > en) { err.textContent = '앞 번호가 뒤 번호보다 큽니다.'; return; }
@@ -849,7 +870,7 @@ dialog{border-radius:20px}
   var dus = function (n) { return String(n).padStart(4, '0'); };
   function duNorm(v) { var s = String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); var m = s.match(/DU(\d{8})/); if (m) return m[1]; return s.replace(/^DU/, '').replace(/\D/g, ''); }
   function duLoad() {
-    return rpc('du_state').then(function (j) { DU = j; duRender(); });
+    return rpc('du_state').then(function (j) { DU = j; if (j.meta && j.meta.company) DUWHO = j.meta.company; duRender(); });
   }
   function duRender() {
     var n = DU.uses.length;
@@ -858,7 +879,8 @@ dialog{border-radius:20px}
     $('duKpis').innerHTML = '<div class="kpi"><b>' + cnt(q) + '</b><span>발급 전체</span></div><div class="kpi" style="' + cv + '"><b>' + cnt(q) + '</b><span><i></i>' + DUWHO + ' · 100%</span></div><div class="kpi"><b>' + cnt(n) + '</b><span>사용 · ' + pctS(n, q) + '</span></div><div class="kpi"><b>' + cnt(q - n) + '</b><span>남음</span></div>';
     $('duMap').innerHTML = q ? '<div class="chart"><div class="bar"><button type="button" class="sg" data-dugrid="1" style="' + cv + ';left:0;width:100%" aria-label="' + DUWHO + ' 번호판 열기"><span class="uf" style="width:' + (n / q * 100) + '%"></span><span class="nm">' + DUWHO + '</span><span class="pc">100%</span><span class="q">' + cnt(q) + '장 · 사용 ' + cnt(n) + '</span></button></div>'
       + '<div class="axis"><span class="first" style="left:0">' + duCode(1) + '</span><span class="last" style="left:100%">' + duCode(q) + '</span></div></div>' : '';
-    $('duTb').innerHTML = q ? '<tr class="seg-row" style="' + cv + '"><td class="who"><i></i>모바일 초대권</td><td>' + DUWHO + '</td><td class="rg">' + duCode(1) + ' – ' + duCode(q) + '</td><td class="r">' + cnt(q) + '</td><td class="r use">' + cnt(n) + '<small>' + pctS(n, q) + '</small></td><td class="act0"><button type="button" class="rowbtn" data-dugrid="1">번호 보기</button></td></tr>' : '';
+    var M = DU.meta || {}, dper = function (d) { return d ? String(d).replace(/-/g, '.') : ''; };
+    $('duTb').innerHTML = q ? '<tr class="seg-row" data-durow="1" style="' + cv + '"><td class="od">' + esc(M.order_date || '') + '</td><td class="who"><i></i>' + esc(M.label || DUWHO) + '</td><td class="per">' + esc(M.start_date ? dper(M.start_date) + ' ~ ' + dper(M.end_date) : '') + '</td><td class="rg">' + duCode(1) + ' – ' + duCode(q) + '</td><td class="r">' + cnt(q) + '</td><td class="memo">' + esc(M.entry_note || '') + '</td><td class="memo">' + esc(M.parking_note || '') + '</td><td class="memo">' + esc(M.memo || '') + '</td><td class="r use">' + cnt(n) + '<small>' + pctS(n, q) + '</small></td><td class="act0"><button type="button" class="rowbtn" data-dugrid="1">번호 보기</button></td></tr>' : '';
     if (gridMode === 'du' && $('dGrid').open) duGrid();
     $('duRecent').innerHTML = n ? DU.uses.slice(0, 10).map(function (u) { return '<li><span class="tm">' + tfmt.format(new Date(u.used_at)) + '</span><span class="num"><b>' + dus(u.seq) + '</b></span><span class="hd">' + esc(u.code) + '</span><button type="button" class="link" data-duun="' + u.seq + '">취소</button></li>'; }).join('')
       : '<li class="empty" style="display:block">아직 사용 처리한 모바일 초대권이 없습니다.</li>';
@@ -893,6 +915,7 @@ dialog{border-radius:20px}
   }
   document.addEventListener('click', function (e) {
     var g = e.target.closest('[data-dugrid]'); if (g) { duGrid(); return; }
+    if (e.target.closest('[data-durow]') && !e.target.closest('td.act0')) { openDuReg(); return; }
     var c = e.target.closest('[data-ducell]');
     if (c) { if (c.classList.contains('u')) duUnuse(+c.dataset.ducell); else alert('모바일 초대권 사용 처리는 위 확인 칸에서 QR을 찍거나 코드를 입력해 주세요.'); return; }
     var t = e.target.closest('[data-duun],[data-duuse]'); if (!t) return;
