@@ -29,11 +29,14 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
 /* 11/20 직원용: 왼쪽 위 구석을 3초 누르면 디버그 판(정보 + 버튼). 누르는 동안 구석에 차오르는 고리 */
 .hold{position:fixed;left:calc(14px + env(safe-area-inset-left));top:calc(14px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .2s;background:conic-gradient(#E9C77A calc(var(--p,0)*1turn),rgba(255,255,255,.18) 0);-webkit-mask:radial-gradient(circle,transparent 15px,#000 16px);mask:radial-gradient(circle,transparent 15px,#000 16px);z-index:20}
 .hold.on{opacity:1}
-.dbgp{position:fixed;left:12px;right:12px;bottom:calc(64px + env(safe-area-inset-bottom));background:rgba(10,12,11,.88);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.55;z-index:15;display:flex;flex-direction:column;gap:10px}
+/* 11/20: 태블릿 점검 패널과 같은 모양 — 화면 아래 가득, 위로 갈수록 투명 */
+.dbgp{position:fixed;left:0;right:0;bottom:0;padding:40px 18px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.82) 30px);font-size:15px;line-height:1.5;z-index:15;display:flex;flex-direction:column;gap:10px;touch-action:manipulation}
+body.ckon .hud{display:none}
 .dbgp[hidden]{display:none}
 .dbgp .info b{color:#E9C77A;font-weight:600}
 .dbgp .row{display:flex;gap:8px;flex-wrap:wrap}
-.dbgp button{font:600 14px Freesentation,sans-serif;background:rgba(255,255,255,.14);color:#F2EDE2;border:0;border-radius:10px;padding:10px 12px;min-height:44px}
+.dbgp .row{justify-content:flex-end}
+.dbgp button{font:600 15px Freesentation,sans-serif;background:rgba(255,255,255,.14);color:#F2EDE2;border:0;border-radius:10px;padding:12px 16px;min-height:48px}
 .dbgp button.on{background:#F2EDE2;color:#141210}
 /* 11/20 매일 점검(현장 직원용): 항목마다 초록 체크 · 빨간 표시 — 전부 초록이면 '모두 정상' */
 .ck-sum{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;padding:4px 2px 2px}
@@ -258,7 +261,7 @@ function dbgInfo() {
 }
 setInterval(dbgInfo, 1000);
 function setDebug(on) {
-  DEBUG = on; $('dbgp').hidden = !on;
+  DEBUG = on; $('dbgp').hidden = !on; document.body.classList.toggle('ckon', on);
   try { on ? localStorage.setItem('m100-booth-admin', '1') : localStorage.removeItem('m100-booth-admin'); } catch {}
   clearInterval(aiT);
   if (on) { openedAt = Date.now(); btnOk = false; aiState = 'wait'; aiCheck(); aiT = setInterval(aiCheck, 60000); clearTimeout(hudT); $('hud').classList.remove('off'); $('lv').classList.add('off'); dbgInfo(); }
