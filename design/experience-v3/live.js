@@ -93,6 +93,7 @@ export async function liveSender(getStream, key, getMeta = () => ({}), onDebug =
     },
     meta() { L.send('meta', getMeta()); },
     count: () => D.peers.size,
+    connected: () => [...D.peers.values()].filter((p) => p.pc.connectionState === 'connected').length,
     tag,
   };
 }
