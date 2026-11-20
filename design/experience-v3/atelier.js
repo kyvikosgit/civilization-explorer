@@ -170,10 +170,10 @@ if (SOLVED) {
 if (!SOLVED) {
   const b = document.body, qs = new URLSearchParams(location.search);
   const ready = () => { b.classList.remove('intro-run'); b.classList.add('et-ready'); $('#role')?.classList.add('in'); };
-  if (qs.get('o') || qs.get('tag') || REDUCED) { ready(); playIntro({ instant: true }); setTimeout(showGuide, 300); }
+  if (qs.get('o') || qs.get('tag') || REDUCED || (window.M100_INTRO || { mode: 'normal', ended() {} }).mode === 'skip') { ready(); playIntro({ instant: true }); setTimeout(showGuide, 300); }   // 11/20: ?nointro 도 바로
   else {
     b.classList.add('intro-run');
-    playIntro({ onDone: () => { ready(); setTimeout(showGuide, 1100); } });   // 역할 줄을 읽을 틈을 두고 안내(살롱과 같은 간격)
+    playIntro({ onDone: () => { ready(); (window.M100_INTRO || { mode: 'normal', ended() {} }).ended(); setTimeout(showGuide, 1100); } });   // 역할 줄을 읽을 틈을 두고 안내(살롱과 같은 간격)
   }
 }
 function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; }

@@ -11,7 +11,7 @@ try {
 
 export const store = {
   solved: (id) => !!read().solved?.[id],      // 정답을 맞힘
-  saved: (id) => !!read().saved?.[id],        // 수집함에 담음
+  saved: (id) => window.M100_INTRO?.mode !== 'only' && !!read().saved?.[id],        // 수집함에 담음 (11/20: 도입만 볼 때는 늘 처음처럼 — 결과 화면이 도입 위에 뜨지 않게)
   solve(id) { const s = read(); (s.solved ||= {})[id] = Date.now(); write(s); },
   save(id) { const s = read(); (s.saved ||= {})[id] = Date.now(); (s.solved ||= {})[id] ||= Date.now(); write(s); },
   redeemed: () => read().redeemed || 0,       // 굿즈 수령 시각

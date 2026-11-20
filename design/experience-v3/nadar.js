@@ -466,8 +466,10 @@ const intro = $('#intro');
       anim(500, (t) => { st.flash = t < 0.1 ? t / 0.1 : 1 - (t - 0.1) / 0.9; });
     });
     at(2380, enter);
-    at(2520, () => finish(false));
+    at(2520, () => { finish(false); (window.M100_INTRO || { mode: 'normal', ended() {} }).ended(); });
   };
+  // 11/20: ?nointro = 앱 구역 화면 미션 카드로 들어옴 — 도입 없이 바로
+  if ((window.M100_INTRO || { mode: 'normal', ended() {} }).mode === 'skip') { finish(true); window.__c4intro = { skip() {} }; return; }
   // 정면 사진 · 빛 마스크 · 간판 글꼴(서명체)을 받은 뒤 시작 — 늦으면 1.6초에 있는 것으로 시작
   Promise.race([
     Promise.all([loadI('img/c4n/facade.jpg'), loadI('img/c4n/lights.png'), document.fonts ? document.fonts.load('80px Sacramento').catch(() => {}) : null])

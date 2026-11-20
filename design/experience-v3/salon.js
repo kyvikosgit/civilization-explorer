@@ -474,6 +474,7 @@ function stepIntro(dt, now) {
     camKey = 'wall'; camB = camFor('wall'); camT0 = 0; camMs = 1; Object.assign(cam, camB);
     setMode('wall'); cv.removeEventListener('pointerdown', skipIntro);
     window.dispatchEvent(new CustomEvent('salon:wall'));
+    (window.M100_INTRO || { mode: 'normal', ended() {} }).ended();   // 11/20: 도입만 보기(앱 구역 화면)면 여기서 알림
     return false;
   }
   return true;
@@ -940,7 +941,7 @@ new ResizeObserver(() => layout()).observe(stage);
   await Promise.race([Promise.all(texLoads), sleep(2500)]);
   if (document.fonts) await Promise.race([document.fonts.ready, sleep(800)]);
   layout();
-  if (reduceMotion || new URLSearchParams(location.search).has('nointro')) {
+  if (reduceMotion || new URLSearchParams(location.search).has('nointro')) {   // ?nointro = 앱 구역 화면의 미션 카드로 들어옴(도입은 구역에 들어설 때 이미 봄)
     salon.setDoor(1, 0); salon.setAir(0, 0);
     roleIn(); setMode('wall'); camKey = 'wall'; camB = camFor('wall'); camT0 = 0; camMs = 1; Object.assign(cam, camB);
     stage.classList.add('lit'); kick(); window.dispatchEvent(new CustomEvent('salon:wall')); return;

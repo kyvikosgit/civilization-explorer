@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="../../experience-v3/cam.css">
 <link rel="stylesheet" href="../../experience-v3/guide.css">
 <link rel="stylesheet" href="../../experience-v3/industry.css">
+<script src="../../experience-v3/introctl.js"></script>  <!-- 11/20: ?intro=only · ?nointro (앱 구역 화면) -->
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
@@ -1284,7 +1285,7 @@ function play() {
     steam.emitter({ x: W * 0.56, y: H * 0.8, rate: 1.6, vy: [4, 12], vx: 22, wind: 6, size: [40, 70], grow: [14, 24], alpha: [0.05, 0.11], life: [4, 6], jx: 60 });
     steam.prewarm(5);                                    // 첫 프레임부터 김이 피어 있게(동작 줄이기에서는 멈춘 김 한 장)
   }
-  if (RM) { finish(); return; }
+  if (RM || (window.M100_INTRO && window.M100_INTRO.mode === 'skip')) { finish(); return; }   // 11/20: ?nointro = 끝 장면에서 바로
   steam.start();
   playing = true;
   // 카메라: 기관차 앞에서 시작해 물러난다(1.3 → 1, 3.6초), 어둠이 걷힌다
@@ -1296,7 +1297,7 @@ function play() {
   const lines = [...intro.querySelectorAll('.intro-copy .ln')];
   lines.forEach((n, i) => at(1300 + i * 380, () => n.classList.add('in')));
   at(1300, () => $('#role')?.classList.add('in'));        // 역할 줄
-  at(1300 + lines.length * 380 + 200, () => { playing = false; intro.classList.add('played'); window.dispatchEvent(new CustomEvent('c2:played')); });
+  at(1300 + lines.length * 380 + 200, () => { playing = false; intro.classList.add('played'); window.dispatchEvent(new CustomEvent('c2:played')); window.M100_INTRO && window.M100_INTRO.ended(); });
 }
 // 누르면 끝 장면으로
 function finish() {
