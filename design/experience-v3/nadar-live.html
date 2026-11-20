@@ -85,7 +85,11 @@ function apply() {
 }
 apply();
 $('staff').hidden = !STAFF;
-$('fs').onclick = () => document.documentElement.requestFullscreen?.().catch(() => {});
+// 전체 화면 켜기/끄기 한 단추 — 지금 상태에 맞춰 글자도 바뀐다
+const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const fsLabel = () => { $('fs').textContent = isFs() ? '전체 화면 끄기' : '전체 화면'; };
+$('fs').onclick = () => { (isFs() ? (document.exitFullscreen || document.webkitExitFullscreen)?.call(document) : document.documentElement.requestFullscreen?.())?.catch?.(() => {}); };
+['fullscreenchange', 'webkitfullscreenchange'].forEach((ev) => document.addEventListener(ev, fsLabel)); fsLabel();
 $('lock').onclick = () => { document.documentElement.requestFullscreen?.().catch(() => {}); STAFF = false; $('staff').hidden = true; };
 // 왼쪽 위 구석(100px)을 3초 누르면 직원 패널 켜기/끄기 — 관람객이 스쳐 누르는 정도로는 안 열리게
 let holdT = 0, holdA = 0;
