@@ -7,28 +7,50 @@
 <title>나다르 사진관 · 액자 화면</title>
 <base href="/design/experience-v3/">
 <link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <style>
 /* 11/20: 세워 단 TV(화면 회전 메뉴 없음)용 — 가로로 나오는 화면 안에 세로 액자 화면(frame.html)을 90° 돌려 꽉 채운다.
-   frame.html 은 iframe 안에서 세로 화면(예: 1080×1920)으로 그대로 그려지므로 글자 · 사진 크기가 세로 기준으로 맞는다 */
-html,body{margin:0;height:100%;background:#16110c;overflow:hidden}   /* 커서는 안쪽(frame.html)이 3초 멈추면 숨김 */
+   frame.html 은 iframe 안에서 세로 화면(예: 1080×1920)으로 그대로 그려지므로 글자 · 사진 크기가 세로 기준으로 맞는다.
+   관리 단추는 회전과 상관없이 이 페이지(실제 화면)의 오른쪽 위에 똑바로 */
+html,body{margin:0;height:100%;background:#16110c;overflow:hidden}
+html.fs,html.fs *{cursor:none!important}
 iframe{position:fixed;left:50%;top:50%;width:100vh;height:100vw;border:0;transform:translate(-50%,-50%) rotate(var(--r,90deg));background:#16110c}
+.tools{position:fixed;top:2vmin;right:2vmin;z-index:5;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;max-width:90vw}
+html.fs .tools{display:none}
+.tools button{display:flex;align-items:center;gap:8px;padding:12px 18px;border:0;border-radius:999px;background:rgba(242,237,226,.92);color:#2A2119;font:600 16px Freesentation,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer}
+.tools small{font-weight:500;opacity:.6}
 </style>
 </head>
 <body>
 <iframe id="f" allow="fullscreen; screen-wake-lock"></iframe>
+<div class="tools"><button id="fsB" type="button">⤢ 전체 화면 (전시 모드)</button><button id="gdB" type="button">✛ 위치 가이드</button><button id="rot" type="button">⟳ 화면 회전 <small id="rotS"></small></button></div>
 <script>
 const q = new URLSearchParams(location.search);
-const r = q.get('r') === '270' ? 270 : 90;   // 90 = 시계 방향, 270 = 반시계 방향(TV를 반대로 세웠을 때)
+const r = q.get('r') === '270' ? '270' : '90';   // 90 = 시계 방향, 270 = 반시계 방향(TV를 반대로 세웠을 때)
 document.documentElement.style.setProperty('--r', r + 'deg');
 q.delete('r');
-document.getElementById('f').src = 'frame.html?' + q.toString() + (q.toString() ? '&' : '') + 'in=1';
+const f = document.getElementById('f');
+f.src = 'frame.html?' + q.toString() + (q.toString() ? '&' : '') + 'in=1';
 // 주소창은 원래 액자 주소(/frame?k=…) 그대로 — 회전은 이 기기에 기억돼 있어 그 주소로 다시 열어도 세로
 history.replaceState(null, '', '/frame' + (q.toString() ? '?' + q.toString() : ''));
-// 전체 화면 · 화면 꺼짐 방지: 안쪽 화면을 누르면 바깥(이 페이지)이 처리 — 안쪽만 전체 화면이 되면 회전이 풀린다
-addEventListener('message', async (e) => {
-  if (e.origin !== location.origin || e.data !== 'm100-frame-fs') return;
+
+// 전체 화면 = 전시 모드(단추 · 커서 숨김). 더블클릭(안쪽 화면이 알려 줌) · [전체 화면] 으로 들어가고, 더블클릭 · Esc 로 나옴
+async function fsToggle() {
   try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen?.(); } catch {}
   try { await navigator.wakeLock?.request('screen'); } catch {}
-});</script>
+}
+const isFS = () => !!document.fullscreenElement || (innerWidth >= screen.width && innerHeight >= screen.height);
+const sync = () => document.documentElement.classList.toggle('fs', isFS());
+addEventListener('fullscreenchange', sync); addEventListener('resize', sync); sync();
+addEventListener('message', (e) => { if (e.origin === location.origin && e.data === 'm100-frame-fs') fsToggle(); });
+document.getElementById('fsB').onclick = fsToggle;
+document.getElementById('gdB').onclick = () => { try { f.contentWindow.m100Guide?.(); } catch {} };
+// 화면 회전: 세로 → 세로(반대) → 가로. 이 기기에 기억
+document.getElementById('rotS').textContent = r === '90' ? '지금 세로' : '지금 세로(반대)';
+document.getElementById('rot').onclick = () => {
+  const next = r === '90' ? '270' : '0';
+  location.replace(new URL('frame.html?' + q.toString() + (q.toString() ? '&' : '') + 'r=' + next, document.baseURI).href);
+};
+</script>
 </body>
 </html>

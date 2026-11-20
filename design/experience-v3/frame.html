@@ -12,10 +12,10 @@
 // 11/20: 세워 단 TV(회전 메뉴 없음) — ?r=90(시계) · ?r=270(반시계) 로 한 번 열면 이 기기에 기억, ?r=0 이면 회전 끔.
 // 회전은 frame-rot.html 이 이 화면을 돌려 담는 방식(안쪽에서는 다시 돌리지 않음)
 (() => {
-  if (window.top !== window) return;
+  if (window.top !== window) { document.documentElement.classList.add('inframe'); return; }
   const q = new URLSearchParams(location.search); let r = q.get('r');
   try { if (r !== null) { if (r === '90' || r === '270') localStorage.setItem('m100-frame-r', r); else localStorage.removeItem('m100-frame-r'); } else r = localStorage.getItem('m100-frame-r'); } catch {}
-  if (r !== '90' && r !== '270') return;
+  if (r !== '90' && r !== '270') { q.delete('r'); q.delete('in'); history.replaceState(null, '', '/frame' + (q.toString() ? '?' + q.toString() : '')); return; }   // 주소창은 늘 /frame?k=…
   q.set('r', r); location.replace('frame-rot.html?' + q.toString());
 })();
 </script>
@@ -29,6 +29,7 @@ html,body{height:100%;background:#16110c;overflow:hidden}
 html:not(.admin),html:not(.admin) *{cursor:none!important}
 .tools{position:fixed;top:2vmin;right:2vmin;z-index:50;display:none;flex-wrap:wrap;justify-content:flex-end;gap:10px;max-width:90vw}
 html.admin .tools{display:flex}
+html.inframe .tools{display:none!important}   /* 돌려 담긴 화면: 단추는 바깥(frame-rot)이 화면 오른쪽 위에 똑바로 띄움 */
 .tools .ex{background:#2F6B4F;color:#fff}
 .rot{display:flex;align-items:center;gap:8px;padding:12px 18px;border:0;border-radius:999px;background:rgba(242,237,226,.92);color:#2A2119;font:600 16px Freesentation,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.45);cursor:pointer;transition:opacity .4s}
 .rot small{font-weight:500;opacity:.6}
@@ -278,6 +279,7 @@ function guide(on) {
   gdDraw();
 }
 $('gdB').addEventListener('click', (e) => { e.stopPropagation(); guide(!document.documentElement.classList.contains('guide')); });
+window.m100Guide = () => guide(!document.documentElement.classList.contains('guide'));   // 돌려 담긴 화면: 바깥(frame-rot) 단추가 부름
 $('gdX').addEventListener('click', (e) => { e.stopPropagation(); guide(false); });
 $('gdReset').addEventListener('click', (e) => { e.stopPropagation(); POS.x = 50; POS.y = 35; posMove(0, 0); });
 $('gdSample').addEventListener('click', (e) => { e.stopPropagation(); sampleOn = !sampleOn; $('gdSample').textContent = sampleOn ? '모네 초상으로 보기' : '관람객 사진(3:4)으로 보기'; showSrc(sampleOn ? sampleImg() : IDLE); });
