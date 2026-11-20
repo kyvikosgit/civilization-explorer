@@ -13,7 +13,8 @@
 <style>
 /* 태블릿: 촬영기 폰 카메라가 보는 화면을 실시간으로(거울처럼 좌우 반전)
    관람객 모드(기본, it-ta.com/live): 만져도 아무 반응 없음 — 버튼 · 확대 · 길게 누르기 · 선택 전부 막음. 연결이 끊겼을 때만 상태 글자
-   직원 모드(it-ta.com/live?staff=1): 좌우 반전 · 설정 비교 · 전체 화면 · 상태 숫자(줌은 촬영기 폰 화면에서 두 손가락으로). [관람객 모드로] 누르면 그 자리에서 잠금(새로고침하면 관람객 모드) */
+   직원 패널(왼쪽 위 구석 3초 누르기 또는 ?staff=1): 상태 숫자 · 전체 화면 · [관람객 모드로](전체 화면 + 잠금). 줌은 촬영기 폰 화면에서 두 손가락으로
+   화면: 찍히는 3:4 범위를 화면 가득(좌우 끝이 조금 잘림) · 화질 예전 설정(1280px) 고정 · 거울처럼 좌우 반전 고정 */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavior:none}
 /* 뷰파인더 = 찍히는 범위 그대로(촬영기 줌 배율 · 3:4 가운데). 남는 곳은 검은 여백 */
@@ -48,8 +49,6 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
   <div class="info"><i class="dot wait" id="dot"></i><span id="st">연결 중</span> · <span id="res">-</span><br><span id="zinfo">촬영기 줌 정보 기다리는 중</span><br><span id="dbg"></span></div>
   <div class="row">
     <span class="sp"></span>
-    <button type="button" class="dark" id="qb">예전 설정</button>
-    <button type="button" class="dark" id="mir">좌우 반전 켬</button>
     <button type="button" class="dark" id="fs">전체 화면</button>
     <button type="button" id="lock">관람객 모드로</button>
   </div>
@@ -69,27 +68,24 @@ const block = (e) => { if (!STAFF || !e.target.closest?.('.staff')) e.preventDef
 document.addEventListener('touchmove', block, { passive: false });
 document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
-let mirror = pref('m100-live-mirror', '1') === '1';
-let profile = pref('m100-live-prof2', 'old'), LV = null, zoom = 1, cropZ = 1;
+// 11/20: 화질은 예전 설정(1280px · 3Mbps) 고정 · 좌우 반전 고정(거울처럼) — 태블릿은 관람객이 사진에 어떻게 잡히는지 보는 용도라 버튼 없음
+const mirror = true, profile = 'old';
+let LV = null, zoom = 1, cropZ = 1;
 // 찍히는 범위만 꼭 맞게 — 촬영기 shoot() 의 자르기와 같은 계산(받는 영상은 촬영기 원본과 같은 비율)
 function fitFrame() {
   const iw = video.videoWidth, ih = video.videoHeight, vf = $('vf'); if (!iw) return;
   let cw = iw / cropZ, ch = ih / cropZ; if (cw / ch > 3 / 4) cw = ch * 3 / 4; else ch = cw * 4 / 3;
-  const W = innerWidth, H = innerHeight; let fw = W, fh = W * 4 / 3; if (fh > H) { fh = H; fw = H * 3 / 4; }
+  const W = innerWidth, H = innerHeight; let fw = W, fh = W * 4 / 3; if (fh < H) { fh = H; fw = H * 3 / 4; }   // 11/20: 화면을 꽉 채운다(좌우 끝이 조금 잘려도 됨 — 위아래 검은 여백 없이)
   const s = fw / cw; vf.style.width = fw + 'px'; vf.style.height = fh + 'px';
   Object.assign(video.style, { width: iw * s + 'px', height: ih * s + 'px', left: (fw - iw * s) / 2 + 'px', top: (fh - ih * s) / 2 + 'px' });
 }
 addEventListener('resize', fitFrame); video.addEventListener('loadedmetadata', fitFrame); video.addEventListener('resize', fitFrame);
 function apply() {
   root.setProperty('--m', mirror ? -1 : 1);
-  $('mir').textContent = mirror ? '좌우 반전 켬' : '좌우 반전 끔';
-  $('qb').textContent = profile === 'new' ? '지금 설정 (1920)' : '예전 설정 (1280)';
 }
 apply();
 $('staff').hidden = !STAFF;
-$('mir').onclick = () => { mirror = !mirror; save('m100-live-mirror', mirror ? '1' : '0'); apply(); };
 $('fs').onclick = () => document.documentElement.requestFullscreen?.().catch(() => {});
-$('qb').onclick = () => { profile = profile === 'new' ? 'old' : 'new'; save('m100-live-prof2', profile); apply(); $('res').textContent = '-'; LV?.setProfile(profile); };
 $('lock').onclick = () => { document.documentElement.requestFullscreen?.().catch(() => {}); STAFF = false; $('staff').hidden = true; };
 // 왼쪽 위 구석(100px)을 3초 누르면 직원 패널 켜기/끄기 — 관람객이 스쳐 누르는 정도로는 안 열리게
 let holdT = 0, holdA = 0;
