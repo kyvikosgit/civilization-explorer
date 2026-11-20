@@ -5,7 +5,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const sb = createClient('https://bttjtkhfyzapcsqocick.supabase.co', 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs', { auth: { persistSession: false, autoRefreshToken: false } });
 const ICE = [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }];
-const room = () => new URLSearchParams(location.search).get('room') || 'c4';
+const room = () => new URLSearchParams(location.search.replace(/\?/g, '&')).get('room') || 'c4';
 async function chanName(key) {
   const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('m100-live:' + (key || '')));
   const hex = [...new Uint8Array(b)].slice(0, 6).map((x) => x.toString(16).padStart(2, '0')).join('');
