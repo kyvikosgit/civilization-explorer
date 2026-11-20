@@ -31,7 +31,8 @@ html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sa
 .hold.on{opacity:1}
 /* 11/20: 태블릿 점검 패널과 같은 모양 — 화면 아래 가득, 위로 갈수록 투명 */
 .dbgp{position:fixed;left:0;right:0;bottom:0;padding:40px 18px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.82) 30px);font-size:15px;line-height:1.5;z-index:15;display:flex;flex-direction:column;gap:10px;touch-action:manipulation}
-body.ckon .hud{display:none}
+/* 11/20: 위 · 아래 상태 줄은 쓰지 않음 — 확인할 것은 점검 화면(왼쪽 위 구석 3초)에만 */
+.lv,.hud{display:none!important}
 .dbgp[hidden]{display:none}
 .dbgp .info b{color:#E9C77A;font-weight:600}
 .dbgp .row{display:flex;gap:8px;flex-wrap:wrap}
