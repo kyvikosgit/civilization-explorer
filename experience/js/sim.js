@@ -2,7 +2,7 @@
 // 그 구역 화면을 연다. 휴대폰 자세: 걷기 = 아래에 들고 · 도슨트 = 살짝 기울여 내림 · 미션(체험) = 들어 올려 크게.
 // 앱은 액자 안에서 지금 화면(주소 · 단계)을 postMessage({type:'m100-app', path, s}) 로 알린다(kippu-app src/app/_layout.tsx SimBeacon).
 import * as THREE from 'three';
-import { createTour } from './tour.js?v=36';
+import { createTour } from './tour.js?v=37';
 
 const APP = (new URLSearchParams(location.search).get('app') || 'https://app.it-ta.com').replace(/\/$/, '');
 // 4층 동선 = 앱 구역 순서(kippu-app src/lib/tour.ts STOPS). 자리는 Blender 평면 좌표(x, y) — 3D 에서는 (x, −y)
