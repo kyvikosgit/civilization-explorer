@@ -112,17 +112,14 @@ const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => waiter
 let picked = -1, focusWait = null;
 let viewer = null;
 const GEN = { salon: ART.salon.full, expo: ART.expo.full, salonCover: ART.salon.cover, expoCover: ART.expo.cover };
-// 11/23 칼럼 = 3D 모델 · 렌더 그림을 전혀 쓰지 않음. 장 베로 〈모리스 칼럼〉(1885경, 카르나발레 박물관, 퍼블릭 도메인) 그림 한 장.
-//   거리(모네 〈카퓌신 대로〉)에서 칼럼으로 다가가면 거리가 앞으로 밀려 들어가며 베로의 칼럼 그림이 겹쳐 떠오른다. three.js 는 ?3d 일 때만 불러온다
+// 11/23 칼럼 그림 없음 — 3D 모델 · 렌더 그림 · 다른 화가 그림 모두 쓰지 않는다(모네 전시). 장면은 모네 〈카퓌신 대로〉(1873) 한 장.
+//   실제 모리스 칼럼은 전시장에 서 있고, 앱은 그 칼럼의 전단지를 카메라로 비추게 안내만 한다. 다가가기 = 같은 거리 그림이 앞으로 밀려 들어감
+//   three.js · 칼럼 뷰어는 ?3d 일 때만 불러온다
 let colImg = null;
 if (NO3D) {
-  colImg = document.createElement('div'); colImg.className = 'col-paint';
   const st = document.createElement('style');
-  // 11/23: 처음부터 이 그림 한 장이 거리 장면(모네 거리 그림 → 다른 그림으로 갈아 끼우지 않음). 다가가기 = 같은 그림 안에서 칼럼 쪽으로 확대
-  st.textContent = '#mv .col-paint{position:absolute;inset:0;background:url(' + new URL('./img/morris_beraud1885.jpg', import.meta.url).href + ') 50% 35%/cover no-repeat;transform-origin:56% 42%;transform:scale(1);transition:transform 1.3s cubic-bezier(.35,.6,.25,1);pointer-events:none}'
-    + '#mv.no3d::after{content:"";position:absolute;left:0;right:0;top:0;height:34%;pointer-events:none;background:linear-gradient(180deg,rgba(10,8,6,.62),rgba(10,8,6,0))}'   // 위 글자가 밝은 하늘 위에서 읽히게
-    + '#mv .col-paint.on{transform:scale(1.32)}body #mv.no3d{opacity:1!important;visibility:visible!important}#street{visibility:hidden}';
-  document.head.appendChild(st); mvEl.appendChild(colImg); mvEl.classList.add('no3d');
+  st.textContent = '#mv.no3d{display:none!important}#street{transition:transform 1.3s cubic-bezier(.35,.6,.25,1)!important}#street.near{transform:scale(1.22)!important}';
+  document.head.appendChild(st); mvEl.classList.add('no3d');
   loaded = true; camLoading.classList.add('off');
 }
 if (!NO3D) try {
@@ -172,7 +169,7 @@ async function streetIntro() {
   // 11/23 새 도입(2초): 모리스 칼럼의 전단지 앞에서 시작해 → 칼럼에서 물러나며 해 질 녘 카퓌신 대로가 드러난다(칼럼 프레임을 거꾸로 + 거리 그림이 어둠에서 밝아지며 물러남)
   //   예전 3D 방 · 창 도입(society-intro.js)은 쓰지 않음(?introOld 로 볼 수 있음)
   if (NO3D && !new URLSearchParams(location.search).has('introOld')) {
-    const img = mvEl; uncover();   // 베로 그림(칼럼이 선 파리 거리)이 어둠에서 밝아지며 다가온다(1.9초)
+    const img = streetEl; uncover();   // 모네 〈카퓌신 대로〉가 어둠에서 밝아지며 다가온다(1.9초)
     const an = img.animate([{ transform: 'scale(1.2)', filter: 'brightness(.12)' }, { transform: 'scale(1)', filter: 'brightness(1)' }], { duration: 1900, easing: 'cubic-bezier(.3,.6,.25,1)' });
     await Promise.race([an.finished, new Promise((r) => addEventListener('pointerdown', r, { once: true, capture: true }))]);
     an.cancel();
@@ -217,7 +214,7 @@ function frameToGuide() {
 function showStanding() {
   if (!loaded || !introDone || step !== 1) return;
   if (viewer) { viewer.resize(); frameToGuide(); viewer.setFar(1); }
-  if (colImg) colImg.classList.remove('on');
+  
   mvEl.classList.remove('off');
   window.dispatchEvent(new CustomEvent('c1:ready'));
 }
@@ -246,7 +243,7 @@ async function scan() {
   setPill('');
   streetEl.classList.add('near');                           // 거리도 함께 가까워진다(먼 배경이라 조금만)
   if (viewer) viewer.approach(reduceMotion ? 0 : 2.9, 0);   // 카메라가 보도를 걸어 다가간다 → 'arrived'
-  else if (colImg) { colImg.classList.add('on'); setTimeout(() => { if (step === 'approach') arrive(); }, reduceMotion ? 50 : 1300); }   // 거리가 밀려 들어가며 베로의 칼럼 그림
+  else if (NO3D) setTimeout(() => { if (step === 'approach') arrive(); }, reduceMotion ? 50 : 1300);   // 거리 그림이 앞으로 밀려 들어감(#street.near)
   else arrive();
   scanning = false;
 }
@@ -286,7 +283,7 @@ function toScan() {                                         // 칼럼 → 스캔
   streetEl.classList.remove('near');
   if (!camLoading.classList.contains('off') && loaded) camLoading.classList.add('off');
   if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); frameToGuide(); viewer.approach(reduceMotion ? 0 : 1.3, 1); }
-  if (colImg) colImg.classList.remove('on');
+
 }
 
 // ── 3 살펴보기 — 떠 있는 포스터 + 한 줄 설명(전단지 3장은 부스 삽화 애니메이션 그대로)
