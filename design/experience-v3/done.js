@@ -58,8 +58,9 @@ const CSS = `
 /* 11/23 앱과 같은 수집품 카드: 크림 종이 + 이중 액자(앱 src/lib/CollectCard.tsx) · 못 모은 칸 = 점선 */
 .v3-done .d-slots span{width:42px;height:56px;border-radius:4px;background:#F6F3EE;border:1.5px dashed #D3CCBE;overflow:hidden;display:block;box-sizing:border-box}
 .v3-done .d-slots span.me{border-color:var(--d-pt)}
-.v3-done .d-slots span.on{background:#F2EBD9;border:1px solid rgba(58,53,43,.32);padding:3px;box-shadow:0 3px 8px rgba(40,30,20,.18)}
-.v3-done .d-slots span img{width:100%;height:100%;object-fit:contain;display:block;background:#E6DCC4;border:1px solid rgba(58,53,43,.3);box-sizing:border-box}
+.v3-done .d-slots span{border-radius:7px}
+.v3-done .d-slots span.on{background:#F0E9DC;border:1px solid rgba(58,53,43,.14)}
+.v3-done .d-slots span img{width:100%;height:100%;object-fit:cover;display:block}
 .v3-done .d-slots span.pop{animation:dpop .35s ease}
 @keyframes dpop{50%{transform:scale(1.18)}}
 
@@ -134,13 +135,18 @@ export function mountEnd(host, zoneId, opts) {
 //   수집품 사진이 가운데 크게 → 그 사진이 오른쪽 위 보관함으로 날아 들어가 숫자가 오른다 → 해설 · 끝 줄
 // 이 페이지를 열 때 이미 담겨 있던 수집품(앱이 ?got= 으로 넘김) — 다시 들어왔을 때 담기는 연출을 되풀이하지 않게
 const SAVED0 = new Set(COLLECT_IDS.filter((id) => store.saved(id)));
+// 11/23 수집품 카드 그림 — 앱과 같은 것(kippu-app/scripts/collect/make_cards.py): 같은 바탕 · 크기 · 그림자 · 금 액자
+const CC = { salon: 'img/cc_salon.jpg', flyer: 'img/cc_flyer.jpg', ticket: 'img/cc_ticket.jpg', paint: 'img/cc_paint.jpg', sunrise: 'img/cc_sunrise.jpg' };
+const ccOf = (id) => (CC[id] ? new URL(CC[id], V3).href : '');
 export function showComplete(zoneId, { item, title = '', body = '', note = '', more, cap = '미션 완료' } = {}) {
   style();
   void more;
   const zone = ZONES.find((z) => z.id === zoneId);
   const total = COLLECT_IDS.length, got = COLLECT_IDS.filter((id) => store.saved(id)).length;
-  const img = item?.img ? new URL(item.img, V3).href : '';
   const slot = COLLECT_IDS.findIndex((id) => ZONES.find((z) => z.id === zoneId)?.tasks.some((t) => t.id === id));   // 이 구역 수집품 칸(없으면 -1 · 나다르)
+  const cc = slot >= 0 ? ccOf(COLLECT_IDS[slot]) : '';   // 11/23 수집품 카드 그림(앱과 같은 것) — 큰 카드 · 날아가는 사본 · 칸 모두
+  const img = cc || (item?.img ? new URL(item.img, V3).href : '');
+  if (cc && item) item = { ...item, contain: false };
   const el = document.createElement('div');
   el.className = 'v3-done';
   el.innerHTML = `<div class="d-bar"><a href="${esc(HUB)}" aria-label="목록으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
@@ -150,7 +156,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
       <p class="d-cap">${esc(cap)}</p>
       ${img ? `<div class="d-card"><img src="${esc(img)}" alt="" class="${item.contain ? '' : 'cover'}"></div>` : ''}
       ${item?.name ? `<p class="d-name">${esc(item.name)}</p>` : ''}${item?.sub ? `<p class="d-sub">${esc(item.sub)}</p>` : ''}
-      ${slot >= 0 ? `<div class="d-col"><p class="d-colt">나의 수집품 <b>${got - 1}</b> / ${total}</p><div class="d-slots">${COLLECT_IDS.map((id, i) => { const it = findTask(id)?.task?.item; const on = i !== slot && store.saved(id); return `<span class="${on ? 'on' : ''}${i === slot ? ' me' : ''}">${on && it?.img ? `<img src="${esc(new URL(it.img, V3).href)}" alt="">` : ''}</span>`; }).join('')}</div></div>` : ''}
+      ${slot >= 0 ? `<div class="d-col"><p class="d-colt">나의 수집품 <b>${got - 1}</b> / ${total}</p><div class="d-slots">${COLLECT_IDS.map((id, i) => { const it = findTask(id)?.task?.item; const on = i !== slot && store.saved(id); return `<span class="${on ? 'on' : ''}${i === slot ? ' me' : ''}">${on && (ccOf(id) || it?.img) ? `<img src="${esc(ccOf(id) || new URL(it.img, V3).href)}" alt="">` : ''}</span>`; }).join('')}</div></div>` : ''}
       <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}</div>
     </div></div>
     <div class="d-foot"></div>`;
