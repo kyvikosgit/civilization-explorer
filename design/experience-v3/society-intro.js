@@ -15,6 +15,7 @@ function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; 
 
 // 시간표(초)
 const TL = { title: 0.3, curtain: 1.2, curtainD: 1.6, window: 2.5, windowD: 1.5, dolly: 3.3, dollyD: 3.6, out: 7.0 };
+const START = 2.4;   // 11/23: 앞 2.4초(제목 · 어둠 · 커튼 앞부분)를 잘라 4.6초로
 
 const WIN = { W: 1.5, H: 2.75, Y0: 0.05 };          // 창(프랑스식 여닫이 · 바닥까지)
 const WALL_T = 0.36;                                // 벽 두께(창 안쪽 깊이)
@@ -230,7 +231,7 @@ export function playSocietyIntro({ onDone, onStart } = {}) {
   }
   function frame(now) {
     if (done) return;
-    const t = (now - t0) / 1000 * ((window.M100_INTRO && window.M100_INTRO.speed) || 1);   // 11/23 짧은 도입(introctl.js 배속)
+    const t = START + (now - t0) / 1000 * ((window.M100_INTRO && window.M100_INTRO.speed) || 1);   // 11/23 짧은 도입: 커튼이 걷히는 순간부터(START)
     const a = dustGeo.attributes.position.array;
     for (let i = 0; i < N; i++) { a[i * 3] += vel[i][0] * 0.016; a[i * 3 + 1] += vel[i][1] * 0.016; a[i * 3 + 2] += vel[i][2] * 0.016; }
     dustGeo.attributes.position.needsUpdate = true;

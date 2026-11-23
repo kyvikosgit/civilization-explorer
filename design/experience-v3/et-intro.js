@@ -25,7 +25,8 @@ function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; 
 const OPEN = 1.7, PAINT_AT = 2.0,   // 여는 장면(어둠에서 화실이 드러나며 이젤로 다가감) 뒤에 붓질
       SWEEP = 0.5, GAP = 0.34, NS = 8;
 const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.5;
-const OUT_GO = DET_AT + DET + 0.15, OUT_D = 2.2;              // 밖으로: 벽 · 바닥이 걷히고 빛 · 사진 · 그림 색
+const OUT_GO = DET_AT + DET + 0.15, OUT_D = 1.5;   // 11/23: 밖으로 나가는 구간 2.2 → 1.5
+const START = 2.6;   // 11/23: 앞 2.6초(어둠에서 화실이 드러나며 이젤로 다가감 · 첫 붓질)를 잘라 약 4.5초로              // 밖으로: 벽 · 바닥이 걷히고 빛 · 사진 · 그림 색
 const OUT_AT = OUT_GO + OUT_D + 0.2;
 
 // 캔버스(그림) 크기 — 그림 비율 그대로(야외용 작은 캔버스)
@@ -504,7 +505,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const T0 = performance.now();
   const tick = (now) => {
     if (done) return;
-    const t = (now - T0) / 1000 * ((window.M100_INTRO && window.M100_INTRO.speed) || 1);   // 11/23 짧은 도입(introctl.js 배속)
+    const t = START + (now - T0) / 1000 * ((window.M100_INTRO && window.M100_INTRO.speed) || 1);   // 11/23 짧은 도입: 붓질 중간부터(START)
     paintTo(t); outTo(t);
     if (t > PAINT_AT + 1.3) title.classList.remove('on');
     pose(t); render();

@@ -451,7 +451,8 @@ function spring(x, v, target, k, c, dt) { const a = k * (target - x) - c * v; v 
 //   대기실(어둠, 문틈의 빛) → 두 짝 문이 안쪽으로 열린다 → 문이 다 열린 뒤에 걷기 시작해 문간 한가운데를 지나(문짝·벽과 1.5m 이상 떨어져) 전시실로
 //   → 천창의 빛줄기·먼지 속을 눈높이로 걸어 → 후보작 벽 앞에 정면으로 서고, 빛이 후보작을 한 번 쓸고 지나간다
 const TL = { doors: [350, 1650], walk: [1250, 4300], air: [900, 2200], airOut: [3600, 4500], sweep: [3700, 4500], role: 3900, end: 4500 };
-let tI = 0, speed = (window.M100_INTRO && window.M100_INTRO.speed) || 1, roleShown = false, introCams = null;   // 11/23 짧은 도입(introctl.js 배속)
+// 11/23 짧은 도입: 속도는 그대로, 앞부분(어둠 · 문 열림 · 전시실 앞쪽 걷기)을 잘라 문이 열린 채 전시실 중간에서 시작(2.0초 지점)
+let tI = 2000, speed = (window.M100_INTRO && window.M100_INTRO.speed) || 1, roleShown = false, introCams = null;
 function stepIntro(dt, now) {
   tI += dt * 1000 * speed; const time = now / 1000;
   const od = eio(seg(tI, ...TL.doors));

@@ -14,8 +14,8 @@
       try { if (window.parent !== window) window.parent.postMessage(m, '*'); } catch (e) {}
     }, delay == null ? 700 : delay);
   }
-  // 11/23: 도입을 다시 살리되 아주 짧게 — 모든 3D 도입이 이 배속으로 돈다(살롱 · 시민사회 · 에트르타 · 산업혁명). ?introSpeed= 로 바꿔 볼 수 있음
-  var sp = parseFloat(q.get('introSpeed')); var speed = sp > 0 ? sp : 2.6;
+  // 11/23: 도입을 다시 살림 — 속도는 원래대로(1), 짧게 하는 건 각 도입이 앞부분을 잘라서(살롱 · 시민사회 · 에트르타 START). ?introSpeed= 로 시험용 배속
+  var sp = parseFloat(q.get('introSpeed')); var speed = sp > 0 ? sp : 1;
   window.M100_INTRO = { mode: mode, ended: ended, speed: speed };
   if (mode === 'only') {
     document.documentElement.classList.add('intro-only');
