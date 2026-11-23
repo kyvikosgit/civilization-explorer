@@ -22,7 +22,7 @@ p{font-size:17px;line-height:1.5;color:#5F5F58;margin:12px 0 0}
 <div class="card">
   <div class="cap" id="floor">MONET 100</div>
   <h1 id="name">잇다</h1>
-  <p>잇다 앱에서 열립니다</p>
+  <p id="msg">잇다 앱에서 열립니다</p>
   <a class="btn" id="open" href="civilization-explorer://">앱으로 열기</a>
   <div class="stores">
     <a href="https://apps.apple.com/kr/app/id6821820351">App Store</a>
@@ -33,6 +33,14 @@ p{font-size:17px;line-height:1.5;color:#5F5F58;margin:12px 0 0}
 var Z={start:['4층','전시 시작'],entrance:['4층','프롤로그'],salon:['4층','살롱'],society:['4층','시민사회'],industry:['4층','사업가의 사무실'],
   atelier:['4층','화가의 아틀리에'],nadar:['4층','나다르 사진관'],monet:['4층','인상파 전시회'],down:['3층','3층 입구'],series:['3층','모네 전시관'],
   giverny:['3층','지베르니'],meules:['3층','건초더미'],lineage:['3층','감각의 계보'],shop:['3층','굿즈샵']};
+// 11/23 기기 언어(앱 언어 설정과 같은 판정) — 영 · 일 · 중
+var LG=(navigator.language||'ko').toLowerCase();LG=LG.indexOf('ko')===0?'ko':LG.indexOf('ja')===0?'ja':LG.indexOf('zh')===0?'zh':'en';
+var TX={en:{msg:'Opens in the Itda app',open:'Open in app',fl:{'4층':'4F','3층':'3F'},n:{start:'Start the exhibition',entrance:'Prologue',salon:'The Salon',society:'Civil Society',industry:"The Businessman's Office",atelier:"The Painter's Studio",nadar:"Nadar's Studio",monet:'The Impressionist Exhibition',down:'3F Entrance',series:'Monet Gallery',giverny:'Giverny',meules:'Haystacks',lineage:'Lineage of the Senses',shop:'Gift Shop'}},
+ ja:{msg:'Itdaアプリで開きます',open:'アプリで開く',fl:{'4층':'4階','3층':'3階'},n:{start:'展示をはじめる',entrance:'プロローグ',salon:'サロン',society:'市民社会',industry:'実業家の事務所',atelier:'画家のアトリエ',nadar:'ナダールの写真館',monet:'印象派展',down:'3階入口',series:'モネ展示館',giverny:'ジヴェルニー',meules:'積みわら',lineage:'感覚の系譜',shop:'グッズショップ'}},
+ zh:{msg:'将在 Itda 应用中打开',open:'在应用中打开',fl:{'4층':'4楼','3층':'3楼'},n:{start:'开始观展',entrance:'序章',salon:'沙龙',society:'市民社会',industry:'商人的办公室',atelier:'画家的画室',nadar:'纳达尔照相馆',monet:'印象派画展',down:'3楼入口',series:'莫奈展厅',giverny:'吉维尼',meules:'干草堆',lineage:'感知的谱系',shop:'文创商店'}}};
+document.documentElement.lang=LG;
+if(TX[LG]){document.body.style.wordBreak='normal';document.getElementById('msg').textContent=TX[LG].msg;document.getElementById('open').textContent=TX[LG].open;
+  for(var k in Z){Z[k]=[TX[LG].fl[Z[k][0]]||Z[k][0],TX[LG].n[k]||Z[k][1]];}}
 var id=(location.pathname.split('/z/')[1]||'').replace(/\/.*$/,'').toLowerCase();
 var z=Z[id];
 if(z){document.getElementById('floor').textContent='MONET 100 · '+z[0];document.getElementById('name').textContent=z[1];document.title='MONET 100 · '+z[1];}
