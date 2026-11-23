@@ -6,10 +6,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import SCENES from './scenes.js?v=44';
+import SCENES from './scenes.js?v=45';
 
 const THREE_VER = '0.169.0';
-const MODEL = new URL('../models/floor.glb?v=46' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
+const MODEL = new URL('../models/floor.glb?v=47' + (/[?&]debug\b/.test(location.search) ? '&t=' + Date.now() : ''), import.meta.url).href;
 const ENV_INTENSITY = 0.55;   // RoomEnvironment: Blender의 큰 면조명·간접광 대신 (라이트맵 베이크 없음)
 const isSmall = () => matchMedia('(max-width: 640px)').matches;
 
@@ -498,7 +498,9 @@ export function createTour({ stage, plan, onZone, onPin }) {
     if (Math.abs(V.yawT - V.yaw) > 1e-5 || Math.abs(V.pitchT - V.pitch) > 1e-5) { V.yaw += (V.yawT - V.yaw) * a; V.pitch += (V.pitchT - V.pitch) * a; moved = true; }
     if (Math.abs(V.zoomT - V.zoom) > 1e-4) { V.zoom += (V.zoomT - V.zoom) * a; applyFov(); moved = true; }
     camera.rotation.set(V.pitch, V.yaw, 0); camera.position.y = EYE;
-    if (moved) { if (!zoneLock && !glide && !route) { const z = regionOf(lookPoint()); if (z !== T.zone) setZone(z); } relight(); }
+    // 11/23 모네 전시관(닫힌 방)은 어두운 방 — 방 안에 들어서면 주변광을 낮춰 〈인상, 해돋이〉 스포트만 남긴다
+    { const envT = camera.position.x < -21.9 ? 0.1 : ENV_INTENSITY; if (Math.abs(scene.environmentIntensity - envT) > 0.002) { scene.environmentIntensity += (envT - scene.environmentIntensity) * (1 - Math.exp(-dt * 4)); moved = true; } }
+    if (moved) { if (!zoneLock && !glide && !route) { const z = regionOf(lookPoint()); if (z !== T.zone) setZone(z); } relight(); T.onMove?.(camera); }
     if (moved || dirty) { renderer.render(scene, camera); labelR.render(scene, camera); updateYou(); dirty = false; }
   };
 
@@ -662,6 +664,10 @@ export function createTour({ stage, plan, onZone, onPin }) {
       return out;
     }, setPose: (x, z, yawDeg, pitchDeg = 0) => { camera.position.set(x, EYE, z); V.yaw = V.yawT = THREE.MathUtils.degToRad(yawDeg); V.pitch = V.pitchT = THREE.MathUtils.degToRad(pitchDeg); zoneLock = null; dirty = true; afterMove(); },
     snap: (w = 1600, h = 1000) => { const s = new THREE.Vector2(); renderer.getSize(s); const a = camera.aspect, pr = renderer.getPixelRatio(); renderer.setPixelRatio(1); camera.rotation.set(V.pitch, V.yaw, 0); camera.position.y = EYE; relight(true); renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.render(scene, camera); const u = renderer.domElement.toDataURL('image/jpeg', 0.9); renderer.setPixelRatio(pr); renderer.setSize(s.x, s.y, false); camera.aspect = a; camera.updateProjectionMatrix(); dirty = true; return u; } };
+  // 11/23 시뮬레이션(sim.js)용: 장면에 물건 더하기 · 다시 그리기 · 그 자리 막기
+  Object.assign(T, { scene, camera, V, redraw: () => { dirty = true; }, cellFree,
+    block: (x, z, r = 0.25) => { if (!grid) return; const R = r + 0.22; for (let j = Math.floor((z - R - GRID.z0) / GRID.s); j <= Math.floor((z + R - GRID.z0) / GRID.s); j++) for (let i = Math.floor((x - R - GRID.x0) / GRID.s); i <= Math.floor((x + R - GRID.x0) / GRID.s); i++) {
+      if (i < 0 || j < 0 || i >= GRID.nx || j >= GRID.nz) continue; const px = GRID.x0 + (i + 0.5) * GRID.s, pz = GRID.z0 + (j + 0.5) * GRID.s; if (Math.hypot(px - x, pz - z) <= R) grid.inf[j * GRID.nx + i] = 1; } } });
   const prevFly = T.flyTo;
   T.flyTo = (z, instant) => { if (!T.ready) { T.pending = z; plan.querySelectorAll('[data-zone]').forEach((e) => e.classList.toggle('on', e.dataset.zone === z)); onZone?.(z); return Promise.resolve(false); } return prevFly(z, instant); };
   tick();
