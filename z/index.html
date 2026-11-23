@@ -30,9 +30,9 @@ p{font-size:17px;line-height:1.5;color:#5F5F58;margin:12px 0 0}
   </div>
 </div>
 <script>
-var Z={start:['4층','전시 시작'],entrance:['4층','접수 및 안내'],salon:['4층','아카데미 살롱'],society:['4층','시민사회'],industry:['4층','산업혁명'],
-  atelier:['4층','화가의 아틀리에'],nadar:['4층','나다르 사진관'],monet:['4층','모네 전시관'],media:['4층','메인 미디어관'],lazare:['3층','생라자르역'],
-  etretat:['3층','에트르타'],meules:['3층','건초더미'],giverny:['3층','지베르니'],misia:['3층','미시아 살롱']};
+var Z={start:['4층','전시 시작'],entrance:['4층','프롤로그'],salon:['4층','살롱'],society:['4층','시민사회'],industry:['4층','사업가의 사무실'],
+  atelier:['4층','화가의 아틀리에'],nadar:['4층','나다르 사진관'],monet:['4층','인상파 전시회'],down:['3층','3층 입구'],series:['3층','모네 전시관'],
+  giverny:['3층','지베르니'],meules:['3층','건초더미'],lineage:['3층','감각의 계보'],shop:['3층','굿즈샵']};
 var id=(location.pathname.split('/z/')[1]||'').replace(/\/.*$/,'').toLowerCase();
 var z=Z[id];
 if(z){document.getElementById('floor').textContent='MONET 100 · '+z[0];document.getElementById('name').textContent=z[1];document.title='MONET 100 · '+z[1];}
