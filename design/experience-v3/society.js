@@ -169,10 +169,13 @@ async function streetIntro() {
   // 11/23 새 도입(2초): 모리스 칼럼의 전단지 앞에서 시작해 → 칼럼에서 물러나며 해 질 녘 카퓌신 대로가 드러난다(칼럼 프레임을 거꾸로 + 거리 그림이 어둠에서 밝아지며 물러남)
   //   예전 3D 방 · 창 도입(society-intro.js)은 쓰지 않음(?introOld 로 볼 수 있음)
   if (NO3D && !new URLSearchParams(location.search).has('introOld')) {
-    const img = streetEl; uncover();   // 모네 〈카퓌신 대로〉가 어둠에서 밝아지며 다가온다(1.9초)
-    const an = img.animate([{ transform: 'scale(1.2)', filter: 'brightness(.12)' }, { transform: 'scale(1)', filter: 'brightness(1)' }], { duration: 1900, easing: 'cubic-bezier(.3,.6,.25,1)' });
-    await Promise.race([an.finished, new Promise((r) => addEventListener('pointerdown', r, { once: true, capture: true }))]);
-    an.cancel();
+    // 11/23 도입(2초): 1874년 파리 대로 3D(society-street-intro.js) — 카페 앞에서 모리스 칼럼 옆을 지나 대로 위로 떠올라
+    //   모네가 그린 높은 시점에서 이 페이지 거리 그림과 같은 자리로 멈추고 걷힌다
+    uncover(); streetEl.classList.remove('push');
+    try {
+      const { playStreetIntro } = await import('./society-street-intro.js');
+      await new Promise((res) => playStreetIntro({ host: $('#stage'), imgEl: $('.st-img'), onDone: res }));
+    } catch (e) { console.warn('[intro]', e); }
   } else try {
     const { playSocietyIntro } = await import('./society-intro.js');
     await new Promise((res) => playSocietyIntro({ onDone: res, onStart: uncover }));
