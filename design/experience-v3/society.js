@@ -118,7 +118,8 @@ const GEN = { salon: ART.salon.full, expo: ART.expo.full, salonCover: ART.salon.
 let colImg = null;
 if (NO3D) {
   const st = document.createElement('style');
-  st.textContent = '#mv.no3d{display:none!important}#street{transition:transform 1.3s cubic-bezier(.35,.6,.25,1)!important}#street.near{transform:scale(1.22)!important}';
+  st.textContent = '#mv.no3d{display:none!important}#street.near{transform:none!important}'   // 11/23 줌인 없음
+    + 'body[data-step="2"] .s1:not(.s1-bottom),body[data-step="approach"] .s1:not(.s1-bottom){opacity:1!important;visibility:visible!important}';   // 칼럼 앞에서도 위 역할 문장 그대로
   document.head.appendChild(st); mvEl.classList.add('no3d');
   loaded = true; camLoading.classList.add('off');
 }
@@ -174,7 +175,7 @@ async function streetIntro() {
     uncover(); streetEl.classList.remove('push');
     try {
       const { playStreetIntro } = await import('./society-street-intro.js');
-      await new Promise((res) => playStreetIntro({ host: $('#stage'), onDone: res }));
+      await new Promise((res) => playStreetIntro({ host: streetEl, imgEl: $('.st-img'), under: $('.st-img'), onDone: res }));
     } catch (e) { console.warn('[intro]', e); }
   } else try {
     const { playSocietyIntro } = await import('./society-intro.js');

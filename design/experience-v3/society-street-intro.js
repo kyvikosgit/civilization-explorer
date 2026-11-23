@@ -4,25 +4,24 @@
 //   멈춘 자리에서 대로 끝의 모네 그림이 페이지 거리 그림(.st-img)과 화면 위 같은 자리 · 같은 크기 → 걷히면 그대로 이어짐.
 //   three.js(0.147) · 외부 모델 없음 · 그림 = 페이지와 같은 파일. 누르면 바로 끝. playStreetIntro({ host, imgEl, onDone })
 import * as T from 'three';
+import { mergeBufferGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const seg = (t, a, d) => clamp((t - a) / d);
 function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
-const TL = { dolly: 0, dollyD: 1.9, out: 1.2, outD: 0.75 };   // 끝 1.95초 — 마지막 0.75초 동안 3D 가 그림으로 서서히 바뀜
+const TL = { dolly: 0, dollyD: 1.85, proj: 0.95, projD: 0.45, out: 1.85, outD: 0.15 };   // 움직이는 동안 그림이 3D 면에 입혀져(투사) 남은 움직임은 그림 속에서 — 끝 프레임 = 페이지 그림   // 1.25–1.85초: 같은 그림을 끝 시점에서 3D 위에 투사해 서서히 입힘 → 끝 프레임 = 페이지 그림 → 걷힘
 
 function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t; }
 
-export function playStreetIntro({ host, onDone } = {}) {
+export function playStreetIntro({ host, imgEl, under, onDone } = {}) {   // under: 이 요소 바로 뒤(같은 부모 안)에 끼움 — 페이지 거리 위 덧층(하늘 · 안개)이 3D 위에도 그대로 얹힘
   const hb = host.getBoundingClientRect();
   const root = document.createElement('div');
   root.id = 'scStreetIntro'; root.setAttribute('aria-hidden', 'true');
   Object.assign(root.style, { position: 'fixed', left: hb.left + 'px', top: hb.top + 'px', width: hb.width + 'px', height: hb.height + 'px', zIndex: 80, background: '#bfc6d0' });
   const cv = document.createElement('canvas'); Object.assign(cv.style, { position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }); root.appendChild(cv);
-  // 끝 무렵 페이지 거리 그림과 같은 해 질 녘 톤으로 물든다(위는 어둡게 · 전체는 따뜻하게) — 그림으로 바뀔 때 밝기 차이가 없게
-  const tone = document.createElement('div'); Object.assign(tone.style, { position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0, background: 'linear-gradient(180deg, rgba(22,16,24,.72), rgba(40,28,26,.32) 45%, rgba(40,28,26,.22))' });
-  root.appendChild(tone);
-  document.body.appendChild(root);
+  if (under) { Object.assign(root.style, { position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', zIndex: 'auto' }); under.after(root); }
+  else document.body.appendChild(root);
   const VW = hb.width, VH = hb.height;
   const SPEED = (window.M100_INTRO && window.M100_INTRO.speed) || 1;
   const FREEZE = new URLSearchParams(location.search).get('ssT');
@@ -37,7 +36,7 @@ export function playStreetIntro({ host, onDone } = {}) {
   renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);
   renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.72;   // 페이지 거리 그림(.st-img, 어둡게 · 따뜻하게 보정됨)과 톤 맞춤
   const FOG = 0xbfc6d0;   // 그림 하늘과 같은 옅은 잿빛 하늘
-  const scene = new T.Scene(); scene.background = new T.Color(FOG); scene.fog = new T.Fog(FOG, 26, 110);
+  const scene = new T.Scene(); scene.background = new T.Color(FOG); scene.fog = new T.Fog(FOG, 45, 170);
   const cam = new T.PerspectiveCamera(58, VW / VH, 0.05, 200);
   const R = rnd(7);
   const std = (c, r = 0.8, m = 0) => new T.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
@@ -46,7 +45,7 @@ export function playStreetIntro({ host, onDone } = {}) {
 
   // ── 길: 포석 차도 · 양쪽 보도(연석)
   const Z0 = 16, Z1 = -60, L = Z0 - Z1, ZC = (Z0 + Z1) / 2, ROAD = 22, WALK = 6;
-  const cobble = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#6f675d'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 16) for (let x = (y / 16 % 2) * 8; x < w; x += 16) { const v = 0.8 + Math.random() * 0.35; g.fillStyle = `rgb(${110 * v | 0},${102 * v | 0},${92 * v | 0})`; g.fillRect(x + 1, y + 1, 14, 14); } });
+  const cobble = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#c9ccd4'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 16) for (let x = (y / 16 % 2) * 8; x < w; x += 16) { const v = 0.88 + Math.random() * 0.14; g.fillStyle = `rgb(${205 * v | 0},${208 * v | 0},${216 * v | 0})`;   /* 그림처럼 눈 덮인 듯 옅은 길 */ g.fillRect(x + 1, y + 1, 14, 14); } });
   cobble.wrapS = cobble.wrapT = T.RepeatWrapping; cobble.repeat.set(10, 26);
   const road = new T.Mesh(new T.PlaneGeometry(ROAD, L), new T.MeshStandardMaterial({ map: cobble, roughness: 0.75 })); road.rotation.x = -Math.PI / 2; road.position.set(0, 0, ZC); scene.add(road);
   for (const s of [-1, 1]) box(WALK, 0.18, L, std(0x7f776b, 0.9), s * (ROAD / 2 + WALK / 2), 0.09, ZC);
@@ -79,18 +78,20 @@ export function playStreetIntro({ host, onDone } = {}) {
   for (let i = 0; i < 6; i++) { const tx = ROAD / 2 + 1.4 + (i % 2) * 2, tz = 4.5 + Math.floor(i / 2) * 2.8; cyl(0.38, 0.38, 0.04, std(0x8f8a80, 0.5), tx, 0.78, tz, scene, 16); cyl(0.03, 0.05, 0.78, std(0x222222, 0.5, 0.5), tx, 0.39, tz); for (const a of [0, Math.PI]) { const c = box(0.4, 0.05, 0.4, std(0x3a2a1e), tx + Math.cos(a) * 0.7, 0.48, tz + Math.sin(a) * 0.7); c.userData = 1; } }
 
   // ── 가로수(겨울, 앙상) · 가스등
-  const bark = std(0x2e2622, 1);
-  // 겨울 가로수 — 줄기 · 굵은 가지 5 · 잔가지 3씩(모네 그림의 앙상한 나무)
+  const bark = std(0x3a302c, 1);
+  // 겨울 플라타너스 줄(양쪽 보도, 4.5m 간격) — 줄기 · 굵은 가지 7 · 잔가지 2단. 모두 한 덩어리로 합쳐 그린다(폰 부담 줄임)
+  const treeGeos = [], up = new T.Vector3(0, 1, 0), mtx = new T.Matrix4(), qt = new T.Quaternion(), one = new T.Vector3(1, 1, 1);
+  const piece = (x, y, z, len, r, dir) => { const g = new T.CylinderGeometry(r * 0.55, r, len, 5); qt.setFromUnitVectors(up, dir); mtx.compose(new T.Vector3(x + dir.x * len / 2, y + dir.y * len / 2, z + dir.z * len / 2), qt, one); g.applyMatrix4(mtx); treeGeos.push(g); };
   const limb = (x0, y0, z0, len, r, yaw, tilt, depth) => {
     const dir = new T.Vector3(Math.sin(tilt) * Math.cos(yaw), Math.cos(tilt), Math.sin(tilt) * Math.sin(yaw));
-    const m = cyl(r * 0.55, r, len, bark, 0, 0, 0, scene, 5);
-    m.position.set(x0 + dir.x * len / 2, y0 + dir.y * len / 2, z0 + dir.z * len / 2); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), dir);
-    if (depth > 0) for (let i = 0; i < 3; i++) limb(x0 + dir.x * len * 0.85, y0 + dir.y * len * 0.85, z0 + dir.z * len * 0.85, len * 0.6, r * 0.55, yaw + (R() - 0.5) * 1.6, tilt + (R() - 0.3) * 0.5, depth - 1);
+    piece(x0, y0, z0, len, r, dir);
+    if (depth > 0) for (let i = 0; i < 3; i++) limb(x0 + dir.x * len * 0.85, y0 + dir.y * len * 0.85, z0 + dir.z * len * 0.85, len * 0.62, r * 0.55, yaw + (R() - 0.5) * 1.8, tilt + (R() - 0.3) * 0.5, depth - 1);
   };
-  for (const s of [-1, 1]) for (let z = Z0 - 2; z > Z1; z -= 6.5) {
-    const x = s * (ROAD / 2 + 1.2); cyl(0.1, 0.18, 4.6, bark, x, 2.3, z, scene, 6);
-    for (let b = 0; b < 5; b++) limb(x, 4.3 + R() * 0.6, z, 2 + R() * 1.2, 0.08, R() * Math.PI * 2, 0.45 + R() * 0.45, 2);
+  for (const s of [-1, 1]) for (let z = Z0 - 1; z > Z1; z -= 4.5) {
+    const x = s * (ROAD / 2 + 1.2) + (R() - 0.5) * 0.4; piece(x, 0, z, 7.5, 0.24, up);
+    for (let b = 0; b < 7; b++) limb(x, 5 + R() * 2.4, z, 3 + R() * 2, 0.12, R() * Math.PI * 2, 0.35 + R() * 0.5, 2);
   }
+  scene.add(new T.Mesh(mergeBufferGeometries(treeGeos), bark));
   const lampM = new T.MeshBasicMaterial({ color: 0xffe2a8 });
   for (const s of [-1, 1]) for (let z = Z0 - 5; z > Z1; z -= 9) { const x = s * (ROAD / 2 + 0.5); cyl(0.05, 0.08, 3.6, std(0x1d2420, 0.5, 0.6), x, 1.8, z); const l = new T.Mesh(new T.BoxGeometry(0.32, 0.45, 0.32), lampM); l.position.set(x, 3.8, z); scene.add(l); }
 
@@ -107,7 +108,7 @@ export function playStreetIntro({ host, onDone } = {}) {
 
   // ── 행인 · 마차
   const coat = [std(0x1c1a1c), std(0x2a2522), std(0x3a2e2a), std(0x2c3036)], skin = std(0xc9a58a);
-  for (let i = 0; i < 170; i++) {
+  for (let i = 0; i < 320; i++) {
     const onWalk = R() < 0.45, s = R() < 0.5 ? -1 : 1, x = onWalk ? s * (ROAD / 2 + 1 + R() * (WALK - 2)) : (R() - 0.5) * (ROAD - 4), z = Z0 - 4 - R() * (L - 6);
     if (Math.hypot(x - (ROAD / 2 + 2.4), z + 4) < 1.5 || (x > ROAD / 2 - 2 && z > 2)) continue;   // 칼럼 · 출발점(카페 앞) 비움
     const p = new T.Group(); p.position.set(x, onWalk ? 0.18 : 0, z); scene.add(p);
@@ -128,7 +129,8 @@ export function playStreetIntro({ host, onDone } = {}) {
   // ── 카메라: 카페 앞 보도 → 칼럼 옆을 지나 → 길가 건물 3층 발코니 높이로 천천히 올라 대로를 비스듬히 내려다봄(모네 〈카퓌신 대로〉 구도)
   //   그 자리에서 3D 화면이 그림으로 서서히 바뀐다(덮개가 걷히며 페이지 거리 그림이 드러남) — 그림판을 따로 비추지 않음
   const Start = new T.Vector3(ROAD / 2 + 3.2, 1.65, 11), StartL = new T.Vector3(ROAD / 2 + 1.2, 2.0, -6);
-  const End = new T.Vector3(ROAD / 2 + WALK - 0.8, 12, 4.3), EndL = new T.Vector3(-7, 0.5, -26);   // 오른쪽 건물 발코니 — 대로를 대각선으로 내려다봄(건너편 건물 · 가로수 줄 · 군중, 그림 구도)   // 오른쪽 건물 정면 바로 앞(발코니 자리)
+  const End = new T.Vector3(ROAD / 2 + WALK - 0.8, 15.5, 8.2), EndL = new T.Vector3(-7, -1.5, -26);   // 가로수 꼭대기 위 · 나무 사이 — 가지 속을 지나지 않게   // 오른쪽 건물 발코니 — 대로를 대각선으로 내려다봄(그림 구도)
+  if (window.__ssEnd) { End.set(...window.__ssEnd.slice(0, 3)); EndL.set(...window.__ssEnd.slice(3)); }   // 점검용
   const P = new T.Vector3(), Lk = new T.Vector3();
   function pose(t) {
     const q = ease(seg(t, TL.dolly, TL.dollyD));
@@ -136,16 +138,71 @@ export function playStreetIntro({ host, onDone } = {}) {
     Lk.lerpVectors(StartL, EndL, Math.pow(q, 0.8));
     cam.position.copy(P); cam.lookAt(Lk);
   }
+  // ── 끝 시점 투사: 끝 카메라에서 본 화면 좌표 → 페이지 거리 그림(.st-img: cover · 가로 50% · 세로 34%, 보정 필터 포함)의 같은 점 색
+  //   3D 장면의 모든 면이 그 색을 받는다 → 끝 프레임에서 3D 화면 = 페이지 그림(픽셀 단위). 끝 직전에만 서서히 입히므로 움직임 중 일그러짐은 거의 안 보임
+  const endCam = cam.clone(); endCam.position.copy(End); endCam.lookAt(EndL); endCam.updateMatrixWorld(); endCam.updateProjectionMatrix();
+  const vp = new T.Matrix4().multiplyMatrices(endCam.projectionMatrix, endCam.matrixWorldInverse);
+  const IW = 1440, IH = 1942;
+  let rect = { x: 0, y: 0, w: VW, h: VW * IH / IW }, px = 0.5, py = 0.34;
+  if (imgEl) {
+    const r = imgEl.getBoundingClientRect(), cs = getComputedStyle(imgEl);
+    const pp = (v, d) => { const m = /([\d.]+)%/.exec(v || ''); return m ? +m[1] / 100 : d; };
+    px = pp(cs.backgroundPositionX, 0.5); py = pp(cs.backgroundPositionY, 0.34);
+    const k = Math.max(r.width / IW, r.height / IH), w = IW * k, h = IH * k;
+    rect = { x: r.left - hb.left + (r.width - w) * px, y: r.top - hb.top + (r.height - h) * py, w, h };
+  }
+  const ptex = new T.TextureLoader().load(new URL('../../booth/assets/img/morris_bg_capucines.jpg', import.meta.url).href, () => { ptexOk = true; if (FREEZE != null && !done) { draw(+FREEZE); window.__ssReady = true; } });
+  let ptexOk = false;
+  const projMat = new T.ShaderMaterial({
+    uniforms: { map: { value: ptex }, vp: { value: vp }, view: { value: new T.Vector2(VW, VH) }, rect: { value: new T.Vector4(rect.x, rect.y, rect.w, rect.h) }, op: { value: 0 } },
+    vertexShader: 'varying vec3 wp; void main(){ vec4 w = modelMatrix * vec4(position,1.0); wp = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+    fragmentShader: `uniform sampler2D map; uniform mat4 vp; uniform vec2 view; uniform vec4 rect; uniform float op; varying vec3 wp;
+      vec3 hue(vec3 c, float a){ const vec3 k = vec3(0.57735); float ca = cos(a); return c*ca + cross(k,c)*sin(a) + k*dot(k,c)*(1.0-ca); }
+      void main(){
+        vec4 cl = vp * vec4(wp,1.0); vec2 n = cl.xy / cl.w;
+        vec2 p = vec2((n.x*0.5+0.5)*view.x, (1.0-(n.y*0.5+0.5))*view.y);
+        vec2 uv = vec2((p.x-rect.x)/rect.z, 1.0-(p.y-rect.y)/rect.w);
+        vec3 c = texture2D(map, clamp(uv,0.0,1.0)).rgb;
+        // 페이지 .st-img 필터: brightness(.82) saturate(.95) contrast(1.06) sepia(.12) hue-rotate(-10deg)
+        c *= 0.82; float g = dot(c, vec3(0.2126,0.7152,0.0722)); c = mix(vec3(g), c, 0.95); c = (c-0.5)*1.06+0.5;
+        vec3 sp = vec3(dot(c,vec3(.393,.769,.189)), dot(c,vec3(.349,.686,.168)), dot(c,vec3(.272,.534,.131))); c = mix(c, sp, 0.12);
+        c = hue(c, radians(-10.0));
+        gl_FragColor = vec4(clamp(c,0.0,1.0), op);
+      }`,
+    toneMapped: false, side: T.DoubleSide,
+  });
+  // 투사 화면은 따로 그려(rt) 화면 전체 판으로 섞는다 — 같은 장면에 반투명으로 겹쳐 그리면 기기마다 깨짐
+  const rt = new T.WebGLRenderTarget(Math.round(VW * renderer.getPixelRatio()), Math.round(VH * renderer.getPixelRatio()));
+  const quadMat = new T.ShaderMaterial({ uniforms: { map: { value: rt.texture }, opacity: { value: 0 } }, transparent: true, depthTest: false, depthWrite: false, toneMapped: false,
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: 'uniform sampler2D map; uniform float opacity; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(map, vUv).rgb, opacity); }' });   // 값 그대로(색 변환 없이)
+  const quadScene = new T.Scene(), quadCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  quadScene.add(new T.Mesh(new T.PlaneGeometry(2, 2), quadMat));
+  // 하늘판: 끝 시선 너머 — 하늘 자리도 그림을 받게
+  const sky = new T.Mesh(new T.SphereGeometry(165, 32, 16), new T.MeshBasicMaterial({ color: FOG, fog: true, side: T.BackSide }));   // 모든 것 뒤를 감싸는 하늘 구(그림을 받음)
+  sky.position.copy(End); scene.add(sky);
+  scene.fog.far = Math.max(scene.fog.far, 170);
+  const draw = (t) => {
+    renderer.setRenderTarget(null); renderer.autoClear = true; renderer.render(scene, cam);
+    const fb = new URLSearchParams(location.search).get('ssB');
+    const b = ptexOk ? (fb != null ? +fb : ease(seg(t, TL.proj, TL.projD))) : 0;
+    if (b > 0) {
+      projMat.uniforms.op.value = 1; scene.overrideMaterial = projMat; const fg = scene.fog; scene.fog = null;
+      renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null);
+      scene.overrideMaterial = null; scene.fog = fg;
+      quadMat.uniforms.opacity.value = b; renderer.autoClear = false; renderer.render(quadScene, quadCam); renderer.autoClear = true;
+    }
+  };
   start();
   function start() {
     if (done) return;
-    pose(FREEZE != null ? +FREEZE : 0); renderer.compile(scene, cam); renderer.render(scene, cam);
-    if (FREEZE != null) { window.__ssReady = true; return; }
+    pose(FREEZE != null ? +FREEZE : 0); renderer.compile(scene, cam); draw(FREEZE != null ? +FREEZE : 0);
+    if (FREEZE != null) { if (ptexOk) window.__ssReady = true; return; }
     const t0 = performance.now();
     const frame = (now) => {
       if (done) return;
       const t = (now - t0) / 1000 * SPEED;
-      pose(t); renderer.render(scene, cam); tone.style.opacity = String(ease(seg(t, 0.8, 0.8)));
+      pose(t); draw(t);
       if (t >= TL.out) root.style.opacity = String(1 - seg(t, TL.out, TL.outD));
       if (t >= TL.out + TL.outD) return finish();
       raf = requestAnimationFrame(frame);
