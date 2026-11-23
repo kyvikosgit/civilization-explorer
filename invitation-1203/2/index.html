@@ -151,7 +151,7 @@ img{display:block;max-width:none}
   <img id="closed" src="/invitation/img/env_closed.webp" alt="MONET 100 밀랍 도장으로 봉한 초대장 봉투">
   <div id="flapWrap"><img class="face f" src="/invitation/img/env_flapclosed.webp" alt=""><img class="face b" src="/invitation/img/env_flap.webp" alt=""></div>
 </div>
-<p id="hint">봉투를 눌러 열어 주세요</p>
+<p id="hint">봉투를 눌러 열어 주십시오</p>
 
 <main id="read" aria-label="초대장">
   <section class="page p1" aria-label="표지">
@@ -179,9 +179,9 @@ img{display:block;max-width:none}
   <section class="hl" aria-label="전시 하이라이트"><div class="in">
     <h2>전시 하이라이트</h2>
     <ol>
-      <li><img src="/invitation-1203/img/hl_app.png" alt="" style="--w:62"><b>앱과 함께 더 깊어지는 전시</b><p>오디오 도슨트 까미유가 1873년 파리의 살롱부터<br>함께 걸으며 길을 안내합니다.<br>곳곳에 숨은 단서를 앱으로 모아 보세요.</p></li>
+      <li><img src="/invitation-1203/img/hl_app.png" alt="" style="--w:62"><b>앱과 함께 더 깊어지는 전시</b><p>오디오 도슨트 까미유가 1873년 파리의 살롱부터<br>함께 걸으며 길을 안내합니다.<br>곳곳에 숨은 단서를 앱으로 모아 보시기 바랍니다.</p></li>
       <li><img src="/invitation-1203/img/hl_building.png" alt="" style="--w:128"><b>헤리티지에 물드는 모네의 빛</b><p>서울시 유형문화유산 더 헤리티지의<br>천장과 벽이 캔버스가 됩니다.</p></li>
-      <li><img src="/invitation-1203/img/hl_garden.png" alt="" style="--w:126"><b>한겨울의 마법 같은 지베르니 정원</b><p>모네가 평생 가꾼 정원이 전시장 안에 피어납니다.<br>모네가 가장 사랑한 풍경 속에서 잠시 쉬어 가세요.</p></li>
+      <li><img src="/invitation-1203/img/hl_garden.png" alt="" style="--w:126"><b>한겨울의 마법 같은 지베르니 정원</b><p>모네가 평생 가꾼 정원이 전시장 안에 피어납니다.<br>모네가 가장 사랑한 풍경 속에서 잠시 쉬어 가시기 바랍니다.</p></li>
     </ol>
     <p class="note">* 본 행사는 초청받으신 분에 한해 입장하실 수 있습니다.</p>
     <p class="place">신세계본점 더 헤리티지 4F 뮤지엄<small>서울시 중구 남대문로 42</small></p>
@@ -195,7 +195,7 @@ img{display:block;max-width:none}
         <div class="att" role="group" aria-label="참석 여부"><button type="button" data-a="1" aria-pressed="false">참석</button><button type="button" data-a="0" aria-pressed="false">불참석</button></div>
         <div class="f" id="rYes" hidden><label for="rName">성함</label><input id="rName" type="text" autocomplete="name" maxlength="40" placeholder="성함"></div>
         <div class="f" id="rYes2" hidden><label for="rPhone">전화번호</label><input id="rPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="13" placeholder="010-0000-0000"></div>
-        <p class="nope" id="rNo" hidden>함께하지 못하셔서 아쉽습니다.<br>마음 써 주셔서 감사합니다.<br>전시 기간 중 편하실 때 꼭 들러 주세요.</p>
+        <p class="nope" id="rNo" hidden>함께하지 못하셔서 아쉽습니다.<br>마음 써 주셔서 감사합니다.<br>전시 기간 중 편하실 때 꼭 들러 주시기 바랍니다.</p>
         <p class="msg" role="status" aria-live="polite"></p>
         <button class="send" type="submit" hidden>보내기</button>
       </form>
@@ -280,8 +280,8 @@ img{display:block;max-width:none}
     if (!att) return;
     var name = $('rName').value.trim(), phone = ph.value.replace(/\D/g, '');
     if (att) {
-      if (!name) { msg.textContent = '성함을 입력해 주세요.'; $('rName').focus(); return; }
-      if (phone.length < 9) { msg.textContent = '전화번호를 다시 확인해 주세요.'; ph.focus(); return; }
+      if (!name) { msg.textContent = '성함을 입력해 주십시오.'; $('rName').focus(); return; }
+      if (phone.length < 9) { msg.textContent = '전화번호를 다시 확인해 주십시오.'; ph.focus(); return; }
     }
     send.disabled = true;
     try {
@@ -291,7 +291,7 @@ img{display:block;max-width:none}
       rs.querySelector('.done .dt').innerHTML = att ? '감사합니다.<br>12월 3일에 뵙겠습니다.' : '회신해 주셔서 감사합니다.';
       rs.querySelector('.done span:not(.dt)').textContent = att ? name + ' · ' + fmtPhone(phone) : '';
       rs.classList.add('ok');
-    } catch (err) { msg.textContent = '보내지 못했습니다. 잠시 후 다시 시도해 주세요.'; }
+    } catch (err) { msg.textContent = '보내지 못했습니다. 잠시 후 다시 시도해 주십시오.'; }
     send.disabled = false;
   });
   if (/[?&]open=1/.test(location.search)) { body.classList.add('reading', 'leave'); root.classList.add('reading'); stage.style.visibility = 'hidden'; hint.style.display = 'none'; state = 'read'; }
