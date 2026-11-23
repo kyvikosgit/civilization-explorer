@@ -174,7 +174,7 @@ async function streetIntro() {
     uncover(); streetEl.classList.remove('push');
     try {
       const { playStreetIntro } = await import('./society-street-intro.js');
-      await new Promise((res) => playStreetIntro({ host: $('#stage'), imgEl: $('.st-img'), onDone: res }));
+      await new Promise((res) => playStreetIntro({ host: $('#stage'), onDone: res }));
     } catch (e) { console.warn('[intro]', e); }
   } else try {
     const { playSocietyIntro } = await import('./society-intro.js');

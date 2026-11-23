@@ -5,23 +5,23 @@
 //   three.js(0.147) · 외부 모델 없음 · 그림 = 페이지와 같은 파일. 누르면 바로 끝. playStreetIntro({ host, imgEl, onDone })
 import * as T from 'three';
 
-const PAINT = new URL('../../booth/assets/img/morris_bg_capucines.jpg', import.meta.url).href;   // 모네 〈카퓌신 대로〉 1873 · 넬슨앳킨스 · PD
-const IAR = 1440 / 1942;
 const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const seg = (t, a, d) => clamp((t - a) / d);
 function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
-const TL = { dolly: 0, dollyD: 1.6, out: 1.55, outD: 0.4 };
-const PZ = -70, PH = 46, PW = PH * IAR;   // 그림판: 대로 끝 · 밑변이 땅
+const TL = { dolly: 0, dollyD: 1.9, out: 1.2, outD: 0.75 };   // 끝 1.95초 — 마지막 0.75초 동안 3D 가 그림으로 서서히 바뀜
 
 function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t; }
 
-export function playStreetIntro({ host, imgEl, onDone } = {}) {
+export function playStreetIntro({ host, onDone } = {}) {
   const hb = host.getBoundingClientRect();
   const root = document.createElement('div');
   root.id = 'scStreetIntro'; root.setAttribute('aria-hidden', 'true');
   Object.assign(root.style, { position: 'fixed', left: hb.left + 'px', top: hb.top + 'px', width: hb.width + 'px', height: hb.height + 'px', zIndex: 80, background: '#bfc6d0' });
   const cv = document.createElement('canvas'); Object.assign(cv.style, { position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }); root.appendChild(cv);
+  // 끝 무렵 페이지 거리 그림과 같은 해 질 녘 톤으로 물든다(위는 어둡게 · 전체는 따뜻하게) — 그림으로 바뀔 때 밝기 차이가 없게
+  const tone = document.createElement('div'); Object.assign(tone.style, { position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0, background: 'linear-gradient(180deg, rgba(22,16,24,.72), rgba(40,28,26,.32) 45%, rgba(40,28,26,.22))' });
+  root.appendChild(tone);
   document.body.appendChild(root);
   const VW = hb.width, VH = hb.height;
   const SPEED = (window.M100_INTRO && window.M100_INTRO.speed) || 1;
@@ -37,7 +37,7 @@ export function playStreetIntro({ host, imgEl, onDone } = {}) {
   renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1)); renderer.setSize(VW, VH, false);
   renderer.outputEncoding = T.sRGBEncoding; renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.72;   // 페이지 거리 그림(.st-img, 어둡게 · 따뜻하게 보정됨)과 톤 맞춤
   const FOG = 0xbfc6d0;   // 그림 하늘과 같은 옅은 잿빛 하늘
-  const scene = new T.Scene(); scene.background = new T.Color(FOG); scene.fog = new T.Fog(FOG, 14, 62);
+  const scene = new T.Scene(); scene.background = new T.Color(FOG); scene.fog = new T.Fog(FOG, 26, 110);
   const cam = new T.PerspectiveCamera(58, VW / VH, 0.05, 200);
   const R = rnd(7);
   const std = (c, r = 0.8, m = 0) => new T.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
@@ -45,7 +45,7 @@ export function playStreetIntro({ host, imgEl, onDone } = {}) {
   const cyl = (r1, r2, h, m, x, y, z, p = scene, sg = 12) => { const o = new T.Mesh(new T.CylinderGeometry(r1, r2, h, sg), m); o.position.set(x, y, z); p.add(o); return o; };
 
   // ── 길: 포석 차도 · 양쪽 보도(연석)
-  const Z0 = 16, Z1 = -40, L = Z0 - Z1, ZC = (Z0 + Z1) / 2, ROAD = 22, WALK = 6;
+  const Z0 = 16, Z1 = -60, L = Z0 - Z1, ZC = (Z0 + Z1) / 2, ROAD = 22, WALK = 6;
   const cobble = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#6f675d'; g.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 16) for (let x = (y / 16 % 2) * 8; x < w; x += 16) { const v = 0.8 + Math.random() * 0.35; g.fillStyle = `rgb(${110 * v | 0},${102 * v | 0},${92 * v | 0})`; g.fillRect(x + 1, y + 1, 14, 14); } });
   cobble.wrapS = cobble.wrapT = T.RepeatWrapping; cobble.repeat.set(10, 26);
   const road = new T.Mesh(new T.PlaneGeometry(ROAD, L), new T.MeshStandardMaterial({ map: cobble, roughness: 0.75 })); road.rotation.x = -Math.PI / 2; road.position.set(0, 0, ZC); scene.add(road);
@@ -69,8 +69,8 @@ export function playStreetIntro({ host, imgEl, onDone } = {}) {
     const x0 = s * (ROAD / 2 + WALK + 4);
     for (let z = Z0 - 6, k = 0; z > Z1 + 2; z -= 12, k++) {
       const H = 17 + R() * 2.5, m = new T.MeshStandardMaterial({ map: facade(11 + k * 3 + (s > 0 ? 50 : 0)), roughness: 0.9 });
-      const b = box(8, H, 11.6, [std(0xd8cfbc, 0.9), std(0xd8cfbc, 0.9), std(0xd8cfbc, 0.9), std(0xd8cfbc, 0.9), m, m], x0, H / 2, z);
-      b.rotation.y = s * Math.PI / 2;   // 정면(면 4 · 5)이 대로 쪽
+      const side = std(0xd8cfbc, 0.9), mats = [side, side, side, side, side, side]; mats[s < 0 ? 0 : 1] = m;   // 대로 쪽 면(+x 또는 -x)에만 정면
+      box(8, H, 11.6, mats, x0, H / 2, z);
       const roof = new T.Mesh(new T.CylinderGeometry(0.01, 5.5, 4.2, 4, 1), zinc); roof.scale.set(1, 1, 1.45); roof.rotation.y = Math.PI / 4; roof.position.set(x0, H + 2.1, z); scene.add(roof);
     }
   }
@@ -107,8 +107,8 @@ export function playStreetIntro({ host, imgEl, onDone } = {}) {
 
   // ── 행인 · 마차
   const coat = [std(0x1c1a1c), std(0x2a2522), std(0x3a2e2a), std(0x2c3036)], skin = std(0xc9a58a);
-  for (let i = 0; i < 70; i++) {
-    const onWalk = R() < 0.7, s = R() < 0.5 ? -1 : 1, x = onWalk ? s * (ROAD / 2 + 1 + R() * (WALK - 2)) : (R() - 0.5) * (ROAD - 4), z = Z0 - 4 - R() * (L - 6);
+  for (let i = 0; i < 170; i++) {
+    const onWalk = R() < 0.45, s = R() < 0.5 ? -1 : 1, x = onWalk ? s * (ROAD / 2 + 1 + R() * (WALK - 2)) : (R() - 0.5) * (ROAD - 4), z = Z0 - 4 - R() * (L - 6);
     if (Math.hypot(x - (ROAD / 2 + 2.4), z + 4) < 1.5 || (x > ROAD / 2 - 2 && z > 2)) continue;   // 칼럼 · 출발점(카페 앞) 비움
     const p = new T.Group(); p.position.set(x, onWalk ? 0.18 : 0, z); scene.add(p);
     const c = coat[(R() * coat.length) | 0]; cyl(0.18, 0.28, 1.35, c, 0, 0.7, 0, p, 8); const hd = new T.Mesh(new T.SphereGeometry(0.12, 8, 6), skin); hd.position.y = 1.52; p.add(hd);
@@ -121,39 +121,22 @@ export function playStreetIntro({ host, imgEl, onDone } = {}) {
     box(0.8, 1.4, 1.8, std(0x5a4636), 0, 0.9, 2.6, c);   // 말
   }
 
-  // ── 그림판: 대로 끝 모네 〈카퓌신 대로〉(빛 · 안개를 받지 않음, 페이지와 같은 색으로 살짝 낮춤)
-  const paintMat = new T.MeshBasicMaterial({ color: new T.Color(0.68, 0.62, 0.6), toneMapped: false, fog: false, transparent: true, opacity: 0 });   // 떠오르는 동안 안개 속에서 드러남
-  const paint = new T.Mesh(new T.PlaneGeometry(PW, PH), paintMat); paint.position.set(0, PH / 2, PZ); scene.add(paint);
-  // 그림 둘레: 같은 그림을 크게 늘여 뒤에 — 떠오르는 동안 그림 가장자리 너머가 빈 하늘로 보이지 않게
-  const backMat = new T.MeshBasicMaterial({ color: new T.Color(0.6, 0.57, 0.56), toneMapped: false, fog: false, transparent: true, opacity: 0 });
-  const back = new T.Mesh(new T.PlaneGeometry(PW * 3.2, PH * 2.2), backMat); back.position.set(0, PH * 0.6, PZ - 0.5); scene.add(back);
-
   // ── 빛: 겨울 오후 — 옅은 하늘빛 + 낮은 해
   scene.add(new T.HemisphereLight(0xd8dcec, 0x5a4e44, 0.75));
   const sun = new T.DirectionalLight(0xffe6c8, 0.9); sun.position.set(-20, 18, -30); scene.add(sun);
 
-  // ── 카메라 끝자리: 그림판이 페이지 .st-img 의 실제 그림 자리(배경 cover · 가로 50% · 세로 34%)와 같은 자리 · 같은 크기
-  const br = imgEl.getBoundingClientRect();
-  const k = Math.max(br.width / IAR, br.height) ;   // cover: 세로 기준 높이(px) — 폭은 k*IAR
-  const dh = Math.max(br.height, br.width / IAR), dw = dh * IAR;
-  const rx = br.left + (br.width - dw) * 0.5, ry = br.top + (br.height - dh) * 0.34;
-  void k;
-  const f = (VH / 2) / Math.tan(T.MathUtils.degToRad(cam.fov) / 2);
-  const d = PH * f / dh;
-  const cxPx = rx + dw / 2 - hb.left - VW / 2, cyPx = ry + dh / 2 - hb.top - VH / 2;
-  const End = new T.Vector3(-cxPx * d / f, PH / 2 + cyPx * d / f, PZ + d), EndL = new T.Vector3(End.x, End.y, PZ);
-  const Start = new T.Vector3(ROAD / 2 + 3.2, 1.65, 11), StartL = new T.Vector3(ROAD / 2 + 1.2, 2.2, -6);
+  // ── 카메라: 카페 앞 보도 → 칼럼 옆을 지나 → 길가 건물 3층 발코니 높이로 천천히 올라 대로를 비스듬히 내려다봄(모네 〈카퓌신 대로〉 구도)
+  //   그 자리에서 3D 화면이 그림으로 서서히 바뀐다(덮개가 걷히며 페이지 거리 그림이 드러남) — 그림판을 따로 비추지 않음
+  const Start = new T.Vector3(ROAD / 2 + 3.2, 1.65, 11), StartL = new T.Vector3(ROAD / 2 + 1.2, 2.0, -6);
+  const End = new T.Vector3(ROAD / 2 + WALK - 0.8, 12, 4.3), EndL = new T.Vector3(-7, 0.5, -26);   // 오른쪽 건물 발코니 — 대로를 대각선으로 내려다봄(건너편 건물 · 가로수 줄 · 군중, 그림 구도)   // 오른쪽 건물 정면 바로 앞(발코니 자리)
   const P = new T.Vector3(), Lk = new T.Vector3();
   function pose(t) {
     const q = ease(seg(t, TL.dolly, TL.dollyD));
-    P.lerpVectors(Start, End, q); P.y = Start.y + (End.y - Start.y) * Math.pow(q, 1.6);   // 칼럼 옆은 낮게 지나고 뒤에서 떠오름
-    Lk.lerpVectors(StartL, EndL, Math.pow(q, 0.7));
+    P.lerpVectors(Start, End, q); P.y = Start.y + (End.y - Start.y) * Math.pow(q, 1.8);
+    Lk.lerpVectors(StartL, EndL, Math.pow(q, 0.8));
     cam.position.copy(P); cam.lookAt(Lk);
-    if (q >= 0.999) { cam.position.copy(End); cam.rotation.set(0, 0, 0); }
-    paintMat.opacity = backMat.opacity = ease(seg(q, 0.28, 0.32));
   }
-
-  new T.TextureLoader().load(PAINT, (tx) => { tx.encoding = T.sRGBEncoding; paintMat.map = tx; paintMat.needsUpdate = true; backMat.map = tx; backMat.needsUpdate = true; start(); }, undefined, () => start());
+  start();
   function start() {
     if (done) return;
     pose(FREEZE != null ? +FREEZE : 0); renderer.compile(scene, cam); renderer.render(scene, cam);
@@ -162,7 +145,7 @@ export function playStreetIntro({ host, imgEl, onDone } = {}) {
     const frame = (now) => {
       if (done) return;
       const t = (now - t0) / 1000 * SPEED;
-      pose(t); renderer.render(scene, cam);
+      pose(t); renderer.render(scene, cam); tone.style.opacity = String(ease(seg(t, 0.8, 0.8)));
       if (t >= TL.out) root.style.opacity = String(1 - seg(t, TL.out, TL.outD));
       if (t >= TL.out + TL.outD) return finish();
       raf = requestAnimationFrame(frame);
