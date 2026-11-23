@@ -14,8 +14,9 @@ const seg = (t, a, d) => clamp((t - a) / d);
 function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 
 // 시간표(초)
-const TL = { title: 0.3, curtain: 1.2, curtainD: 1.6, window: 2.5, windowD: 1.5, dolly: 3.3, dollyD: 3.6, out: 7.0 };
-const START = 2.4;   // 11/23: 앞 2.4초(제목 · 어둠 · 커튼 앞부분)를 잘라 4.6초로
+// 11/23 압축: 장면은 모두 두고(어두운 방 → 커튼 → 창 → 난간 넘어 거리) 구간마다 줄임 7.0초 → 4.4초(전: curtain 1.2/1.6 · window 2.5/1.5 · dolly 3.3/3.6)
+const TL = { title: 0.2, curtain: 0.5, curtainD: 1.0, window: 1.3, windowD: 1.0, dolly: 1.8, dollyD: 2.5, out: 4.4 };
+const START = 0;
 
 const WIN = { W: 1.5, H: 2.75, Y0: 0.05 };          // 창(프랑스식 여닫이 · 바닥까지)
 const WALL_T = 0.36;                                // 벽 두께(창 안쪽 깊이)

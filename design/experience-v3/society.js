@@ -125,6 +125,7 @@ if (NO3D) {
     + '#mv .col-img .near{opacity:0;transform:scale(.62)}#mv .col-img.near .near{opacity:1;transform:none}#mv .col-img.near .far{opacity:0;transform:scale(1.5)}';
   document.head.appendChild(st);
   loaded = true;
+  camLoading.classList.add('off');   // 11/23: 3D 를 안 불러오므로 '칼럼 불러오는 중' 표시도 안 띄움
 }
 if (!NO3D) try {
   viewer = createMorrisViewer(THREE, RoomEnvironment, mvEl, {

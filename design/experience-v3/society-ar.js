@@ -115,7 +115,7 @@ window.addEventListener('c1:ready', () => {
   // 11/17: '칼럼으로 가기' 단추 단계를 뺌 — 거리 첫 문장을 읽을 틈을 둔 뒤 저절로 칼럼 앞으로 걸어간다
   // 11/18: 역할 문장이 다 찍힌 뒤(글자 수 × 40ms, c1.css typeIn) 3초 동안 그대로 읽히게 두고 넘어간다
   const n = document.querySelectorAll('.role-head h1 .ch').length || 30;
-  const READ = 150 + n * 40 + 340 + 3000;
+  const READ = 150 + n * 40 + 340 + 900;   // 11/23: 다 찍힌 뒤 3초 → 0.9초(빈 거리에서 멈춘 것처럼 보였음)
   const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => { if (stage === 'start') toColumn(); }, READ); else setTimeout(go, 200); };
   go();
 });
