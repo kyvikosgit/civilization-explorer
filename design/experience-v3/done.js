@@ -55,10 +55,11 @@ const CSS = `
 .v3-done .d-colt{font-size:13.5px;font-weight:700;color:var(--d-sub)}
 .v3-done .d-colt b{color:var(--d-ink)}
 .v3-done .d-slots{margin-top:8px;display:flex;justify-content:center;gap:8px}
-.v3-done .d-slots span{width:44px;height:44px;border-radius:8px;background:var(--d-panel);border:1px dashed #CFCBC2;overflow:hidden;display:block}
+/* 11/23 앱과 같은 수집품 카드: 크림 종이 + 이중 액자(앱 src/lib/CollectCard.tsx) · 못 모은 칸 = 점선 */
+.v3-done .d-slots span{width:42px;height:56px;border-radius:4px;background:#F6F3EE;border:1.5px dashed #D3CCBE;overflow:hidden;display:block;box-sizing:border-box}
 .v3-done .d-slots span.me{border-color:var(--d-pt)}
-.v3-done .d-slots span.on{border:1px solid var(--d-line)}
-.v3-done .d-slots span img{width:100%;height:100%;object-fit:cover;display:block}
+.v3-done .d-slots span.on{background:#F2EBD9;border:1px solid rgba(58,53,43,.32);padding:3px;box-shadow:0 3px 8px rgba(40,30,20,.18)}
+.v3-done .d-slots span img{width:100%;height:100%;object-fit:contain;display:block;background:#E6DCC4;border:1px solid rgba(58,53,43,.3);box-sizing:border-box}
 .v3-done .d-slots span.pop{animation:dpop .35s ease}
 @keyframes dpop{50%{transform:scale(1.18)}}
 
