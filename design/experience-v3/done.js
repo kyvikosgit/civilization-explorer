@@ -103,7 +103,7 @@ if (EMBED) {
 }
 
 // 끝 줄 하나. item: { name, img, contain } · more: 체험 더보기를 누르면(없으면 단추 없음) · light: 밝은 바탕 페이지
-export function endRow(zoneId, { item, got = '수집품을 받았습니다', more, moreLabel = '체험 더보기', light = false } = {}) {
+export function endRow(zoneId, { item, got = '수집품을 받았습니다', more, moreLabel = '체험 더보기', light = false, btn = '다음' } = {}) {
   style();
   const nx = nextOf(zoneId);
   // 앱 안(웹뷰 · 앱 웹 버전 iframe)에서는 다음 구역으로 — 앱이 그 구역 도슨트부터 이어 준다(어느 구역인지는 앱 동선이 정함)
@@ -114,7 +114,7 @@ export function endRow(zoneId, { item, got = '수집품을 받았습니다', mor
   el.innerHTML = `${item ? `<p class="ve-got">${pic}<span>${esc(got)} · <b>${esc(item.name)}</b></span></p>` : ''}
     ${inApp
       // 11/20: 앱 안에서는 [다음] 하나 — 누르면 구역 화면으로 돌아가며 이 화면이 체험 카드로 줄어든다(앱 src/lib/expReturn.ts)
-      ? `<div class="ve-btns"><a class="ve-btn fill" href="${esc(nx.href)}" style="flex:1">다음</a></div>`
+      ? `<div class="ve-btns"><a class="ve-btn fill" href="${esc(nx.href)}" style="flex:1">${esc(btn)}</a></div>`
       : `<div class="ve-btns"><a class="ve-btn line" href="${esc(HUB)}">목록으로 돌아가기</a><a class="ve-btn fill" href="${esc(nx.href)}">다음 미션으로<small>${esc(nx.title)}</small></a></div>`}
 `;   // 11/20: 체험 더보기는 모두 뺌(사용자 지시) — more · moreLabel 은 받기만 함
   void more; void moreLabel;
@@ -153,7 +153,9 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
       <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}</div>
     </div></div>
     <div class="d-foot"></div>`;
-  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true }));
+  // 11/23 앱 안 단추 이름: 새로 받은 수집품 = [수집품에 저장], 이미 담아 둔 것 = [확인] (누르면 구역 화면으로 돌아가 체험 카드로 줄어든다)
+  const already = slot >= 0 && SAVED0.has(COLLECT_IDS[slot]);
+  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, btn: slot < 0 ? '다음' : already ? '확인' : '수집품에 저장' }));
   document.body.appendChild(el);
   const api = { el, hide() { el.classList.remove('on'); setTimeout(() => el.remove(), 350); } };
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on'))); setTimeout(() => el.classList.add('on'), 80);   // 그리기가 잠깐 멈춘 화면(뒤 3D 로딩 중)에서도 뜨게
