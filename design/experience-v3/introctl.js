@@ -14,7 +14,9 @@
       try { if (window.parent !== window) window.parent.postMessage(m, '*'); } catch (e) {}
     }, delay == null ? 700 : delay);
   }
-  window.M100_INTRO = { mode: mode, ended: ended };
+  // 11/23: 도입을 다시 살리되 아주 짧게 — 모든 3D 도입이 이 배속으로 돈다(살롱 · 시민사회 · 에트르타 · 산업혁명). ?introSpeed= 로 바꿔 볼 수 있음
+  var sp = parseFloat(q.get('introSpeed')); var speed = sp > 0 ? sp : 2.6;
+  window.M100_INTRO = { mode: mode, ended: ended, speed: speed };
   if (mode === 'only') {
     document.documentElement.classList.add('intro-only');
     var st = document.createElement('style');

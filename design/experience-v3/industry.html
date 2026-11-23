@@ -1288,7 +1288,12 @@ function play() {
   }
   if (RM || (window.M100_INTRO && window.M100_INTRO.mode === 'skip')) { finish(); return; }   // 11/20: ?nointro = 끝 장면에서 바로
   steam.start();
+  // 11/23: 3D 사무실 도입(industry-intro.js, 아주 짧게) → 끝나면 안내판 장면의 끝 상태로(아래 예전 DOM 도입은 쓰지 않음)
   playing = true;
+  import('../../experience-v3/industry-intro.js')
+    .then((m) => m.playIndustryIntro({ onDone: () => { finish(); window.M100_INTRO && window.M100_INTRO.ended(); } }))
+    .catch(() => finish());
+  if (true) return;
   // 카메라: 기관차 앞에서 시작해 물러난다(1.3 → 1, 3.6초), 어둠이 걷힌다
   scene.animate([{ transform: 'scale(1.32)' }, { transform: 'scale(1)' }], { duration: 3600, easing: 'cubic-bezier(.25,.6,.2,1)', fill: 'both' });
   at(60, () => intro.classList.add('s-light'));          // 어둠이 걷히고 빛줄기

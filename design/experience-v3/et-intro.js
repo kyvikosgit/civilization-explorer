@@ -504,7 +504,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
   const T0 = performance.now();
   const tick = (now) => {
     if (done) return;
-    const t = (now - T0) / 1000;
+    const t = (now - T0) / 1000 * ((window.M100_INTRO && window.M100_INTRO.speed) || 1);   // 11/23 짧은 도입(introctl.js 배속)
     paintTo(t); outTo(t);
     if (t > PAINT_AT + 1.3) title.classList.remove('on');
     pose(t); render();

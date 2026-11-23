@@ -27,6 +27,9 @@ import { store } from './store.js';
 import { drawSalon, drawExpo, drawExpoCover, drawSalonCover, drawClipping, loadImage, loadPosterFonts, imageURL } from '../experience-v2/proto/js/c1-posters.js';
 
 icons();
+// 11/23: 3D 칼럼을 불러오느라 멈추던 것 — 기본은 3D 없이 미리 렌더한 칼럼 그림 두 장(멀리 · 가까이)으로. ?3d 를 붙이면 예전 3D
+const NO3D = !new URLSearchParams(location.search).has('3d');
+const COL = { far: new URL('./img/col_far.webp', import.meta.url).href, near: new URL('./img/col_near.webp', import.meta.url).href };
 const mvEl = $('#mv'), pill = $('#pill'), pillWrap = $('#pillWrap'), guide = $('#guide'), camLoading = $('#camLoading'), streetEl = $('#street');
 // 두 전시 — 이름은 그대로(살롱 · 독립 전시), 아래에 장소·날짜 한 줄. 키(jury/viewer)는 출구 데이터와 맞춘 내부 값
 const STANCES = {
@@ -104,7 +107,7 @@ const urlsReady = Promise.all(['salon', 'expo'].flatMap((n) => ['full', 'cover']
 });
 // 샴 만평 — 그림(작다)을 받아 신문지 지면으로 조판. 지면 비율이 칼럼 위 종이 크기를 정하므로 먼저 만든다
 const clips = {};
-await Promise.all(ITEMS.filter((it) => it.clip).map((it) => loadImage(it.clip.src).then((im) => { clips[it.id] = drawClipping(im, it.clip); }).catch((e) => console.warn('[clip]', it.id, e))));
+if (!NO3D) await Promise.all(ITEMS.filter((it) => it.clip).map((it) => loadImage(it.clip.src).then((im) => { clips[it.id] = drawClipping(im, it.clip); }).catch((e) => console.warn('[clip]', it.id, e))));
 
 // ── 3D 모리스 칼럼
 let loaded = false; const waiters = [];
@@ -112,7 +115,18 @@ const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => waiter
 let picked = -1, focusWait = null;
 let viewer = null;
 const GEN = { salon: ART.salon.full, expo: ART.expo.full, salonCover: ART.salon.cover, expoCover: ART.expo.cover };
-try {
+let colImg = null;
+if (NO3D) {
+  colImg = document.createElement('div'); colImg.className = 'col-img';
+  colImg.innerHTML = `<img class="far" src="${COL.far}" alt=""><img class="near" src="${COL.near}" alt="">`;
+  mvEl.appendChild(colImg);
+  const st = document.createElement('style');
+  st.textContent = '#mv .col-img{position:absolute;inset:0}#mv .col-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 1.1s ease,transform 1.4s cubic-bezier(.3,.7,.2,1)}'
+    + '#mv .col-img .near{opacity:0;transform:scale(.62)}#mv .col-img.near .near{opacity:1;transform:none}#mv .col-img.near .far{opacity:0;transform:scale(1.5)}';
+  document.head.appendChild(st);
+  loaded = true;
+}
+if (!NO3D) try {
   viewer = createMorrisViewer(THREE, RoomEnvironment, mvEl, {
     items: ITEMS.map((it) => ({
       ...it, active: true,
@@ -194,8 +208,9 @@ function frameToGuide() {
 }
 // 칼럼은 처음부터 거리에 서 있다 — 준비되면(칼럼 생성 + 거리 도입 끝) 저녁 거리 속에 드러난다
 function showStanding() {
-  if (!loaded || !introDone || !viewer || step !== 1) return;
-  viewer.resize(); frameToGuide(); viewer.setFar(1);
+  if (!loaded || !introDone || step !== 1) return;
+  if (viewer) { viewer.resize(); frameToGuide(); viewer.setFar(1); }
+  if (colImg) colImg.classList.remove('near');
   mvEl.classList.remove('off');
   window.dispatchEvent(new CustomEvent('c1:ready'));
 }
@@ -224,6 +239,7 @@ async function scan() {
   setPill('');
   streetEl.classList.add('near');                           // 거리도 함께 가까워진다(먼 배경이라 조금만)
   if (viewer) viewer.approach(reduceMotion ? 0 : 2.9, 0);   // 카메라가 보도를 걸어 다가간다 → 'arrived'
+  else if (colImg) { colImg.classList.add('near'); setTimeout(() => { if (step === 'approach') arrive(); }, reduceMotion ? 50 : 1300); }   // 그림: 가까운 칼럼으로 다가가듯 바뀐다
   else arrive();
   scanning = false;
 }
@@ -263,6 +279,7 @@ function toScan() {                                         // 칼럼 → 스캔
   streetEl.classList.remove('near');
   if (!camLoading.classList.contains('off') && loaded) camLoading.classList.add('off');
   if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); frameToGuide(); viewer.approach(reduceMotion ? 0 : 1.3, 1); }
+  if (colImg) colImg.classList.remove('near');
 }
 
 // ── 3 살펴보기 — 떠 있는 포스터 + 한 줄 설명(전단지 3장은 부스 삽화 애니메이션 그대로)

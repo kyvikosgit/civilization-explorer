@@ -85,11 +85,13 @@ function openFlyer() {
 async function win() {
   store.solve(flyer.id); collect(flyer.id); ended = true; document.body.classList.add('ended');
   await closeCam(true);
-  const i = c1().ITEMS.findIndex((it) => it.id === 'f1');
-  c1().viewer?.focusItem(i, 0.9);
-  await new Promise((r) => setTimeout(r, 1100));
-  c1().openPrint(i);
-  await new Promise((r) => setTimeout(r, 900));
+  if (c1().viewer) {   // 3D 칼럼일 때만 전단지를 떼어 보여 준다(11/23 기본은 칼럼 그림 — 바로 완료 화면)
+    const i = c1().ITEMS.findIndex((it) => it.id === 'f1');
+    c1().viewer.focusItem(i, 0.9);
+    await new Promise((r) => setTimeout(r, 1100));
+    c1().openPrint(i);
+    await new Promise((r) => setTimeout(r, 900));
+  }
   showEnd();
 }
 // 끝 — 정답 해설 + 공통 끝 줄. 체험 더보기 = 카페 게르부아 벽면

@@ -230,7 +230,7 @@ export function playSocietyIntro({ onDone, onStart } = {}) {
   }
   function frame(now) {
     if (done) return;
-    const t = (now - t0) / 1000;
+    const t = (now - t0) / 1000 * ((window.M100_INTRO && window.M100_INTRO.speed) || 1);   // 11/23 짧은 도입(introctl.js 배속)
     const a = dustGeo.attributes.position.array;
     for (let i = 0; i < N; i++) { a[i * 3] += vel[i][0] * 0.016; a[i * 3 + 1] += vel[i][1] * 0.016; a[i * 3 + 2] += vel[i][2] * 0.016; }
     dustGeo.attributes.position.needsUpdate = true;
