@@ -1,4 +1,5 @@
-// v3 살롱(11/03 미팅) — 입장 연출이 끝난 벽에서 [후보작 심사하기] → 카메라로 후보작 다섯 점이 걸린 벽 전체를 비춘다
+// v3 살롱 — 11/23부터 스캔 없음: 벽 앞에 서면 바로 후보작 다섯 점이 떠올라 그중에서 고른다(아래 startPick)
+// (이전, 11/03 미팅) 입장 연출이 끝난 벽에서 [후보작 심사하기] → 카메라로 후보작 다섯 점이 걸린 벽 전체를 비춘다
 //   → 벽을 알아보면 카메라가 닫히고, 같은 벽이 화면에 그대로 — 거기서 한 점을 눌러 메달(salon.js PICK). 아니면 심사평, 맞으면 수집품
 //   벽 인식: 실제 벽 사진이 아직 없어 벽에 걸린 다섯 점 중 하나라도 잡히면 벽으로 본다(mind/salon.mind). 벽 배치가 정해지면 벽 사진으로 다시 만든다
 //   체험 더보기(메인 미션 뒤): 후보작을 하나씩 비추면 그 그림의 해설 · 심사 기준(부합/지적) — 예전 그림별 스캔
@@ -96,5 +97,14 @@ function more() {
 window.addEventListener('salon:more', more);
 
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-window.addEventListener('salon:wall', () => setTimeout(showGuide, RM ? 0 : 1100));   // 역할 문장을 읽을 틈을 두고 올라온다
-window.addEventListener('salon:tap', showGuide);
+// 11/23 클라이언트 변경: 스캔하지 않는다 — 벽 앞에 서면 카메라 안내 · 다가가는 카메라 움직임 · 찍는 화면 없이
+//   바로 후보작 다섯 점이 벽 앞으로 떠올라(2 · 1 · 2) 그중에서 고른다(salon.js PICK). 예전 카메라 흐름(showGuide · begin)은 남겨 둠(안 부름)
+function startPick() {
+  if (picking) return;
+  picking = true;
+  window.__salon.pick();
+  window.__salon.arrange();
+}
+void showGuide;
+window.addEventListener('salon:wall', () => setTimeout(startPick, RM ? 0 : 500));
+window.addEventListener('salon:tap', startPick);
