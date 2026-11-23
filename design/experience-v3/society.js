@@ -14,10 +14,7 @@
 //        + 아래 조용한 글자 단추 '다시 고르기'(→ 5) · '칼럼 더 둘러보기'(→ 2). 뒤로 → 5
 //   3D 칼럼 = 부스 morris-viewer.js 사본 + 확장 (js/morris-viewer-proto.js). 두 전시 인쇄물·샴 만평 지면은 캔버스 조판(js/c1-posters.js)
 //   머문 시간·시선 추적 없음. 서버는 입장 2개의 숫자만(여기서는 예시 수치).
-import * as THREE from 'three';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { $, $$, icons, toast, sleep, reduceMotion, haptic, saveChoice } from '../experience-v2/proto/js/proto-common.js';
-import { createMorrisViewer } from '../experience-v2/proto/js/morris-viewer-proto.js';
 import { ITEMS, NOTES, FILLER, BACKDROP, VISITORS } from '../experience-v2/proto/js/morris-items-proto.js';
 // 11/18: v2 칼럼 글(보관본)은 고치지 않고, 바뀐 사실 글만 v3 원고(data.js)로 덮는다 — 1867 박람회 '5만여 출품자'
 import { ZONES as V3Z } from './data.js';
@@ -115,32 +112,19 @@ const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => waiter
 let picked = -1, focusWait = null;
 let viewer = null;
 const GEN = { salon: ART.salon.full, expo: ART.expo.full, salonCover: ART.salon.cover, expoCover: ART.expo.cover };
-// 11/23 칼럼 = 3D 를 미리 렌더한 프레임 묶음(img/colseq/c00 먼 시점 … c18 칼럼 앞, 바닥 판 없이 그림자만) — 다가가기 · 도입 모두 프레임을 넘겨 3D 와 같은 움직임
-let colImg = null, colIdx = 0, colAnim = 0;
-const COL_N = 19, colFrames = [];
+// 11/23 칼럼 = 3D 모델 · 렌더 그림을 전혀 쓰지 않음. 장 베로 〈모리스 칼럼〉(1885경, 카르나발레 박물관, 퍼블릭 도메인) 그림 한 장.
+//   거리(모네 〈카퓌신 대로〉)에서 칼럼으로 다가가면 거리가 앞으로 밀려 들어가며 베로의 칼럼 그림이 겹쳐 떠오른다. three.js 는 ?3d 일 때만 불러온다
+let colImg = null;
 if (NO3D) {
-  colImg = document.createElement('img'); colImg.className = 'col-seq'; colImg.alt = '';
-  for (let i = 0; i < COL_N; i++) { const im = new Image(); im.decoding = 'async'; im.src = new URL(`./img/colseq/c${String(i).padStart(2, '0')}.webp`, import.meta.url).href; colFrames.push(im); }
-  colImg.src = colFrames[0].src; mvEl.appendChild(colImg);
+  colImg = document.createElement('div'); colImg.className = 'col-paint';
   const st = document.createElement('style');
-  st.textContent = '#mv .col-seq{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}body:not(.walked) #mv.no3d{opacity:1!important}';
-  document.head.appendChild(st); mvEl.classList.add('no3d');
+  st.textContent = '#mv .col-paint{position:absolute;inset:0;background:url(' + new URL('./img/morris_beraud1885.jpg', import.meta.url).href + ') 56% 40%/cover no-repeat;opacity:0;transform:scale(1.18);transition:opacity 1s ease,transform 1.4s cubic-bezier(.3,.6,.25,1);pointer-events:none}'
+    + '#mv .col-paint.on{opacity:1;transform:none}body:not(.walked) #mv.no3d{opacity:1!important}';
+  document.head.appendChild(st); mvEl.appendChild(colImg); mvEl.classList.add('no3d');
   loaded = true; camLoading.classList.add('off');
 }
-const setCol = (i) => { colIdx = Math.max(0, Math.min(COL_N - 1, Math.round(i))); if (colImg) colImg.src = colFrames[colIdx].src; };
-// 프레임 넘기기(0 먼 시점 → 18 칼럼 앞) — ms 동안, 끝나면 res
-function colTo(to, ms) {
-  return new Promise((res) => {
-    cancelAnimationFrame(colAnim);
-    const from = colIdx, t0 = performance.now();
-    if (!ms || reduceMotion) { setCol(to); res(); return; }
-    const k = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-    const tick = (now) => { const t = Math.min(1, (now - t0) / ms); setCol(from + (to - from) * k(t)); if (t < 1) colAnim = requestAnimationFrame(tick); else res(); };
-    colAnim = requestAnimationFrame(tick);
-  });
-}
-await Promise.race([Promise.all(colFrames.map((im) => (im.decode ? im.decode().catch(() => {}) : null))), sleep(2500)]);
 if (!NO3D) try {
+  const [THREE, { RoomEnvironment }, { createMorrisViewer }] = await Promise.all([import('three'), import('three/addons/environments/RoomEnvironment.js'), import('../experience-v2/proto/js/morris-viewer-proto.js')]);
   viewer = createMorrisViewer(THREE, RoomEnvironment, mvEl, {
     items: ITEMS.map((it) => ({
       ...it, active: true,
@@ -186,15 +170,10 @@ async function streetIntro() {
   // 11/23 새 도입(2초): 모리스 칼럼의 전단지 앞에서 시작해 → 칼럼에서 물러나며 해 질 녘 카퓌신 대로가 드러난다(칼럼 프레임을 거꾸로 + 거리 그림이 어둠에서 밝아지며 물러남)
   //   예전 3D 방 · 창 도입(society-intro.js)은 쓰지 않음(?introOld 로 볼 수 있음)
   if (NO3D && !new URLSearchParams(location.search).has('introOld')) {
-    setCol(COL_N - 1); mvEl.classList.add('no3d'); mvEl.classList.remove('off');
-    const img = streetEl;   // 거리 그림 묶음(그림 자체의 filter 는 css !important 라 바깥 묶음을 움직인다)
-    uncover();
-    img.animate([{ transform: 'scale(1.2)', filter: 'brightness(.15)' }, { transform: 'scale(1)', filter: 'brightness(1)' }], { duration: 1900, easing: 'cubic-bezier(.3,.6,.25,1)' });
-    mvEl.animate([{ filter: 'brightness(.35)' }, { filter: 'brightness(1)' }], { duration: 1200, easing: 'ease-out' });
-    const skipNow = () => { cancelAnimationFrame(colAnim); setCol(0); img.getAnimations().forEach((a) => a.cancel()); mvEl.getAnimations().forEach((a) => a.finish()); };
-    addEventListener('pointerdown', skipNow, { once: true, capture: true });
-    await Promise.race([colTo(0, 1900), new Promise((r) => addEventListener('pointerdown', r, { once: true, capture: true }))]);
-    removeEventListener('pointerdown', skipNow, true); skipNow();
+    const img = streetEl; uncover();   // 거리 그림 묶음이 어둠에서 밝아지며 다가온다(1.9초) — 칼럼 없음
+    const an = img.animate([{ transform: 'scale(1.2)', filter: 'brightness(.12)' }, { transform: 'scale(1)', filter: 'brightness(1)' }], { duration: 1900, easing: 'cubic-bezier(.3,.6,.25,1)' });
+    await Promise.race([an.finished, new Promise((r) => addEventListener('pointerdown', r, { once: true, capture: true }))]);
+    an.cancel();
   } else try {
     const { playSocietyIntro } = await import('./society-intro.js');
     await new Promise((res) => playSocietyIntro({ onDone: res, onStart: uncover }));
@@ -236,7 +215,7 @@ function frameToGuide() {
 function showStanding() {
   if (!loaded || !introDone || step !== 1) return;
   if (viewer) { viewer.resize(); frameToGuide(); viewer.setFar(1); }
-  if (colImg) setCol(0);
+  if (colImg) colImg.classList.remove('on');
   mvEl.classList.remove('off');
   window.dispatchEvent(new CustomEvent('c1:ready'));
 }
@@ -265,7 +244,7 @@ async function scan() {
   setPill('');
   streetEl.classList.add('near');                           // 거리도 함께 가까워진다(먼 배경이라 조금만)
   if (viewer) viewer.approach(reduceMotion ? 0 : 2.9, 0);   // 카메라가 보도를 걸어 다가간다 → 'arrived'
-  else if (colImg) colTo(COL_N - 1, 1400).then(() => { if (step === 'approach') arrive(); });   // 미리 렌더한 프레임으로 걸어 다가간다
+  else if (colImg) { colImg.classList.add('on'); setTimeout(() => { if (step === 'approach') arrive(); }, reduceMotion ? 50 : 1300); }   // 거리가 밀려 들어가며 베로의 칼럼 그림
   else arrive();
   scanning = false;
 }
@@ -305,7 +284,7 @@ function toScan() {                                         // 칼럼 → 스캔
   streetEl.classList.remove('near');
   if (!camLoading.classList.contains('off') && loaded) camLoading.classList.add('off');
   if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); frameToGuide(); viewer.approach(reduceMotion ? 0 : 1.3, 1); }
-  if (colImg) colTo(0, 900);
+  if (colImg) colImg.classList.remove('on');
 }
 
 // ── 3 살펴보기 — 떠 있는 포스터 + 한 줄 설명(전단지 3장은 부스 삽화 애니메이션 그대로)
