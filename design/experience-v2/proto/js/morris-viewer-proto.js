@@ -207,7 +207,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
   const TOTAL_H = 4.165, MAX_R = 0.618;
 
   // ── 장소 — 포석 바닥 + 접지 그림자 + 안개 + 그림 배경
-  let groundMat = null;
+  let groundMat = null, groundMesh = null;
   scene.fog = new T.Fog(0xaab0ae, 12, 30);
   (function () {
     const c = document.createElement('canvas'); c.width = c.height = 512;
@@ -246,7 +246,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       vertexColors: true, transparent: true, depthWrite: false,
     }));
     ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; ground.renderOrder = -2;
-    place.add(ground);
+    place.add(ground); groundMesh = ground;
     const cc = document.createElement('canvas'); cc.width = cc.height = 256;
     const cg = cc.getContext('2d'), cgr = cg.createRadialGradient(128, 128, 30, 128, 128, 128);
     cgr.addColorStop(0, 'rgba(0,0,0,0.5)'); cgr.addColorStop(0.45, 'rgba(0,0,0,0.14)'); cgr.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1027,6 +1027,7 @@ export function createMorrisViewer(T, RoomEnvironment, container, { items, fille
       if (o.overhead != null) overheadMax = o.overhead;
       if (o.overheadColor != null) overhead.color.set(o.overheadColor);
       if (o.ground != null && groundMat) groundMat.color.set(o.ground);
+      if (o.shadowOnly != null && groundMesh) { groundMesh.material = new T.ShadowMaterial({ opacity: o.shadowOnly, transparent: true, depthWrite: false }); }   // [11/23] 바닥 판 없이 그림자만(칼럼 그림 뜨기용)
       if (o.groundRough != null && groundMat) groundMat.roughness = o.groundRough;
       if (o.groundEnv != null && groundMat) groundMat.envMapIntensity = o.groundEnv;
       dirty = true;

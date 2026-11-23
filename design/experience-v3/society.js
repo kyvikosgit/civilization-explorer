@@ -115,18 +115,31 @@ const whenLoaded = () => (loaded ? Promise.resolve() : new Promise((r) => waiter
 let picked = -1, focusWait = null;
 let viewer = null;
 const GEN = { salon: ART.salon.full, expo: ART.expo.full, salonCover: ART.salon.cover, expoCover: ART.expo.cover };
-let colImg = null;
+// 11/23 칼럼 = 3D 를 미리 렌더한 프레임 묶음(img/colseq/c00 먼 시점 … c18 칼럼 앞, 바닥 판 없이 그림자만) — 다가가기 · 도입 모두 프레임을 넘겨 3D 와 같은 움직임
+let colImg = null, colIdx = 0, colAnim = 0;
+const COL_N = 19, colFrames = [];
 if (NO3D) {
-  colImg = document.createElement('div'); colImg.className = 'col-img';
-  colImg.innerHTML = `<img class="far" src="${COL.far}" alt=""><img class="near" src="${COL.near}" alt="">`;
-  mvEl.appendChild(colImg);
+  colImg = document.createElement('img'); colImg.className = 'col-seq'; colImg.alt = '';
+  for (let i = 0; i < COL_N; i++) { const im = new Image(); im.decoding = 'async'; im.src = new URL(`./img/colseq/c${String(i).padStart(2, '0')}.webp`, import.meta.url).href; colFrames.push(im); }
+  colImg.src = colFrames[0].src; mvEl.appendChild(colImg);
   const st = document.createElement('style');
-  st.textContent = '#mv .col-img{position:absolute;inset:0}#mv .col-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:opacity 1.1s ease,transform 1.4s cubic-bezier(.3,.7,.2,1)}'
-    + '#mv .col-img .near{opacity:0;transform:scale(.62)}#mv .col-img.near .near{opacity:1;transform:none}#mv .col-img.near .far{opacity:0;transform:scale(1.5)}';
-  document.head.appendChild(st);
-  loaded = true;
-  camLoading.classList.add('off');   // 11/23: 3D 를 안 불러오므로 '칼럼 불러오는 중' 표시도 안 띄움
+  st.textContent = '#mv .col-seq{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none}body:not(.walked) #mv.no3d{opacity:1!important}';
+  document.head.appendChild(st); mvEl.classList.add('no3d');
+  loaded = true; camLoading.classList.add('off');
 }
+const setCol = (i) => { colIdx = Math.max(0, Math.min(COL_N - 1, Math.round(i))); if (colImg) colImg.src = colFrames[colIdx].src; };
+// 프레임 넘기기(0 먼 시점 → 18 칼럼 앞) — ms 동안, 끝나면 res
+function colTo(to, ms) {
+  return new Promise((res) => {
+    cancelAnimationFrame(colAnim);
+    const from = colIdx, t0 = performance.now();
+    if (!ms || reduceMotion) { setCol(to); res(); return; }
+    const k = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const tick = (now) => { const t = Math.min(1, (now - t0) / ms); setCol(from + (to - from) * k(t)); if (t < 1) colAnim = requestAnimationFrame(tick); else res(); };
+    colAnim = requestAnimationFrame(tick);
+  });
+}
+await Promise.race([Promise.all(colFrames.map((im) => (im.decode ? im.decode().catch(() => {}) : null))), sleep(2500)]);
 if (!NO3D) try {
   viewer = createMorrisViewer(THREE, RoomEnvironment, mvEl, {
     items: ITEMS.map((it) => ({
@@ -170,7 +183,19 @@ async function streetIntro() {
   // 11/09: 35번지 방 안에서 창이 열리고 대로로 나가는 3D 도입(society-intro.js) — 끝나면 거리 그림이 그 구도 그대로 이어진다
   document.body.classList.add('intro');
   const skip = () => { if (introDone) return; introDone = true; uncover(); viewer?.resume(); document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
-  try {
+  // 11/23 새 도입(2초): 모리스 칼럼의 전단지 앞에서 시작해 → 칼럼에서 물러나며 해 질 녘 카퓌신 대로가 드러난다(칼럼 프레임을 거꾸로 + 거리 그림이 어둠에서 밝아지며 물러남)
+  //   예전 3D 방 · 창 도입(society-intro.js)은 쓰지 않음(?introOld 로 볼 수 있음)
+  if (NO3D && !new URLSearchParams(location.search).has('introOld')) {
+    setCol(COL_N - 1); mvEl.classList.add('no3d'); mvEl.classList.remove('off');
+    const img = streetEl;   // 거리 그림 묶음(그림 자체의 filter 는 css !important 라 바깥 묶음을 움직인다)
+    uncover();
+    img.animate([{ transform: 'scale(1.2)', filter: 'brightness(.15)' }, { transform: 'scale(1)', filter: 'brightness(1)' }], { duration: 1900, easing: 'cubic-bezier(.3,.6,.25,1)' });
+    mvEl.animate([{ filter: 'brightness(.35)' }, { filter: 'brightness(1)' }], { duration: 1200, easing: 'ease-out' });
+    const skipNow = () => { cancelAnimationFrame(colAnim); setCol(0); img.getAnimations().forEach((a) => a.cancel()); mvEl.getAnimations().forEach((a) => a.finish()); };
+    addEventListener('pointerdown', skipNow, { once: true, capture: true });
+    await Promise.race([colTo(0, 1900), new Promise((r) => addEventListener('pointerdown', r, { once: true, capture: true }))]);
+    removeEventListener('pointerdown', skipNow, true); skipNow();
+  } else try {
     const { playSocietyIntro } = await import('./society-intro.js');
     await new Promise((res) => playSocietyIntro({ onDone: res, onStart: uncover }));
   } catch (e) { console.warn('[intro]', e); }
@@ -211,7 +236,7 @@ function frameToGuide() {
 function showStanding() {
   if (!loaded || !introDone || step !== 1) return;
   if (viewer) { viewer.resize(); frameToGuide(); viewer.setFar(1); }
-  if (colImg) colImg.classList.remove('near');
+  if (colImg) setCol(0);
   mvEl.classList.remove('off');
   window.dispatchEvent(new CustomEvent('c1:ready'));
 }
@@ -240,7 +265,7 @@ async function scan() {
   setPill('');
   streetEl.classList.add('near');                           // 거리도 함께 가까워진다(먼 배경이라 조금만)
   if (viewer) viewer.approach(reduceMotion ? 0 : 2.9, 0);   // 카메라가 보도를 걸어 다가간다 → 'arrived'
-  else if (colImg) { colImg.classList.add('near'); setTimeout(() => { if (step === 'approach') arrive(); }, reduceMotion ? 50 : 1300); }   // 그림: 가까운 칼럼으로 다가가듯 바뀐다
+  else if (colImg) colTo(COL_N - 1, 1400).then(() => { if (step === 'approach') arrive(); });   // 미리 렌더한 프레임으로 걸어 다가간다
   else arrive();
   scanning = false;
 }
@@ -280,7 +305,7 @@ function toScan() {                                         // 칼럼 → 스캔
   streetEl.classList.remove('near');
   if (!camLoading.classList.contains('off') && loaded) camLoading.classList.add('off');
   if (viewer) { viewer.setInteractive(false); viewer.setMagnet(false); frameToGuide(); viewer.approach(reduceMotion ? 0 : 1.3, 1); }
-  if (colImg) colImg.classList.remove('near');
+  if (colImg) colTo(0, 900);
 }
 
 // ── 3 살펴보기 — 떠 있는 포스터 + 한 줄 설명(전단지 3장은 부스 삽화 애니메이션 그대로)

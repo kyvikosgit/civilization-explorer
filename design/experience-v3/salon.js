@@ -450,7 +450,7 @@ function spring(x, v, target, k, c, dt) { const a = k * (target - x) - c * v; v 
 // ── 입장(약 4.4초, 누르면 빨리 감기)
 //   대기실(어둠, 문틈의 빛) → 두 짝 문이 안쪽으로 열린다 → 문이 다 열린 뒤에 걷기 시작해 문간 한가운데를 지나(문짝·벽과 1.5m 이상 떨어져) 전시실로
 //   → 천창의 빛줄기·먼지 속을 눈높이로 걸어 → 후보작 벽 앞에 정면으로 서고, 빛이 후보작을 한 번 쓸고 지나간다
-const TL = { doors: [250, 1150], walk: [850, 3000], air: [650, 1550], airOut: [2500, 3200], sweep: [2600, 3200], role: 2750, end: 3200 };   // 11/23 압축(전: doors 350–1650 · walk 1250–4300 · end 4500)
+const TL = { doors: [120, 700], walk: [480, 1950], air: [380, 950], airOut: [1550, 2000], sweep: [1600, 2000], role: 1650, end: 2000 };   // 11/23 2초 안(문 열림 → 걸어 들어감 → 벽 앞)   // 11/23 압축(전: doors 350–1650 · walk 1250–4300 · end 4500)
 // 11/23 짧은 도입: 장면은 모두 두고(문 열림 → 걸어 들어감 → 벽 앞) 구간마다 시간을 줄임(4.5초 → 3.2초)
 let tI = 0, speed = (window.M100_INTRO && window.M100_INTRO.speed) || 1, roleShown = false, introCams = null;
 function stepIntro(dt, now) {

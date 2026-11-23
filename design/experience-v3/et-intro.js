@@ -22,12 +22,12 @@ const load = (src) => new Promise((res, rej) => { const i = new Image(); i.cross
 function rnd(seed) { let s = seed; return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
 
 // 시간표(초) — 화실에서 칠하기 → 밖으로
-const OPEN = 1.0, PAINT_AT = 1.2,   // 11/23 압축(전 1.7 · 2.0)   // 여는 장면(어둠에서 화실이 드러나며 이젤로 다가감) 뒤에 붓질
-      SWEEP = 0.3, GAP = 0.12, NS = 8;   // 11/23: 붓질을 몰아서(0.5/0.34 → 0.3/0.12) — 처음부터 한 획씩 그리던 시간 줄임
-const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.5;
-const OUT_GO = DET_AT + DET + 0.15, OUT_D = 1.5;   // 11/23: 밖으로 나가는 구간 2.2 → 1.5
+const OPEN = 0.4, PAINT_AT = 0.45,   // 11/23 2초 안(전 1.7 · 2.0)   // 여는 장면(어둠에서 화실이 드러나며 이젤로 다가감) 뒤에 붓질
+      SWEEP = 0.2, GAP = 0.05, NS = 8;   // 11/23: 붓질을 몰아서(0.5/0.34 → 0.3/0.12) — 처음부터 한 획씩 그리던 시간 줄임
+const DET_AT = PAINT_AT + GAP * (NS - 1) + SWEEP, DET = 0.25;
+const OUT_GO = DET_AT + DET + 0.05, OUT_D = 0.6;   // 11/23: 밖으로 나가는 구간 2.2 → 1.5
 const START = 0;   // 11/23: 앞을 자르지 않고 구간을 줄임(전체 약 4.7초)
-const OUT_AT = OUT_GO + OUT_D + 0.2;
+const OUT_AT = OUT_GO + OUT_D + 0.1;   // = 2.0초
 
 // 캔버스(그림) 크기 — 그림 비율 그대로(야외용 작은 캔버스)
 const CVS = { W: 0.52, H: 0.52 * 1279 / 1600, D: 0.022 };
@@ -448,7 +448,7 @@ export async function playIntro({ onDone, instant = false } = {}) {
     renderer.setClearColor(0x0d0b09, 1 - w);
     photo.style.opacity = w.toFixed(3);
     flash.style.opacity = (0.55 * Math.sin(Math.PI * clamp(u * 1.4))).toFixed(3);
-    blackout.style.opacity = (1 - easeIO(clamp(t / 0.7))).toFixed(3);   // 처음은 어둠에서
+    blackout.style.opacity = (1 - easeIO(clamp(t / 0.3))).toFixed(3);   // 처음은 어둠에서
     key.intensity = 6 * (1 - w); winFill.intensity = 1.1 * (1 - w); sun.intensity = 2.6 * e;
     room.visible = floor.visible = w < 0.97; backWall.visible = leftWall.visible = w < 0.97;
     // 11/09: 땅은 흐릿하게 번져 나오지 않고 빛이 가장 환한 순간 한 번에 — 반쯤 투명한 땅 가장자리(둥근 끝)가 먼저 비쳐 보이던 것 없앰
