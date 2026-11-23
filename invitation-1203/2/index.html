@@ -65,7 +65,8 @@ img{display:block;max-width:none}
 .p3 .small{color:var(--sub)}
 
 /* ── 전시 하이라이트(11/23 · 리플렛에서) — 카드와 같은 단위: 1u = 폭 / 720 */
-.hl{container-type:inline-size;background:var(--paper);border-top:1px solid #EFEDE8;text-align:center;padding:calc(110 * 100cqw / 720) calc(50 * 100cqw / 720) calc(110 * 100cqw / 720)}
+.hl{container-type:inline-size;background:var(--paper);border-top:1px solid #EFEDE8;text-align:center;padding:15.3% 0}   /* 위아래 여백은 % · 좌우는 .in(카드 폭 기준 cqw) — 글자 크기 기준이 다른 쪽과 같은 '카드 폭'이 되게 */
+.hl .in{padding:0 calc(50 * 100cqw / 720)}
 .hl h2{margin:0;font:400 calc(28.5 * 100cqw / 720)/1 var(--serif);letter-spacing:.04em;color:var(--ink)}
 .hl ol{list-style:none;margin:calc(64 * 100cqw / 720) 0 0;padding:0;display:flex;flex-direction:column;gap:calc(70 * 100cqw / 720)}
 .hl li{display:flex;flex-direction:column;align-items:center}
@@ -175,7 +176,7 @@ img{display:block;max-width:none}
     <p class="t" style="--y:650;--f:20.7">직접 경험하는 인문학 경험 전시입니다.</p>
     <p class="t" style="--y:763.5;--f:20.7">정식 개막에 앞서 전시를 여유롭게 둘러보시기 바랍니다.</p>
   </section>
-  <section class="hl" aria-label="전시 하이라이트">
+  <section class="hl" aria-label="전시 하이라이트"><div class="in">
     <h2>전시 하이라이트</h2>
     <ol>
       <li><img src="/invitation-1203/img/hl_app.png" alt="" style="--w:62"><b>앱과 함께 더 깊어지는 전시</b><p>오디오 도슨트 까미유가 1873년 파리의 살롱부터<br>함께 걸으며 길을 안내합니다.<br>곳곳에 숨은 단서를 앱으로 모아 보세요.</p></li>
@@ -185,7 +186,7 @@ img{display:block;max-width:none}
     <p class="note">* 본 행사는 초청받으신 분에 한해 입장하실 수 있습니다.</p>
     <p class="place">신세계본점 더 헤리티지 4F 뮤지엄<small>서울시 중구 남대문로 42</small></p>
     <p class="org">주최. SONG DONG HUN Inc. &nbsp;|&nbsp; 주관. KYVIKOS &nbsp;|&nbsp; 후원. 주한 프랑스대사관</p>
-  </section>
+  </div></section>
   <section class="park rsvp" id="rsvp" aria-label="참석 회신">
     <div class="in">
       <h2>RSVP</h2>
