@@ -119,7 +119,7 @@ img{display:block;max-width:none}
 .rsvp .send[disabled]{opacity:.5}
 .rsvp .msg{text-align:center}.rsvp .msg:empty{display:none}
 .rsvp .done{text-align:center}
-.rsvp .done span{display:block;margin-top:10px;font-size:14px;color:var(--sub);line-height:1.7}.rsvp .done .dt{margin-top:0;font-size:16px;color:var(--ink)}.rsvp .done .btn.more{margin-top:18px}
+.rsvp .nope{margin:4px 0 0;text-align:center;font-size:15px;line-height:1.8;color:var(--ink)}.rsvp .done span{display:block;margin-top:10px;font-size:14px;color:var(--sub);line-height:1.7}.rsvp .done .dt{margin-top:0;font-size:16px;color:var(--ink)}.rsvp .done .btn.more{margin-top:18px}
 .rsvp.ok form,.rsvp.ok .in>p{display:none}.rsvp.ok .done{display:block}
 .rsvp [hidden]{display:none!important}
 .rsvp{background:#F6F2E8;border-top-color:#ECE6D8}
@@ -194,8 +194,9 @@ img{display:block;max-width:none}
         <div class="att" role="group" aria-label="참석 여부"><button type="button" data-a="1" aria-pressed="false">참석</button><button type="button" data-a="0" aria-pressed="false">불참석</button></div>
         <div class="f" id="rYes" hidden><label for="rName">성함</label><input id="rName" type="text" autocomplete="name" maxlength="40" placeholder="성함"></div>
         <div class="f" id="rYes2" hidden><label for="rPhone">전화번호</label><input id="rPhone" type="tel" inputmode="numeric" autocomplete="tel" maxlength="13" placeholder="010-0000-0000"></div>
+        <p class="nope" id="rNo" hidden>함께하지 못하셔서 아쉽습니다.<br>마음 써 주셔서 감사합니다.<br>전시 기간 중 편하실 때 꼭 들러 주세요.</p>
         <p class="msg" role="status" aria-live="polite"></p>
-        <button class="send" type="submit">보내기</button>
+        <button class="send" type="submit" hidden>보내기</button>
       </form>
       <div class="done" role="status" aria-live="polite"><span class="dt"></span><span></span><button class="btn more" type="button">다시 작성하기</button></div>
     </div>
@@ -264,7 +265,8 @@ img{display:block;max-width:none}
     b.addEventListener('click', function () {
       att = b.dataset.a === '1'; msg.textContent = '';
       rs.querySelectorAll('.att button').forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
-      $('rYes').hidden = $('rYes2').hidden = !att;
+      $('rYes').hidden = $('rYes2').hidden = send.hidden = !att;   // 11/23 불참석 = 보낼 것 없이 감사 인사만
+      $('rNo').hidden = att;
       if (att) setTimeout(function () { $('rName').focus(); }, 30);
     });
   });
@@ -274,7 +276,7 @@ img{display:block;max-width:none}
   rs.querySelector('.btn.more').addEventListener('click', function () { rs.classList.remove('ok'); msg.textContent = ''; });
   form.addEventListener('submit', async function (e) {
     e.preventDefault(); msg.textContent = '';
-    if (att === null) { msg.textContent = '참석 여부를 골라 주세요.'; return; }
+    if (!att) return;
     var name = $('rName').value.trim(), phone = ph.value.replace(/\D/g, '');
     if (att) {
       if (!name) { msg.textContent = '성함을 입력해 주세요.'; $('rName').focus(); return; }
