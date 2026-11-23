@@ -118,8 +118,10 @@ let colImg = null;
 if (NO3D) {
   colImg = document.createElement('div'); colImg.className = 'col-paint';
   const st = document.createElement('style');
-  st.textContent = '#mv .col-paint{position:absolute;inset:0;background:url(' + new URL('./img/morris_beraud1885.jpg', import.meta.url).href + ') 56% 40%/cover no-repeat;opacity:0;transform:scale(1.18);transition:opacity 1s ease,transform 1.4s cubic-bezier(.3,.6,.25,1);pointer-events:none}'
-    + '#mv .col-paint.on{opacity:1;transform:none}body:not(.walked) #mv.no3d{opacity:1!important}';
+  // 11/23: 처음부터 이 그림 한 장이 거리 장면(모네 거리 그림 → 다른 그림으로 갈아 끼우지 않음). 다가가기 = 같은 그림 안에서 칼럼 쪽으로 확대
+  st.textContent = '#mv .col-paint{position:absolute;inset:0;background:url(' + new URL('./img/morris_beraud1885.jpg', import.meta.url).href + ') 50% 35%/cover no-repeat;transform-origin:56% 42%;transform:scale(1);transition:transform 1.3s cubic-bezier(.35,.6,.25,1);pointer-events:none}'
+    + '#mv.no3d::after{content:"";position:absolute;left:0;right:0;top:0;height:34%;pointer-events:none;background:linear-gradient(180deg,rgba(10,8,6,.62),rgba(10,8,6,0))}'   // 위 글자가 밝은 하늘 위에서 읽히게
+    + '#mv .col-paint.on{transform:scale(1.32)}body #mv.no3d{opacity:1!important;visibility:visible!important}#street{visibility:hidden}';
   document.head.appendChild(st); mvEl.appendChild(colImg); mvEl.classList.add('no3d');
   loaded = true; camLoading.classList.add('off');
 }
@@ -170,7 +172,7 @@ async function streetIntro() {
   // 11/23 새 도입(2초): 모리스 칼럼의 전단지 앞에서 시작해 → 칼럼에서 물러나며 해 질 녘 카퓌신 대로가 드러난다(칼럼 프레임을 거꾸로 + 거리 그림이 어둠에서 밝아지며 물러남)
   //   예전 3D 방 · 창 도입(society-intro.js)은 쓰지 않음(?introOld 로 볼 수 있음)
   if (NO3D && !new URLSearchParams(location.search).has('introOld')) {
-    const img = streetEl; uncover();   // 거리 그림 묶음이 어둠에서 밝아지며 다가온다(1.9초) — 칼럼 없음
+    const img = mvEl; uncover();   // 베로 그림(칼럼이 선 파리 거리)이 어둠에서 밝아지며 다가온다(1.9초)
     const an = img.animate([{ transform: 'scale(1.2)', filter: 'brightness(.12)' }, { transform: 'scale(1)', filter: 'brightness(1)' }], { duration: 1900, easing: 'cubic-bezier(.3,.6,.25,1)' });
     await Promise.race([an.finished, new Promise((r) => addEventListener('pointerdown', r, { once: true, capture: true }))]);
     an.cancel();
