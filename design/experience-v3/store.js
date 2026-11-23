@@ -3,10 +3,15 @@ const K = 'm100v3';
 const read = () => { try { return JSON.parse(localStorage.getItem(K)) || {}; } catch { return {}; } };
 const write = (s) => { try { localStorage.setItem(K, JSON.stringify(s)); } catch {} };
 
-// 11/17: 앱(로그인 계정 · 이 기기)의 수집 목록을 주소로 받아 합친다 — 다른 기기에서 모은 것도 '이미 맞힘'으로(다시 들어오면 결과 화면)
+// 11/23: 앱에서 열리면(주소에 got= 가 있으면, 비어 있어도) 앱의 수집 목록이 유일한 기준 — 이 페이지에 따로 남아 있던 기록은 버리고 그대로 덮는다.
+//   (예전엔 합치기만 해서 앱에서 '수집 초기화'를 해도 체험은 계속 '이미 모음'으로 열렸다.) 사이트에서 바로 열면(got 없음) 이 페이지 기록 그대로
 try {
   const got = new URLSearchParams(location.search).get('got');
-  if (got) { const s = read(); s.saved ||= {}; s.solved ||= {}; got.split(',').filter(Boolean).forEach((id) => { s.saved[id] ||= Date.now(); s.solved[id] ||= Date.now(); }); write(s); }
+  if (got !== null) {
+    const s = read(); s.saved = {}; s.solved = {};
+    got.split(',').filter(Boolean).forEach((id) => { s.saved[id] = Date.now(); s.solved[id] = Date.now(); });
+    write(s);
+  }
 } catch {}
 
 export const store = {
