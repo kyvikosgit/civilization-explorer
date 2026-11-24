@@ -223,21 +223,26 @@ const AURA = (() => {
   const m = new T.Mesh(new T.PlaneGeometry(aw, ah), new T.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
   m.position.z = -0.077; m.material.polygonOffset = true; m.material.polygonOffsetFactor = -2; f.g.add(m); return m;   // 뒤판(-0.075까지) 바로 뒤 · 벽(뒤판이 닿는 면)보다는 앞 — 가운데는 액자에 가려지고 가장자리 빛만 보인다
 })();
-// 11/24 정답 그림 위에서 내리비추는 빛줄기(광원 추가 없이 빛 모양 판) — 위는 좁고 진하게, 아래로 넓어지며 옅어짐
-const BEAM = (() => {
-  const f = frames[WIN_N - 1], top = f.oh / 2 + 2.2, bot = -f.oh / 2 - 0.25, wt = f.ow * 0.35, wb = f.ow * 2.1;
-  const tex = canvasTex(256, 512, (c) => {
-    const g = c.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, 'rgba(255,226,160,0)'); g.addColorStop(0.1, 'rgba(255,232,175,1)'); g.addColorStop(0.55, 'rgba(255,220,150,.55)'); g.addColorStop(1, 'rgba(255,214,140,.25)');
-    c.fillStyle = g; c.fillRect(0, 0, 256, 512);
-    c.globalCompositeOperation = 'destination-in';
-    const h = c.createLinearGradient(0, 0, 256, 0); h.addColorStop(0, 'rgba(0,0,0,0)'); h.addColorStop(0.3, 'rgba(0,0,0,.85)'); h.addColorStop(0.5, 'rgba(0,0,0,1)'); h.addColorStop(0.7, 'rgba(0,0,0,.85)'); h.addColorStop(1, 'rgba(0,0,0,0)');
-    c.fillStyle = h; c.fillRect(0, 0, 256, 512);
+// 11/24 정답 그림 뒤 오라 — 게임에서 고른 아이템 뒤로 빛살이 천천히 도는 느낌. 빛살 두 겹(서로 반대로 돎) + 가운데 둥근 빛
+const RAYS = (() => {
+  const f = frames[WIN_N - 1], S = Math.max(f.ow, f.oh) * 2.2;
+  const rayTex = (n, w, seed) => canvasTex(1024, 1024, (c) => {
+    const cx = 512, R = 512;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + seed, hw = w * (0.7 + 0.6 * ((i * 7 + 3) % 5) / 4);
+      const g = c.createRadialGradient(cx, cx, 0, cx, cx, R);
+      g.addColorStop(0, 'rgba(255,236,180,.95)'); g.addColorStop(0.35, 'rgba(255,210,120,.55)'); g.addColorStop(1, 'rgba(255,190,90,0)');
+      c.fillStyle = g; c.beginPath(); c.moveTo(cx, cx);
+      c.lineTo(cx + Math.cos(a - hw) * R, cx + Math.sin(a - hw) * R); c.lineTo(cx + Math.cos(a + hw) * R, cx + Math.sin(a + hw) * R); c.closePath(); c.fill();
+    }
   });
-  const geo = new T.BufferGeometry();
-  geo.setAttribute('position', new T.Float32BufferAttribute([-wt / 2, top, 0, wt / 2, top, 0, -wb / 2, bot, 0, wb / 2, bot, 0], 3));
-  geo.setAttribute('uv', new T.Float32BufferAttribute([0, 1, 1, 1, 0, 0, 1, 0], 2)); geo.setIndex([0, 2, 1, 1, 2, 3]);
-  const m = new T.Mesh(geo, new T.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
-  m.position.z = -0.079; f.g.add(m); return m;
+  const glowTex = canvasTex(512, 512, (c) => {
+    const g = c.createRadialGradient(256, 256, 0, 256, 256, 256);
+    g.addColorStop(0, 'rgba(255,230,170,1)'); g.addColorStop(0.4, 'rgba(255,200,110,.6)'); g.addColorStop(1, 'rgba(255,180,80,0)');
+    c.fillStyle = g; c.fillRect(0, 0, 512, 512);
+  });
+  const mk = (tex, size, z) => { const m = new T.Mesh(new T.PlaneGeometry(size, size), new T.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false })); m.position.z = z; f.g.add(m); return m; };
+  return { a: mk(rayTex(14, 0.075, 0), S, -0.081), b: mk(rayTex(9, 0.05, 0.3), S * 0.82, -0.08), glow: mk(glowTex, S * 0.75, -0.079) };
 })();
 // 이름표 — 벽에서 각 그림 아래: 제목 · 화가, 연도(번호 대신)
 const _lp = new T.Vector3(), _lp2 = new T.Vector3();
@@ -426,10 +431,13 @@ function apply(now = performance.now()) {
     const inv = f.inv || 0;
     // 11/17: 정답(〈환영〉)에만 뒤로 금빛 후광 — 숨 쉬듯 천천히(쉽게 맞추도록)
     f.glow.material.opacity = f.glowV * 0.75 + inv * 0.5;
-    if (f.w.n === WIN_N) {   // 11/24 정답: 후광 · 빛줄기 · 테두리가 함께 숨 쉬듯(고르는 화면에서 더 또렷하게)
-      const br = 0.5 + 0.5 * Math.sin(now / 650);
-      AURA.material.opacity = mode !== 'intro' ? 0.8 + 0.2 * br : 0;
-      BEAM.material.opacity = mode !== 'intro' ? (0.35 + 0.65 * eio(pickK)) * (0.8 + 0.2 * br) : 0;
+    if (f.w.n === WIN_N) {   // 11/24 정답: 뒤로 빛살 오라가 천천히 돌고(두 겹 반대로), 가운데 빛 · 테두리가 숨 쉰다
+      const on = mode !== 'intro', br = 0.5 + 0.5 * Math.sin(now / 650), pk = eio(pickK);
+      AURA.material.opacity = on ? 0.75 + 0.25 * br : 0;
+      RAYS.a.rotation.z = now / 9000; RAYS.b.rotation.z = -now / 6500;
+      RAYS.a.material.opacity = on ? (0.3 + 0.55 * pk) * (0.8 + 0.2 * br) : 0;
+      RAYS.b.material.opacity = on ? (0.25 + 0.45 * pk) * (0.7 + 0.3 * (1 - br)) : 0;
+      RAYS.glow.material.opacity = on ? (0.35 + 0.4 * pk) * (0.75 + 0.25 * br) : 0;
     }
     f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5 + inv * 0.45 + (f.w.n === WIN_N && mode !== 'intro' ? 0.35 + 0.3 * (0.5 + 0.5 * Math.sin(now / 650)) : 0));
     f.mats.bead.emissive.setRGB(0.3, 0.2, 0.04).multiplyScalar(inv * 0.5);
@@ -634,7 +642,7 @@ function hitFrame(p, list) {
   ray.setFromCamera(new T.Vector2((p.x / W) * 2 - 1, -(p.y / H) * 2 + 1), camera);
   let best = null;
   // 보이는 액자·그림만(뒤의 금빛 후광 판 · 숨긴 판은 빼고) — 그래야 그림 바깥 빈 곳을 누르면 벽으로 돌아간다
-  list.forEach((f) => { const h = ray.intersectObject(f.g, true).find((x) => x.object.visible && x.object !== f.glow && x.object !== AURA && x.object !== BEAM && !(x.object.material && x.object.material.transparent && x.object.material.opacity === 0)); if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
+  list.forEach((f) => { const h = ray.intersectObject(f.g, true).find((x) => x.object.visible && x.object !== f.glow && x.object !== AURA && x.object !== RAYS.a && x.object !== RAYS.b && x.object !== RAYS.glow && !(x.object.material && x.object.material.transparent && x.object.material.opacity === 0)); if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
   return best ? best.f : null;
 }
 function wppF() { const f = frames[fi]; return 2 * (cam.z - (f.fp ? f.fp.z : f.g.position.z)) * TAN / H; }   // 그림 면에서 1px 가 몇 m
