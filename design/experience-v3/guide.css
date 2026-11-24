@@ -92,10 +92,10 @@
 /* 11/18 역할 줄 — 살롱(c0.css .role)과 같은 짜임: 금색 머리 한 줄(자간) · "당신은 …" 제목 · 한 줄 설명. 장면 위 왼쪽 위, 위쪽만 살짝 어둡게.
    has-back: 왼쪽 위 뒤로 단추 옆에서 시작(살롱 벽 화면과 같은 자리) */
 .v3-role{position:absolute;left:0;right:0;top:0;z-index:4;margin:0;padding:calc(env(safe-area-inset-top) + 18px) 20px 44px;pointer-events:none;font-family:Freesentation,-apple-system,sans-serif;text-align:left;word-break:keep-all;background:linear-gradient(180deg,rgba(10,7,5,.62) 0,rgba(10,7,5,.42) 55%,rgba(10,7,5,0) 100%)}
-.v3-role.has-back{padding-left:50px}
+.v3-role.has-back{padding-top:calc(env(safe-area-inset-top) + 64px)}   /* 11/24: 뒤로 단추는 맨 위 단독 줄 · 글은 왼쪽 여백(20px)에 맞춤(시민사회와 같은 자리) */
 .v3-role .eyebrow{display:block;margin:0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:600;font-size:11px;line-height:1.4;letter-spacing:3px;text-transform:uppercase;color:#E2B565}
-.v3-role h1{margin:7px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:25px;line-height:1.2;letter-spacing:-.02em;color:#FFF7EA;text-shadow:0 2px 14px rgba(0,0,0,.55)}
-.v3-role .lead{margin:8px 0 0;font-size:14px;line-height:1.5;letter-spacing:0;color:rgba(255,247,234,.82);text-shadow:0 1px 8px rgba(0,0,0,.6);max-width:340px}
+.v3-role h1{margin:4px 0 0;font-family:Paperlogy,Freesentation,sans-serif;font-weight:800;font-size:25px;line-height:1.2;letter-spacing:-.02em;color:#FFF7EA;text-shadow:0 2px 14px rgba(0,0,0,.55)}
+.v3-role .lead{margin:12px 0 0;font-size:14px;line-height:1.5;letter-spacing:0;color:rgba(255,247,234,.82);text-shadow:0 1px 8px rgba(0,0,0,.6);max-width:340px}
 .v3-role>*{opacity:0;transform:translateY(8px);transition:opacity .6s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
 .v3-role.in>*{opacity:1;transform:none}
 .v3-role.in h1{transition-delay:.15s}

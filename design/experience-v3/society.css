@@ -34,3 +34,7 @@ body:not(.walked) #mv{opacity:0!important;pointer-events:none}
 /* 11/09: 첫 화면 덮개 — 도입이 그려지기 전 거리 그림 노출 막기 */
 #scCover{position:fixed;inset:0;z-index:79;background:#07050a;transition:opacity .25s ease}
 #scCover.off{opacity:0;pointer-events:none}
+
+/* 11/24: 역할 줄 간격 통일(눈썹 → 제목 4px · 제목 → 설명 12px, 다른 체험과 같게) */
+.role-head h1{margin-top:4px!important}
+.role-head p{margin-top:12px!important}
