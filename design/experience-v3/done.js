@@ -32,7 +32,7 @@ const CSS = `
 .v3-done .d-cap small{display:block}
 .v3-done .d-card{margin:14px auto 0;width:100%;height:min(32vh,260px);border-radius:14px;background:var(--d-panel);display:flex;align-items:center;justify-content:center;overflow:hidden;transform:scale(.92);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
 .v3-done.on .d-card{transform:none;opacity:1}
-.v3-done .d-card img{max-width:86%;max-height:86%;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.18))}   /* 11/17: 세로로 긴 그림(전단지)이 위아래로 잘리지 않게 — 카드 높이 안에 다 들어감 */
+.v3-done .d-card img{max-width:88%;max-height:90%;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.18))}   /* 11/17: 세로로 긴 그림(전단지)이 위아래로 잘리지 않게 — 카드 높이 안에 다 들어감 */
 .v3-done .d-card img.cover{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:cover;filter:none}
 .v3-done .d-name{margin-top:16px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:23px;font-weight:800;line-height:1.3}
 .v3-done .d-sub{margin-top:5px;text-align:center;font-size:14px;color:var(--d-sub)}
@@ -60,7 +60,7 @@ const CSS = `
 .v3-done .d-slots span.me{border-color:var(--d-pt)}
 .v3-done .d-slots span{border-radius:7px}
 .v3-done .d-slots span.on{background:#F0E9DC;border:1px solid rgba(58,53,43,.14)}
-.v3-done .d-slots span img{width:100%;height:100%;object-fit:cover;display:block}
+.v3-done .d-slots span img{width:100%;height:100%;object-fit:contain;display:block;padding:3px;box-sizing:border-box}   /* 11/24 작은 칸도 잘리지 않게 */
 .v3-done .d-slots span.pop{animation:dpop .35s ease}
 @keyframes dpop{50%{transform:scale(1.18)}}
 
@@ -154,7 +154,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
       <span></span></div>
     <div class="d-scroll"><div class="d-in">
       <p class="d-cap">${esc(cap)}</p>
-      ${img ? `<div class="d-card"><img src="${esc(img)}" alt="" class="${item.contain ? '' : 'cover'}"></div>` : ''}
+      ${img ? `<div class="d-card"><img src="${esc(img)}" alt=""></div>` : ''}
       ${item?.name ? `<p class="d-name">${esc(item.name)}</p>` : ''}${item?.sub ? `<p class="d-sub">${esc(item.sub)}</p>` : ''}
       ${slot >= 0 ? `<div class="d-col"><p class="d-colt">나의 수집품 <b>${got - 1}</b> / ${total}</p><div class="d-slots">${COLLECT_IDS.map((id, i) => { const it = findTask(id)?.task?.item; const on = i !== slot && store.saved(id); return `<span class="${on ? 'on' : ''}${i === slot ? ' me' : ''}">${on && (ccOf(id) || it?.img) ? `<img src="${esc(ccOf(id) || new URL(it.img, V3).href)}" alt="">` : ''}</span>`; }).join('')}</div></div>` : ''}
       <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}</div>
