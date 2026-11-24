@@ -114,7 +114,9 @@ window.addEventListener('c1:ready', () => {
   if (ended) return;
   // 11/24: 칼럼으로 걸어가기 · 거리 확대 · 읽는 틈 없이 바로 전단지 안내(칼럼 3D 걷어냄)
   stage = 'walk'; document.body.classList.add('walked');
-  const now = () => (c1()?.arriveNow ? c1().arriveNow() : setTimeout(now, 30)); now();
+  const now = () => (c1()?.arriveNow ? c1().arriveNow() : setTimeout(now, 30));
+  const n = document.querySelectorAll('.role-head h1 .ch').length || 30;
+  setTimeout(now, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 150 + n * 40 + 340 + 150);   // 위 역할 문장이 다 찍힌 뒤(c1.css typeIn: 150ms + 글자 × 40ms + .34초) 바로
 });
 if (window.__c1ready) window.dispatchEvent(new CustomEvent('c1:ready'));   // 11/24: 이 모듈보다 먼저 준비가 끝났으면 다시 알림
 window.addEventListener('c1:step', (e) => {

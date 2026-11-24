@@ -38,8 +38,8 @@ function showAsk() {
 // 안내판은 역할 줄 바로 아래 — 역할 줄 글 끝(설명 줄 아래)을 재서 넘긴다(글이 두 줄이 되는 좁은 폰에서도 겹치지 않게)
 function placeBoard() { const l = $('#role .lead'); if (l) $('#intro').style.setProperty('--role-b', `${l.offsetTop + l.offsetHeight}px`); }
 placeBoard(); addEventListener('resize', placeBoard); document.fonts?.ready.then(placeBoard);
-window.addEventListener('c2:played',() => { clearTimeout(askT); askT = setTimeout(showAsk, RM ? 0 : 1100); });
-if (document.querySelector('#intro.played')) { clearTimeout(askT); askT = setTimeout(showAsk, RM ? 0 : 700); }   // 11/24: 도입이 없어 이 모듈이 뜨기 전에 이미 끝 장면이면 바로 안내
+window.addEventListener('c2:played',() => { clearTimeout(askT); askT = setTimeout(showAsk, RM ? 0 : 1400); });   // 11/24: 위 역할 글(눈썹 · 제목 · 설명)이 다 뜬 뒤
+if (document.querySelector('#intro.played')) { clearTimeout(askT); askT = setTimeout(showAsk, RM ? 0 : 1400); }   // 11/24: 도입이 없어 이 모듈이 뜨기 전에 이미 끝 장면이면 바로 안내
 function scan() {
   guide.busy('카메라를 켜는 중');
   openCam({

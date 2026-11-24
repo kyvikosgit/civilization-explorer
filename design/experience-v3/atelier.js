@@ -173,7 +173,7 @@ if (SOLVED) {
 if (!SOLVED) {
   document.body.classList.add('et-ready'); $('#role')?.classList.add('in');
   (window.M100_INTRO || { mode: 'normal', ended() {} }).ended(0);
-  setTimeout(showGuide, 600);
+  setTimeout(showGuide, REDUCED ? 0 : 1400);   // 11/24: 위 역할 글이 다 뜬 뒤(설명 줄 .6초 늦게 + .7초)
 }
 function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; }
 
