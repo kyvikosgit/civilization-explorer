@@ -7,15 +7,19 @@ const qs = new URLSearchParams(location.search);
 const LANG = ['ko', 'en', 'ja', 'zh'].includes(qs.get('lang')) ? qs.get('lang') : 'ko';
 const TXT = {
   ko: { hall1n: '제1관', hall1s: '이해하는 공간', hall2n: '제2관', hall2s: '체험하는 공간', top: '위에서 보기', d3: '입체로 보기', hint: '끌어서 돌리고, 두 손가락으로 확대해 보세요', reset: '처음 모양으로',
+    booth: { c1: '시민사회 · 카페', c2: '산업혁명 · 사업가의 방', c3: '화가의 아틀리에 · 에트르타', c4: '나다르 사진관' },
     z: { hall1: ['살롱', '변화의 복도', '인상파 전시회', '미디어 전시'], hall2: ['모네 연작', '지베르니', '건초더미', '감각의 계보'] },
     p: { entrance: '입구', exit: '출구', ticket: '티켓·안내', wc_f: '여자 화장실', wc_m: '남자 화장실', escalator: '에스컬레이터', elevator: '엘리베이터', stairs: '비상구', shop: '아트숍' } },
   en: { hall1n: 'Hall 1', hall1s: 'Space of Understanding', hall2n: 'Hall 2', hall2s: 'Space of Experience', top: 'Top view', d3: '3D view', hint: 'Drag to rotate, pinch to zoom', reset: 'Reset view',
+    booth: { c1: 'Civil Society · Café', c2: 'Industrial Revolution · Office', c3: "Painter's Atelier · Étretat", c4: 'Nadar Studio' },
     z: { hall1: ['Salon', 'Corridor of Change', 'Impressionist Exhibition', 'Media Exhibition'], hall2: ['Monet Series', 'Giverny', 'Haystacks', 'Lineage of Senses'] },
     p: { entrance: 'Entrance', exit: 'Exit', ticket: 'Tickets & Info', wc_f: 'Women', wc_m: 'Men', escalator: 'Escalator', elevator: 'Elevator', stairs: 'Emergency exit', shop: 'Art shop' } },
   ja: { hall1n: '第1館', hall1s: '理解する空間', hall2n: '第2館', hall2s: '体験する空間', top: '真上から', d3: '立体で見る', hint: 'ドラッグで回転、ピンチで拡大できます', reset: '元に戻す',
+    booth: { c1: '市民社会・カフェ', c2: '産業革命・実業家の部屋', c3: '画家のアトリエ・エトルタ', c4: 'ナダール写真館' },
     z: { hall1: ['サロン', '変化の回廊', '印象派展', 'メディア展示'], hall2: ['モネの連作', 'ジヴェルニー', '積みわら', '感覚の系譜'] },
     p: { entrance: '入口', exit: '出口', ticket: 'チケット・案内', wc_f: '女性トイレ', wc_m: '男性トイレ', escalator: 'エスカレーター', elevator: 'エレベーター', stairs: '非常口', shop: 'アートショップ' } },
   zh: { hall1n: '第1馆', hall1s: '理解的空间', hall2n: '第2馆', hall2s: '体验的空间', top: '俯视', d3: '立体视图', hint: '拖动旋转，双指缩放', reset: '恢复视角',
+    booth: { c1: '市民社会·咖啡馆', c2: '工业革命·商人的房间', c3: '画家工作室·埃特尔塔', c4: '纳达尔照相馆' },
     z: { hall1: ['沙龙', '变革长廊', '印象派画展', '媒体展'], hall2: ['莫奈系列', '吉维尼', '干草堆', '感知的谱系'] },
     p: { entrance: '入口', exit: '出口', ticket: '售票·咨询', wc_f: '女卫生间', wc_m: '男卫生间', escalator: '自动扶梯', elevator: '电梯', stairs: '安全出口', shop: '艺术商店' } },
 }[LANG];
@@ -71,14 +75,13 @@ function stripeTex() {
 }
 function chevronTex() {   // 동선 위를 흐르는 화살 무늬
   const c = document.createElement('canvas'); c.width = 128; c.height = 32; const g = c.getContext('2d');
-  g.fillStyle = '#5E7D5F'; g.fillRect(0, 0, 128, 32);
-  g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 5; g.lineCap = 'round'; g.lineJoin = 'round';
-  g.beginPath(); g.moveTo(52, 8); g.lineTo(68, 16); g.lineTo(52, 24); g.stroke();
+  g.fillStyle = '#4F7A50'; g.fillRect(0, 0, 128, 32);
+  g.fillStyle = '#FFFFFF'; g.beginPath(); g.moveTo(44, 4); g.lineTo(70, 16); g.lineTo(44, 28); g.lineTo(52, 16); g.closePath(); g.fill();
   const t = new T.CanvasTexture(c); t.wrapS = T.RepeatWrapping; t.encoding = T.sRGBEncoding; t.anisotropy = 4; return t;
 }
 const CHEV = chevronTex();
-const routeMat = new T.MeshBasicMaterial({ map: CHEV, side: T.DoubleSide });
-const arrowMat = new T.MeshBasicMaterial({ color: '#5E7D5F', side: T.DoubleSide });
+const routeMat = new T.MeshBasicMaterial({ map: CHEV, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+const arrowMat = new T.MeshBasicMaterial({ color: '#4F7A50', side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
 
 const halls = {};
 function buildHall(key) {
@@ -95,8 +98,14 @@ function buildHall(key) {
     const c = new T.Mesh(new T.BoxGeometry(L + t, 0.05, t + 0.02), M.cap); c.position.set(m.position.x, h + 0.025, m.position.z); c.rotation.y = m.rotation.y; g.add(c);
   };
   // 바깥 벽(리플렛 테두리) · 안쪽 벽
-  [[0, 0, W, 0], [W, 0, W, D], [W, D, 0, D], [0, D, 0, 0]].forEach(([a, b, c, e]) => wall(a, b, c, e, 1.7, 0.32, M.outer));
-  d.walls.forEach(([a, b, c, e]) => wall(a, b, c, e, 1.35, 0.16, M.wall));
+  [[0, 0, W, 0], [W, 0, W, D], [W, D, 0, D], [0, D, 0, 0]].forEach(([a, b, c, e]) => wall(a, b, c, e, 1.4, 0.32, M.outer));
+  d.walls.forEach(([a, b, c, e]) => wall(a, b, c, e, 0.9, 0.16, M.wall));
+  // 변화의 복도 부스 넷(기획서) — 바닥 색으로 공간을 나누고, 칸막이는 조금 높게
+  (d.booths || []).forEach((b) => {
+    const m = new T.Mesh(new T.PlaneGeometry(b.x1 - b.x0, b.y1 - b.y0), new T.MeshStandardMaterial({ color: b.tint, roughness: 0.95 }));
+    m.rotation.x = -Math.PI / 2; m.position.set(X((b.x0 + b.x1) / 2), 0.012, Z((b.y0 + b.y1) / 2)); m.receiveShadow = true; g.add(m);
+  });
+  (d.boothWalls || []).forEach(([a, b, c, e]) => wall(a, b, c, e, 1.3, 0.14, M.wall));
   // 낮은 덩어리(에스컬레이터 · 안내 데스크)
   d.boxes.forEach((b) => {
     const s = new T.Shape(b.pts.map(([x, y]) => new T.Vector2(X(x), -Z(y))));
@@ -112,21 +121,21 @@ function buildHall(key) {
   });
   // 동선: 리본(흐르는 화살 무늬) + 끝 화살촉
   d.routes.forEach((r) => {
-    const pts = r.map(([x, y]) => new T.Vector3(X(x), 0.06, Z(y))), w = 0.5;
+    const pts = r.map(([x, y]) => new T.Vector3(X(x), 0.09, Z(y))), w = 0.85;
     const pos = [], uv = [], idx = []; let acc = 0;
     for (let i = 0; i < pts.length - 1; i++) {
       const a = pts[i], b = pts[i + 1], dir = b.clone().sub(a), L = dir.length(); dir.normalize();
       const n = new T.Vector3(-dir.z, 0, dir.x).multiplyScalar(w / 2), base = pos.length / 3;
       const a2 = a.clone().addScaledVector(dir, -w / 2 * (i > 0 ? 1 : 0)), b2 = b.clone().addScaledVector(dir, i < pts.length - 2 ? w / 2 : 0);
       [a2.clone().add(n), a2.clone().sub(n), b2.clone().add(n), b2.clone().sub(n)].forEach((p) => pos.push(p.x, p.y + i * 0.0005, p.z));
-      const u0 = acc / 1.3, u1 = (acc + L) / 1.3; uv.push(u0, 1, u0, 0, u1, 1, u1, 0); acc += L;
+      const u0 = acc / 1.9, u1 = (acc + L) / 1.9; uv.push(u0, 1, u0, 0, u1, 1, u1, 0); acc += L;
       idx.push(base, base + 1, base + 2, base + 2, base + 1, base + 3);
     }
     const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx);
     g.add(new T.Mesh(geo, routeMat));
     const a = pts[pts.length - 2], b = pts[pts.length - 1], dir = b.clone().sub(a).normalize(), n = new T.Vector3(-dir.z, 0, dir.x);
-    const tip = b.clone().addScaledVector(dir, 0.9), l = b.clone().addScaledVector(n, 0.65), rr = b.clone().addScaledVector(n, -0.65);
-    const ag = new T.BufferGeometry(); ag.setAttribute('position', new T.Float32BufferAttribute([tip.x, 0.07, tip.z, l.x, 0.07, l.z, rr.x, 0.07, rr.z], 3));
+    const tip = b.clone().addScaledVector(dir, 1.5), l = b.clone().addScaledVector(n, 1.05), rr = b.clone().addScaledVector(n, -1.05);
+    const ag = new T.BufferGeometry(); ag.setAttribute('position', new T.Float32BufferAttribute([tip.x, 0.1, tip.z, l.x, 0.1, l.z, rr.x, 0.1, rr.z], 3));
     g.add(new T.Mesh(ag, arrowMat));
   });
   scene.add(g); g.visible = false;
@@ -139,6 +148,10 @@ function buildHall(key) {
     const el = document.createElement('div'); el.className = 'poi';
     el.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[p.t] || ''}</svg>${TXT.p[p.t] || ''}`;
     labels.appendChild(el); return { el, v: new T.Vector3(X(p.p[0]), 1.2, Z(p.p[1])) };
+  });
+  (d.booths || []).forEach((b) => {
+    const el = document.createElement('div'); el.className = 'poi booth'; el.textContent = TXT.booth[b.k];
+    labels.appendChild(el); pois.push({ el, v: new T.Vector3(X((b.x0 + b.x1) / 2), 0.6, Z((b.y0 + b.y1) / 2 + 0.6)), booth: true });
   });
   return { g, d, pins, pois, glows, W, D, zones: d.zones.map((z) => new T.Vector3(X(z.p[0]), 0, Z(z.p[1]))) };
 }
@@ -267,7 +280,7 @@ function frame(now) {
     const off = v3.z > 1 || Math.abs(v3.x) > 1.2 || Math.abs(v3.y) > 1.2;
     p.el.style.transform = `translate(${((v3.x + 1) / 2 * W).toFixed(1)}px, ${((1 - v3.y) / 2 * H).toFixed(1)}px) translate(${isPoi ? '-50%' : '-15px'}, -50%)`;
     p.el.style.visibility = off ? 'hidden' : 'visible';
-    if (isPoi) p.el.classList.toggle('far', view.r > fitR(cur) * 0.78);   // 멀리서는 아이콘만
+    if (isPoi) p.el.classList.toggle('far', view.r > fitR(cur) * (p.booth ? 0.62 : 0.78));   // 멀리서는 아이콘만(부스 이름은 다가가면)
   };
   cur.pins.forEach((p) => place(p, false)); cur.pois.forEach((p) => place(p, true));
   requestAnimationFrame(frame);

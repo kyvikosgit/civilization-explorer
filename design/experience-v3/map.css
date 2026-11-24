@@ -51,3 +51,6 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 .pin{z-index:2}
 /* 미리보기 그림 찍을 때(?shot) — 글자 단추 숨김 */
 body.shot .mhead,body.shot .tools,body.shot .legend,body.shot .hint,body.shot .poi,body.shot .pin b{display:none}
+
+.poi.booth{padding:3px 8px;background:rgba(255,255,255,.94);color:var(--ink);font-size:11px}
+.poi.booth.far{opacity:0}
