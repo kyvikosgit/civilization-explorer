@@ -222,7 +222,7 @@ const AURA = (() => {
       float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
         return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
-      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int k = 0; k < 4; k++) { v += a * noise(p); p *= 2.0; a *= 0.5; } return v; }
+      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int k = 0; k < 3; k++) { v += a * noise(p); p *= 2.0; a *= 0.5; } return v; }
       void main(){
         vec2 p = (vUv - 0.5) * size;
         float r = 0.06; vec2 q = abs(p) - hs + r; float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;   // 액자 둘레까지 거리(밖 +)
@@ -230,10 +230,10 @@ const AURA = (() => {
         float ang = atan(p.y, p.x);
         float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9));            // 둘레를 따라 돌며 바깥으로 흘러 나가는 결
         float n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
-        float core = exp(-max(d, 0.0) * 14.0);                                   // 가장자리 바로 바깥 진한 빛
-        float flame = exp(-max(d, 0.0) * 3.0) * smoothstep(0.3, 0.8, n * 0.7 + n2 * 0.5) * (1.0 - smoothstep(0.45, 0.68, d));   // 바깥으로 일렁이는 혀
-        float a = clamp(core * 0.9 + flame * 1.15, 0.0, 1.0) * op;
-        vec3 col = mix(vec3(1.0, 0.62, 0.22), vec3(1.0, 0.93, 0.72), core);
+        float core = exp(-max(d, 0.0) * 12.0);                                   // 가장자리 바로 바깥 밝은 빛
+        float haze = exp(-max(d, 0.0) * 3.6) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.45, 0.68, d));   // 바깥으로 은은히 일렁이는 빛(불꽃 혀 대신)
+        float a = clamp(core * 0.95 + haze * 0.7, 0.0, 1.0) * op;
+        vec3 col = mix(vec3(1.0, 0.86, 0.55), vec3(1.0, 0.98, 0.9), core);   // 주황 → 밝은 금빛 · 흰빛
         gl_FragColor = vec4(col * a, a);
       }`,
     transparent: true, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false,
@@ -470,7 +470,31 @@ function tick(now) {
   const dt = Math.min(0.034, Math.max(0.001, (now - last) / 1000)); last = now;
   const busy = step(dt, now);
   apply(now); renderer.render(scene, camera);
-  if (busy) raf = requestAnimationFrame(tick);
+  if (busy) raf = requestAnimationFrame(tick); else auraLoop();
+}
+// 11/24 오라만 움직일 때 — 방 전체가 아니라 정답 액자 둘레 사각형만, 초당 30번 다시 그린다(저사양 폰 발열 · 버벅임 줄이기)
+let auraRaf = 0, auraLast = 0;
+const _ac = new T.Vector3(), _sz = new T.Vector2();
+function auraLoop() {
+  if (auraRaf || mode === 'intro' || AURA.material.uniforms.op.value <= 0.01) return;
+  auraRaf = requestAnimationFrame(function a(now) {
+    auraRaf = 0;
+    if (raf || mode === 'intro') return;   // 다른 움직임이 시작되면 그쪽 루프가 다 그린다
+    if (now - auraLast >= 33) {
+      auraLast = now;
+      AURA.material.uniforms.t.value = now / 1000;
+      // 오라 판의 네 모서리 → 화면 사각형(조금 여유)
+      AURA.updateMatrixWorld(); const g = AURA.geometry.parameters; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      renderer.getSize(_sz);
+      for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+        _ac.set(sx * g.width / 2, sy * g.height / 2, 0).applyMatrix4(AURA.matrixWorld).project(camera);
+        const px = (_ac.x + 1) / 2 * _sz.x, py = (_ac.y + 1) / 2 * _sz.y; x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+      }
+      x0 = Math.max(0, Math.floor(x0) - 2); y0 = Math.max(0, Math.floor(y0) - 2); x1 = Math.min(_sz.x, Math.ceil(x1) + 2); y1 = Math.min(_sz.y, Math.ceil(y1) + 2);
+      if (x1 > x0 && y1 > y0) { renderer.setScissorTest(true); renderer.setScissor(x0, y0, x1 - x0, y1 - y0); renderer.setViewport(0, 0, _sz.x, _sz.y); renderer.render(scene, camera); renderer.setScissorTest(false); }
+    }
+    auraLoop();
+  });
 }
 function spring(x, v, target, k, c, dt) { const a = k * (target - x) - c * v; v += a * dt; x += v * dt; return [x, v]; }
 
