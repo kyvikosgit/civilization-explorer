@@ -8,24 +8,23 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 
 /* 머리: 관 고르기 */
-.mhead{position:fixed;left:0;right:0;top:0;padding:calc(var(--safe-t) + 12px) 16px 0;z-index:5;pointer-events:none;display:flex;align-items:center;gap:8px}
-.back{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.85);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(38,48,42,.1);pointer-events:auto;cursor:pointer}
+.mhead{position:fixed;left:0;right:0;top:0;padding:calc(var(--safe-t) + 6px) 16px 0;z-index:5;pointer-events:none}
+.mtop{display:flex;align-items:center;height:44px;margin:0 -6px 8px}
+.mtitle{flex:1;margin:0;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:17px;color:var(--ink)}
+.mside{width:40px}
+.back{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--ink);display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer}
 .back svg{width:22px;height:22px}
-.tabs{flex:1}
 .tabs{display:flex;gap:6px;padding:4px;border-radius:14px;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 12px rgba(38,48,42,.08);pointer-events:auto}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 6px;border:0;border-radius:10px;background:transparent;color:var(--sub);font:inherit;cursor:pointer;transition:background .25s,color .25s}
 .tab b{font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:15px;line-height:1.2}
 .tab span{font-size:12px;line-height:1.3}
 .tab.on{background:var(--green);color:#fff}
 
-/* 오른쪽 도구 */
-.tools{position:fixed;right:16px;top:calc(var(--safe-t) + 84px);z-index:5;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.tool{display:flex;align-items:center;gap:6px;height:38px;padding:0 13px 0 11px;border:0;border-radius:19px;background:rgba(255,255,255,.9);color:var(--ink);font:inherit;font-size:13px;font-weight:600;box-shadow:0 2px 10px rgba(38,48,42,.12);cursor:pointer}
-.tool svg{width:18px;height:18px;flex:none}
-.tool.icon{width:38px;padding:0;justify-content:center}
-.tool[aria-pressed="true"]{background:var(--ink);color:#fff}
+/* 처음 모양으로(오른쪽 아래, 구역 목록 위) */
+.reset{position:fixed;right:16px;bottom:calc(var(--safe-b) + 134px);z-index:5;width:42px;height:42px;border:0;border-radius:50%;background:rgba(255,255,255,.94);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(38,48,42,.14);cursor:pointer}
+.reset svg{width:20px;height:20px}
 
-.hint{position:fixed;left:0;right:0;bottom:calc(var(--safe-b) + 132px);margin:0;text-align:center;font-size:12px;color:var(--sub);z-index:4;pointer-events:none;transition:opacity .6s}
+.hint{position:fixed;left:0;right:0;bottom:calc(var(--safe-b) + 146px);margin:0;text-align:center;font-size:12px;color:var(--sub);z-index:4;pointer-events:none;transition:opacity .6s}
 .hint.off{opacity:0}
 
 /* 아래: 구역 목록 */
@@ -50,7 +49,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 
 .pin{z-index:2}
 /* 미리보기 그림 찍을 때(?shot) — 글자 단추 숨김 */
-body.shot .mhead,body.shot .tools,body.shot .legend,body.shot .hint,body.shot .poi,body.shot .pin b{display:none}
+body.shot .mhead,body.shot .reset,body.shot .legend,body.shot .hint,body.shot .poi,body.shot .pin b{display:none}
 
 .poi.booth{padding:3px 8px;background:rgba(255,255,255,.94);color:var(--ink);font-size:11px}
 .poi.booth.far{opacity:0}
