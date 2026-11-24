@@ -106,13 +106,27 @@ function buildHall(key) {
     m.rotation.x = -Math.PI / 2; m.position.set(X((b.x0 + b.x1) / 2), 0.012, Z((b.y0 + b.y1) / 2)); m.receiveShadow = true; g.add(m);
   });
   (d.boothWalls || []).forEach(([a, b, c, e]) => wall(a, b, c, e, 1.3, 0.14, M.wall));
-  // 낮은 덩어리(에스컬레이터 · 안내 데스크)
+  // 안내 데스크 — 평면 기준 반듯한 상자
   d.boxes.forEach((b) => {
-    const s = new T.Shape(b.pts.map(([x, y]) => new T.Vector2(X(x), -Z(y))));
-    const geo = new T.ExtrudeGeometry(s, { depth: b.h, bevelEnabled: false }); geo.rotateX(-Math.PI / 2);
-    let mat = M.desk;
-    if (b.t === 'esc') { const tx = stripeTex(); tx.repeat.set(0.35, 0.35); mat = new T.MeshStandardMaterial({ map: tx, roughness: 0.9 }); }
-    const m = new T.Mesh(geo, mat); m.castShadow = m.receiveShadow = true; g.add(m);
+    const m = new T.Mesh(new T.BoxGeometry(b.x1 - b.x0, b.h, b.y1 - b.y0), M.desk);
+    m.position.set(X((b.x0 + b.x1) / 2), b.h / 2, Z((b.y0 + b.y1) / 2)); m.castShadow = m.receiveShadow = true; g.add(m);
+    const top = new T.Mesh(new T.BoxGeometry(b.x1 - b.x0 + 0.12, 0.06, b.y1 - b.y0 + 0.12), M.cap); top.position.set(m.position.x, b.h + 0.03, m.position.z); g.add(top);
+  });
+  // 에스컬레이터 — 오르내리는 두 줄(디딤판 줄무늬) + 가운데 · 양옆 난간. 긴 쪽(x)을 따라
+  (d.escalators || []).forEach((e) => {
+    const L = e.x1 - e.x0, Wd = e.y1 - e.y0, lane = (Wd - 0.5) / 2, cx = X((e.x0 + e.x1) / 2);
+    const pit = new T.Mesh(new T.BoxGeometry(L, 0.06, Wd), new T.MeshStandardMaterial({ color: '#D8D2C3', roughness: 0.9 }));
+    pit.position.set(cx, 0.03, Z((e.y0 + e.y1) / 2)); pit.receiveShadow = true; g.add(pit);
+    [0, 1].forEach((k) => {
+      const tx = stripeTex(); tx.repeat.set(L / 1.2, 1); tx.rotation = 0;
+      const steps = new T.Mesh(new T.BoxGeometry(L, 0.14, lane), new T.MeshStandardMaterial({ map: tx, roughness: 0.85 }));
+      steps.position.set(cx, 0.1, Z(e.y0 + 0.15 + lane / 2 + k * (lane + 0.2))); steps.receiveShadow = true; g.add(steps);
+    });
+    [e.y0 + 0.07, (e.y0 + e.y1) / 2, e.y1 - 0.07].forEach((y) => {   // 난간
+      const rail = new T.Mesh(new T.BoxGeometry(L, 0.75, 0.12), new T.MeshStandardMaterial({ color: '#B9C4B6', roughness: 0.6, transparent: true, opacity: 0.85 }));
+      rail.position.set(cx, 0.45, Z(y)); rail.castShadow = true; g.add(rail);
+      const cap = new T.Mesh(new T.BoxGeometry(L, 0.06, 0.16), M.cap); cap.position.set(cx, 0.85, Z(y)); g.add(cap);
+    });
   });
   // 구역 바닥 빛(옅은 초록 원)
   const glows = d.zones.map((z) => {
@@ -302,4 +316,4 @@ const hall0 = qs.get('hall') === '2' ? 'hall2' : 'hall1';
 setHall(hall0, false);
 const z0 = parseInt(qs.get('zone'), 10); if (z0 >= 1 && z0 <= 4) { focusZone(z0 - 1); Object.assign(view, goal); }
 requestAnimationFrame(frame);
-window.__mapReady = true;
+window.__mapReady = true; window.__map = { goal, view };   // 점검용
