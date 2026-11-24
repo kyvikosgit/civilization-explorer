@@ -212,14 +212,32 @@ function buildFrame(w, i) {
 const frames = WORKS.map(buildFrame);
 // 11/17: 정답(〈환영〉)에만 — 액자 뒤에서 가장자리로 은은하게 새어 나오는 빛(액자에 붙어서, 바깥으로 짧게 흐려짐). 다른 그림에는 없다
 const AURA = (() => {
-  const f = frames[WIN_N - 1], PAD = 0.16, aw = f.ow + 2 * PAD, ah = f.oh + 2 * PAD, PX = 640;
+  const f = frames[WIN_N - 1], PAD = 0.34, aw = f.ow + 2 * PAD, ah = f.oh + 2 * PAD, PX = 640;   // 11/24 더 넓고 밝게(0.16 → 0.34)
   const tw = PX, th = Math.round(PX * ah / aw), k = PX / aw;
   const tex = canvasTex(tw, th, (c) => {
-    c.filter = `blur(${Math.round(0.075 * k)}px)`; c.fillStyle = 'rgba(255,198,105,1)';
-    c.fillRect(PAD * k, PAD * k, f.ow * k, f.oh * k); c.fillRect(PAD * k, PAD * k, f.ow * k, f.oh * k);   // 액자 크기 판을 흐리게 → 액자 뒤에 가려지고 가장자리로만 빛이 번져 나옴
+    c.filter = `blur(${Math.round(0.16 * k)}px)`; c.fillStyle = 'rgba(255,196,100,1)';
+    c.fillRect(PAD * k * 0.6, PAD * k * 0.6, (f.ow + PAD * 0.8) * k, (f.oh + PAD * 0.8) * k);   // 바깥으로 넓게 번지는 빛
+    c.filter = `blur(${Math.round(0.07 * k)}px)`; c.fillStyle = 'rgba(255,214,140,1)';
+    c.fillRect(PAD * k, PAD * k, f.ow * k, f.oh * k); c.fillRect(PAD * k, PAD * k, f.ow * k, f.oh * k);   // 액자 가장자리 바로 바깥의 진한 빛
   });
   const m = new T.Mesh(new T.PlaneGeometry(aw, ah), new T.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
   m.position.z = -0.077; m.material.polygonOffset = true; m.material.polygonOffsetFactor = -2; f.g.add(m); return m;   // 뒤판(-0.075까지) 바로 뒤 · 벽(뒤판이 닿는 면)보다는 앞 — 가운데는 액자에 가려지고 가장자리 빛만 보인다
+})();
+// 11/24 정답 그림 위에서 내리비추는 빛줄기(광원 추가 없이 빛 모양 판) — 위는 좁고 진하게, 아래로 넓어지며 옅어짐
+const BEAM = (() => {
+  const f = frames[WIN_N - 1], top = f.oh / 2 + 2.2, bot = -f.oh / 2 - 0.25, wt = f.ow * 0.35, wb = f.ow * 2.1;
+  const tex = canvasTex(256, 512, (c) => {
+    const g = c.createLinearGradient(0, 0, 0, 512); g.addColorStop(0, 'rgba(255,226,160,0)'); g.addColorStop(0.1, 'rgba(255,232,175,1)'); g.addColorStop(0.55, 'rgba(255,220,150,.55)'); g.addColorStop(1, 'rgba(255,214,140,.25)');
+    c.fillStyle = g; c.fillRect(0, 0, 256, 512);
+    c.globalCompositeOperation = 'destination-in';
+    const h = c.createLinearGradient(0, 0, 256, 0); h.addColorStop(0, 'rgba(0,0,0,0)'); h.addColorStop(0.3, 'rgba(0,0,0,.85)'); h.addColorStop(0.5, 'rgba(0,0,0,1)'); h.addColorStop(0.7, 'rgba(0,0,0,.85)'); h.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = h; c.fillRect(0, 0, 256, 512);
+  });
+  const geo = new T.BufferGeometry();
+  geo.setAttribute('position', new T.Float32BufferAttribute([-wt / 2, top, 0, wt / 2, top, 0, -wb / 2, bot, 0, wb / 2, bot, 0], 3));
+  geo.setAttribute('uv', new T.Float32BufferAttribute([0, 1, 1, 1, 0, 0, 1, 0], 2)); geo.setIndex([0, 2, 1, 1, 2, 3]);
+  const m = new T.Mesh(geo, new T.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, toneMapped: false }));
+  m.position.z = -0.079; f.g.add(m); return m;
 })();
 // 이름표 — 벽에서 각 그림 아래: 제목 · 화가, 연도(번호 대신)
 const _lp = new T.Vector3(), _lp2 = new T.Vector3();
@@ -408,8 +426,12 @@ function apply(now = performance.now()) {
     const inv = f.inv || 0;
     // 11/17: 정답(〈환영〉)에만 뒤로 금빛 후광 — 숨 쉬듯 천천히(쉽게 맞추도록)
     f.glow.material.opacity = f.glowV * 0.75 + inv * 0.5;
-    if (f.w.n === WIN_N) AURA.material.opacity = mode !== 'intro' ? 0.85 + 0.15 * Math.sin(now / 700) : 0;   // 밝기만 천천히 — 번지는 폭은 그대로
-    f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5 + inv * 0.45);
+    if (f.w.n === WIN_N) {   // 11/24 정답: 후광 · 빛줄기 · 테두리가 함께 숨 쉬듯(고르는 화면에서 더 또렷하게)
+      const br = 0.5 + 0.5 * Math.sin(now / 650);
+      AURA.material.opacity = mode !== 'intro' ? 0.8 + 0.2 * br : 0;
+      BEAM.material.opacity = mode !== 'intro' ? (0.35 + 0.65 * eio(pickK)) * (0.8 + 0.2 * br) : 0;
+    }
+    f.mats.rim.emissive.setRGB(0.32, 0.22, 0.05).multiplyScalar(f.glowV * 0.5 + inv * 0.45 + (f.w.n === WIN_N && mode !== 'intro' ? 0.35 + 0.3 * (0.5 + 0.5 * Math.sin(now / 650)) : 0));
     f.mats.bead.emissive.setRGB(0.3, 0.2, 0.04).multiplyScalar(inv * 0.5);
     // 이름표 — 벽의 제자리 아래(그림이 앞으로 나와도 이름표는 벽에 남는다)
     if (f.lab) f.lab.style.visibility = PICK && pickK > 0.98 ? 'visible' : 'hidden';   // 11/17: 가로 한 줄 벽에서는 이름표 없음(좁아서 줄바꿈이 깨짐) — 세로로 다 옮겨 간 뒤에만
@@ -612,7 +634,7 @@ function hitFrame(p, list) {
   ray.setFromCamera(new T.Vector2((p.x / W) * 2 - 1, -(p.y / H) * 2 + 1), camera);
   let best = null;
   // 보이는 액자·그림만(뒤의 금빛 후광 판 · 숨긴 판은 빼고) — 그래야 그림 바깥 빈 곳을 누르면 벽으로 돌아간다
-  list.forEach((f) => { const h = ray.intersectObject(f.g, true).find((x) => x.object.visible && x.object !== f.glow && x.object !== AURA && !(x.object.material && x.object.material.transparent && x.object.material.opacity === 0)); if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
+  list.forEach((f) => { const h = ray.intersectObject(f.g, true).find((x) => x.object.visible && x.object !== f.glow && x.object !== AURA && x.object !== BEAM && !(x.object.material && x.object.material.transparent && x.object.material.opacity === 0)); if (h && (!best || h.distance < best.d)) best = { f, d: h.distance }; });
   return best ? best.f : null;
 }
 function wppF() { const f = frames[fi]; return 2 * (cam.z - (f.fp ? f.fp.z : f.g.position.z)) * TAN / H; }   // 그림 면에서 1px 가 몇 m
