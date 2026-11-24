@@ -77,7 +77,7 @@ $('#awardMedal').innerHTML = medalSVG('a', false);
 // 역할 문장은 한 글자씩 타이핑된다 — 글자마다 span(자리는 처음부터 잡혀 있어 줄바꿈이 흔들리지 않는다)
 (() => {
   const h1 = $('.role h1'); let k = 0;
-  h1.innerHTML = h1.innerHTML.split(/(<br>)/).map((part) => (part === '<br>' ? part : [...part].map((ch) => (ch === ' ' ? ' ' : `<span class="ch" style="--k:${k++}">${ch}</span>`)).join(''))).join('');
+  h1.innerHTML = h1.innerHTML.split(/(<br>)/).map((part) => (part === '<br>' ? part : part.split(' ').map((w) => { const c = [...w].map((ch) => `<span class="ch" style="--k:${k++}">${ch}</span>`).join(''); return /[A-Za-z\uAC00-\uD7A3]/.test(w) ? `<span class="w" style="white-space:nowrap">${c}</span>` : c; }).join(' '))).join('');
 })();
 function roleIn() { document.body.classList.remove('intro-pending', 'role-in'); void document.body.offsetWidth; document.body.classList.add('role-in'); }
 function screenOn(id, on) { const el = $('#' + id); el.classList.toggle('on', on); return el; }

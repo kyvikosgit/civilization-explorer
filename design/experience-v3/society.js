@@ -82,7 +82,7 @@ function buildCars() {
   });
 }
 // 역할 문장 — 글자마다 span
-(() => { const h1 = $('.role-head h1'); let k = 0; h1.innerHTML = h1.innerHTML.split(/(<br>)/).map((part) => (part === '<br>' ? part : [...part].map((ch) => (ch === ' ' ? ' ' : `<span class="ch" style="--k:${k++}">${ch}</span>`)).join(''))).join(''); })();
+(() => { const h1 = $('.role-head h1'); let k = 0; h1.innerHTML = h1.innerHTML.split(/(<br>)/).map((part) => (part === '<br>' ? part : part.split(' ').map((w) => { const c = [...w].map((ch) => `<span class="ch" style="--k:${k++}">${ch}</span>`).join(''); return /[A-Za-z\uAC00-\uD7A3]/.test(w) ? `<span class="w" style="white-space:nowrap">${c}</span>` : c; }).join(' '))).join(''); })();
 // 질문 문장 — 줄마다 span
 (() => { const q = $('.ask-q'); q.innerHTML = q.innerHTML.split('<br>').map((t, i) => `<span class="ln" style="--i:${i}">${t}</span>`).join('<br>'); })();
 // 누름 반응 — 빛이 한 번 쓸고 지나간다
