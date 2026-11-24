@@ -473,14 +473,24 @@ function tick(now) {
   if (busy) raf = requestAnimationFrame(tick); else auraLoop();
 }
 // 11/24 오라만 움직일 때 — 방 전체가 아니라 정답 액자 둘레 사각형만, 초당 30번 다시 그린다(저사양 폰 발열 · 버벅임 줄이기)
-let auraRaf = 0, auraLast = 0;
+let auraRaf = 0, auraLast = 0, auraPrev = 0;
 const _ac = new T.Vector3(), _sz = new T.Vector2();
+// 자동 낮춤: 0 = 초당 30번 · 1 = 초당 15번 · 2 = 멈춘 빛(더 그리지 않음). 기기가 버거워하면(화면 갱신 간격이 늘어나면) 스스로 한 단계씩 내린다
+//   처음부터 약한 기기(코어 4개 이하 · 메모리 3GB 이하)는 1단계에서 시작
+let auraLv = ((navigator.hardwareConcurrency || 8) <= 4 && (navigator.deviceMemory || 8) <= 3) ? 1 : 0, auraEma = 16.7, auraN = 0;
+const AURA_STEP = [33, 66];
+window.__auraLv = () => ({ lv: auraLv, ema: Math.round(auraEma), n: auraN, raf: !!raf, ar: !!auraRaf, mode });   // 점검용
 function auraLoop() {
-  if (auraRaf || mode === 'intro' || AURA.material.uniforms.op.value <= 0.01) return;
+  if (auraRaf || auraLv >= 2 || mode === 'intro' || AURA.material.uniforms.op.value <= 0.01) return;
   auraRaf = requestAnimationFrame(function a(now) {
     auraRaf = 0;
-    if (raf || mode === 'intro') return;   // 다른 움직임이 시작되면 그쪽 루프가 다 그린다
-    if (now - auraLast >= 33) {
+    if (raf || mode === 'intro') { auraPrev = 0; return; }   // 다른 움직임이 시작되면 그쪽 루프가 다 그린다
+    if (auraPrev && document.visibilityState === 'visible') {   // 화면 갱신 간격(ms) 평균 — 60Hz 기기는 16.7, 버거우면 늘어남
+      const gap = now - auraPrev; if (gap < 250) { auraEma += (gap - auraEma) * 0.08; auraN++; }
+      if (auraN > 45 && auraEma > (auraLv === 0 ? 40 : 62))   /* 30Hz 절전 모드(33ms)는 그대로 두고, 그보다 느릴 때만 */ { auraLv++; auraN = 0; auraEma = 16.7; if (auraLv >= 2) { auraPrev = 0; return; } }
+    }
+    auraPrev = now;
+    if (now - auraLast >= AURA_STEP[auraLv]) {
       auraLast = now;
       AURA.material.uniforms.t.value = now / 1000;
       // 오라 판의 네 모서리 → 화면 사각형(조금 여유)
@@ -578,7 +588,8 @@ function step(dt, now) {
   // 벽에 서 있는 동안 — 금박 테두리에 빛이 위에서부터 차례로 번졌다 사라진다(누를 수 있다는 신호, 글 안내 대신)
   const inviting = mode === 'wall' && !reduceMotion, wt = now - wallT0 - 700;
   frames.forEach((f) => { f.inv = 0; });   // 11/17: 액자마다 차례로 빛나던 효과는 뺌(가운데 〈환영〉의 선만 남김)
-  if (inviting) busy = true;
+  // 11/24: 차례로 빛나던 효과를 뺀 뒤에도 남아 있던 '계속 그리기'를 끔 — 벽 앞에 가만히 있을 땐 방 전체를 다시 그리지 않는다(오라만 따로 가볍게)
+  void inviting;
   // 반사광: 그림이 나오면 금박 위를 한 번 쓸고 지나간다 · 끄는 동안엔 손가락을 따라간다
   if (mode !== 'intro') {
     const gt = (now - glintT0) / 1300;
