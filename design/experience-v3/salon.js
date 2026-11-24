@@ -230,8 +230,8 @@ const AURA = (() => {
         float ang = atan(p.y, p.x);
         float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9));            // 둘레를 따라 돌며 바깥으로 흘러 나가는 결
         float n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
-        float core = exp(-max(d, 0.0) * 12.0);                                   // 가장자리 바로 바깥 밝은 빛
-        float haze = exp(-max(d, 0.0) * 3.6) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.45, 0.68, d));   // 바깥으로 은은히 일렁이는 빛(불꽃 혀 대신)
+        float core = exp(-max(d, 0.0) * 7.5);   // 11/24 굵게(12 → 7.5)                                   // 가장자리 바로 바깥 밝은 빛
+        float haze = exp(-max(d, 0.0) * 2.7) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.52, 0.69, d));   // 바깥으로 은은히 일렁이는 빛(불꽃 혀 대신)
         float a = clamp(core * 0.95 + haze * 0.7, 0.0, 1.0) * op;
         vec3 col = mix(vec3(1.0, 0.86, 0.55), vec3(1.0, 0.98, 0.9), core);   // 주황 → 밝은 금빛 · 흰빛
         gl_FragColor = vec4(col * a, a);
