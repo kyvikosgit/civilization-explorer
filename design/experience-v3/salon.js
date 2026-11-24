@@ -417,7 +417,8 @@ function apply(now = performance.now()) {
       _lp.set(f.hx + f.ow * f.s / 2, f.hy - f.oh * f.s / 2 - 0.05, f.zb).project(camera); const xr = (_lp.x + 1) / 2 * W;
       _lp.set(f.hx, f.hy - f.oh * f.s / 2 - 0.05, f.zb).project(camera);
       const lw = Math.round(2 * (xr - (_lp.x + 1) / 2 * W));   // 한 줄 다섯 점 — 이름표 폭을 액자 폭에 맞춰 줄바꿈(옆 이름표와 겹치지 않게)
-      if (f.labW !== lw) { f.labW = lw; f.lab.style.width = lw + 'px'; }
+      const lw2 = lw + 10;   // 11/24 글자를 키운 만큼 조금만 넓게(옆 이름표와 안 겹치게)
+      if (f.labW !== lw2) { f.labW = lw2; f.lab.style.width = lw2 + 'px'; }
       f.lab.style.transform = `translate(${((_lp.x + 1) / 2 * W).toFixed(1)}px, ${((1 - _lp.y) / 2 * H).toFixed(1)}px) translateX(-50%)`;
     }
   });
