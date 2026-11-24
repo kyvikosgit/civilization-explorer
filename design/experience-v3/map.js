@@ -6,19 +6,19 @@ import { MAP } from './map-data.js';
 const qs = new URLSearchParams(location.search);
 const LANG = ['ko', 'en', 'ja', 'zh'].includes(qs.get('lang')) ? qs.get('lang') : 'ko';
 const TXT = {
-  ko: { title: '관람 지도', hall1n: '제1관', hall1s: '이해하는 공간', hall2n: '제2관', hall2s: '체험하는 공간', top: '위에서 보기', d3: '입체로 보기', hint: '끌어서 돌리고, 두 손가락으로 확대해 보세요', reset: '처음 모양으로',
+  ko: { title: '관람 지도', hall1n: '4F', hall1s: '이해의 층', hall2n: '3F', hall2s: '체험의 층', top: '위에서 보기', d3: '입체로 보기', hint: '끌어서 돌리고, 두 손가락으로 확대해 보세요', reset: '처음 모양으로',
     booth: { c1: '시민사회 · 카페', c2: '산업혁명 · 사업가의 방', c3: '화가의 아틀리에 · 에트르타', c4: '나다르 사진관' },
     z: { hall1: ['살롱', '변화의 복도', '인상파 전시회', '미디어 전시'], hall2: ['모네 연작', '지베르니', '건초더미', '감각의 계보'] },
     p: { entrance: '입구', exit: '출구', ticket: '티켓·안내', wc_f: '여자 화장실', wc_m: '남자 화장실', escalator: '에스컬레이터', elevator: '엘리베이터', stairs: '비상구', shop: '아트숍' } },
-  en: { title: 'Floor map', hall1n: 'Hall 1', hall1s: 'Space of Understanding', hall2n: 'Hall 2', hall2s: 'Space of Experience', top: 'Top view', d3: '3D view', hint: 'Drag to rotate, pinch to zoom', reset: 'Reset view',
+  en: { title: 'Floor map', hall1n: '4F', hall1s: 'Floor of Understanding', hall2n: '3F', hall2s: 'Floor of Experience', top: 'Top view', d3: '3D view', hint: 'Drag to rotate, pinch to zoom', reset: 'Reset view',
     booth: { c1: 'Civil Society · Café', c2: 'Industrial Revolution · Office', c3: "Painter's Atelier · Étretat", c4: 'Nadar Studio' },
     z: { hall1: ['Salon', 'Corridor of Change', 'Impressionist Exhibition', 'Media Exhibition'], hall2: ['Monet Series', 'Giverny', 'Haystacks', 'Lineage of Senses'] },
     p: { entrance: 'Entrance', exit: 'Exit', ticket: 'Tickets & Info', wc_f: 'Women', wc_m: 'Men', escalator: 'Escalator', elevator: 'Elevator', stairs: 'Emergency exit', shop: 'Art shop' } },
-  ja: { title: '館内マップ', hall1n: '第1館', hall1s: '理解する空間', hall2n: '第2館', hall2s: '体験する空間', top: '真上から', d3: '立体で見る', hint: 'ドラッグで回転、ピンチで拡大できます', reset: '元に戻す',
+  ja: { title: '館内マップ', hall1n: '4階', hall1s: '理解のフロア', hall2n: '3階', hall2s: '体験のフロア', top: '真上から', d3: '立体で見る', hint: 'ドラッグで回転、ピンチで拡大できます', reset: '元に戻す',
     booth: { c1: '市民社会・カフェ', c2: '産業革命・実業家の部屋', c3: '画家のアトリエ・エトルタ', c4: 'ナダール写真館' },
     z: { hall1: ['サロン', '変化の回廊', '印象派展', 'メディア展示'], hall2: ['モネの連作', 'ジヴェルニー', '積みわら', '感覚の系譜'] },
     p: { entrance: '入口', exit: '出口', ticket: 'チケット・案内', wc_f: '女性トイレ', wc_m: '男性トイレ', escalator: 'エスカレーター', elevator: 'エレベーター', stairs: '非常口', shop: 'アートショップ' } },
-  zh: { title: '馆内地图', hall1n: '第1馆', hall1s: '理解的空间', hall2n: '第2馆', hall2s: '体验的空间', top: '俯视', d3: '立体视图', hint: '拖动旋转，双指缩放', reset: '恢复视角',
+  zh: { title: '馆内地图', hall1n: '4楼', hall1s: '理解之层', hall2n: '3楼', hall2s: '体验之层', top: '俯视', d3: '立体视图', hint: '拖动旋转，双指缩放', reset: '恢复视角',
     booth: { c1: '市民社会·咖啡馆', c2: '工业革命·商人的房间', c3: '画家工作室·埃特尔塔', c4: '纳达尔照相馆' },
     z: { hall1: ['沙龙', '变革长廊', '印象派画展', '媒体展'], hall2: ['莫奈系列', '吉维尼', '干草堆', '感知的谱系'] },
     p: { entrance: '入口', exit: '出口', ticket: '售票·咨询', wc_f: '女卫生间', wc_m: '男卫生间', escalator: '自动扶梯', elevator: '电梯', stairs: '安全出口', shop: '艺术商店' } },
