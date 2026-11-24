@@ -162,27 +162,9 @@ let introDone = false;
 async function streetIntro() {
   const cover = document.getElementById('scCover'), uncover = () => { if (cover) { cover.classList.add('off'); setTimeout(() => cover.remove(), 400); } };
   if (store.saved('flyer')) { uncover(); introDone = true; return; }   // 11/17: 이미 맞혔으면 도입 없이 — 결과 화면이 바로 뜬다(society-ar.js)
-  if (reduceMotion || (window.M100_INTRO || { mode: 'normal', ended() {} }).mode === 'skip') { uncover(); $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.add('role-in'); introDone = true; showStanding(); return; }   // 11/20: ?nointro 도 도입 없이
-  viewer?.pause();   // 도입 동안 칼럼 3D 는 쉬게(두 3D 가 함께 돌면 끊김)
-  // 11/09: 35번지 방 안에서 창이 열리고 대로로 나가는 3D 도입(society-intro.js) — 끝나면 거리 그림이 그 구도 그대로 이어진다
-  document.body.classList.add('intro');
-  const skip = () => { if (introDone) return; introDone = true; uncover(); viewer?.resume(); document.body.classList.remove('intro'); document.body.classList.add('role-in'); showStanding(); };
-  // 11/23 새 도입(2초): 모리스 칼럼의 전단지 앞에서 시작해 → 칼럼에서 물러나며 해 질 녘 카퓌신 대로가 드러난다(칼럼 프레임을 거꾸로 + 거리 그림이 어둠에서 밝아지며 물러남)
-  //   예전 3D 방 · 창 도입(society-intro.js)은 쓰지 않음(?introOld 로 볼 수 있음)
-  if (NO3D && !new URLSearchParams(location.search).has('introOld')) {
-    // 11/23 도입(2초): 1874년 파리 대로 3D(society-street-intro.js) — 카페 앞에서 모리스 칼럼 옆을 지나 대로 위로 떠올라
-    //   모네가 그린 높은 시점에서 이 페이지 거리 그림과 같은 자리로 멈추고 걷힌다
-    uncover(); streetEl.classList.remove('push');
-    try {
-      const { playStreetIntro } = await import('./society-street-intro.js');
-      await new Promise((res) => playStreetIntro({ host: streetEl, imgEl: $('.st-img'), under: $('.st-img'), onDone: res }));
-    } catch (e) { console.warn('[intro]', e); }
-  } else try {
-    const { playSocietyIntro } = await import('./society-intro.js');
-    await new Promise((res) => playSocietyIntro({ onDone: res, onStart: uncover }));
-  } catch (e) { console.warn('[intro]', e); }
-  (window.M100_INTRO || { mode: 'normal', ended() {} }).ended();   // 11/20: 도입만 보기면 앱에 알림
-  skip();
+  // 11/24: 도입(3D · 영상) 없음 — 모네 〈카퓌신 대로〉 거리 배경 위에 역할 줄(제목) · 아래 안내만(살롱 밖 체험 구역 모두 같은 짜임)
+  uncover(); streetEl.classList.remove('push'); $$('.lamp').forEach((l) => l.classList.add('lit')); document.body.classList.remove('intro'); document.body.classList.add('role-in'); introDone = true; showStanding();
+  (window.M100_INTRO || { mode: 'normal', ended() {} }).ended(0);
 }
 streetIntro();
 
@@ -220,7 +202,7 @@ function showStanding() {
   if (viewer) { viewer.resize(); frameToGuide(); viewer.setFar(1); }
   
   mvEl.classList.remove('off');
-  window.dispatchEvent(new CustomEvent('c1:ready'));
+  window.__c1ready = true; window.dispatchEvent(new CustomEvent('c1:ready'));   // 11/24: 도입이 없어 society-ar.js 가 뜨기 전에 끝날 수 있음 → 표시도 남김
 }
 window.addEventListener('resize', () => { if (step === 1 && viewer) { viewer.resize(); frameToGuide(); } });
 let pillT = 0;

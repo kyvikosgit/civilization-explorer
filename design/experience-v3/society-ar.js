@@ -119,6 +119,7 @@ window.addEventListener('c1:ready', () => {
   const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => { if (stage === 'start') toColumn(); }, READ); else setTimeout(go, 200); };
   go();
 });
+if (window.__c1ready) window.dispatchEvent(new CustomEvent('c1:ready'));   // 11/24: 이 모듈보다 먼저 준비가 끝났으면 다시 알림
 window.addEventListener('c1:step', (e) => {
   if (ended) return;
   if (e.detail === 2) { stage = 'flyer'; setTimeout(() => guide.show(FLYER), 500); }   // 칼럼 앞에 도착

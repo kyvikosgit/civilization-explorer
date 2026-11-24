@@ -62,3 +62,6 @@ body.tube>.topbar{z-index:2}
 /* 안내 시트가 올라오면 장면(3D · 사진 한 몸)을 위로 올려, 이젤의 그림이 시트에 가리지 않게 — atelier.js 가 --lift 를 정한다 */
 .room-bg{transition:transform 1s cubic-bezier(.2,.8,.2,1)}
 body.lifted .room-bg{transform:translateY(calc(-1 * var(--lift, 0px)))}
+
+/* 11/24: 도입 대신 모네 〈에트르타의 마네포르트〉 배경(살롱 밖 체험 구역 같은 짜임) — 세로 화면이면 아치가 보이게 왼쪽 쪽으로 */
+.room-bg .et-paint{position:absolute;inset:0;background:url('img/et_manneporte.jpg') 30% 50%/cover no-repeat;pointer-events:none}

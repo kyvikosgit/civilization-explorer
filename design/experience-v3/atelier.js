@@ -21,7 +21,6 @@ import { ZONES } from './data.js';
 import { store } from './store.js';
 import { collect, endRow, mountEnd, showComplete } from './done.js';
 import { makeGuide } from './guide.js';
-import { playIntro } from './et-intro.js';
 
 const $ = (s) => document.querySelector(s);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -166,15 +165,15 @@ if (SOLVED) {
   // 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라) — 11/18: 뒤에서 3D 도입 · 안내를 돌리지 않는다(배터리)
   setTimeout(showResult, 0);
 }
-// 11/09 도입(et-intro.js · 3D) — 절벽 위 이젤의 빈 캔버스에 붓질로 에트르타가 그려지고 카메라가 물러나며 바다가 드러난다(그 장면이 배경으로 남음). 들어올 때마다(태그로 열림 · 동작 줄이기 제외)
+// 11/24: 도입(3D) 없음 — 모네 〈에트르타의 마네포르트〉(1883)를 배경으로 깔고 역할 줄(제목) · 아래 안내만(살롱 밖 체험 구역 모두 같은 짜임)
+{
+  const rb = document.querySelector('.room-bg');
+  if (rb) { const p = document.createElement('div'); p.className = 'et-paint'; rb.insertBefore(p, rb.querySelector('.shade')); rb.classList.add('has3d', 'et3d-done'); }
+}
 if (!SOLVED) {
-  const b = document.body, qs = new URLSearchParams(location.search);
-  const ready = () => { b.classList.remove('intro-run'); b.classList.add('et-ready'); $('#role')?.classList.add('in'); };
-  if (qs.get('o') || qs.get('tag') || REDUCED || (window.M100_INTRO || { mode: 'normal', ended() {} }).mode === 'skip') { ready(); playIntro({ instant: true }); setTimeout(showGuide, 300); }   // 11/20: ?nointro 도 바로
-  else {
-    b.classList.add('intro-run');
-    playIntro({ onDone: () => { ready(); (window.M100_INTRO || { mode: 'normal', ended() {} }).ended(); setTimeout(showGuide, 1100); } });   // 역할 줄을 읽을 틈을 두고 안내(살롱과 같은 간격)
-  }
+  document.body.classList.add('et-ready'); $('#role')?.classList.add('in');
+  (window.M100_INTRO || { mode: 'normal', ended() {} }).ended(0);
+  setTimeout(showGuide, 600);
 }
 function hasBatchim(s) { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; }
 

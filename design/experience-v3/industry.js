@@ -39,6 +39,7 @@ function showAsk() {
 function placeBoard() { const l = $('#role .lead'); if (l) $('#intro').style.setProperty('--role-b', `${l.offsetTop + l.offsetHeight}px`); }
 placeBoard(); addEventListener('resize', placeBoard); document.fonts?.ready.then(placeBoard);
 window.addEventListener('c2:played',() => { clearTimeout(askT); askT = setTimeout(showAsk, RM ? 0 : 1100); });
+if (document.querySelector('#intro.played')) { clearTimeout(askT); askT = setTimeout(showAsk, RM ? 0 : 700); }   // 11/24: 도입이 없어 이 모듈이 뜨기 전에 이미 끝 장면이면 바로 안내
 function scan() {
   guide.busy('카메라를 켜는 중');
   openCam({
