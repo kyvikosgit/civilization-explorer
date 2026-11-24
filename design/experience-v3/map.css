@@ -1,0 +1,53 @@
+/* 11/24 관람 지도(map.html) — 리플렛과 같은 초록 · 크림 */
+:root{--bg:#F2EFE7;--ink:#26302A;--sub:#6B716A;--green:#5E7D5F;--green2:#7E9B7C;--line:#DAD5C8;--card:#FFFFFF;
+  --safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+#stage{position:fixed;inset:0}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+
+/* 머리: 관 고르기 */
+.mhead{position:fixed;left:0;right:0;top:0;padding:calc(var(--safe-t) + 12px) 16px 0;z-index:5;pointer-events:none;display:flex;align-items:center;gap:8px}
+.back{flex:none;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.85);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(38,48,42,.1);pointer-events:auto;cursor:pointer}
+.back svg{width:22px;height:22px}
+.tabs{flex:1}
+.tabs{display:flex;gap:6px;padding:4px;border-radius:14px;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 12px rgba(38,48,42,.08);pointer-events:auto}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 6px;border:0;border-radius:10px;background:transparent;color:var(--sub);font:inherit;cursor:pointer;transition:background .25s,color .25s}
+.tab b{font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:15px;line-height:1.2}
+.tab span{font-size:12px;line-height:1.3}
+.tab.on{background:var(--green);color:#fff}
+
+/* 오른쪽 도구 */
+.tools{position:fixed;right:16px;top:calc(var(--safe-t) + 84px);z-index:5;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.tool{display:flex;align-items:center;gap:6px;height:38px;padding:0 13px 0 11px;border:0;border-radius:19px;background:rgba(255,255,255,.9);color:var(--ink);font:inherit;font-size:13px;font-weight:600;box-shadow:0 2px 10px rgba(38,48,42,.12);cursor:pointer}
+.tool svg{width:18px;height:18px;flex:none}
+.tool.icon{width:38px;padding:0;justify-content:center}
+.tool[aria-pressed="true"]{background:var(--ink);color:#fff}
+
+.hint{position:fixed;left:0;right:0;bottom:calc(var(--safe-b) + 132px);margin:0;text-align:center;font-size:12px;color:var(--sub);z-index:4;pointer-events:none;transition:opacity .6s}
+.hint.off{opacity:0}
+
+/* 아래: 구역 목록 */
+.legend{position:fixed;left:0;right:0;bottom:0;z-index:5;padding:12px 16px calc(var(--safe-b) + 14px);display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  background:linear-gradient(180deg,rgba(242,239,231,0),rgba(242,239,231,.92) 22%,var(--bg))}
+.lg{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.lg i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;font-style:normal;font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+.lg b{font-weight:600;font-size:14px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+
+/* 3D 위 글자: 구역 번호 · 시설 */
+.pin{position:absolute;left:0;top:0;display:flex;flex-direction:row;align-items:center;gap:4px;transform:translate(-15px,-50%);will-change:transform;transition:opacity .25s}
+.pin i{width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;font-style:normal;font-family:Paperlogy,Freesentation,sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 3px 10px rgba(38,48,42,.28)}
+.pin b{padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.92);font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;box-shadow:0 1px 4px rgba(38,48,42,.12)}
+.pin.on i{background:var(--ink);transform:scale(1.12)}
+.pin.dim{opacity:.45}
+.poi{position:absolute;left:0;top:0;display:flex;align-items:center;gap:4px;transform:translate(-50%,-50%);will-change:transform;padding:3px 7px 3px 4px;border-radius:12px;background:rgba(255,255,255,.88);box-shadow:0 1px 5px rgba(38,48,42,.14);font-size:11px;font-weight:600;color:#5A5F59;white-space:nowrap;transition:opacity .25s}
+.poi svg{width:16px;height:16px;flex:none;padding:2px;border-radius:4px;background:#8E918C;color:#fff}
+.poi.far{padding:3px;gap:0;font-size:0}
+.poi.far svg{width:18px;height:18px}
+@media (max-width:360px){.tab span{font-size:11px}.lg b{font-size:13px}}
+
+.pin{z-index:2}
+/* 미리보기 그림 찍을 때(?shot) — 글자 단추 숨김 */
+body.shot .mhead,body.shot .tools,body.shot .legend,body.shot .hint,body.shot .poi,body.shot .pin b{display:none}

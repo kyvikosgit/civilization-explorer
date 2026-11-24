@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#F2EFE7">
+<title>관람 지도 · MONET 100</title>
+<!-- 11/24 관람 지도 — 리플렛 관람 지도(제1관 이해하는 공간 · 제2관 체험하는 공간)를 그대로 옮긴 3D 지도. 끌어서 돌리고 · 두 손가락 확대 · 위에서 보기
+     ?hall=1|2  ?zone=1~4(그 구역을 비추며 열기)  ?lang=ko|en|ja|zh  · 벽 · 동선 좌표 = map-data.js(tools/map3d/build_data.py 가 리플렛에서 뽑음) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js" } }
+</script>
+<link rel="stylesheet" href="map.css">
+</head>
+<body>
+<div id="stage"><canvas id="cv"></canvas><div id="labels"></div></div>
+<header class="mhead">
+  <button type="button" class="back" id="backBtn" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div class="tabs" role="tablist">
+    <button type="button" class="tab on" data-hall="hall1" role="tab"><b data-t="hall1n">제1관</b><span data-t="hall1s">이해하는 공간</span></button>
+    <button type="button" class="tab" data-hall="hall2" role="tab"><b data-t="hall2n">제2관</b><span data-t="hall2s">체험하는 공간</span></button>
+  </div>
+</header>
+<div class="tools">
+  <button type="button" id="viewBtn" class="tool" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg><span data-t="top">위에서 보기</span></button>
+  <button type="button" id="resetBtn" class="tool icon" aria-label="처음 모양으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></button>
+</div>
+<p class="hint" id="hint" data-t="hint">끌어서 돌리고, 두 손가락으로 확대해 보세요</p>
+<nav class="legend" id="legend" aria-label="구역"></nav>
+<script type="module" src="map.js"></script>
+</body>
+</html>
