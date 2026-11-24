@@ -7,7 +7,8 @@
 <title>12월 3일 초대 회신 명단 · MONET 100</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Diphylleia&display=swap">
-<!-- 11/23 12/3(목) 별도 초대장(invitation-1203/1 · 2) 회신 관리 — 기존 초대장 관리(/invitation/admin)와 따로. 비밀번호는 기존 관리 화면과 같음 -->
+<!-- 11/24 불참석은 회신을 보내지 않으므로 표의 '참석' 칸은 뺌(CSV 에는 남김) · 동반 칸 추가
+     11/23 12/3(목) 별도 초대장(invitation-1203, 11/24 한 장으로 합침 · 회신 때 관람 시간 1부/2부 고름) 회신 관리 — 기존 초대장 관리(/invitation/admin)와 따로. 비밀번호는 기존 관리 화면과 같음 -->
 <style>
 :root{--bg:#EDEBE5;--paper:#FFFFFF;--gold:#B39243;--ink:#1E1E1E;--sub:#6A6A64;--line:#E4E1D9;--serif:'Diphylleia','Gowun Batang','AppleMyungjo',serif;--sans:-apple-system,'Apple SD Gothic Neo','Pretendard','Noto Sans KR',sans-serif}
 *{box-sizing:border-box}
@@ -33,10 +34,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-o
 .bar .n{margin-right:auto;font-size:14px;color:var(--sub)}.bar .n b{color:var(--ink);font-size:18px;font-variant-numeric:tabular-nums}
 table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 th,td{padding:12px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-th{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.04em;border-bottom-color:var(--ink)}
+th{white-space:nowrap;font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.04em;border-bottom-color:var(--ink)}
 td.no{width:44px;color:var(--sub)}
 td.nm{font-weight:600;white-space:nowrap}
-td.ph{white-space:nowrap}
+td.ph{white-space:nowrap}td.cp{white-space:nowrap;font-variant-numeric:tabular-nums}
 td.at{color:var(--sub);font-size:13px;white-space:nowrap}
 td.x{width:1%;text-align:right}
 .att i{font-style:normal;display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:600;background:#E4EFE3;color:#3D6B3A;white-space:nowrap}
@@ -44,7 +45,7 @@ td.x{width:1%;text-align:right}
 .empty{padding:36px 0;text-align:center;color:var(--sub)}
 .printhead{display:none}
 [hidden]{display:none!important}
-@media (max-width:420px){td.at{font-size:12px}th,td{padding:11px 4px}}
+@media (max-width:420px){td.at{font-size:12px}th,td{padding:11px 4px}button.del{padding:7px 7px}td.ph{font-size:14px}}
 @media print{
   @page{size:A4;margin:16mm 16mm 18mm}
   html,body{background:#fff}.wrap{max-width:none;padding:0}.sheet{border:0;padding:0}
@@ -71,8 +72,8 @@ td.x{width:1%;text-align:right}
 
   <div id="list" hidden>
     <div class="tabs" role="tablist" aria-label="회차">
-      <button type="button" role="tab" data-s="1">1부<small>14:30 – 15:30</small></button>
-      <button type="button" role="tab" data-s="2">2부<small>15:30 – 17:00</small></button>
+      <button type="button" role="tab" data-s="1">1부<small>14:00 – 16:00</small></button>
+      <button type="button" role="tab" data-s="2">2부<small>15:00 – 17:00</small></button>
     </div>
     <div class="bar">
       <span class="n" id="ntext"></span>
@@ -81,7 +82,7 @@ td.x{width:1%;text-align:right}
       <button type="button" id="print">인쇄</button>
     </div>
     <table>
-      <thead><tr><th>번호</th><th>성함</th><th>참석</th><th>전화번호</th><th>회신 시각</th><th class="x"></th></tr></thead>
+      <thead><tr><th>번호</th><th>성함</th><th>동반</th><th>전화번호</th><th>회신 시각</th><th class="x"></th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
     <p class="empty" id="empty" hidden>아직 회신이 없습니다.</p>
@@ -92,7 +93,7 @@ td.x{width:1%;text-align:right}
   var SB = 'https://bttjtkhfyzapcsqocick.supabase.co', KEY = 'sb_publishable_0IErNY9FrSeZurr0goY5aA_FG3qftYs';
   var $ = function (id) { return document.getElementById(id); };
   var pw = ''; try { pw = sessionStorage.getItem('i1203_pw') || ''; } catch (e) {}
-  var S = { 1: { name: '1부', time: '14:30 – 15:30' }, 2: { name: '2부', time: '15:30 – 17:00' } };
+  var S = { 1: { name: '1부', time: '14:00 – 16:00' }, 2: { name: '2부', time: '15:00 – 17:00' } };   // 11/24 한 장 초대장 — 회신에서 고른 관람 시간
   var tab = 1, all = [];
   try { var t0 = +sessionStorage.getItem('i1203_tab'); if (t0 === 1 || t0 === 2) tab = t0; } catch (e) {}
   function rpc(fn, body) {
@@ -106,15 +107,16 @@ td.x{width:1%;text-align:right}
   function rows() { return all.filter(function (r) { return r.session === tab; }); }
   function render() {
     var rs = rows(), y = rs.filter(function (r) { return r.attend; }).length, s = S[tab];
+    var cp = rs.reduce(function (a, r) { return a + (r.attend ? (r.companions || 0) : 0); }, 0);   // 11/24 동반인
     document.querySelectorAll('.tabs button').forEach(function (b) { var on = +b.dataset.s === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
     $('sub').textContent = '2026. 12. 3 (목) ' + s.name + ' ' + s.time + ' · 신세계본점 더 헤리티지 4F';
     $('ptitle').textContent = 'MONET 100 · 12월 3일 ' + s.name + ' 회신 명단';
-    $('ntext').innerHTML = '회신 <b>' + rs.length + '</b>명 · 참석 ' + y + ' · 불참석 ' + (rs.length - y);
+    $('ntext').innerHTML = '오시는 분 <b>' + (y + cp) + '</b>명 · 참석 회신 ' + y + ' · 동반 ' + cp;
     $('empty').hidden = rs.length > 0;
     $('rows').innerHTML = rs.map(function (r, i) {
-      return '<tr><td class="no">' + (i + 1) + '</td><td class="nm">' + esc(r.name || '—') + '</td><td class="att"><i class="' + (r.attend ? '' : 'no') + '">' + (r.attend ? '참석' : '불참석') + '</i></td><td class="ph">' + esc(phone(r.phone)) + '</td><td class="at">' + fmt.format(new Date(r.created_at)) + '</td><td class="x"><button class="del" type="button" data-id="' + r.id + '" data-nm="' + esc(r.name || '불참석 회신') + '">삭제</button></td></tr>';
+      return '<tr><td class="no">' + (i + 1) + '</td><td class="nm">' + esc(r.name || '—') + '</td><td class="cp">' + (r.attend && r.companions ? r.companions + '명' : '—') + '</td><td class="ph">' + esc(phone(r.phone)) + '</td><td class="at">' + fmt.format(new Date(r.created_at)) + '</td><td class="x"><button class="del" type="button" data-id="' + r.id + '" data-nm="' + esc(r.name || '불참석 회신') + '">삭제</button></td></tr>';
     }).join('');
-    $('pdate').textContent = '2026. 12. 3 (목) ' + s.time + '\n출력 ' + fmtFull.format(new Date()) + ' · 회신 ' + rs.length + '명(참석 ' + y + ')';
+    $('pdate').textContent = '2026. 12. 3 (목) ' + s.time + '\n출력 ' + fmtFull.format(new Date()) + ' · 오시는 분 ' + (y + cp) + '명(참석 회신 ' + y + ' · 동반 ' + cp + ')';
   }
   function load() { return rpc('invite1203_list', { p_pw: pw }).then(function (r) { $('login').hidden = true; $('list').hidden = false; all = r || []; render(); }); }
   document.querySelector('.tabs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; tab = +b.dataset.s; try { sessionStorage.setItem('i1203_tab', tab); } catch (x) {} render(); });
@@ -125,7 +127,7 @@ td.x{width:1%;text-align:right}
   });
   $('csv').addEventListener('click', function () {
     var q = function (v) { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    var lines = [['번호', '회차', '성함', '참석', '전화번호', '회신 시각']].concat(rows().map(function (r, i) { return [i + 1, S[r.session].name + ' ' + S[r.session].time, r.name || '', r.attend ? '참석' : '불참석', phone(r.phone), fmtFull.format(new Date(r.created_at))]; }))
+    var lines = [['번호', '회차', '성함', '참석', '동반', '전화번호', '회신 시각']].concat(rows().map(function (r, i) { return [i + 1, S[r.session].name + ' ' + S[r.session].time, r.name || '', r.attend ? '참석' : '불참석', r.attend ? (r.companions || 0) : 0, phone(r.phone), fmtFull.format(new Date(r.created_at))]; }))
       .map(function (a) { return a.map(q).join(','); }).join('\r\n');
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + lines], { type: 'text/csv;charset=utf-8' }));
     a.download = 'MONET100_1203_' + S[tab].name + '.csv'; document.body.appendChild(a); a.click(); a.remove();
