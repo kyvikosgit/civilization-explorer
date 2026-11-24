@@ -66,7 +66,9 @@ const M = {
   wall: new T.MeshStandardMaterial({ color: '#EEEAE0', roughness: 0.9 }),
   outer: new T.MeshStandardMaterial({ color: '#E7E2D6', roughness: 0.9 }),
   cap: new T.MeshStandardMaterial({ color: '#9FAE9A', roughness: 0.8 }),
-  desk: new T.MeshStandardMaterial({ color: '#CFC8B6', roughness: 0.8 }),
+  desk: new T.MeshStandardMaterial({ color: '#E2DBCB', roughness: 0.8 }),
+  elev: new T.MeshStandardMaterial({ color: '#E3E6DE', roughness: 0.8 }),
+  stairs: new T.MeshStandardMaterial({ color: '#D9D3C4', roughness: 0.85 }),
 };
 function stripeTex() {
   const c = document.createElement('canvas'); c.width = 64; c.height = 16; const g = c.getContext('2d');
@@ -108,9 +110,17 @@ function buildHall(key) {
   (d.boothWalls || []).forEach(([a, b, c, e]) => wall(a, b, c, e, 1.3, 0.14, M.wall));
   // 안내 데스크 — 평면 기준 반듯한 상자
   d.boxes.forEach((b) => {
-    const m = new T.Mesh(new T.BoxGeometry(b.x1 - b.x0, b.h, b.y1 - b.y0), M.desk);
+    const mat = b.t === 'elev' ? M.elev : b.t === 'stairs' ? M.stairs : M.desk;
+    const m = new T.Mesh(new T.BoxGeometry(b.x1 - b.x0, b.h, b.y1 - b.y0), mat);
     m.position.set(X((b.x0 + b.x1) / 2), b.h / 2, Z((b.y0 + b.y1) / 2)); m.castShadow = m.receiveShadow = true; g.add(m);
-    const top = new T.Mesh(new T.BoxGeometry(b.x1 - b.x0 + 0.12, 0.06, b.y1 - b.y0 + 0.12), M.cap); top.position.set(m.position.x, b.h + 0.03, m.position.z); g.add(top);
+    if (b.t === 'stairs') {   // 계단: 윗면 줄무늬
+      const tx = stripeTex(); tx.repeat.set((b.x1 - b.x0) / 1.2, 1);
+      const st = new T.Mesh(new T.PlaneGeometry(b.x1 - b.x0, b.y1 - b.y0), new T.MeshStandardMaterial({ map: tx, roughness: 0.9 }));
+      st.rotation.x = -Math.PI / 2; st.position.set(m.position.x, b.h + 0.005, m.position.z); g.add(st);
+    } else {   // 윗면 테두리만 살짝(초록 판처럼 보이지 않게)
+      const e = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(b.x1 - b.x0, b.h, b.y1 - b.y0)), new T.LineBasicMaterial({ color: '#B7AE9A' }));
+      e.position.copy(m.position); g.add(e);
+    }
   });
   // 에스컬레이터 — 오르내리는 두 줄(디딤판 줄무늬) + 가운데 · 양옆 난간. 긴 쪽(x)을 따라
   (d.escalators || []).forEach((e) => {
