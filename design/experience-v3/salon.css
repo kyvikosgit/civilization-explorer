@@ -32,14 +32,14 @@ body:not(.pick) .stage .dock,body:not(.pick) .stage .gest,body:not(.pick) .stage
 
 /* 11/17 한 줄 다섯 점: 이름표는 액자 폭 안에서 줄바꿈 */
 #labels .lb { white-space: normal; word-break: keep-all; }
-#labels .lb b { font-size: 15px; line-height: 1.3; font-weight: 700; }   /* 11/24 크게(예전 11px) */
-#labels .lb small { font-size: 12px; line-height: 1.35; margin-top: 2px; }   /* 예전 9px */
+#labels .lb b { font-size: 16px; line-height: 1.3; font-weight: 700; }   /* 11/24 크게(예전 11px) */
+#labels .lb small { font-size: 13px; line-height: 1.35; margin-top: 2px; }   /* 예전 9px */
 /* 고르는 화면(2 · 1 · 2): 뒤 채움 그림 위에서도 이름표가 읽히게 어두운 받침 */
 body.pick #labels .lb { background: rgba(22, 12, 8, .78); padding: 6px 8px 7px; border-radius: 6px; box-sizing: border-box; }
 
 /* 11/24 키 작은 화면: 이름표가 아래 그림에 닿지 않게 한 단계 작게 · 촘촘하게 */
 @media (max-height: 780px) {
-  #labels .lb b { font-size: 13.5px; }
-  #labels .lb small { font-size: 11px; margin-top: 1px; }
+  #labels .lb b { font-size: 15px; }
+  #labels .lb small { font-size: 12px; margin-top: 1px; }
   body.pick #labels .lb { padding: 4px 6px 5px; }
 }

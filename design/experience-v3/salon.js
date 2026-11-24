@@ -39,7 +39,7 @@ const WORKS = [
 const HANG_X_REAL = [-1.629, -0.852, 0.0335, 0.899, 1.629], HANG_Y_REAL = 2.03, CANVAS_REAL = 0.827;   // 실제 벽(전개도) 그대로
 const WALL_K = 1.4, HANG_X = HANG_X_REAL.map((x) => x * WALL_K), HANG_Y = 2.2, CANVAS_LONG = CANVAS_REAL * WALL_K;
 // 고르는 화면(벽을 비춘 뒤 PICK) — 세로 화면에서 크게 보고 비교하도록 2 · 1 · 2 로 벽 앞으로 나와 선다(방은 조금 어두워짐)
-const PICK_ROWS = [[0, 1], [2], [3, 4]], PICK_S = 1.0, PICK_Z = 0.9, PICK_GX = 0.14, PICK_GY = 0.42, PICK_CY = 3.3;
+const PICK_ROWS = [[0, 1], [2], [3, 4]], PICK_S = 1.0, PICK_Z = 0.9, PICK_GX = 0.5, PICK_GY = 0.7, PICK_CY = 3.3;   // 11/24 줄 간격 0.42→0.7(큰 이름표 자리)
 const TODAY = { 1: 9, 2: 27, 3: 18, 4: 39, 5: 7 };   // 예시 수치
 const JURY = '1,284';
 const stampLine = (total, at = new Date()) => `오늘 ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')} 기준 · ${total}명 · 수치는 예시`;
@@ -222,7 +222,7 @@ const AURA = (() => {
   m.position.z = -0.077; m.material.polygonOffset = true; m.material.polygonOffsetFactor = -2; f.g.add(m); return m;   // 뒤판(-0.075까지) 바로 뒤 · 벽(뒤판이 닿는 면)보다는 앞 — 가운데는 액자에 가려지고 가장자리 빛만 보인다
 })();
 // 이름표 — 벽에서 각 그림 아래: 제목 · 화가, 연도(번호 대신)
-const _lp = new T.Vector3();
+const _lp = new T.Vector3(), _lp2 = new T.Vector3();
 frames.forEach((f) => {
   const el = document.createElement('div'); el.className = 'lb';
   el.innerHTML = `<b>${f.w.title}</b><small>${[f.w.artist, f.w.year].filter(Boolean).join(', ')}</small>`;
@@ -259,7 +259,7 @@ poseAt(0);
 function clOf(k) {
   const q = frames.map((f) => f[k]);
   const x0 = Math.min(...frames.map((f, i) => q[i].x - f.ow * q[i].s / 2)), x1 = Math.max(...frames.map((f, i) => q[i].x + f.ow * q[i].s / 2));
-  const y0 = Math.min(...frames.map((f, i) => q[i].y - f.oh * q[i].s / 2)) - PLATE_DROP - 0.12, y1 = Math.max(...frames.map((f, i) => q[i].y + f.oh * q[i].s / 2));
+  const y0 = Math.min(...frames.map((f, i) => q[i].y - f.oh * q[i].s / 2)) - PLATE_DROP - 0.12 - (k === 'P' ? 0.5 : 0), y1 = Math.max(...frames.map((f, i) => q[i].y + f.oh * q[i].s / 2));   // 11/24 고르는 화면: 아랫줄 이름표 자리까지
   return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, z: k === 'P' ? PICK_Z + 0.02 : 0.1 };
 }
 let CL = clOf('W');
@@ -417,7 +417,11 @@ function apply(now = performance.now()) {
       _lp.set(f.hx + f.ow * f.s / 2, f.hy - f.oh * f.s / 2 - 0.05, f.zb).project(camera); const xr = (_lp.x + 1) / 2 * W;
       _lp.set(f.hx, f.hy - f.oh * f.s / 2 - 0.05, f.zb).project(camera);
       const lw = Math.round(2 * (xr - (_lp.x + 1) / 2 * W));   // 한 줄 다섯 점 — 이름표 폭을 액자 폭에 맞춰 줄바꿈(옆 이름표와 겹치지 않게)
-      const lw2 = lw + 10;   // 11/24 글자를 키운 만큼 조금만 넓게(옆 이름표와 안 겹치게)
+      // 11/24 이름표 폭: 같은 줄 옆 그림과의 중심 거리까지(겹치지 않는 데까지 넓게) · 가운데 한 점은 넉넉히
+      const mateI = { 0: 1, 1: 0, 3: 4, 4: 3 }[frames.indexOf(f)], cx0 = (_lp.x + 1) / 2 * W;
+      let room = 250;
+      if (mateI != null) { const m2 = frames[mateI]; _lp2.set(m2.hx, m2.hy, m2.zb).project(camera); room = Math.abs((_lp2.x + 1) / 2 * W - cx0) - 8; }
+      const lw2 = Math.round(Math.max(lw + 12, Math.min(room, 230)));
       if (f.labW !== lw2) { f.labW = lw2; f.lab.style.width = lw2 + 'px'; }
       f.lab.style.transform = `translate(${((_lp.x + 1) / 2 * W).toFixed(1)}px, ${((1 - _lp.y) / 2 * H).toFixed(1)}px) translateX(-50%)`;
     }
