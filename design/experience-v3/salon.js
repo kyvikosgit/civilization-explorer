@@ -97,7 +97,7 @@ const setMode = (m) => { if (m === 'wall' && mode !== 'wall') wallT0 = performan
 const DPR = Math.min(2, window.devicePixelRatio || 1);
 let renderer;
 try {
-  renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' });
+  renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });   // 11/24 오라 둘레만 다시 그릴 때 나머지 화면이 지워지지 않게
 } catch (e) { toast('이 기기에서는 3D 보기를 열 수 없습니다'); throw e; }
 renderer.setPixelRatio(DPR);
 renderer.outputEncoding = T.sRGBEncoding;
