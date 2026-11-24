@@ -784,6 +784,7 @@ $('#backBtn').addEventListener('click', () => {
 // 검수용
 window.__c1 = {
   toScan, openPrint, whenLoaded,
+  arriveNow: () => { guide.classList.add('off', 'found'); setPill(''); toHunt(); },   // 11/24: 걸어가기 · 확대 없이 바로 전단지 단계(칼럼 3D 없음)
   get loaded() { return loaded; }, get step() { return step; }, get found() { return { ...found }; }, viewer,
   scan, focus: (i) => viewer && viewer.focusItem(i), inspect: openPrint, project: (i) => viewer && viewer.projectRect(i), get stance() { return stance; },
   NOTES, ITEMS,

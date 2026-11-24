@@ -112,17 +112,14 @@ window.addEventListener('c1:ready', () => {
   if (readyOnce) return; readyOnce = true;
   const t0 = Date.now();
   if (ended) return;
-  // 11/17: '칼럼으로 가기' 단추 단계를 뺌 — 거리 첫 문장을 읽을 틈을 둔 뒤 저절로 칼럼 앞으로 걸어간다
-  // 11/18: 역할 문장이 다 찍힌 뒤(글자 수 × 40ms, c1.css typeIn) 3초 동안 그대로 읽히게 두고 넘어간다
-  const n = document.querySelectorAll('.role-head h1 .ch').length || 30;
-  const READ = 150 + n * 40 + 340 + 900;   // 11/23: 다 찍힌 뒤 3초 → 0.9초(빈 거리에서 멈춘 것처럼 보였음)
-  const go = () => { if (stage !== 'start') return; if (document.body.classList.contains('role-in') || Date.now() - t0 > 9000) setTimeout(() => { if (stage === 'start') toColumn(); }, READ); else setTimeout(go, 200); };
-  go();
+  // 11/24: 칼럼으로 걸어가기 · 거리 확대 · 읽는 틈 없이 바로 전단지 안내(칼럼 3D 걷어냄)
+  stage = 'walk'; document.body.classList.add('walked');
+  const now = () => (c1()?.arriveNow ? c1().arriveNow() : setTimeout(now, 30)); now();
 });
 if (window.__c1ready) window.dispatchEvent(new CustomEvent('c1:ready'));   // 11/24: 이 모듈보다 먼저 준비가 끝났으면 다시 알림
 window.addEventListener('c1:step', (e) => {
   if (ended) return;
-  if (e.detail === 2) { stage = 'flyer'; setTimeout(() => guide.show(FLYER), 500); }   // 칼럼 앞에 도착
+  if (e.detail === 2) { stage = 'flyer'; setTimeout(() => guide.show(FLYER), 0); }   // 칼럼 앞에 도착
   else if (e.detail === 3) guide.hide();                                              // 포스터를 떼어 읽는 동안
   else if (e.detail === 1 && stage !== 'start') { stage = 'start'; document.body.classList.remove('walked'); setTimeout(() => { if (stage === 'start') toColumn(); }, 600); }   // 거리로 돌아와도 단추 없이 다시 칼럼으로
 });
