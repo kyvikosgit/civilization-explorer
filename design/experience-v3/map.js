@@ -119,23 +119,35 @@ function buildHall(key) {
     const m = new T.Mesh(new T.CircleGeometry(3.4, 48), new T.MeshBasicMaterial({ color: '#7E9B7C', transparent: true, opacity: 0.16, depthWrite: false }));
     m.rotation.x = -Math.PI / 2; m.position.set(X(z.p[0]), 0.015, Z(z.p[1])); g.add(m); return m;
   });
-  // 동선: 리본(흐르는 화살 무늬) + 끝 화살촉
+  // 동선: 꺾이는 곳을 둥글게 이은 한 줄 띠(흐르는 화살 무늬) + 끝 화살촉 — 띠는 화살촉 밑에서 끝나 겹치지 않게
   d.routes.forEach((r) => {
-    const pts = r.map(([x, y]) => new T.Vector3(X(x), 0.09, Z(y))), w = 0.85;
-    const pos = [], uv = [], idx = []; let acc = 0;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i], b = pts[i + 1], dir = b.clone().sub(a), L = dir.length(); dir.normalize();
-      const n = new T.Vector3(-dir.z, 0, dir.x).multiplyScalar(w / 2), base = pos.length / 3;
-      const a2 = a.clone().addScaledVector(dir, -w / 2 * (i > 0 ? 1 : 0)), b2 = b.clone().addScaledVector(dir, i < pts.length - 2 ? w / 2 : 0);
-      [a2.clone().add(n), a2.clone().sub(n), b2.clone().add(n), b2.clone().sub(n)].forEach((p) => pos.push(p.x, p.y + i * 0.0005, p.z));
-      const u0 = acc / 1.9, u1 = (acc + L) / 1.9; uv.push(u0, 1, u0, 0, u1, 1, u1, 0); acc += L;
-      idx.push(base, base + 1, base + 2, base + 2, base + 1, base + 3);
+    let P = r.map(([x, y]) => new T.Vector2(X(x), Z(y)));
+    const end = P[P.length - 1], before = P[P.length - 2], eDir = end.clone().sub(before).normalize();
+    const HEAD = 1.3; P[P.length - 1] = end.clone().addScaledVector(eDir, -HEAD);   // 띠는 화살촉 뿌리까지
+    const S = [P[0].clone()];
+    for (let i = 1; i < P.length - 1; i++) {   // 모서리 둥글게(2차 곡선)
+      const A = P[i - 1], B = P[i], C = P[i + 1], d1 = B.clone().sub(A), d2 = C.clone().sub(B), l1 = d1.length(), l2 = d2.length();
+      d1.normalize(); d2.normalize();
+      const turn = Math.acos(T.MathUtils.clamp(d1.dot(d2), -1, 1));
+      if (turn < 0.05) { S.push(B.clone()); continue; }
+      const t = Math.min(1.5, l1 * 0.45, l2 * 0.45), P1 = B.clone().addScaledVector(d1, -t), P2 = B.clone().addScaledVector(d2, t);
+      for (let k = 0; k <= 12; k++) { const u = k / 12, a2 = (1 - u) * (1 - u), b2 = 2 * u * (1 - u), c2 = u * u; S.push(new T.Vector2(a2 * P1.x + b2 * B.x + c2 * P2.x, a2 * P1.y + b2 * B.y + c2 * P2.y)); }
+    }
+    S.push(P[P.length - 1].clone());
+    const w = 0.85, Y = 0.09, pos = [], uv = [], idx = []; let acc = 0;
+    for (let i = 0; i < S.length; i++) {
+      const prev = S[Math.max(0, i - 1)], next = S[Math.min(S.length - 1, i + 1)], tg = next.clone().sub(prev).normalize();
+      const n = new T.Vector2(-tg.y, tg.x).multiplyScalar(w / 2);
+      if (i > 0) acc += S[i].distanceTo(S[i - 1]);
+      pos.push(S[i].x + n.x, Y, S[i].y + n.y, S[i].x - n.x, Y, S[i].y - n.y);
+      uv.push(acc / 1.9, 1, acc / 1.9, 0);
+      if (i > 0) { const q = (i - 1) * 2; idx.push(q, q + 1, q + 2, q + 2, q + 1, q + 3); }
     }
     const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.setIndex(idx);
     g.add(new T.Mesh(geo, routeMat));
-    const a = pts[pts.length - 2], b = pts[pts.length - 1], dir = b.clone().sub(a).normalize(), n = new T.Vector3(-dir.z, 0, dir.x);
-    const tip = b.clone().addScaledVector(dir, 1.5), l = b.clone().addScaledVector(n, 1.05), rr = b.clone().addScaledVector(n, -1.05);
-    const ag = new T.BufferGeometry(); ag.setAttribute('position', new T.Float32BufferAttribute([tip.x, 0.1, tip.z, l.x, 0.1, l.z, rr.x, 0.1, rr.z], 3));
+    const base = P[P.length - 1], n = new T.Vector2(-eDir.y, eDir.x), tip = end.clone().addScaledVector(eDir, 0.15);
+    const l = base.clone().addScaledVector(n, 0.95), rr = base.clone().addScaledVector(n, -0.95);
+    const ag = new T.BufferGeometry(); ag.setAttribute('position', new T.Float32BufferAttribute([tip.x, Y + 0.01, tip.y, l.x, Y + 0.01, l.y, rr.x, Y + 0.01, rr.y], 3));
     g.add(new T.Mesh(ag, arrowMat));
   });
   scene.add(g); g.visible = false;
