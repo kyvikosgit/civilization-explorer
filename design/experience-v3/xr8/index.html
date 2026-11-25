@@ -10,6 +10,8 @@
      대사 = 기획서 260928 그대로, 11/25: 화면 위 상자가 아니라 그림 벽 위(그 인물 머리 위)에 글자가 한 자씩 스르륵 써지는 AR 글(벽과 같은 원근) — 화면 가운데에 가장 가까운 인물 하나만
      화면 채우기 · 권한 · 오류 = 공식 XRExtras(FullWindowCanvas · Loading · RuntimeError)
      타깃 = tools/xr8/make_targets.mjs(공식 image-target-cli) → ./image-targets/*.json
+     11/25 티 안 나게: (1) 움직이는 부분만 덮기 — 영상 화소가 첫 장면(cafe_ref.jpg)과 달라진 곳만 보이고 나머지는 카메라에 비친 실제 그림
+                     (2) 실시간 색 맞춤 — 카메라 화소(CameraPixelArray)를 원본 그림 같은 자리와 비교해 영상 밝기 · 대비 · 색을 맞춤 (3) 카메라 같은 흐림 · 잡티 조금
      ?rot=1 : 가로 그림 돌림 방향 반대로(90° 어긋나 보일 때) · ?debug=1 : 판을 붉게 + 상태 · ?noslam=1 : 공간 고정 끄기(점검용) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
@@ -55,6 +57,63 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
   video.setAttribute('playsinline', '');
   var faces = {}, seen = {}, dbg = {}, camera = null, v3 = null, curHead = null, cand = null, candAt = 0;
 
+  // ── (1)(3) 움직이는 부분만 · 색 맞춤 · 카메라 같은 흐림/잡티
+  var TONE = { gain: new THREE.Vector3(1, 1, 1), off: new THREE.Vector3(0, 0, 0) }, U = null;
+  function liveMat(vt) {
+    var ref = new THREE.TextureLoader().load('cafe_ref.jpg'); ref.minFilter = THREE.LinearFilter;
+    U = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE.gain }, uOff: { value: TONE.off }, uTexel: { value: new THREE.Vector2(1 / 960, 1 / 720) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 } };
+    return new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: [
+        'uniform sampler2D uVid, uRef; uniform vec3 uGain, uOff; uniform vec2 uTexel; uniform float uTime, uDbg; varying vec2 vUv;',
+        'float df(vec2 p){ return length(texture2D(uVid, p).rgb - texture2D(uRef, p).rgb); }',
+        'float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
+        'void main(){',
+        '  vec2 o = uTexel * 3.0;',
+        '  float d = max(max(df(vUv), df(vUv + vec2(o.x, 0.0))), max(max(df(vUv - vec2(o.x, 0.0)), df(vUv + vec2(0.0, o.y))), df(vUv - vec2(0.0, o.y))));',
+        '  float m = smoothstep(0.05, 0.16, d);',   // 첫 장면과 달라진 곳(움직이는 사람 · 연기 등)만
+        '  vec2 e = smoothstep(vec2(0.0), vec2(0.03), vUv) * smoothstep(vec2(0.0), vec2(0.03), 1.0 - vUv);',
+        '  vec3 c = (texture2D(uVid, vUv).rgb * 2.0 + texture2D(uVid, vUv + vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv - vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv + vec2(0.0, uTexel.y)).rgb + texture2D(uVid, vUv - vec2(0.0, uTexel.y)).rgb) / 6.0;',
+        '  c = clamp(c * uGain + uOff + (h(vUv * 917.0 + uTime) - 0.5) * 0.025, 0.0, 1.0);',
+        '  float a = m * e.x * e.y;',
+        '  if (uDbg > 0.5) { c = mix(c, vec3(1.0, 0.0, 0.0), 0.45); a = max(a, 0.18 * e.x * e.y); }',
+        '  gl_FragColor = vec4(c, a);',
+        '}'].join('\n') });
+  }
+  // ── (2) 실시간 색 맞춤: 카페 면 위 격자 점마다 카메라 색 ↔ 원본 그림 색 → 채널별 대비(gain) · 밝기(off), 천천히 따라감
+  var refPx = null;
+  (function () { var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { var c = document.createElement('canvas'); c.width = 240; c.height = 180; var x = c.getContext('2d'); x.drawImage(im, 0, 0, 240, 180); refPx = x.getImageData(0, 0, 240, 180); }; im.src = 'cafe_ref.jpg'; })();
+  var lastTone = 0, flipVote = 0, tp = null;
+  function tone(cpa) {
+    var f = faces.cafe; if (!refPx || !cpa || !cpa.pixels || !f || !f.g.visible || !f.sized) return;
+    var now = Date.now(); if (now - lastTone < 250 || now - (seen.cafe || 0) > 600) return; lastTone = now;
+    tp = tp || new THREE.Vector3();
+    var W = window.innerWidth, H = window.innerHeight, ac = cpa.cols / cpa.rows, as = W / H, pts = [];
+    for (var j = 0; j < 6; j++) for (var i = 0; i < 8; i++) {
+      var u = 0.08 + i * 0.84 / 7, v = 0.08 + j * 0.84 / 5;
+      tp.set(u - 0.5, 0.5 - v, 0); f.m.localToWorld(tp); tp.project(camera); if (tp.z > 1) continue;
+      var sx = (tp.x + 1) / 2, sy = (1 - tp.y) / 2; if (sx < 0.02 || sx > 0.98 || sy < 0.02 || sy > 0.98) continue;
+      var cx = ac > as ? (sx - 0.5) * (as / ac) + 0.5 : sx, cy = ac > as ? sy : (sy - 0.5) * (ac / as) + 0.5;
+      var ri = Math.round(u * 239) + Math.round(v * 179) * 240, r = [refPx.data[ri * 4] / 255, refPx.data[ri * 4 + 1] / 255, refPx.data[ri * 4 + 2] / 255];
+      pts.push({ cx: cx, cy: cy, r: r });
+    }
+    if (pts.length < 10) return;
+    var samp = function (flip) { return pts.map(function (p) { var col = Math.round(p.cx * (cpa.cols - 1)), row = Math.round((flip ? 1 - p.cy : p.cy) * (cpa.rows - 1)), k = row * cpa.rowBytes + col * 4; return [cpa.pixels[k] / 255, cpa.pixels[k + 1] / 255, cpa.pixels[k + 2] / 255]; }); };
+    var lum = function (c) { return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]; };
+    var corr = function (A, B) { var n = A.length, ma = 0, mb = 0, sab = 0, saa = 0, sbb = 0; for (var i = 0; i < n; i++) { ma += A[i]; mb += B[i]; } ma /= n; mb /= n; for (i = 0; i < n; i++) { sab += (A[i] - ma) * (B[i] - mb); saa += (A[i] - ma) * (A[i] - ma); sbb += (B[i] - mb) * (B[i] - mb); } return sab / Math.sqrt(saa * sbb + 1e-9); };
+    var R = pts.map(function (p) { return lum(p.r); }), c0 = samp(false), c1 = samp(true);
+    var k0 = corr(c0.map(lum), R), k1 = corr(c1.map(lum), R); flipVote = Math.max(-20, Math.min(20, flipVote + (k1 > k0 ? 1 : -1)));
+    var cam = flipVote > 0 ? c1 : c0, kk = Math.max(k0, k1); if (kk < 0.4) return;   // 그림과 잘 안 맞는 순간(가림 · 반사)은 건너뜀
+    for (var ch = 0; ch < 3; ch++) {
+      var mr = 0, mc = 0, vr = 0, vc = 0, n = pts.length;
+      for (var i2 = 0; i2 < n; i2++) { mr += pts[i2].r[ch]; mc += cam[i2][ch]; } mr /= n; mc /= n;
+      for (i2 = 0; i2 < n; i2++) { vr += Math.pow(pts[i2].r[ch] - mr, 2); vc += Math.pow(cam[i2][ch] - mc, 2); }
+      var g = Math.max(0.4, Math.min(1.6, Math.sqrt(vc / (vr + 1e-6)))), o = Math.max(-0.35, Math.min(0.35, mc - g * mr));
+      TONE.gain.setComponent(ch, TONE.gain.getComponent(ch) * 0.8 + g * 0.2); TONE.off.setComponent(ch, TONE.off.getComponent(ch) * 0.8 + o * 0.2);
+    }
+    dbg.tone = 'gain ' + TONE.gain.toArray().map(function (x) { return x.toFixed(2); }).join(',') + ' off ' + TONE.off.toArray().map(function (x) { return x.toFixed(2); }).join(',') + ' corr ' + kk.toFixed(2) + (flipVote > 0 ? ' flip' : '');
+  }
+
   function wallModule() {
     return {
       name: 'society-wall',
@@ -66,8 +125,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
         ['cafe', 'street'].forEach(function (k) {
           var g = new THREE.Group(); g.visible = false; xs.scene.add(g);
           // 판 = 그 면 그림(가로) 크기. 카페만 영상을 보이고, 거리는 안 보이는 판(머리 자리 계산용)
-          var mat = k === 'cafe' ? new THREE.MeshBasicMaterial({ map: vt, depthWrite: false }) : new THREE.MeshBasicMaterial({ visible: false });
-          if (DEBUG && k === 'cafe') mat.color.setRGB(1, 0.6, 0.6);
+          var mat = k === 'cafe' ? liveMat(vt) : new THREE.MeshBasicMaterial({ visible: false });
           var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(m);
           var heads = HEADS[k].map(function (h) {
             var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o);
@@ -77,7 +135,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
           faces[k] = { g: g, m: m, heads: heads, sized: false };
         });
       },
-      onUpdate: placeSay,
+      onUpdate: function (a) { if (U) U.uTime.value = (U.uTime.value + 0.013) % 100; tone(a && a.processGpuResult && a.processGpuResult.camerapixelarray); placeSay(); },
       listeners: [
         { event: 'reality.imagefound', process: place },
         { event: 'reality.imageupdated', process: place },
@@ -157,7 +215,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
     Promise.all(['cafe', 'street'].map(function (n) { return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
       XR8.addCameraPipelineModules([
-        XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
+        XR8.GlTextureRenderer.pipelineModule(), XR8.CameraPixelArray.pipelineModule({ luminance: false, maxDimension: 192 }), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
         XRExtras.FullWindowCanvas.pipelineModule(),   // 캔버스를 화면 크기 · 화소 밀도에 맞춤(좌상단에 작게 그려지던 문제)
         XRExtras.Loading.pipelineModule(),            // 카메라 · 동작 센서 허락 안내
         XRExtras.RuntimeError.pipelineModule(),
