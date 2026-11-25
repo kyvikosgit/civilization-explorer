@@ -12,7 +12,7 @@
      타깃 = tools/xr8/make_targets.mjs(공식 image-target-cli) → ./image-targets/*.json
      11/25 티 안 나게: (1) 움직이는 부분만 덮기 — 영상 화소가 첫 장면(*_ref.jpg)과 달라진 곳만 보이고 나머지는 카메라에 비친 실제 그림
                      (2) 실시간 색 맞춤 — 카메라 화소(CameraPixelArray)를 원본 그림 같은 자리와 비교해 영상 밝기 · 대비 · 색을 맞춤 (3) 카메라 같은 흐림 · 잡티 조금
-     ?rot=1 : 가로 그림 돌림 방향 반대로(90° 어긋나 보일 때) · ?debug=1 : 판을 붉게 + 상태 · ?noslam=1 : 공간 고정 끄기(점검용) -->
+     ?rot=1 · ?rot=-1 : 영상을 90° 돌려 보기(점검용, 기본 0) · ?debug=1 : 판을 붉게 + 상태 · ?noslam=1 : 공간 고정 끄기(점검용) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"></script>
@@ -38,7 +38,8 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 <div class="credit">AR: 8th Wall Engine © Niantic Spatial · <a href="https://github.com/8thwall/engine/blob/main/LICENSE" target="_blank" rel="noopener">XR Engine License</a> · 보증 없음</div>
 <script>
 (function () {
-  var q = new URLSearchParams(location.search), DEBUG = q.has('debug'), ROT = q.has('rot') ? 1 : -1, SLAM = !q.has('noslam');
+  var q = new URLSearchParams(location.search), DEBUG = q.has('debug'), ROT = q.has('rot') ? +q.get('rot') || 0 : 0,   // 11/25 폰 확인: 돌린 타깃도 엔진이 원래(가로) 방향으로 알려 줌 → 돌리지 않음(0). 점검용 ?rot=1 · ?rot=-1
+      SLAM = !q.has('noslam');
   // 11/25 최종 그림(미술팀 261117) — 카페 = 실내(가로), 박람회 거리 = 세로. 인식은 가운데 3:4 만 쓰므로 판을 그림 전체 크기로 늘림(FULL)
   //   대사는 기술 점검용 자리 채움(기획서 260928 대사) — 최종 원고 · 인물 자리를 받으면 바꿈. 영상은 최종 그림으로 새로 만들어야 해서 지금은 없음(글만)
   var ROTATED = { cafe: true, street: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2400 / 2053] };
