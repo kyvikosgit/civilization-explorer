@@ -10,7 +10,7 @@
      대사 = 기획서 260928 그대로, 11/25: 화면 위 상자가 아니라 그림 벽 위(그 인물 머리 위)에 글자가 한 자씩 스르륵 써지는 AR 글(벽과 같은 원근) — 화면 가운데에 가장 가까운 인물 하나만
      화면 채우기 · 권한 · 오류 = 공식 XRExtras(FullWindowCanvas · Loading · RuntimeError)
      타깃 = tools/xr8/make_targets.mjs(공식 image-target-cli) → ./image-targets/*.json
-     11/25 티 안 나게: (1) 움직이는 부분만 덮기 — 영상 화소가 첫 장면(cafe_ref.jpg)과 달라진 곳만 보이고 나머지는 카메라에 비친 실제 그림
+     11/25 티 안 나게: (1) 움직이는 부분만 덮기 — 영상 화소가 첫 장면(*_ref.jpg)과 달라진 곳만 보이고 나머지는 카메라에 비친 실제 그림
                      (2) 실시간 색 맞춤 — 카메라 화소(CameraPixelArray)를 원본 그림 같은 자리와 비교해 영상 밝기 · 대비 · 색을 맞춤 (3) 카메라 같은 흐림 · 잡티 조금
      ?rot=1 : 가로 그림 돌림 방향 반대로(90° 어긋나 보일 때) · ?debug=1 : 판을 붉게 + 상태 · ?noslam=1 : 공간 고정 끄기(점검용) -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&display=swap">
@@ -53,18 +53,19 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       { x: 0.40, y: 0.39, t: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
       { x: 0.84, y: 0.42, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
   };
-  var VIDEO = {};   // 최종 그림 영상이 생기면 { cafe: '…mp4' } — 첫 장면 = 그 그림
+  // 붙음 시험용 영상(tools/xr8/make_text_video.py): 그림은 멈춘 채 머리 위 대사만 한 글자씩 — '달라진 곳만 덮기'라 글자만 보인다. ref = 첫 장면(글 없음)
+  var VIDEO = { cafe: { src: 'cafe_text.mp4', ref: 'cafe_text_ref.jpg', px: [1920, 1204] }, street: { src: 'street_text.mp4', ref: 'street_text_ref.jpg', px: [1080, 1684] } };
   var $ = function (id) { return document.getElementById(id); };
-  var video = document.createElement('video');
-  Object.assign(video, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto' });
-  video.setAttribute('playsinline', '');
+  var videos = {};
+  Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
   var faces = {}, seen = {}, dbg = {}, camera = null, v3 = null, curHead = null, cand = null, candAt = 0;
 
   // ── (1)(3) 움직이는 부분만 · 색 맞춤 · 카메라 같은 흐림/잡티
-  var TONE = { gain: new THREE.Vector3(1, 1, 1), off: new THREE.Vector3(0, 0, 0) }, U = null;
-  function liveMat(vt) {
-    var ref = new THREE.TextureLoader().load('cafe_ref.jpg'); ref.minFilter = THREE.LinearFilter;
-    U = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE.gain }, uOff: { value: TONE.off }, uTexel: { value: new THREE.Vector2(1 / 960, 1 / 720) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 } };
+  var TONE = {}, UU = {};
+  function liveMat(k) {
+    var V = VIDEO[k], vt = new THREE.VideoTexture(videos[k]), ref = new THREE.TextureLoader().load(V.ref); ref.minFilter = THREE.LinearFilter;
+    TONE[k] = { gain: new THREE.Vector3(1, 1, 1), off: new THREE.Vector3(0, 0, 0) };
+    var U = UU[k] = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE[k].gain }, uOff: { value: TONE[k].off }, uTexel: { value: new THREE.Vector2(1 / V.px[0], 1 / V.px[1]) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 } };
     return new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: [
@@ -84,12 +85,16 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
         '}'].join('\n') });
   }
   // ── (2) 실시간 색 맞춤: 카페 면 위 격자 점마다 카메라 색 ↔ 원본 그림 색 → 채널별 대비(gain) · 밝기(off), 천천히 따라감
-  var refPx = null;
-  (function () { var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { var c = document.createElement('canvas'); c.width = 240; c.height = 180; var x = c.getContext('2d'); x.drawImage(im, 0, 0, 240, 180); refPx = x.getImageData(0, 0, 240, 180); }; im.src = 'cafe_ref.jpg'; })();
+  var refPx = {};
+  Object.keys(VIDEO).forEach(function (k) { var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { var c = document.createElement('canvas'); c.width = 240; c.height = 240; var x = c.getContext('2d'); x.drawImage(im, 0, 0, 240, 240); refPx[k] = x.getImageData(0, 0, 240, 240); }; im.src = VIDEO[k].ref; });
   var lastTone = 0, flipVote = 0, tp = null;
   function tone(cpa) {
-    var f = faces.cafe; if (!U || !refPx || !cpa || !cpa.pixels || !f || !f.g.visible || !f.sized) return;
-    var now = Date.now(); if (now - lastTone < 250 || now - (seen.cafe || 0) > 600) return; lastTone = now;
+    var now = Date.now(); if (now - lastTone < 250) return; lastTone = now;
+    Object.keys(VIDEO).forEach(function (k) { toneFace(k, cpa, now); });
+  }
+  function toneFace(k, cpa, now) {
+    var f = faces[k], rp = refPx[k], TN = TONE[k]; if (!TN || !rp || !cpa || !cpa.pixels || !f || !f.g.visible || !f.sized) return;
+    if (now - (seen[k] || 0) > 600) return;
     tp = tp || new THREE.Vector3();
     var W = window.innerWidth, H = window.innerHeight, ac = cpa.cols / cpa.rows, as = W / H, pts = [];
     for (var j = 0; j < 6; j++) for (var i = 0; i < 8; i++) {
@@ -97,7 +102,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       tp.set(u - 0.5, 0.5 - v, 0); f.m.localToWorld(tp); tp.project(camera); if (tp.z > 1) continue;
       var sx = (tp.x + 1) / 2, sy = (1 - tp.y) / 2; if (sx < 0.02 || sx > 0.98 || sy < 0.02 || sy > 0.98) continue;
       var cx = ac > as ? (sx - 0.5) * (as / ac) + 0.5 : sx, cy = ac > as ? sy : (sy - 0.5) * (ac / as) + 0.5;
-      var ri = Math.round(u * 239) + Math.round(v * 179) * 240, r = [refPx.data[ri * 4] / 255, refPx.data[ri * 4 + 1] / 255, refPx.data[ri * 4 + 2] / 255];
+      var ri = Math.round(u * 239) + Math.round(v * 239) * 240, r = [rp.data[ri * 4] / 255, rp.data[ri * 4 + 1] / 255, rp.data[ri * 4 + 2] / 255];
       pts.push({ cx: cx, cy: cy, r: r });
     }
     if (pts.length < 10) return;
@@ -112,9 +117,9 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       for (var i2 = 0; i2 < n; i2++) { mr += pts[i2].r[ch]; mc += cam[i2][ch]; } mr /= n; mc /= n;
       for (i2 = 0; i2 < n; i2++) { vr += Math.pow(pts[i2].r[ch] - mr, 2); vc += Math.pow(cam[i2][ch] - mc, 2); }
       var g = Math.max(0.4, Math.min(1.6, Math.sqrt(vc / (vr + 1e-6)))), o = Math.max(-0.35, Math.min(0.35, mc - g * mr));
-      TONE.gain.setComponent(ch, TONE.gain.getComponent(ch) * 0.8 + g * 0.2); TONE.off.setComponent(ch, TONE.off.getComponent(ch) * 0.8 + o * 0.2);
+      TN.gain.setComponent(ch, TN.gain.getComponent(ch) * 0.8 + g * 0.2); TN.off.setComponent(ch, TN.off.getComponent(ch) * 0.8 + o * 0.2);
     }
-    dbg.tone = 'gain ' + TONE.gain.toArray().map(function (x) { return x.toFixed(2); }).join(',') + ' off ' + TONE.off.toArray().map(function (x) { return x.toFixed(2); }).join(',') + ' corr ' + kk.toFixed(2) + (flipVote > 0 ? ' flip' : '');
+    dbg['tone_' + k] = 'gain ' + TN.gain.toArray().map(function (x) { return x.toFixed(2); }).join(',') + ' off ' + TN.off.toArray().map(function (x) { return x.toFixed(2); }).join(',') + ' corr ' + kk.toFixed(2) + (flipVote > 0 ? ' flip' : '');
   }
 
   function wallModule() {
@@ -124,11 +129,10 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
         var xs = XR8.Threejs.xrScene(); camera = xs.camera; v3 = new THREE.Vector3();
         camera.position.set(0, 3, 0);
         XR8.XrController.updateCameraProjectionMatrix({ origin: camera.position, facing: camera.quaternion });
-        var vt = new THREE.VideoTexture(video);
         ['cafe', 'street'].forEach(function (k) {
           var g = new THREE.Group(); g.visible = false; xs.scene.add(g);
           // 판 = 그 면 그림(가로) 크기. 카페만 영상을 보이고, 거리는 안 보이는 판(머리 자리 계산용)
-          var mat = VIDEO[k] ? liveMat(vt) : new THREE.MeshBasicMaterial({ visible: false });
+          var mat = VIDEO[k] ? liveMat(k) : new THREE.MeshBasicMaterial({ visible: false });
           var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(m);
           var heads = HEADS[k].map(function (h) {
             var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o);
@@ -138,7 +142,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
           faces[k] = { g: g, m: m, heads: heads, sized: false };
         });
       },
-      onUpdate: function (a) { if (U) U.uTime.value = (U.uTime.value + 0.013) % 100; tone(a && a.processGpuResult && a.processGpuResult.camerapixelarray); placeSay(); },
+      onUpdate: function (a) { Object.keys(UU).forEach(function (k) { UU[k].uTime.value = (UU[k].uTime.value + 0.013) % 100; }); tone(a && a.processGpuResult && a.processGpuResult.camerapixelarray); placeSay(); },
       listeners: [
         { event: 'reality.imagefound', process: place },
         { event: 'reality.imageupdated', process: place },
@@ -164,7 +168,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       });
     }
     seen[d.name] = Date.now(); dbg[d.name] = 'tracked ' + (d.scaledWidth || 0).toFixed(2) + 'x' + (d.scaledHeight || 0).toFixed(2);
-    if (VIDEO[d.name] && video.paused) video.play().catch(function () {});
+    var vv = videos[d.name]; if (vv && vv.paused) vv.play().catch(function () {});
   }
   // ── 벽 위 글: 캔버스에 글을 그려 벽면과 같은 판에 붙인다. 한 글자씩 0.35초 동안 스르륵(투명 → 진하게), 초당 11자
   var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 720, LH = 74, PAD = 28;   // 머리 위에 좁게(한 줄 12자 안팎)
@@ -196,7 +200,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
     if (!camera) return;
     var W = window.innerWidth, H = window.innerHeight, best = null, bd = 1e9, now = Date.now();
     Object.keys(faces).forEach(function (k) {
-      var f = faces[k]; if (!f.g.visible || !f.sized || now - (seen[k] || 0) > 4000) return;
+      var f = faces[k]; if (VIDEO[k] || !f.g.visible || !f.sized || now - (seen[k] || 0) > 4000) return;
       f.heads.forEach(function (h) {
         h.o.getWorldPosition(v3); v3.project(camera); if (v3.z > 1) return;
         var x = (v3.x + 1) / 2 * W, y = (1 - v3.y) / 2 * H; if (x < 0 || x > W || y < 0 || y > H) return;
@@ -228,7 +232,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
     });
   }
   $('go').addEventListener('click', function () {
-    video.play().then(function () { video.pause(); }).catch(function () {});   // 첫 터치로 재생 권한
+    Object.keys(videos).forEach(function (k) { videos[k].play().then(function () { videos[k].pause(); }).catch(function () {}); });   // 첫 터치로 재생 권한
     var asks = [window.DeviceOrientationEvent, window.DeviceMotionEvent].filter(function (E) { return SLAM && E && typeof E.requestPermission === 'function'; }).map(function (E) { return E.requestPermission().catch(function () { return 'denied'; }); });
     Promise.all(asks).then(function (r) {
       if (r.indexOf('denied') >= 0) { $('err').textContent = '동작 및 방향 접근을 허용해야 그림이 제자리에 고정됩니다. 다시 시작을 눌러 허용해 주세요.'; return; }
