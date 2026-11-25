@@ -93,10 +93,10 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       var w = d.scaledWidth, h = d.scaledHeight;
       if (w < h) { f.m.scale.set(h, w, 1); f.m.rotation.z = ROT * Math.PI / 2; } else f.m.scale.set(w, h, 1);
       f.sized = true; f.m.updateMatrix();
-      // 글판: 그림 벽과 같은 면 · 같은 위쪽 방향으로, 머리 꼭대기 바로 위에(그림 가로의 30% 폭)
+      // 글판: 그림 벽과 같은 면 · 같은 위쪽 방향으로, 머리 꼭대기 바로 위에(그림 가로의 24% 폭)
       var up = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), f.m.rotation.z), cw = f.m.scale.x;
       f.heads.forEach(function (hd) {
-        var p = new THREE.Vector3(hd.hx - 0.5, 0.5 - hd.hy, 0).applyMatrix4(f.m.matrix), tw = cw * 0.3, th = tw * hd.tx.ar;
+        var p = new THREE.Vector3(hd.hx - 0.5, 0.5 - hd.hy, 0).applyMatrix4(f.m.matrix), tw = cw * 0.24, th = tw * hd.tx.ar;
         hd.tx.mesh.scale.set(tw, th, 1); hd.tx.mesh.rotation.z = f.m.rotation.z;
         hd.tx.mesh.position.copy(p).addScaledVector(up, th / 2 + cw * 0.01).setZ(cw * 0.002);
       });
@@ -105,7 +105,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
     if (d.name === 'cafe' && video.paused) video.play().catch(function () {});
   }
   // ── 벽 위 글: 캔버스에 글을 그려 벽면과 같은 판에 붙인다. 한 글자씩 0.35초 동안 스르륵(투명 → 진하게), 초당 11자
-  var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 1024, LH = 74, PAD = 28;
+  var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 720, LH = 74, PAD = 28;   // 머리 위에 좁게(한 줄 12자 안팎)
   function wrap(ctx, text, maxW) {   // 한국어는 낱자 단위로 줄바꿈(띄어쓰기 우선)
     var words = text.split(' '), lines = [], cur = '';
     words.forEach(function (w) { var t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width <= maxW) cur = t; else { if (cur) lines.push(cur); cur = w; } });
@@ -114,6 +114,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
   function makeText(text) {
     var c = document.createElement('canvas'), ctx = c.getContext('2d'); ctx.font = FONT;
     var lines = wrap(ctx, text, CW - PAD * 2); c.width = CW; c.height = lines.length * LH + PAD * 2;
+    ctx.font = FONT;   // 캔버스 크기를 바꾸면 글꼴 설정이 초기화된다 — 다시 지정하지 않으면 글자 폭을 10px 기본 글꼴로 재서 한자리에 뭉침(11/25 버그)
     var tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
     var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
     mesh.renderOrder = 10;
