@@ -55,7 +55,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       { x: 0.84, y: 0.42, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
   };
   // 붙음 시험용 영상(tools/xr8/make_text_video.py): 그림은 멈춘 채 머리 위 대사만 한 글자씩 — '달라진 곳만 덮기'라 글자만 보인다. ref = 첫 장면(글 없음)
-  var VIDEO = { cafe: { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] }   /* 11/25 Veo 3.1 Fast 전체 움직임 + 대사(한 줄 6초) */, street: { src: 'street_text.mp4', ref: 'street_text_ref.jpg', px: [1080, 1684] } };
+  var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004] }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_text.mp4', ref: 'street_text_ref.jpg', px: [1080, 1684] } };
   var $ = function (id) { return document.getElementById(id); };
   var videos = {};
   Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
