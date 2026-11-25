@@ -5,20 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="robots" content="noindex">
 <title>벽 AR 시험 · 8th Wall</title>
-<!-- 11/25 시민사회 꺾인 벽 — 8th Wall 엔진(배포용 바이너리, SLAM 포함) 시험. MindAR 대신: 그림을 한 번 인식하면 공간에 고정돼 손을 움직여도 붙어 있게
-     면마다 각자 인식(카페 · 박람회 거리), 90도 계산 없음. 카페 = 영상, 거리 = 영상 없음(대사만). 대사 = 기획서 260928 그대로, 화면 아래 자막
+<!-- 11/25 시민사회 꺾인 벽 — 8th Wall 엔진(배포용 바이너리, SLAM 포함) 시험. 그림을 한 번 인식하면 공간에 고정돼 손을 움직여도 붙어 있게
+     면마다 각자 인식(카페 · 박람회 거리), 90도 계산 없음. 카페 = 영상, 거리 = 영상 없음
+     대사 = 기획서 260928 그대로, 그 인물 머리 위에 따라붙는 글(말풍선 꼬리 없음) — 화면 가운데에 가장 가까운 인물 하나만
+     화면 채우기 · 권한 · 오류 = 공식 XRExtras(FullWindowCanvas · Loading · RuntimeError)
      타깃 = tools/xr8/make_targets.mjs(공식 image-target-cli) → ./image-targets/*.json
-     ?rot=1 : 가로 그림 돌림 방향 반대로(어긋나 보일 때) · ?debug=1 : 판을 붉게 + 상태 숫자 -->
+     ?rot=1 : 가로 그림 돌림 방향 반대로(90° 어긋나 보일 때) · ?debug=1 : 판을 붉게 + 상태 · ?noslam=1 : 공간 고정 끄기(점검용) -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"></script>
 <style>
 html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden}
-canvas#c{position:fixed;inset:0;width:100%;height:100%}
-.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;background:#000;z-index:10}
+#c{position:fixed;left:0;top:0}
+.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;background:#000;z-index:20}
 .start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:14px;line-height:1.6;margin:0;word-break:keep-all}
 .start button{font:700 17px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:15px 30px}
-.sub{position:fixed;left:16px;right:16px;bottom:calc(40px + env(safe-area-inset-bottom));background:rgba(0,0,0,.62);border-radius:10px;padding:12px 16px;font-size:16px;line-height:1.45;font-weight:600;text-align:center;word-break:keep-all;opacity:0;transition:opacity .3s;z-index:5}
-.sub.on{opacity:1}
+.say{position:fixed;left:0;top:0;max-width:min(270px,64vw);padding:9px 13px;border-radius:10px;background:rgba(14,12,10,.78);color:#F7F3EA;font-size:15px;line-height:1.45;font-weight:600;word-break:keep-all;opacity:0;transition:opacity .3s;pointer-events:none;z-index:5;will-change:transform}
+.say.on{opacity:1}
 .hint{position:fixed;left:0;right:0;bottom:calc(44px + env(safe-area-inset-bottom));text-align:center;z-index:5}
 .hint span{background:rgba(0,0,0,.5);padding:8px 14px;border-radius:18px;font-size:15px}
 #dbg{position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:8px;white-space:pre;z-index:6}
@@ -30,89 +33,103 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%}
 <canvas id="c"></canvas>
 <div class="start" id="start"><h1>벽 AR 시험 (8th Wall)</h1><p>카페 그림이나 거리 그림을 화면에 가득 비춰 주세요.<br>한 번 잡히면 폰을 움직여도 그 자리에 붙어 있어야 합니다.</p><button type="button" id="go">시작</button><p id="err"></p></div>
 <div class="hint" id="hint" hidden><span>그림을 화면에 가득 비춰 주세요</span></div>
-<div class="sub" id="sub"></div>
+<div class="say" id="say"></div>
 <div id="dbg" hidden></div>
 <div class="credit">AR: 8th Wall Engine © Niantic Spatial · <a href="https://github.com/8thwall/engine/blob/main/LICENSE" target="_blank" rel="noopener">XR Engine License</a> · 보증 없음</div>
 <script>
 (function () {
-  var q = new URLSearchParams(location.search), DEBUG = q.has('debug'), ROT = q.has('rot') ? 1 : -1, SLAM = !q.has('noslam');   // noslam: 공간 고정 끄고 그림 인식만(점검용)
-  var LINES = {
-    cafe: ['아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.',
-           '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.',
-           '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?'],
-    street: ['박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.',
-             '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.',
-             '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.',
-             '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.'],
+  var q = new URLSearchParams(location.search), DEBUG = q.has('debug'), ROT = q.has('rot') ? 1 : -1, SLAM = !q.has('noslam');
+  // 인물 머리 자리(그 면 그림 안 비율 x, y = 머리 꼭대기) + 대사 — wall/society.json heads 와 같은 값
+  var HEADS = {
+    cafe: [
+      { x: 0.276, y: 0.47, t: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
+      { x: 0.477, y: 0.47, t: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
+      { x: 0.676, y: 0.47, t: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' }],
+    street: [
+      { x: 0.80, y: 0.54, t: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
+      { x: 0.555, y: 0.55, t: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
+      { x: 0.435, y: 0.53, t: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
+      { x: 0.30, y: 0.56, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
   };
-  var VIDEO = { cafe: '../video/cafe_plan.mp4' };   // 첫 장면 = 카페 그림(cafe_plan.jpg)과 같은 판
   var $ = function (id) { return document.getElementById(id); };
   var video = document.createElement('video');
-  Object.assign(video, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO.cafe });
+  Object.assign(video, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: '../video/cafe_plan.mp4' });   // 첫 장면 = 카페 그림
   video.setAttribute('playsinline', '');
-  var faces = {}, seen = {}, cur = null, li = 0, lt = 0, dbg = {};
+  var faces = {}, seen = {}, dbg = {}, camera = null, v3 = null, sayEl = $('say'), curHead = null;
 
   function wallModule() {
     return {
       name: 'society-wall',
       onStart: function () {
-        var xs = XR8.Threejs.xrScene(), scene = xs.scene, camera = xs.camera;
+        var xs = XR8.Threejs.xrScene(); camera = xs.camera; v3 = new THREE.Vector3();
         camera.position.set(0, 3, 0);
         XR8.XrController.updateCameraProjectionMatrix({ origin: camera.position, facing: camera.quaternion });
         var vt = new THREE.VideoTexture(video);
         ['cafe', 'street'].forEach(function (k) {
-          var g = new THREE.Group(); g.visible = false; scene.add(g);
-          var m = null;
-          if (k === 'cafe') {
-            var mat = new THREE.MeshBasicMaterial({ map: vt, transparent: true, opacity: 1, depthWrite: false });
-            if (DEBUG) mat.color.setRGB(1, 0.6, 0.6);
-            m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(m);
-          }
-          faces[k] = { g: g, m: m, sized: false };
+          var g = new THREE.Group(); g.visible = false; xs.scene.add(g);
+          // 판 = 그 면 그림(가로) 크기. 카페만 영상을 보이고, 거리는 안 보이는 판(머리 자리 계산용)
+          var mat = k === 'cafe' ? new THREE.MeshBasicMaterial({ map: vt, depthWrite: false }) : new THREE.MeshBasicMaterial({ visible: false });
+          if (DEBUG && k === 'cafe') mat.color.setRGB(1, 0.6, 0.6);
+          var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(m);
+          var heads = HEADS[k].map(function (h) { var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o); return { o: o, t: h.t, face: k }; });
+          faces[k] = { g: g, m: m, heads: heads, sized: false };
         });
       },
+      onUpdate: placeSay,
       listeners: [
         { event: 'reality.imagefound', process: place },
         { event: 'reality.imageupdated', process: place },
-        { event: 'reality.imagelost', process: function (e) { var d = e.detail; dbg[d.name] = 'lost(고정 유지)'; } },
+        { event: 'reality.imagelost', process: function (e) { dbg[e.detail.name] = 'lost(고정 유지)'; } },
       ],
     };
   }
-  // 타깃 자리에 판을 놓는다. 가로 그림을 90° 돌려 세로 타깃으로 만들었으므로(isRotated), 엔진이 세로로 알려 주면 영상 판을 90° 돌려 맞춤
+  // 타깃 자리에 판을 놓는다. 가로 그림을 90° 돌려 세로 타깃으로 만들었으므로(isRotated) 엔진이 세로로 알려 주면 판을 90° 돌려 맞춘다
   function place(e) {
     var d = e.detail, f = faces[d.name]; if (!f) return;
     f.g.position.copy(d.position); f.g.quaternion.copy(d.rotation); f.g.scale.set(d.scale, d.scale, d.scale); f.g.visible = true;
-    if (f.m && !f.sized) {
+    if (!f.sized) {
       var w = d.scaledWidth, h = d.scaledHeight;
       if (w < h) { f.m.scale.set(h, w, 1); f.m.rotation.z = ROT * Math.PI / 2; } else f.m.scale.set(w, h, 1);
       f.sized = true;
     }
     seen[d.name] = Date.now(); dbg[d.name] = 'tracked ' + (d.scaledWidth || 0).toFixed(2) + 'x' + (d.scaledHeight || 0).toFixed(2);
-    if (video.paused) video.play().catch(function () {});
+    if (d.name === 'cafe' && video.paused) video.play().catch(function () {});
   }
-  // 자막: 지금 비추는 면의 대사를 4.5초마다 하나씩
-  setInterval(function () {
-    var now = Date.now(), vis = Object.keys(seen).filter(function (k) { return now - seen[k] < 1500; });
-    var next = cur && vis.indexOf(cur) >= 0 ? cur : vis[0] || null;
-    if (next !== cur) { cur = next; li = 0; lt = now; }
-    else if (cur && now - lt > 4500) { li = (li + 1) % LINES[cur].length; lt = now; }
-    var s = $('sub'); if (cur) { s.textContent = LINES[cur][li]; s.classList.add('on'); } else s.classList.remove('on');
-    $('hint').hidden = !!cur || $('start').style.display !== 'none';
+  // 대사: 화면 안에 보이는 인물 중 화면 가운데에 가장 가까운 한 명 — 그 머리 위에 따라붙임
+  function placeSay() {
+    if (!camera) return;
+    var W = window.innerWidth, H = window.innerHeight, best = null, bd = 1e9, bx = 0, by = 0, now = Date.now();
+    Object.keys(faces).forEach(function (k) {
+      var f = faces[k]; if (!f.g.visible || now - (seen[k] || 0) > 4000) return;
+      f.heads.forEach(function (h) {
+        h.o.getWorldPosition(v3); v3.project(camera); if (v3.z > 1) return;
+        var x = (v3.x + 1) / 2 * W, y = (1 - v3.y) / 2 * H; if (x < 0 || x > W || y < 0 || y > H) return;
+        var dd = Math.hypot(x - W / 2, y - H / 2); if (dd < bd) { bd = dd; best = h; bx = x; by = y; }
+      });
+    });
+    if (best) {
+      if (best !== curHead) { sayEl.textContent = best.t; curHead = best; }
+      var w = sayEl.offsetWidth, xc = Math.max(w / 2 + 10, Math.min(W - w / 2 - 10, bx));
+      sayEl.style.transform = 'translate(' + xc + 'px,' + (by - 10) + 'px) translate(-50%,-100%)'; sayEl.classList.add('on');
+    } else { sayEl.classList.remove('on'); curHead = null; }
+    $('hint').hidden = !!best || Object.keys(seen).some(function (k) { return now - seen[k] < 4000; });
     if (DEBUG) { $('dbg').hidden = false; $('dbg').textContent = JSON.stringify(dbg, null, 1); }
-  }, 300);
+  }
 
   function boot() {
-    XR8.XrController.configure({ imageTargetData: [], disableWorldTracking: !SLAM });
     Promise.all(['cafe', 'street'].map(function (n) { return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
-      XR8.addCameraPipelineModules([XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(), wallModule(),
-        { name: 'err', onCameraStatusChange: function (x) { if (x.status === 'failed') $('err').textContent = '카메라를 열지 못했습니다.'; }, onException: function (x) { try { $('err').textContent = (x && x.message) || JSON.stringify(x).slice(0, 300); } catch (e) { $('err').textContent = String(x); } } }]);
+      XR8.addCameraPipelineModules([
+        XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
+        XRExtras.FullWindowCanvas.pipelineModule(),   // 캔버스를 화면 크기 · 화소 밀도에 맞춤(좌상단에 작게 그려지던 문제)
+        XRExtras.Loading.pipelineModule(),            // 카메라 · 동작 센서 허락 안내
+        XRExtras.RuntimeError.pipelineModule(),
+        wallModule()]);
       XR8.run({ canvas: $('c') });
     });
   }
   $('go').addEventListener('click', function () {
     video.play().then(function () { video.pause(); }).catch(function () {});   // 첫 터치로 재생 권한
-    // 공간 고정(SLAM)은 폰 기울기 센서가 필요 — 아이폰은 이 터치 안에서 허락을 받아야 한다
     var asks = [window.DeviceOrientationEvent, window.DeviceMotionEvent].filter(function (E) { return SLAM && E && typeof E.requestPermission === 'function'; }).map(function (E) { return E.requestPermission().catch(function () { return 'denied'; }); });
     Promise.all(asks).then(function (r) {
       if (r.indexOf('denied') >= 0) { $('err').textContent = '동작 및 방향 접근을 허용해야 그림이 제자리에 고정됩니다. 다시 시작을 눌러 허용해 주세요.'; return; }
