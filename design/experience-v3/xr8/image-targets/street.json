@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets/street_luminance.jpg",
+  "metadata": null,
+  "name": "street",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 5,
+    "width": 727,
+    "height": 969,
+    "isRotated": true,
+    "originalWidth": 727,
+    "originalHeight": 978
+  },
+  "resources": {
+    "originalImage": "street_original.jpg",
+    "croppedImage": "street_cropped.jpg",
+    "thumbnailImage": "street_thumbnail.jpg",
+    "luminanceImage": "street_luminance.jpg"
+  },
+  "created": 1795584634309,
+  "updated": 1795584634309
+}
