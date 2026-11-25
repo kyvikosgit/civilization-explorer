@@ -64,13 +64,24 @@ export async function startWall(container, cfgUrl, { onState, onStats, debug = f
     g.fillStyle = lin(0, 0, 0, e); g.fillRect(0, 0, 256, e); g.fillStyle = lin(0, 256, 0, 256 - e); g.fillRect(0, 256 - e, 256, e);
     return new THREE.CanvasTexture(c);
   })();
+  // 11/25 비추는 곳만: 화면 가운데(폰이 겨누는 곳) 둥근 범위만 영상이 드러나고 바깥은 실제 그림 그대로 — cfg.spot {r: 반지름, soft: 흐림 폭}(화면 짧은 변 기준 비율)
+  const spot = cfg.spot ? { uRes: { value: new THREE.Vector2(1, 1) }, uRad: { value: cfg.spot.r ?? 0.3 }, uSoft: { value: cfg.spot.soft ?? 0.18 } } : null;
+  const withSpot = (m) => {
+    if (!spot) return m;
+    m.onBeforeCompile = (sh) => {
+      Object.assign(sh.uniforms, spot);
+      sh.fragmentShader = 'uniform vec2 uRes; uniform float uRad; uniform float uSoft;\n' + sh.fragmentShader.replace('#include <alphamap_fragment>',
+        '#include <alphamap_fragment>\n  { vec2 q = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y); diffuseColor.a *= 1.0 - smoothstep(uRad, uRad + uSoft, length(q)); }');
+    };
+    return m;
+  };
   // 면마다 판 하나(각자 자리 · 각자 부드럽게)
   const faces = cfg.faces.map((f) => {
     // 영상이 아직 없으면(설정에 video 없음) 그 면 그림을 그대로 얹는다 — 인식 · 정렬 시험용
     const [u, v, uw, vh] = cfg.video ? cfg.video.uv[f.id] : [0, 0, 1, 1];
     const geo = new THREE.PlaneGeometry(f.w, f.h);
     const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, u + uv.getX(i) * uw, 1 - v - vh + uv.getY(i) * vh); uv.needsUpdate = true;
-    const m = new THREE.MeshBasicMaterial({ map: cfg.video ? vt : new THREE.TextureLoader().load(at(f.img)), alphaMap: edge, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+    const m = withSpot(new THREE.MeshBasicMaterial({ map: cfg.video ? vt : new THREE.TextureLoader().load(at(f.img)), alphaMap: edge, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
     if (cfg.tone) m.color.setRGB(...cfg.tone);   // 현장 조명에 맞춰 영상 밝기 · 색 조절(예: [0.9, 0.88, 0.82])
     if (debug) m.color.setRGB(1, 0.62, 0.62);   // 점검: 영상 판을 붉게(실제 벽과 구분)
     const g = new THREE.Group(); g.matrixAutoUpdate = false; g.visible = false; scene.add(g);
@@ -91,9 +102,19 @@ export async function startWall(container, cfgUrl, { onState, onStats, debug = f
   const placeHeads = () => {
     if (!heads.length) return;
     const r = renderer.domElement.getBoundingClientRect(), cr = container.getBoundingClientRect(), dur = video.duration || 0, t = video.currentTime || 0;
+    let near = null;
+    if (spot) {   // 비추는 범위 안에서 화면 가운데에 가장 가까운 인물 하나만 말한다(영상 시간 나눔 없이)
+      let best = (spot.uRad.value + spot.uSoft.value * 0.5) * Math.min(r.width, r.height);
+      for (const h of heads) {
+        const fc = byId[h.face]; if (fc.fade <= 0.5) continue;
+        hv.copy(h.p).applyMatrix4(fc.g.matrixWorld).project(camera); if (hv.z >= 1) continue;
+        const dx = (hv.x * 0.5) * r.width, dy = (hv.y * 0.5) * r.height, d = Math.hypot(dx, dy);
+        if (d < best) { best = d; near = h; }
+      }
+    }
     for (const h of heads) {
       const fc = byId[h.face], span = h.at || (dur ? [dur * h.i / h.n, dur * (h.i + 1) / h.n] : [0, 1e9]);
-      let on = fc.fade > 0.5 && t >= span[0] && t < span[1];
+      let on = spot ? h === near : fc.fade > 0.5 && t >= span[0] && t < span[1];
       if (on) {
         hv.copy(h.p).applyMatrix4(fc.g.matrixWorld).project(camera);
         const x = r.left - cr.left + (hv.x + 1) / 2 * r.width, y = r.top - cr.top + (1 - hv.y) / 2 * r.height;
@@ -143,6 +164,7 @@ export async function startWall(container, cfgUrl, { onState, onStats, debug = f
       onStats({ fps: n * 1000 / (now - t0), tracked: probes.filter((x) => x.a.group.visible).map((x) => x.t.face + ':' + x.t.rect.join(',')).join(' '), faces: faces.map((x) => `${x.f.id}:${x.fade > 0 ? x.how : '-'}`).join(' '), video: video.readyState });
       n = 0; t0 = now;
     }
+    if (spot) renderer.getDrawingBufferSize(spot.uRes.value);
     renderer.render(scene, camera);
     placeHeads();
   };
