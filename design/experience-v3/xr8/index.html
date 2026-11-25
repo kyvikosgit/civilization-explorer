@@ -39,21 +39,24 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 <script>
 (function () {
   var q = new URLSearchParams(location.search), DEBUG = q.has('debug'), ROT = q.has('rot') ? 1 : -1, SLAM = !q.has('noslam');
-  // 인물 머리 자리(그 면 그림 안 비율 x, y = 머리 꼭대기) + 대사 — wall/society.json heads 와 같은 값
+  // 11/25 최종 그림(미술팀 261117) — 카페 = 실내(가로), 박람회 거리 = 세로. 인식은 가운데 3:4 만 쓰므로 판을 그림 전체 크기로 늘림(FULL)
+  //   대사는 기술 점검용 자리 채움(기획서 260928 대사) — 최종 원고 · 인물 자리를 받으면 바꿈. 영상은 최종 그림으로 새로 만들어야 해서 지금은 없음(글만)
+  var ROTATED = { cafe: true, street: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2400 / 2053] };
   var HEADS = {
     cafe: [
-      { x: 0.276, y: 0.47, t: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
-      { x: 0.477, y: 0.47, t: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
-      { x: 0.676, y: 0.47, t: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' }],
+      { x: 0.108, y: 0.50, t: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
+      { x: 0.455, y: 0.50, t: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
+      { x: 0.955, y: 0.53, t: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' }],
     street: [
-      { x: 0.80, y: 0.54, t: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
-      { x: 0.555, y: 0.55, t: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
-      { x: 0.435, y: 0.53, t: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
-      { x: 0.30, y: 0.56, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
+      { x: 0.615, y: 0.455, t: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
+      { x: 0.23, y: 0.425, t: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
+      { x: 0.40, y: 0.39, t: '이런 건 귀족들이나 보는 줄 알았는데 말야. 세상이 많이 변했어.' },
+      { x: 0.84, y: 0.42, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
   };
+  var VIDEO = {};   // 최종 그림 영상이 생기면 { cafe: '…mp4' } — 첫 장면 = 그 그림
   var $ = function (id) { return document.getElementById(id); };
   var video = document.createElement('video');
-  Object.assign(video, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: '../video/cafe_plan.mp4' });   // 첫 장면 = 카페 그림
+  Object.assign(video, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto' });
   video.setAttribute('playsinline', '');
   var faces = {}, seen = {}, dbg = {}, camera = null, v3 = null, curHead = null, cand = null, candAt = 0;
 
@@ -85,7 +88,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
   (function () { var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { var c = document.createElement('canvas'); c.width = 240; c.height = 180; var x = c.getContext('2d'); x.drawImage(im, 0, 0, 240, 180); refPx = x.getImageData(0, 0, 240, 180); }; im.src = 'cafe_ref.jpg'; })();
   var lastTone = 0, flipVote = 0, tp = null;
   function tone(cpa) {
-    var f = faces.cafe; if (!refPx || !cpa || !cpa.pixels || !f || !f.g.visible || !f.sized) return;
+    var f = faces.cafe; if (!U || !refPx || !cpa || !cpa.pixels || !f || !f.g.visible || !f.sized) return;
     var now = Date.now(); if (now - lastTone < 250 || now - (seen.cafe || 0) > 600) return; lastTone = now;
     tp = tp || new THREE.Vector3();
     var W = window.innerWidth, H = window.innerHeight, ac = cpa.cols / cpa.rows, as = W / H, pts = [];
@@ -125,7 +128,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
         ['cafe', 'street'].forEach(function (k) {
           var g = new THREE.Group(); g.visible = false; xs.scene.add(g);
           // 판 = 그 면 그림(가로) 크기. 카페만 영상을 보이고, 거리는 안 보이는 판(머리 자리 계산용)
-          var mat = k === 'cafe' ? liveMat(vt) : new THREE.MeshBasicMaterial({ visible: false });
+          var mat = VIDEO[k] ? liveMat(vt) : new THREE.MeshBasicMaterial({ visible: false });
           var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(m);
           var heads = HEADS[k].map(function (h) {
             var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o);
@@ -149,7 +152,8 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
     f.g.position.copy(d.position); f.g.quaternion.copy(d.rotation); f.g.scale.set(d.scale, d.scale, d.scale); f.g.visible = true;
     if (!f.sized) {
       var w = d.scaledWidth, h = d.scaledHeight;
-      if (w < h) { f.m.scale.set(h, w, 1); f.m.rotation.z = ROT * Math.PI / 2; } else f.m.scale.set(w, h, 1);
+      var fl = FULL[d.name] || [1, 1];   // 인식한 3:4 → 그림 전체
+      if (ROTATED[d.name]) { f.m.scale.set(Math.max(w, h) * fl[0], Math.min(w, h) * fl[1], 1); f.m.rotation.z = ROT * Math.PI / 2; } else f.m.scale.set(w * fl[0], h * fl[1], 1);
       f.sized = true; f.m.updateMatrix();
       // 글판: 그림 벽과 같은 면 · 같은 위쪽 방향으로, 머리 꼭대기 바로 위에(그림 가로의 24% 폭)
       var up = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), f.m.rotation.z), cw = f.m.scale.x;
@@ -160,7 +164,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       });
     }
     seen[d.name] = Date.now(); dbg[d.name] = 'tracked ' + (d.scaledWidth || 0).toFixed(2) + 'x' + (d.scaledHeight || 0).toFixed(2);
-    if (d.name === 'cafe' && video.paused) video.play().catch(function () {});
+    if (VIDEO[d.name] && video.paused) video.play().catch(function () {});
   }
   // ── 벽 위 글: 캔버스에 글을 그려 벽면과 같은 판에 붙인다. 한 글자씩 0.35초 동안 스르륵(투명 → 진하게), 초당 11자
   var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 720, LH = 74, PAD = 28;   // 머리 위에 좁게(한 줄 12자 안팎)
