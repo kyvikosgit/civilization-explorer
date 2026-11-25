@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>살아나는 벽 · 시험</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/",
+  "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+} }
+</script>
+<style>
+/* 살아나는 벽 시험(11/19) — 90도 두 면 벽을 비추면 보이는 곳만 그림이 움직인다. ?w=wall/<이름>.json(기본 test-cafe) · ?debug=1 숫자 */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+#ar{position:fixed;inset:0}
+.msg{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(10,12,11,.78);padding:12px 18px;border-radius:24px;font-size:16px;font-weight:600;white-space:nowrap;transition:opacity .4s}
+.msg.off{opacity:0}
+.start{position:fixed;inset:0;display:grid;place-items:center;background:#141210;text-align:center;padding:24px}
+.start div{display:flex;flex-direction:column;gap:16px;align-items:center;max-width:360px}
+.start h1{font-size:22px}.start p{color:#9C958A;font-size:14px;line-height:1.6;word-break:keep-all}
+.start button{font:700 17px Freesentation,sans-serif;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:14px 28px;min-height:52px}
+/* 머리 위 대사(wall-live.js 가 자리를 매 장면 옮김) — 자막처럼 차분하게: 어두운 반투명 상자 + 머리를 가리키는 가는 선 */
+.wl-say{position:absolute;left:0;top:0;max-width:min(260px,62vw);padding:9px 13px;border-radius:10px;background:rgba(14,12,10,.82);color:#F2EDE2;font:600 14px/1.45 Freesentation,sans-serif;word-break:keep-all;opacity:0;transition:opacity .35s;pointer-events:none;z-index:5;margin-top:-10px}
+.wl-say::after{content:"";position:absolute;left:calc(50% + var(--dx,0px));bottom:-10px;width:1px;height:10px;background:rgba(242,237,226,.7)}
+.wl-say.on{opacity:1}
+#dbg{position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:8px;white-space:pre}
+</style>
+</head>
+<body>
+<div id="ar"></div>
+<div class="start" id="start"><div><h1>살아나는 벽</h1><p>벽에 카메라를 비추면<br>비추는 곳의 그림이 움직입니다</p><button id="go" type="button">카메라 켜기</button></div></div>
+<div class="msg off" id="msg">벽을 비춰 보세요</div>
+<div id="dbg" hidden></div>
+<script type="module">
+import { startWall } from './wall-live.js';
+const q = new URLSearchParams(location.search), $ = (s) => document.getElementById(s);
+const CFG = q.get('w') || 'wall/test-cafe.json', DEBUG = q.has('debug');
+$('dbg').hidden = !DEBUG;
+$('go').onclick = async () => {
+  $('start').remove(); $('msg').classList.remove('off');
+  try {
+    await startWall($('ar'), CFG, { debug: DEBUG,
+      onState: (s) => { $('msg').classList.toggle('off', s === 'live'); },
+      onStats: (s) => { if (DEBUG) $("dbg").textContent = `${s.fps.toFixed(0)}fps · 영상 ${s.video}\n잡힘 ${s.tracked || "-"}\n면 ${s.faces}`; },
+    });
+  } catch (e) { console.warn(e); $('msg').textContent = '카메라를 켜지 못했습니다'; }
+};
+if (q.has('auto')) $('go').click();
+</script>
+</body>
+</html>
