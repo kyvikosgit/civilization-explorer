@@ -2,7 +2,7 @@
 // 원리
 //   · 인식 대상(MindAR) = 면마다 통째 + 반쪽들(가까이서 일부만 비춰도 잡히게)
 //   · 면마다 따로: 그 면의 조각이 잡혀 있으면 그 면은 그 자리에 정확히(평면 인식이라 어긋나지 않음)
-//     그 면 조각이 안 잡히면 옆 면에서 90도로 계산한 자리(MindAR 는 카메라 화각을 45°로 가정해 실제 폰(60–70°)과 달라 조금 어긋날 수 있음 — 그래서 보조로만)
+//     11/25: 잡히지 않은 면은 띄우지 않는다(옆 면에서 90도로 계산해 붙이던 것 뺌 — 면마다 각자 비춰 보기)
 //   · 두 면 위에 영상 판을 덮는다 — 화면에는 카메라에 보이는 범위만 나오므로 '비추는 곳만 살아나는' 것처럼 보인다
 //   · 영상 = 두 면을 펼쳐 이어 붙인 한 편(면마다 잘라 씀 — 두 면이 같은 순간). 첫 장면 = 인쇄 원본
 //   · 손떨림: 자리를 부드럽게 따라가고(섞기), 놓쳐도 0.4초는 그 자리에 둔 뒤 사라진다. 판 가장자리는 살짝 흐려 경계가 덜 보이게
@@ -121,10 +121,9 @@ export async function startWall(container, cfgUrl, { onState, onStats, debug = f
       if (!fc.master || !fc.master.a.group.visible) fc.master = vis.reduce((a, b) => (a.since <= b.since ? a : b));
       fc.master.p.updateMatrixWorld(true); direct[fc.f.id] = fc.master.p.matrixWorld.clone();
     }
-    // 2) 안 보이는 면은 옆 면에서 90도로
+    // 2) 11/25: 면마다 각자 비춰서 잡힌 면에만 붙인다 — 옆 면에서 90도로 계산해 붙이지 않음(사용자 지시, 계산 자리는 뒤틀려 보임)
     for (const fc of faces) {
-      let w = direct[fc.f.id], how = 'direct';
-      if (!w) { const o = faces.find((x) => x !== fc && direct[x.f.id]); if (o) { w = direct[o.f.id].clone().multiply(rel(o.f.id, fc.f.id)); how = 'derived'; } }
+      const w = direct[fc.f.id], how = 'direct';
       if (w) {
         w.decompose(pos, q, sc);
         if (!fc.has) { fc.pos.copy(pos); fc.q.copy(q); fc.sc.copy(sc); fc.has = true; }
