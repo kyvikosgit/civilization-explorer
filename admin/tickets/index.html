@@ -428,7 +428,7 @@ dialog{border-radius:20px}
           <div class="flash" id="flash" role="status" aria-live="assertive"></div>
           <details class="bulk" id="bulk">
             <summary>여러 장 한꺼번에 처리</summary>
-            <p class="h">번호는 줄바꿈·띄어쓰기·쉼표로 나누고, 연속된 번호는 000401-000450처럼 범위로 적습니다. 미리 보기로 확인한 뒤 처리하며, 사용 기간은 따지지 않습니다.</p>
+            <p class="h">번호는 줄바꿈·띄어쓰기·쉼표로 나누고, 연속된 번호는 000401-000450처럼 범위로 적습니다. 미리 보기로 확인한 뒤 처리하며, 사용 기간이 아닌 번호는 처리되지 않습니다.</p>
             <textarea id="bulkIn" placeholder="000401-000450&#10;1203, 1204 1207"></textarea>
             <div class="row"><button type="button" class="ghost" id="bulkPrev">미리 보기</button><button type="button" id="bulkGo" disabled>사용 처리</button></div>
             <div class="prev" id="bulkRes"></div>
@@ -632,15 +632,19 @@ dialog{border-radius:20px}
       + row('입장안내', j.entry_note) + row('주차안내', j.parking_note) + row('비고', j.memo)
       + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>';
   }
+  // 11/25 사용 기간 밖이면 무조건 처리 안 됨(서버도 막음) — 끝난 뒤 / 시작 전을 나눠 안내
+  function pd(d) { return d ? String(d).replace(/-/g, '.') : ''; }
+  function offMsg(j) { var t = j.today || (S && S.today); return t && j.end_date && t > j.end_date ? '사용 기간이 지난 초대권입니다' : '아직 사용 기간이 아닙니다'; }
+  function offNote(j) { return '<p>사용 가능 기간 ' + esc(pd(j.start_date)) + ' ~ ' + esc(pd(j.end_date)) + ' · 사용 처리할 수 없습니다.</p>'; }
   function show(j) {
     lastInfo = j; armed = false;
     var no = '<span class="no">' + n6(j.serial) + '</span>';
     if (j.status === 'not_issued') return flash('mute', '<div class="st">' + no + '등록되지 않은 번호</div>');
     if (j.status === 'already') return flash('bad', '<div class="st">' + no + '이미 사용된 초대권</div>' + infoDl(j) + '<div class="acts"><button type="button" class="ghost" data-unuse="' + j.serial + '">사용 취소</button></div>');
     if (j.status === 'ok') return flash('ok', '<div class="st">' + no + '사용 처리됨</div>' + infoDl(j) + '<div class="acts"><button type="button" class="ghost" data-unuse="' + j.serial + '">사용 취소</button></div>');
-    if (j.status === 'out_of_period') return flash('warn', '<div class="st">' + no + '사용 기간이 아닙니다</div>' + infoDl(j) + '<div class="acts"><button type="button" class="go warn" data-force="' + j.serial + '">그래도 사용 처리</button></div>');
+    if (j.status === 'out_of_period' || (j.status === 'unused' && !j.in_period)) return flash('bad', '<div class="st">' + no + offMsg(j) + '</div>' + offNote(j) + infoDl(j));
     // 미사용(바로 처리 꺼짐)
-    flash('info', '<div class="st" style="color:var(--ok)">' + no + '미사용</div>' + infoDl(j) + '<div class="acts"><button type="button" class="go' + (j.in_period ? '' : ' warn') + '" data-' + (j.in_period ? 'use' : 'force') + '="' + j.serial + '">' + (j.in_period ? '사용 처리' : '기간 아님 · 그래도 사용 처리') + '</button></div>');
+    flash('info', '<div class="st" style="color:var(--ok)">' + no + '미사용</div>' + infoDl(j) + '<div class="acts"><button type="button" class="go" data-use="' + j.serial + '">사용 처리</button></div>');
   }
   function after(j) {
     if (j.status === 'ok') { addUsed(j.serial); renderAll(); loadRecent(); }
@@ -653,7 +657,7 @@ dialog{border-radius:20px}
     p.then(after).catch(function (err) { flash('bad', '<div class="st">처리하지 못했습니다</div><p>' + esc(err.message) + '</p>'); });
   });
   $('auto').addEventListener('change', function () { try { localStorage.setItem('tk_auto', this.checked ? '1' : '0'); } catch (e) {} $('autoHint').textContent = this.checked ? '확인과 동시에 사용 처리합니다' : '조회만 합니다. 결과에서 사용 처리를 누르세요'; $('chkIn').focus(); });
-  function useOne(n, force) { return rpc('ticket_use', { p_serial: n, p_force: !!force }).then(after); }
+  function useOne(n) { return rpc('ticket_use', { p_serial: n }).then(after); }
   function unuseOne(n) {
     if (!confirm(n6(n) + ' 사용을 취소할까요?')) return;
     rpc('ticket_unuse', { p_serial: n }).then(function (j) { delUsed(n); renderAll(); loadRecent(); if (lastInfo && lastInfo.serial === n) flash('mute', '<div class="st"><span class="no">' + n6(n) + '</span>사용 취소됨</div>' + infoDl(j)); }).catch(function (err) { alert(err.message); });
@@ -672,20 +676,22 @@ dialog{border-radius:20px}
   }
   function compress(arr) { var r = [], i = 0; while (i < arr.length) { var j = i; while (j + 1 < arr.length && arr[j + 1] === arr[j] + 1) j++; r.push(i === j ? n6(arr[i]) : n6(arr[i]) + '–' + n6(arr[j])); i = j + 1; } return r.join(', '); }
   function inBatch(n) { return S.batches.some(function (b) { return n >= b.s && n <= b.e; }); }
+  function batchOf(n) { return S.batches.filter(function (b) { return n >= b.s && n <= b.e; })[0]; }
+  function offPeriod(n) { var b = batchOf(n), t = S.today; return !!(b && t && b.start_date && !(t >= b.start_date && t <= b.end_date)); }
   $('bulkPrev').addEventListener('click', function () {
-    var p = parseBulk($('bulkIn').value), go = [], al = [], no = [];
-    p.list.forEach(function (n) { if (!inBatch(n)) no.push(n); else if (USET.has(n)) al.push(n); else go.push(n); });
+    var p = parseBulk($('bulkIn').value), go = [], al = [], no = [], off = [];
+    p.list.forEach(function (n) { if (!inBatch(n)) no.push(n); else if (USET.has(n)) al.push(n); else if (offPeriod(n)) off.push(n); else go.push(n); });
     bulkList = go;
     var box = $('bulkRes'); box.classList.add('on');
-    box.innerHTML = '<div class="cnt"><span class="a">' + cnt(go.length) + '장 사용 처리 예정</span><span class="b">' + cnt(al.length) + '장 이미 사용</span><span class="c">' + cnt(no.length) + '장 등록 안 됨</span>' + (p.bad.length ? '<span class="c">읽지 못한 ' + p.bad.length + '개</span>' : '') + '</div>'
-      + (go.length ? '<div>처리 예정</div><div class="ls">' + compress(go) + '</div>' : '') + (al.length ? '<div>이미 사용</div><div class="ls">' + compress(al) + '</div>' : '') + (no.length ? '<div>등록 안 됨</div><div class="ls">' + compress(no) + '</div>' : '') + (p.bad.length ? '<div>읽지 못함</div><div class="ls">' + esc(p.bad.join(' ')) + '</div>' : '');
+    box.innerHTML = '<div class="cnt"><span class="a">' + cnt(go.length) + '장 사용 처리 예정</span><span class="b">' + cnt(al.length) + '장 이미 사용</span><span class="c">' + cnt(no.length) + '장 등록 안 됨</span>' + (off.length ? '<span class="c">' + cnt(off.length) + '장 사용 기간 아님</span>' : '') + (p.bad.length ? '<span class="c">읽지 못한 ' + p.bad.length + '개</span>' : '') + '</div>'
+      + (go.length ? '<div>처리 예정</div><div class="ls">' + compress(go) + '</div>' : '') + (al.length ? '<div>이미 사용</div><div class="ls">' + compress(al) + '</div>' : '') + (no.length ? '<div>등록 안 됨</div><div class="ls">' + compress(no) + '</div>' : '') + (off.length ? '<div>사용 기간이 아니라 처리하지 않음</div><div class="ls">' + compress(off) + '</div>' : '') + (p.bad.length ? '<div>읽지 못함</div><div class="ls">' + esc(p.bad.join(' ')) + '</div>' : '');
     $('bulkGo').disabled = !go.length; $('bulkGo').textContent = go.length ? cnt(go.length) + '장 사용 처리' : '사용 처리';
   });
   $('bulkIn').addEventListener('input', function () { $('bulkGo').disabled = true; $('bulkGo').textContent = '사용 처리'; });
   $('bulkGo').addEventListener('click', function () {
     if (!bulkList.length) return; var btn = this; btn.disabled = true;
     rpc('ticket_use_many', { p_serials: bulkList }).then(function (r) {
-      $('bulkRes').innerHTML = '<div class="cnt"><span class="a">' + cnt(r.ok) + '장 사용 처리됨</span>' + (r.already ? '<span class="b">' + cnt(r.already) + '장 이미 사용</span>' : '') + (r.not_issued ? '<span class="c">' + cnt(r.not_issued) + '장 등록 안 됨</span>' : '') + '</div>';
+      $('bulkRes').innerHTML = '<div class="cnt"><span class="a">' + cnt(r.ok) + '장 사용 처리됨</span>' + (r.already ? '<span class="b">' + cnt(r.already) + '장 이미 사용</span>' : '') + (r.not_issued ? '<span class="c">' + cnt(r.not_issued) + '장 등록 안 됨</span>' : '') + (r.out_of_period ? '<span class="c">' + cnt(r.out_of_period) + '장 사용 기간 아님 · 처리 안 됨</span>' : '') + '</div>' + (r.out_of_period ? '<div class="ls">' + compress(r.out_list || []) + '</div>' : '');
       bulkList = []; btn.textContent = '사용 처리'; $('bulkIn').value = ''; return load();
     }).catch(function (err) { alert(err.message); btn.disabled = false; });
   });
@@ -719,8 +725,9 @@ dialog{border-radius:20px}
       c.classList.remove('u'); delUsed(n);
       rpc('ticket_unuse', { p_serial: n }).then(function () { renderAll(); loadRecent(); }).catch(function (err) { addUsed(n); c.classList.add('u'); alert(err.message); });
     } else {
+      if (offPeriod(n)) { var bb = batchOf(n); alert(n6(n) + ' · ' + offMsg({ today: S.today, start_date: bb.start_date, end_date: bb.end_date }) + '\n사용 가능 기간 ' + pd(bb.start_date) + ' ~ ' + pd(bb.end_date) + ' · 사용 처리할 수 없습니다.'); return; }
       c.classList.add('u'); addUsed(n);
-      rpc('ticket_use_many', { p_serials: [n] }).then(function () { renderAll(); loadRecent(); }).catch(function (err) { delUsed(n); c.classList.remove('u'); alert(err.message); });
+      rpc('ticket_use_many', { p_serials: [n] }).then(function (r) { if (r && !r.ok && r.out_of_period) { delUsed(n); c.classList.remove('u'); alert(n6(n) + ' · 사용 기간이 아니라 처리되지 않았습니다.'); } renderAll(); loadRecent(); }).catch(function (err) { delUsed(n); c.classList.remove('u'); alert(err.message); });
     }
   });
   $('dGrid').addEventListener('close', function () { gridSeg = null; gridMode = 'paper'; });
@@ -795,7 +802,7 @@ dialog{border-radius:20px}
 
   // ── 공통 클릭
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-close],[data-seg],[data-row],[data-ed],[data-grid],[data-unuse],[data-use],[data-force]');
+    var t = e.target.closest('[data-close],[data-seg],[data-row],[data-ed],[data-grid],[data-unuse],[data-use]');
     if (!t) return;
     var m = t.closest('details.menu'); if (m && !t.matches('summary')) m.open = false;
     if (t.dataset.close != null) { t.closest('dialog').close(); return; }
@@ -804,7 +811,6 @@ dialog{border-radius:20px}
     if (t.dataset.ed) { openReg(segByKey(t.dataset.ed)); return; }
     if (t.dataset.unuse) { unuseOne(+t.dataset.unuse); return; }
     if (t.dataset.use) { useOne(+t.dataset.use, false); return; }
-    if (t.dataset.force) { useOne(+t.dataset.force, true); return; }
     if (t.dataset.row && !e.target.closest('td.act0')) { selKey = t.dataset.row; openReg(segByKey(selKey)); }
   });
   document.addEventListener('click', function (e) { document.querySelectorAll('details.menu[open]').forEach(function (d) { if (!d.contains(e.target)) d.open = false; }); });
@@ -890,6 +896,7 @@ dialog{border-radius:20px}
     var no = '<span class="no">' + esc(j.code || '') + '</span>', sq = j.seq ? '<dl><dt>순번</dt><dd>' + dus(j.seq) + '번째 초대권</dd>' + (j.used_at ? '<dt>사용 일시</dt><dd>' + dtfmt.format(new Date(j.used_at)) + '</dd>' : '') + '</dl>' : '';
     if (j.status === 'ok') return duFlash('ok', '<div class="st">' + no + '입장 확인 · 사용 처리됨</div>' + sq + '<div class="acts"><button type="button" class="ghost" data-duun="' + j.seq + '">사용 취소</button></div>');
     if (j.status === 'already') return duFlash('bad', '<div class="st">' + no + '이미 사용된 초대권</div>' + sq + '<div class="acts"><button type="button" class="ghost" data-duun="' + j.seq + '">사용 취소</button></div>');
+    if (j.status === 'out_of_period' || (j.status === 'unused' && j.in_period === false)) return duFlash('bad', '<div class="st">' + no + offMsg(j) + '</div>' + offNote(j) + sq);
     if (j.status === 'test') return duFlash('mute', '<div class="st">' + no + '테스트 코드 · 입장 불가</div><p>두나무 개발 확인용으로 보낸 코드입니다.</p>');
     if (j.status === 'invalid') return duFlash('bad', '<div class="st">' + no + '무효 코드</div><p>' + esc(j.reason || '') + ' 코드를 다시 확인해 주세요.</p>');
     duFlash('info', '<div class="st" style="color:var(--ok)">' + no + '사용 가능</div>' + sq + '<div class="acts"><button type="button" class="go" data-duuse="' + esc(j.code) + '">사용 처리</button></div>');
