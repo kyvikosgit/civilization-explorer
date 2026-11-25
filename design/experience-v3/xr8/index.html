@@ -55,7 +55,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
       { x: 0.84, y: 0.42, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
   };
   // 붙음 시험용 영상(tools/xr8/make_text_video.py): 그림은 멈춘 채 머리 위 대사만 한 글자씩 — '달라진 곳만 덮기'라 글자만 보인다. ref = 첫 장면(글 없음)
-  var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004] }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_text.mp4', ref: 'street_text_ref.jpg', px: [1080, 1684] } };
+  var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004], full: true }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_text.mp4', ref: 'street_text_ref.jpg', px: [1080, 1684] } };
   var $ = function (id) { return document.getElementById(id); };
   var videos = {};
   Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
@@ -66,17 +66,17 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
   function liveMat(k) {
     var V = VIDEO[k], vt = new THREE.VideoTexture(videos[k]), ref = new THREE.TextureLoader().load(V.ref); ref.minFilter = THREE.LinearFilter;
     TONE[k] = { gain: new THREE.Vector3(1, 1, 1), off: new THREE.Vector3(0, 0, 0) };
-    var U = UU[k] = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE[k].gain }, uOff: { value: TONE[k].off }, uTexel: { value: new THREE.Vector2(1 / V.px[0], 1 / V.px[1]) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 } };
+    var U = UU[k] = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE[k].gain }, uOff: { value: TONE[k].off }, uTexel: { value: new THREE.Vector2(1 / V.px[0], 1 / V.px[1]) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 }, uFull: { value: V.full ? 1 : 0 } };
     return new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: [
-        'uniform sampler2D uVid, uRef; uniform vec3 uGain, uOff; uniform vec2 uTexel; uniform float uTime, uDbg; varying vec2 vUv;',
+        'uniform sampler2D uVid, uRef; uniform vec3 uGain, uOff; uniform vec2 uTexel; uniform float uTime, uDbg, uFull; varying vec2 vUv;',
         'float df(vec2 p){ return length(texture2D(uVid, p).rgb - texture2D(uRef, p).rgb); }',
         'float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
         'void main(){',
         '  vec2 o = uTexel * 3.0;',
         '  float d = max(max(df(vUv), df(vUv + vec2(o.x, 0.0))), max(max(df(vUv - vec2(o.x, 0.0)), df(vUv + vec2(0.0, o.y))), df(vUv - vec2(0.0, o.y))));',
-        '  float m = smoothstep(0.05, 0.16, d);',   // 첫 장면과 달라진 곳(움직이는 사람 · 연기 등)만
+        '  float m = uFull > 0.5 ? 1.0 : smoothstep(0.05, 0.16, d);',   // full: 영상 전체를 덮음(구간 밝기 · 어둡게가 실제 벽에 보이게)   // 첫 장면과 달라진 곳(움직이는 사람 · 연기 등)만
         '  vec2 e = smoothstep(vec2(0.0), vec2(0.03), vUv) * smoothstep(vec2(0.0), vec2(0.03), 1.0 - vUv);',
         '  vec3 c = (texture2D(uVid, vUv).rgb * 2.0 + texture2D(uVid, vUv + vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv - vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv + vec2(0.0, uTexel.y)).rgb + texture2D(uVid, vUv - vec2(0.0, uTexel.y)).rgb) / 6.0;',
         '  c = clamp(c * uGain + uOff + (h(vUv * 917.0 + uTime) - 0.5) * 0.025, 0.0, 1.0);',
