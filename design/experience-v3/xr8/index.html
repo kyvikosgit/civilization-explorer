@@ -7,10 +7,11 @@
 <title>벽 AR 시험 · 8th Wall</title>
 <!-- 11/25 시민사회 꺾인 벽 — 8th Wall 엔진(배포용 바이너리, SLAM 포함) 시험. 그림을 한 번 인식하면 공간에 고정돼 손을 움직여도 붙어 있게
      면마다 각자 인식(카페 · 박람회 거리), 90도 계산 없음. 카페 = 영상, 거리 = 영상 없음
-     대사 = 기획서 260928 그대로, 그 인물 머리 위에 따라붙는 글(말풍선 꼬리 없음) — 화면 가운데에 가장 가까운 인물 하나만
+     대사 = 기획서 260928 그대로, 11/25: 화면 위 상자가 아니라 그림 벽 위(그 인물 머리 위)에 글자가 한 자씩 스르륵 써지는 AR 글(벽과 같은 원근) — 화면 가운데에 가장 가까운 인물 하나만
      화면 채우기 · 권한 · 오류 = 공식 XRExtras(FullWindowCanvas · Loading · RuntimeError)
      타깃 = tools/xr8/make_targets.mjs(공식 image-target-cli) → ./image-targets/*.json
      ?rot=1 : 가로 그림 돌림 방향 반대로(90° 어긋나 보일 때) · ?debug=1 : 판을 붉게 + 상태 · ?noslam=1 : 공간 고정 끄기(점검용) -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"></script>
@@ -20,8 +21,6 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 .start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;background:#000;z-index:20}
 .start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:14px;line-height:1.6;margin:0;word-break:keep-all}
 .start button{font:700 17px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:15px 30px}
-.say{position:fixed;left:0;top:0;max-width:min(270px,64vw);padding:9px 13px;border-radius:10px;background:rgba(14,12,10,.78);color:#F7F3EA;font-size:15px;line-height:1.45;font-weight:600;word-break:keep-all;opacity:0;transition:opacity .3s;pointer-events:none;z-index:5;will-change:transform}
-.say.on{opacity:1}
 .hint{position:fixed;left:0;right:0;bottom:calc(44px + env(safe-area-inset-bottom));text-align:center;z-index:5}
 .hint span{background:rgba(0,0,0,.5);padding:8px 14px;border-radius:18px;font-size:15px}
 #dbg{position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:8px;white-space:pre;z-index:6}
@@ -33,7 +32,6 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 <canvas id="c"></canvas>
 <div class="start" id="start"><h1>벽 AR 시험 (8th Wall)</h1><p>카페 그림이나 거리 그림을 화면에 가득 비춰 주세요.<br>한 번 잡히면 폰을 움직여도 그 자리에 붙어 있어야 합니다.</p><button type="button" id="go">시작</button><p id="err"></p></div>
 <div class="hint" id="hint" hidden><span>그림을 화면에 가득 비춰 주세요</span></div>
-<div class="say" id="say"></div>
 <div id="dbg" hidden></div>
 <div class="credit">AR: 8th Wall Engine © Niantic Spatial · <a href="https://github.com/8thwall/engine/blob/main/LICENSE" target="_blank" rel="noopener">XR Engine License</a> · 보증 없음</div>
 <script>
@@ -55,7 +53,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
   var video = document.createElement('video');
   Object.assign(video, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: '../video/cafe_plan.mp4' });   // 첫 장면 = 카페 그림
   video.setAttribute('playsinline', '');
-  var faces = {}, seen = {}, dbg = {}, camera = null, v3 = null, sayEl = $('say'), curHead = null;
+  var faces = {}, seen = {}, dbg = {}, camera = null, v3 = null, curHead = null, cand = null, candAt = 0;
 
   function wallModule() {
     return {
@@ -71,7 +69,11 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
           var mat = k === 'cafe' ? new THREE.MeshBasicMaterial({ map: vt, depthWrite: false }) : new THREE.MeshBasicMaterial({ visible: false });
           if (DEBUG && k === 'cafe') mat.color.setRGB(1, 0.6, 0.6);
           var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(m);
-          var heads = HEADS[k].map(function (h) { var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o); return { o: o, t: h.t, face: k }; });
+          var heads = HEADS[k].map(function (h) {
+            var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o);
+            var tx = makeText(h.t); tx.mesh.visible = false; g.add(tx.mesh);
+            return { o: o, t: h.t, face: k, hx: h.x, hy: h.y, tx: tx, a: 0, t0: 0 };
+          });
           faces[k] = { g: g, m: m, heads: heads, sized: false };
         });
       },
@@ -90,28 +92,62 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
     if (!f.sized) {
       var w = d.scaledWidth, h = d.scaledHeight;
       if (w < h) { f.m.scale.set(h, w, 1); f.m.rotation.z = ROT * Math.PI / 2; } else f.m.scale.set(w, h, 1);
-      f.sized = true;
+      f.sized = true; f.m.updateMatrix();
+      // 글판: 그림 벽과 같은 면 · 같은 위쪽 방향으로, 머리 꼭대기 바로 위에(그림 가로의 30% 폭)
+      var up = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), f.m.rotation.z), cw = f.m.scale.x;
+      f.heads.forEach(function (hd) {
+        var p = new THREE.Vector3(hd.hx - 0.5, 0.5 - hd.hy, 0).applyMatrix4(f.m.matrix), tw = cw * 0.3, th = tw * hd.tx.ar;
+        hd.tx.mesh.scale.set(tw, th, 1); hd.tx.mesh.rotation.z = f.m.rotation.z;
+        hd.tx.mesh.position.copy(p).addScaledVector(up, th / 2 + cw * 0.01).setZ(cw * 0.002);
+      });
     }
     seen[d.name] = Date.now(); dbg[d.name] = 'tracked ' + (d.scaledWidth || 0).toFixed(2) + 'x' + (d.scaledHeight || 0).toFixed(2);
     if (d.name === 'cafe' && video.paused) video.play().catch(function () {});
   }
-  // 대사: 화면 안에 보이는 인물 중 화면 가운데에 가장 가까운 한 명 — 그 머리 위에 따라붙임
+  // ── 벽 위 글: 캔버스에 글을 그려 벽면과 같은 판에 붙인다. 한 글자씩 0.35초 동안 스르륵(투명 → 진하게), 초당 11자
+  var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 1024, LH = 74, PAD = 28;
+  function wrap(ctx, text, maxW) {   // 한국어는 낱자 단위로 줄바꿈(띄어쓰기 우선)
+    var words = text.split(' '), lines = [], cur = '';
+    words.forEach(function (w) { var t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width <= maxW) cur = t; else { if (cur) lines.push(cur); cur = w; } });
+    if (cur) lines.push(cur); return lines;
+  }
+  function makeText(text) {
+    var c = document.createElement('canvas'), ctx = c.getContext('2d'); ctx.font = FONT;
+    var lines = wrap(ctx, text, CW - PAD * 2); c.width = CW; c.height = lines.length * LH + PAD * 2;
+    var tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+    var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
+    mesh.renderOrder = 10;
+    var chars = []; lines.forEach(function (ln, li) { var x = 0, w = ctx.measureText(ln).width, x0 = (CW - w) / 2; Array.from(ln).forEach(function (ch) { chars.push({ ch: ch, x: x0 + x, y: PAD + li * LH + LH * 0.78 }); x += ctx.measureText(ch).width; }); });
+    return { c: c, ctx: ctx, tex: tex, mesh: mesh, chars: chars, ar: c.height / c.width, drawn: -1 };
+  }
+  function drawText(tx, el, fade) {   // el = 시작 뒤 지난 초, fade = 전체 투명도
+    var ctx = tx.ctx; ctx.clearRect(0, 0, tx.c.width, tx.c.height); ctx.font = FONT; ctx.textBaseline = 'alphabetic';
+    tx.chars.forEach(function (o, i) {
+      var a = Math.max(0, Math.min(1, (el - i / 11) / 0.35)) * fade; if (a <= 0) return;
+      ctx.globalAlpha = a; ctx.shadowColor = 'rgba(0,0,0,.85)'; ctx.shadowBlur = 14; ctx.fillStyle = '#FFF4DE';
+      ctx.fillText(o.ch, o.x, o.y + (1 - Math.min(1, a / Math.max(fade, 0.01))) * 6);   // 살짝 떠오르며
+    });
+    ctx.globalAlpha = 1; tx.tex.needsUpdate = true;
+  }
   function placeSay() {
     if (!camera) return;
-    var W = window.innerWidth, H = window.innerHeight, best = null, bd = 1e9, bx = 0, by = 0, now = Date.now();
+    var W = window.innerWidth, H = window.innerHeight, best = null, bd = 1e9, now = Date.now();
     Object.keys(faces).forEach(function (k) {
-      var f = faces[k]; if (!f.g.visible || now - (seen[k] || 0) > 4000) return;
+      var f = faces[k]; if (!f.g.visible || !f.sized || now - (seen[k] || 0) > 4000) return;
       f.heads.forEach(function (h) {
         h.o.getWorldPosition(v3); v3.project(camera); if (v3.z > 1) return;
         var x = (v3.x + 1) / 2 * W, y = (1 - v3.y) / 2 * H; if (x < 0 || x > W || y < 0 || y > H) return;
-        var dd = Math.hypot(x - W / 2, y - H / 2); if (dd < bd) { bd = dd; best = h; bx = x; by = y; }
+        var dd = Math.hypot(x - W / 2, y - H / 2); if (dd < bd) { bd = dd; best = h; }
       });
     });
-    if (best) {
-      if (best !== curHead) { sayEl.textContent = best.t; curHead = best; }
-      var w = sayEl.offsetWidth, xc = Math.max(w / 2 + 10, Math.min(W - w / 2 - 10, bx));
-      sayEl.style.transform = 'translate(' + xc + 'px,' + (by - 10) + 'px) translate(-50%,-100%)'; sayEl.classList.add('on');
-    } else { sayEl.classList.remove('on'); curHead = null; }
+    // 바뀐 인물은 0.5초 이상 계속 가장 가까울 때만 넘어감(왔다 갔다 방지)
+    if (best !== cand) { cand = best; candAt = now; }
+    if (cand !== curHead && now - candAt > 500) { curHead = cand; if (curHead) curHead.t0 = now; }
+    Object.keys(faces).forEach(function (k) { faces[k].heads.forEach(function (h) {
+      var on = h === curHead; h.a = Math.max(0, Math.min(1, h.a + (on ? 0.08 : -0.06)));
+      h.tx.mesh.visible = h.a > 0;
+      if (h.a > 0) drawText(h.tx, on ? (now - h.t0) / 1000 : 99, h.a);
+    }); });
     $('hint').hidden = !!best || Object.keys(seen).some(function (k) { return now - seen[k] < 4000; });
     if (DEBUG) { $('dbg').hidden = false; $('dbg').textContent = JSON.stringify(dbg, null, 1); }
   }
@@ -134,7 +170,8 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
     Promise.all(asks).then(function (r) {
       if (r.indexOf('denied') >= 0) { $('err').textContent = '동작 및 방향 접근을 허용해야 그림이 제자리에 고정됩니다. 다시 시작을 눌러 허용해 주세요.'; return; }
       $('start').style.display = 'none'; $('hint').hidden = false;
-      if (window.XR8) boot(); else window.addEventListener('xrloaded', boot);
+      var fontReady = document.fonts && document.fonts.load ? document.fonts.load(FONT, '가나다').catch(function () {}) : Promise.resolve();
+      fontReady.then(function () { if (window.XR8) boot(); else window.addEventListener('xrloaded', boot); });
     });
   });
 })();
