@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets/tube_luminance.jpg",
+  "metadata": null,
+  "name": "tube",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 67,
+    "width": 860,
+    "height": 1147,
+    "isRotated": true,
+    "originalWidth": 860,
+    "originalHeight": 1281
+  },
+  "resources": {
+    "originalImage": "tube_original.jpg",
+    "croppedImage": "tube_cropped.jpg",
+    "thumbnailImage": "tube_thumbnail.jpg",
+    "luminanceImage": "tube_luminance.jpg"
+  },
+  "created": 1795601256233,
+  "updated": 1795601256233
+}

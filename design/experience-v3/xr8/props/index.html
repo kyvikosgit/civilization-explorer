@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex">
+<title>소품 인식 시험 · 8th Wall</title>
+<!-- 11/25 소품(기차표 · 튜브물감) 실물 인식 시험 — 8th Wall 이미지 인식(공간 고정 없이 → 엔진 1MB 만). 학습 없이 사진 한 장으로 타깃
+     타깃 = tools/xr8/make_prop_targets.mjs <이름> <현장 사진> (평면 / --cyl 원통) → ./image-targets/*.json + ./targets.json
+     잡히면 화면 가운데 큰 표시 + 진동 + 걸린 시간. 아래 기록은 [결과 복사]로 보낼 수 있음 -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous"></script>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden}
+#c{position:fixed;left:0;top:0}
+.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;background:#000;z-index:20}
+.start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:14px;line-height:1.6;margin:0;word-break:keep-all}
+.start button,.bar button{font:700 16px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:14px 26px}
+.hit{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.9);background:rgba(20,120,60,.9);color:#fff;font-size:26px;font-weight:800;padding:20px 28px;border-radius:18px;opacity:0;transition:opacity .2s,transform .2s;z-index:6;text-align:center;white-space:nowrap}
+.hit.on{opacity:1;transform:translate(-50%,-50%) scale(1)}.hit small{display:block;font-size:14px;font-weight:600;opacity:.85;margin-top:4px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px max(16px,env(safe-area-inset-left)) calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.55);z-index:5;display:flex;gap:10px;align-items:center}
+.bar pre{flex:1;margin:0;font:12px/1.4 ui-monospace,Menlo,monospace;white-space:pre-wrap;max-height:30vh;overflow:auto}
+.bar button{padding:10px 14px;font-size:14px}
+.credit{position:fixed;right:8px;top:calc(6px + env(safe-area-inset-top));font-size:9px;color:rgba(255,255,255,.45);z-index:5}.credit a{color:inherit}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="start" id="start"><h1>소품 인식 시험</h1><p id="list">불러오는 중…</p><p>소품을 화면에 비춰 주세요. 잡히면 가운데에 초록 표시가 뜹니다.<br>가까이, 멀리, 스치듯 여러 번 해 보세요.</p><button type="button" id="go">시작</button><p id="err"></p></div>
+<div class="hit" id="hit"></div>
+<div class="bar" hidden id="bar"><pre id="log"></pre><button type="button" id="copy">결과 복사</button></div>
+<div class="credit">AR: 8th Wall Engine © Niantic Spatial · <a href="https://github.com/8thwall/engine/blob/main/LICENSE" target="_blank" rel="noopener">XR Engine License</a></div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var T = [], LABEL = {}, stat = {}, t0 = 0, lostAt = {}, hitT = 0, lines = [];
+  fetch('targets.json').then(function (r) { return r.json(); }).then(function (l) { T = l; l.forEach(function (x) { LABEL[x.name] = x.label; stat[x.name] = { n: 0, first: null, fast: null }; }); $('list').textContent = '인식할 소품: ' + l.map(function (x) { return x.label; }).join(' · '); });
+  function log() {
+    var ua = navigator.userAgent.replace(/^Mozilla\/5\.0 /, '').slice(0, 80);
+    $('log').textContent = T.map(function (x) { var s = stat[x.name]; return x.label + ': ' + s.n + '번 · 첫 인식 ' + (s.first == null ? '-' : s.first.toFixed(1) + '초') + ' · 가장 빨리 다시 잡힘 ' + (s.fast == null ? '-' : s.fast.toFixed(1) + '초'); }).join('\n') + '\n' + lines.slice(-4).join('\n') + '\n' + ua;
+  }
+  function found(e) {
+    var d = e.detail, s = stat[d.name]; if (!s) return;
+    var now = performance.now(); s.n++;
+    if (s.first == null) s.first = (now - t0) / 1000;
+    if (lostAt[d.name]) { var dt = (now - lostAt[d.name]) / 1000; if (s.fast == null || dt < s.fast) s.fast = dt; }
+    $('hit').innerHTML = '✓ ' + LABEL[d.name] + '<small>' + new Date().toLocaleTimeString() + '</small>'; $('hit').classList.add('on'); clearTimeout(hitT); hitT = setTimeout(function () { $('hit').classList.remove('on'); }, 1600);
+    if (navigator.vibrate) navigator.vibrate(80);
+    lines.push(new Date().toLocaleTimeString() + ' 잡힘 ' + LABEL[d.name]); log();
+  }
+  function lost(e) { lostAt[e.detail.name] = performance.now(); lines.push(new Date().toLocaleTimeString() + ' 놓침 ' + (LABEL[e.detail.name] || e.detail.name)); log(); }
+  function boot() {
+    Promise.all(T.map(function (x) { return fetch('image-targets/' + x.name + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
+      XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: true });   // 공간 고정 없이 그림 인식만 — 빠르고 가벼움
+      XR8.addCameraPipelineModules([XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
+        XRExtras.FullWindowCanvas.pipelineModule(), XRExtras.Loading.pipelineModule(), XRExtras.RuntimeError.pipelineModule(),
+        { name: 'props', onStart: function () { t0 = performance.now(); log(); }, listeners: [{ event: 'reality.imagefound', process: found }, { event: 'reality.imagelost', process: lost }] }]);
+      XR8.run({ canvas: $('c') });
+    });
+  }
+  $('go').addEventListener('click', function () { $('start').style.display = 'none'; $('bar').hidden = false; if (window.XR8) boot(); else window.addEventListener('xrloaded', boot); });
+  $('copy').addEventListener('click', function () { var t = $('log').textContent; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { $('copy').textContent = '복사됨'; }).catch(function () { var r = document.createRange(); r.selectNode($('log')); getSelection().removeAllRanges(); getSelection().addRange(r); }); });
+})();
+</script>
+</body>
+</html>

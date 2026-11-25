@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets/ticket_luminance.jpg",
+  "metadata": null,
+  "name": "ticket",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 308,
+    "width": 860,
+    "height": 1147,
+    "isRotated": false,
+    "originalWidth": 860,
+    "originalHeight": 1763
+  },
+  "resources": {
+    "originalImage": "ticket_original.jpg",
+    "croppedImage": "ticket_cropped.jpg",
+    "thumbnailImage": "ticket_thumbnail.jpg",
+    "luminanceImage": "ticket_luminance.jpg"
+  },
+  "created": 1795601256167,
+  "updated": 1795601256167
+}
