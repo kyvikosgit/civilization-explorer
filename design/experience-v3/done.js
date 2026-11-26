@@ -18,17 +18,16 @@ export function nextOf(zoneId) {
 
 const CSS = `
 /* ── 미션 완료 공통 화면(11/06) — 구역마다 다르던 끝 화면을 하나로. 정답 연출이 끝나면 이 판이 덮는다 */
-.v3-done{--d-bg:#FFFFFF;--d-ink:#111111;--d-sub:#707070;--d-line:#ECE9E2;--d-panel:#F5F5F3;--d-pt:#D9672F;position:fixed;inset:0;z-index:9000;background:var(--d-bg);color:var(--d-ink);font-family:Freesentation,Pretendard,sans-serif;word-break:keep-all;display:flex;flex-direction:column;opacity:0;transition:opacity .35s ease}
+.v3-done{--d-bg:#FFFFFF;--d-ink:#111111;--d-sub:#707070;--d-line:#ECE9E2;--d-panel:#F5F5F3;--d-pt:#739071;--d-sage:#739071;--d-sage-deep:#5B7559;--d-tint:#EEF2EC;position:fixed;inset:0;z-index:9000;background:var(--d-bg);color:var(--d-ink);font-family:Freesentation,Pretendard,sans-serif;word-break:keep-all;display:flex;flex-direction:column;opacity:0;transition:opacity .35s ease}
 .v3-done.on{opacity:1}
 .v3-done .d-bar{flex:none;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;border-bottom:1px solid transparent}
 .v3-done .d-bar a{width:44px;height:44px;display:grid;place-items:center;color:var(--d-ink);text-decoration:none;position:relative}
 .v3-done .d-bar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.v3-done .d-loc{text-align:center;font-size:13px;font-weight:700;color:var(--d-sub)}
+.v3-done .d-loc{text-align:center;font-size:17px;font-weight:700;color:var(--d-ink);letter-spacing:-.01em}
 .v3-done .d-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 20px 24px}
 .v3-done .d-in{max-width:440px;margin:0 auto}
-.v3-done .d-cap{margin:10px auto 0;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;letter-spacing:.06em;color:var(--d-pt)}
-.v3-done .d-cap::before,.v3-done .d-cap::after{content:'';width:36px;height:10px;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 10'%3E%3Cpath d='M0 5h28' stroke='%23B08A3E' stroke-width='1'/%3E%3Cpath d='M32 2l3 3-3 3-3-3z' fill='%23B08A3E'/%3E%3C/svg%3E")}
-.v3-done .d-cap::after{transform:scaleX(-1)}
+.v3-done .d-cap{margin:6px auto 0;width:max-content;display:flex;align-items:center;gap:6px;padding:7px 14px 7px 9px;border-radius:999px;background:var(--d-tint);color:var(--d-sage-deep);font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.v3-done .d-cap::before{content:'';width:18px;height:18px;border-radius:50%;background:var(--d-sage) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .v3-done .d-cap small{display:block}
 .v3-done .d-card{margin:14px auto 0;width:100%;height:min(32vh,260px);border-radius:14px;background:var(--d-panel);display:flex;align-items:center;justify-content:center;overflow:hidden;transform:scale(.92);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
 .v3-done.on .d-card{transform:none;opacity:1}
@@ -36,16 +35,16 @@ const CSS = `
 .v3-done .d-card img.cover{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:cover;filter:none}
 .v3-done .d-name{margin-top:16px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:23px;font-weight:800;line-height:1.3}
 .v3-done .d-sub{margin-top:5px;text-align:center;font-size:14px;color:var(--d-sub)}
-.v3-done .d-txt{margin-top:20px;padding-top:18px;border-top:1px solid var(--d-line);opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
+.v3-done .d-txt{margin-top:20px;padding-top:18px;border-top:1px solid var(--d-line);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
 .v3-done.read .d-txt{opacity:1;transform:none}
 .v3-done .d-title{font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;line-height:1.4}
 .v3-done .d-guide{margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--d-panel);font-size:15px;font-weight:700;line-height:1.5;text-align:center;white-space:pre-line}
 .v3-done .d-body{margin-top:8px;font-size:15.5px;line-height:1.7;white-space:pre-line}
 .v3-done .d-note{margin:34px auto 4px;max-width:320px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:15.5px;font-weight:600;line-height:1.8;letter-spacing:-.01em;color:var(--d-ink);white-space:pre-line;word-break:keep-all;opacity:0;transform:translateY(8px);transition:opacity 1s .6s,transform 1s .6s}
 .v3-done.read .d-note{opacity:1;transform:none}
-.v3-done .d-note::before,.v3-done .d-note::after{content:'';display:block;width:132px;height:10px;margin:0 auto;background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 132 10'%3E%3Cpath d='M0 5h56M76 5h56' stroke='%23B08A3E' stroke-width='1'/%3E%3Cpath d='M66 1l4 4-4 4-4-4z' fill='%23B08A3E'/%3E%3C/svg%3E")}
+.v3-done .d-note::before,.v3-done .d-note::after{content:'';display:block;width:40px;height:1.5px;margin:0 auto;background:var(--d-line);border-radius:1px}
 .v3-done .d-note::before{margin-bottom:14px}
-.v3-done .d-note::after{margin-top:14px;width:56px;opacity:.6;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 10'%3E%3Cpath d='M0 5h56' stroke='%23B08A3E' stroke-width='1'/%3E%3C/svg%3E")}
+.v3-done .d-note::after{margin-top:14px}
 .v3-done .d-foot{flex:none;padding:12px 20px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--d-line);background:var(--d-bg);opacity:0;transition:opacity .5s}
 .v3-done.read .d-foot{opacity:1}
 .v3-done .d-foot .v3-end{margin:0 auto;padding:0}
@@ -139,6 +138,8 @@ const SAVED0 = new Set(COLLECT_IDS.filter((id) => store.saved(id)));
 // 11/23 수집품 카드 그림 — 앱과 같은 것(kippu-app/scripts/collect/make_cards.py): 같은 바탕 · 크기 · 그림자 · 금 액자
 const CC = { salon: 'img/cc_salon.jpg', flyer: 'img/cc_flyer.jpg', ticket: 'img/cc_ticket.jpg', paint: 'img/cc_paint.jpg', sunrise: 'img/cc_sunrise.jpg' };
 const ccOf = (id) => (CC[id] ? new URL(CC[id], V3).href : '');
+// 11/26 위 가운데 = 앱 구역 화면과 같은 구역 이름(구역 번호 B · C-2 같은 운영 코드는 안 보임)
+const ZONE_NAME = { salon: '아카데미 살롱', society: '시민사회', industry: '사업가의 방', atelier: '화가의 작업 공간', nadar: '나다르 사진관', monet: '인상파 전시회' };
 export function showComplete(zoneId, { item, title = '', body = '', note = '', more, cap = '미션 완료' } = {}) {
   style();
   void more;
@@ -151,11 +152,11 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
   // 11/26 클라이언트 완료 문구: 제목 = successTitle, 기존 해설(제목 · 본문)은 그 아래 그대로, 맨 아래 = successGuide(다음 이동 안내)
   const ct = slot >= 0 ? findTask(COLLECT_IDS[slot])?.task : null;
   let guide = '';
-  if (ct?.successTitle) { body = [title, body].filter(Boolean).join('\n\n'); title = ct.successTitle; guide = ct.successGuide || ''; }
+  if (ct?.successTitle) { body = [title, (body || '').trim()].filter(Boolean).join('\n\n'); title = ct.successTitle; guide = ct.successGuide || ''; }
   const el = document.createElement('div');
   el.className = 'v3-done';
   el.innerHTML = `<div class="d-bar"><a href="${esc(HUB)}" aria-label="목록으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
-      <div class="d-loc">${esc(zone ? zone.loc.replace(/^4F · /, '').replace(' ', ' · ') : '')}</div>
+      <div class="d-loc">${esc(ZONE_NAME[zoneId] || (zone ? zone.loc.replace('4F · ', '').replace(`${zone.no} `, '') : ''))}</div>
       <span></span></div>
     <div class="d-scroll"><div class="d-in">
       <p class="d-cap">${esc(cap)}</p>
