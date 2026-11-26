@@ -29,9 +29,9 @@ const CSS = `
 .v3-done .d-cap{margin:6px auto 0;width:max-content;display:flex;align-items:center;gap:6px;padding:7px 14px 7px 9px;border-radius:999px;background:var(--d-tint);color:var(--d-sage-deep);font-size:14.5px;font-weight:700;letter-spacing:-.01em}
 .v3-done .d-cap::before{content:'';width:18px;height:18px;border-radius:50%;background:var(--d-sage) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .v3-done .d-cap small{display:block}
-.v3-done .d-card{position:relative;margin:14px auto 0;width:100%;height:min(32vh,260px);border-radius:14px;background:var(--d-panel);display:flex;align-items:center;justify-content:center;overflow:hidden;transform:scale(.92);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
+.v3-done .d-card{position:relative;flex-direction:column;gap:12px;padding:16px 0 14px;box-sizing:border-box;margin:14px auto 0;width:100%;height:min(32vh,260px);border-radius:14px;background:var(--d-panel);display:flex;align-items:center;justify-content:center;overflow:hidden;transform:scale(.92);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s}
 .v3-done.on .d-card{transform:none;opacity:1}
-.v3-done .d-card img{max-width:88%;max-height:90%;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.18))}   /* 11/17: 세로로 긴 그림(전단지)이 위아래로 잘리지 않게 — 카드 높이 안에 다 들어감 */
+.v3-done .d-card img{max-width:88%;max-height:calc(100% - 30px);min-height:0;flex:0 1 auto;width:auto;height:auto;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.18))}   /* 11/17: 세로로 긴 그림(전단지)이 위아래로 잘리지 않게 — 카드 높이 안에 다 들어감 */
 .v3-done .d-card img.cover{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:cover;filter:none}
 .v3-done .d-name{margin-top:16px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:23px;font-weight:800;line-height:1.3}
 .v3-done .d-sub{margin-top:5px;text-align:center;font-size:14px;color:var(--d-sub)}
@@ -52,7 +52,7 @@ const CSS = `
 .v3-done .d-foot .v3-end .ve-more{margin-top:6px;padding:6px 12px}
 .v3-fly{position:fixed;z-index:9001;pointer-events:none;object-fit:cover;box-shadow:0 8px 22px rgba(0,0,0,.18)}
 .v3-done .d-col{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 16px;border-radius:14px;background:var(--d-panel)}
-.v3-done .d-tag{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);max-width:86%;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.88);font-size:12.5px;font-weight:600;color:#4A4A4A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.v3-done .d-tag{flex:none;max-width:86%;font-size:13px;font-weight:600;color:#6E6A62;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 11/26 부제 = 카드 안 그림 아래 이름표(그림과 겹치지 않게 간격 두고) */
 .v3-done .d-colt{font-size:14px;font-weight:700;color:var(--d-sub);white-space:nowrap;text-align:left;line-height:1.35}
 .v3-done .d-colt b{color:var(--d-ink)}
 .v3-done .d-slots{display:flex;justify-content:flex-end;gap:6px}
