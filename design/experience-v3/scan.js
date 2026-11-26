@@ -17,11 +17,21 @@ if (md?.getUserMedia && !md.__m100wrap) {
 }
 
 // 11/26 하이라이트: 잡힌 물체(전단지 · 기차표) 둘레에 빛나는 테두리가 그 물체에 붙어 그려지고 안쪽이 한 번 밝아진 뒤(약 0.9초) 다음으로 — QR 처럼 바로 넘어가지 않게
-function makeHighlight(anchors, dims) {
+//   outlines[i] = { line, fill } — 물체 모양 그대로의 윤곽(빛나는 선 그림 · 물체 모양 채움 그림, 인식 사진과 같은 크기 PNG)이 있으면 사각형 대신 그 윤곽이 물체에 붙어 빛남
+function makeHighlight(anchors, dims, outlines) {
+  const loader = new THREE.TextureLoader();
   const items = anchors.map((a, i) => {
     const d = dims && dims[i], r = d ? d[1] / d[0] : 1;
     const g = new THREE.Group(); g.visible = false; g.renderOrder = 999;
     const mat = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthTest: false, depthWrite: false });
+    const ol = outlines && outlines[i];
+    if (ol && ol.line) {
+      const tm = (url) => { const t = loader.load(url); t.minFilter = THREE.LinearFilter; return new THREE.MeshBasicMaterial({ map: t, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false }); };
+      const fill = new THREE.Mesh(new THREE.PlaneGeometry(1, r), ol.fill ? tm(ol.fill) : mat(0xffffff, 0)); g.add(fill);
+      const line = new THREE.Mesh(new THREE.PlaneGeometry(1, r), tm(ol.line)); line.position.z = 0.001; g.add(line);
+      a.group.add(g);
+      return { g, fill, edge: [line], glow: [], t0: 0, timer: 0, shape: true };
+    }
     const fill = new THREE.Mesh(new THREE.PlaneGeometry(1, r), mat(0xffffff, 0)); g.add(fill);
     const edge = [], glow = [];
     const bar = (w, h, x, y, arr, c, o) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat(c, o)); m.position.set(x, y, 0.001); g.add(m); arr.push(m); };
@@ -45,6 +55,7 @@ function makeHighlight(anchors, dims) {
         if (!h.g.visible || !h.t0) continue;
         const t = (now - h.t0) / 1000, p = Math.min(1, t / 0.45), e = 1 - Math.pow(1 - p, 3);
         h.g.scale.setScalar(1.1 - 0.1 * e);                                   // 살짝 크게 나타나 물체 테두리에 딱 맞게 붙음
+        if (h.shape) { h.edge[0].material.opacity = e * (0.82 + 0.18 * Math.sin(t * 5)); h.fill.material.opacity = t < 0.9 ? 0.28 * Math.sin(Math.min(1, t / 0.9) * Math.PI) : 0; continue; }   // 물체 윤곽 그대로
         h.edge.forEach((m) => (m.material.opacity = e));
         h.glow.forEach((m) => (m.material.opacity = 0.55 * e * (0.75 + 0.25 * Math.sin(t * 6))));   // 은은히 숨 쉬는 바깥 빛
         h.fill.material.opacity = t < 0.9 ? 0.22 * Math.sin(Math.min(1, t / 0.9) * Math.PI) : 0;   // 안쪽이 한 번 밝아졌다 가라앉음
@@ -53,7 +64,7 @@ function makeHighlight(anchors, dims) {
   };
 }
 
-export async function startScan(container, mindUrl, count, { onFound, onLost, onError, onReady, setup, center = false, highlight = false }) {
+export async function startScan(container, mindUrl, count, { onFound, onLost, onError, onReady, setup, center = false, highlight = false, outlines = null }) {
   await stopScan();
   const me = { stopped: false, container };
   cur = me;
@@ -102,7 +113,7 @@ export async function startScan(container, mindUrl, count, { onFound, onLost, on
     const fx = setup ? setup({ THREE, mindar, anchors }) : null;
     await mindar.start();
     if (me.stopped) { await stopScan(me); return; }
-    if (highlight) { try { hl = makeHighlight(anchors, mindar.controller?.markerDimensions); } catch (e) { hl = null; } }
+    if (highlight) { try { hl = makeHighlight(anchors, mindar.controller?.markerDimensions, outlines); } catch (e) { hl = null; } }
     const { renderer, scene, camera } = mindar;
     const t0 = performance.now();
     renderer.setAnimationLoop(() => { if (center) centerTick(); hl?.tick(); me.fxTick?.((performance.now() - t0) / 1000); renderer.render(scene, camera); });

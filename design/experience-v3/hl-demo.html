@@ -37,10 +37,10 @@ const go = () => {
     find: '텀블러를 로고가 보이게 비춰 보세요',
     hint: '조금 더 가까이, 로고가 화면 가운데 오게 비춰 보세요',
     mind: 'mind/demo-tumbler.mind',
-    targets: [{ title: '텀블러', img: 'img/demo/tumbler_145.jpg' }, { title: '텀블러', img: 'img/demo/tumbler_144.jpg' }, { title: '텀블러', img: 'img/demo/tumbler_146.jpg' }],
+    targets: [{ title: '텀블러', img: 'img/demo/tumbler_145.jpg', outline: { line: 'img/demo/tumbler_145_line.png', fill: 'img/demo/tumbler_145_fill.png' } }],   // 11/26 사각형 대신 텀블러 윤곽 그대로
     dots: false, center: true,
     onFound: (i, ui) => ui.show({
-      html: `<div class="ok"><b>인식됨 ✓</b><span>사진 ${i + 1}번과 맞았어요. 실제 미션에서는 여기서 완료 화면으로 넘어갑니다.</span></div>`,
+      html: `<div class="ok"><b>인식됨 ✓</b><span>실제 미션에서는 여기서 완료 화면으로 넘어갑니다.</span></div>`,
       buttons: [{ label: '다시 비춰 보기', on: () => ui.release() }],
     }),
     onClose: () => { document.getElementById('start').style.display = ''; },
