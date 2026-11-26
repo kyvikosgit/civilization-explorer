@@ -16,7 +16,7 @@
     };
     g.innerHTML =
       '<div class="gnb-in">' +
-        '<a class="gnb-logo" href="' + HOME + '">잇다</a>' +
+        '<a class="gnb-logo" href="' + HOME + '"><i class="itda-mark" aria-hidden="true"></i>잇다</a>' +   // 11/26 잇다 새 로고 마크(brand/logo/final)
         '<nav class="gnb-menu" aria-label="주 메뉴">' +
           item('exhibition', '전시', HOME + '#now') +
           item('feature', '특징', HOME + '#features') +
@@ -39,7 +39,7 @@
     f.innerHTML =
       '<div class="foot-in">' +
         '<div class="foot-top">' +
-          '<a class="foot-logo" href="' + HOME + '">잇다</a>' +
+          '<a class="foot-logo" href="' + HOME + '"><i class="itda-mark" aria-hidden="true"></i>잇다</a>' +
           '<nav class="foot-legal" aria-label="약관">' +
             '<a href="/monet100-web/terms.html">이용약관</a>' +
             '<a href="/monet100-web/privacy.html">개인정보처리방침</a>' +

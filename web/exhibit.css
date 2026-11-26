@@ -223,3 +223,7 @@
 .foot-legal{gap:22px}
 .foot-legal a{color:var(--c-sub)}
 .foot-legal a:hover{color:var(--c-on)}
+
+/* 11/26 잇다 새 로고 마크 — 글자색을 따라감(밝은 · 어두운 머리 모두) */
+.gnb-logo,.foot-logo{display:inline-flex;align-items:center;gap:7px}
+.itda-mark{display:inline-block;width:1.05em;height:1.05em;background:currentColor;-webkit-mask:url(/web/img/itda-mark.png) center/contain no-repeat;mask:url(/web/img/itda-mark.png) center/contain no-repeat}

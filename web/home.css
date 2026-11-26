@@ -247,3 +247,7 @@ body.has-buybar{padding-bottom:84px}
   .buybar .btn{height:46px;padding:0 26px}
 }
 .brand+.app{border-top:1px solid #E5E4E0}
+
+/* 11/26 잇다 새 로고 마크 — 글자색을 따라감(밝은 · 어두운 머리 모두) */
+.gnb-logo,.foot-logo{display:inline-flex;align-items:center;gap:7px}
+.itda-mark{display:inline-block;width:1.05em;height:1.05em;background:currentColor;-webkit-mask:url(/web/img/itda-mark.png) center/contain no-repeat;mask:url(/web/img/itda-mark.png) center/contain no-repeat}

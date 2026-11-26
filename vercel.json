@@ -18,6 +18,32 @@
       "continue": true
     },
     {
+      "src": "/monet100-web/?",
+      "has": [
+        {
+          "type": "host",
+          "value": "civilization-explorer.vercel.app"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "https://monet100.com/"
+      }
+    },
+    {
+      "src": "/(?!\\.well-known/)(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "civilization-explorer.vercel.app"
+        }
+      ],
+      "status": 308,
+      "headers": {
+        "Location": "https://it-ta.com/$1"
+      }
+    },
+    {
       "src": "/(.*)",
       "has": [
         {
