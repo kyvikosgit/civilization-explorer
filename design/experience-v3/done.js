@@ -39,6 +39,7 @@ const CSS = `
 .v3-done .d-txt{margin-top:20px;padding-top:18px;border-top:1px solid var(--d-line);opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
 .v3-done.read .d-txt{opacity:1;transform:none}
 .v3-done .d-title{font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;line-height:1.4}
+.v3-done .d-guide{margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--d-panel);font-size:15px;font-weight:700;line-height:1.5;text-align:center;white-space:pre-line}
 .v3-done .d-body{margin-top:8px;font-size:15.5px;line-height:1.7;white-space:pre-line}
 .v3-done .d-note{margin:34px auto 4px;max-width:320px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:15.5px;font-weight:600;line-height:1.8;letter-spacing:-.01em;color:var(--d-ink);white-space:pre-line;word-break:keep-all;opacity:0;transform:translateY(8px);transition:opacity 1s .6s,transform 1s .6s}
 .v3-done.read .d-note{opacity:1;transform:none}
@@ -147,6 +148,10 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
   const cc = slot >= 0 ? ccOf(COLLECT_IDS[slot]) : '';   // 11/23 수집품 카드 그림(앱과 같은 것) — 큰 카드 · 날아가는 사본 · 칸 모두
   const img = cc || (item?.img ? new URL(item.img, V3).href : '');
   if (cc && item) item = { ...item, contain: false };
+  // 11/26 클라이언트 완료 문구: 제목 = successTitle, 기존 해설(제목 · 본문)은 그 아래 그대로, 맨 아래 = successGuide(다음 이동 안내)
+  const ct = slot >= 0 ? findTask(COLLECT_IDS[slot])?.task : null;
+  let guide = '';
+  if (ct?.successTitle) { body = [title, body].filter(Boolean).join('\n\n'); title = ct.successTitle; guide = ct.successGuide || ''; }
   const el = document.createElement('div');
   el.className = 'v3-done';
   el.innerHTML = `<div class="d-bar"><a href="${esc(HUB)}" aria-label="목록으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
@@ -157,7 +162,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
       ${img ? `<div class="d-card"><img src="${esc(img)}" alt=""></div>` : ''}
       ${item?.name ? `<p class="d-name">${esc(item.name)}</p>` : ''}${item?.sub ? `<p class="d-sub">${esc(item.sub)}</p>` : ''}
       ${slot >= 0 ? `<div class="d-col"><p class="d-colt">나의 수집품 <b>${got - 1}</b> / ${total}</p><div class="d-slots">${COLLECT_IDS.map((id, i) => { const it = findTask(id)?.task?.item; const on = i !== slot && store.saved(id); return `<span class="${on ? 'on' : ''}${i === slot ? ' me' : ''}">${on && (ccOf(id) || it?.img) ? `<img src="${esc(ccOf(id) || new URL(it.img, V3).href)}" alt="">` : ''}</span>`; }).join('')}</div></div>` : ''}
-      <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}</div>
+      <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}${guide ? `<p class="d-guide">${esc(guide)}</p>` : ''}</div>
     </div></div>
     <div class="d-foot"></div>`;
   // 11/23 앱 안 단추 이름: 새로 받은 수집품 = [수집품에 저장], 이미 담아 둔 것 = [확인] (누르면 구역 화면으로 돌아가 체험 카드로 줄어든다)
