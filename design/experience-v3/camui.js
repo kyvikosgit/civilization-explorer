@@ -191,7 +191,7 @@ export function openCam(o) {
         console.warn('[cam]', e?.name || 'Error', e?.message || String(e));   // 11/18: scan.js 가 실제 카메라 오류를 넘긴다(권한 거부 → 권한 안내)
         const denied = /Permission|NotAllowed/i.test(e?.name + e?.message);
         const msg = denied ? '카메라 권한이 없어 직접 골라 봅니다' : '카메라를 켜지 못해 직접 골라 봅니다';
-        if (!btns.length) { if (o.onFail) return o.onFail(denied ? '카메라를 쓸 수 없습니다.\n브라우저 설정에서 카메라 권한을 허용해 주세요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.'); el.classList.add('failed'); $('.err').textContent = msg; if (o.hold) reveal(); return; }
+        if (!btns.length) { if (o.onFail) return o.onFail(denied ? '미션을 수행하려면 카메라 사용을 허용해 주세요.\n설정에서 카메라 권한을 켤 수 있어요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.'); el.classList.add('failed'); $('.err').textContent = msg; if (o.hold) reveal(); return; }
         camless(msg);
       },
     });

@@ -165,6 +165,8 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
   el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, btn: slot < 0 ? '다음' : already ? '확인' : '수집품에 저장' }));
   document.body.appendChild(el);
   const api = { el, hide() { el.classList.remove('on'); setTimeout(() => el.remove(), 350); } };
+  // 11/26 Q07(클라이언트): 기차표 수집 완료 연출 2~3초 뒤 자동으로 다음(튜브물감 04-2) — 추가 클릭 없음. 앱 안에서만
+  if (zoneId === 'industry' && (window.__m100app || EMBED)) setTimeout(() => { const b = el.querySelector('.ve-btn.fill'); if (b && document.body.contains(el)) b.click(); }, 2600);
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on'))); setTimeout(() => el.classList.add('on'), 80);   // 그리기가 잠깐 멈춘 화면(뒤 3D 로딩 중)에서도 뜨게
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const land = (flew) => { const sp = el.querySelectorAll('.d-slots span')[slot]; if (sp) { sp.classList.add('on'); if (!flew) sp.classList.add('pop'); sp.innerHTML = `<img src="${esc(img)}" alt="">`; } const n = el.querySelector('.d-colt b'); if (n) n.textContent = got; el.classList.add('read'); };

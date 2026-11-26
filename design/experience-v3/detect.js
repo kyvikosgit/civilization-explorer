@@ -46,7 +46,7 @@ export function openDetect(o) {
   (async () => {
     try {
       me.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
-    } catch (e) { return fail('카메라를 쓸 수 없습니다.\n브라우저 설정에서 카메라 권한을 허용해 주세요.'); }
+    } catch (e) { return fail('미션을 수행하려면 카메라 사용을 허용해 주세요.\n설정에서 카메라 권한을 켤 수 있어요.'); }
     if (me.stop) return me.stream.getTracks().forEach((t) => t.stop());
     video.srcObject = me.stream;
     await video.play().catch(() => {});

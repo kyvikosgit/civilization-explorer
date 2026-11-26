@@ -3,7 +3,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MONET 100 · 잇다</title>
 <meta name="theme-color" content="#F1F1EF">
-<!-- 구역 안내판 QR(11/19) — https://it-ta.com/z/<구역>. 앱이 깔려 있으면 유니버설 링크로 앱이 바로 열리고(빌드에 applinks:it-ta.com 필요),
+<!-- 11/26 현장 QR Q03~Q20 주소(/z/<조각>) · 구역 안내판 QR(11/19) — https://it-ta.com/z/<구역>. 앱이 깔려 있으면 유니버설 링크로 앱이 바로 열리고(빌드에 applinks:it-ta.com 필요),
      아니면 이 페이지: 앱으로 열기(딥링크) · 스토어. 구역 이름은 앱 src/lib/tour.ts 와 같다 -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <style>
@@ -30,21 +30,26 @@ p{font-size:17px;line-height:1.5;color:#5F5F58;margin:12px 0 0}
   </div>
 </div>
 <script>
-var Z={start:['4층','전시 시작'],entrance:['4층','프롤로그'],salon:['4층','살롱'],society:['4층','시민사회'],industry:['4층','사업가의 사무실'],
-  atelier:['4층','화가의 아틀리에'],nadar:['4층','나다르 사진관'],monet:['4층','인상파 전시회'],down:['3층','3층 입구'],series:['3층','모네 전시관'],
-  giverny:['3층','지베르니'],meules:['3층','건초더미'],lineage:['3층','감각의 계보'],shop:['3층','굿즈샵']};
-// 11/23 기기 언어(앱 언어 설정과 같은 판정) — 영 · 일 · 중
+// 11/26 현장 QR Q03~Q20(클라이언트 운영 안내) — 주소 조각 → [층, 이름, 앱 경로]. 앱 쪽 표는 kippu-app src/lib/tour.ts QR_LINKS
+var Z={start:['4층','전시 시작','stop/entrance?a=1'],entrance:['4층','프롤로그','stop/entrance?a=1'],salon:['4층','살롱','stop/salon?a=1'],
+  society:['4층','시민사회','stop/society?a=1'],talk:['4층','사람들의 대화','z/talk'],industry:['4층','사업가의 방','stop/industry?a=1'],
+  atelier:['4층','화가의 작업 공간','stop/atelier?a=1'],nadar:['4층','나다르 사진관','stop/nadar?a=1'],monet:['4층','인상파 전시회','stop/monet?a=1'],
+  down:['3층','3층으로','stop/down?a=1'],series:['3층','모네 전시관 · 연작 소개','stop/series?a=1&t=t08'],lazare:['3층','생 라자르역','stop/series?a=1&t=t09'],
+  rouen:['3층','루앙 대성당','stop/series?a=1&t=t10'],london:['3층','런던 국회의사당','stop/series?a=1&t=t11'],poplars:['3층','포플러나무','stop/series?a=1&t=t12'],
+  haystacks:['3층','건초더미 연작','stop/series?a=1&t=t13'],waterlilies:['3층','수련','stop/series?a=1&t=t14'],giverny:['3층','지베르니','stop/giverny?a=1'],
+  meules:['3층','건초더미','stop/meules?a=1'],lineage:['3층','감각의 계보','stop/lineage?a=1']};
+// 기기 언어(앱 언어 설정과 같은 판정) — 영 · 일 · 중
 var LG=(navigator.language||'ko').toLowerCase();LG=LG.indexOf('ko')===0?'ko':LG.indexOf('ja')===0?'ja':LG.indexOf('zh')===0?'zh':'en';
-var TX={en:{msg:'Opens in the Itda app',open:'Open in app',fl:{'4층':'4F','3층':'3F'},n:{start:'Start the exhibition',entrance:'Prologue',salon:'The Salon',society:'Civil Society',industry:"The Businessman's Office",atelier:"The Painter's Studio",nadar:"Nadar's Studio",monet:'The Impressionist Exhibition',down:'3F Entrance',series:'Monet Gallery',giverny:'Giverny',meules:'Haystacks',lineage:'Lineage of the Senses',shop:'Gift Shop'}},
- ja:{msg:'Itdaアプリで開きます',open:'アプリで開く',fl:{'4층':'4階','3층':'3階'},n:{start:'展示をはじめる',entrance:'プロローグ',salon:'サロン',society:'市民社会',industry:'実業家の事務所',atelier:'画家のアトリエ',nadar:'ナダールの写真館',monet:'印象派展',down:'3階入口',series:'モネ展示館',giverny:'ジヴェルニー',meules:'積みわら',lineage:'感覚の系譜',shop:'グッズショップ'}},
- zh:{msg:'将在 Itda 应用中打开',open:'在应用中打开',fl:{'4층':'4楼','3층':'3楼'},n:{start:'开始观展',entrance:'序章',salon:'沙龙',society:'市民社会',industry:'商人的办公室',atelier:'画家的画室',nadar:'纳达尔照相馆',monet:'印象派画展',down:'3楼入口',series:'莫奈展厅',giverny:'吉维尼',meules:'干草堆',lineage:'感知的谱系',shop:'文创商店'}}};
+var TX={
+ en:{msg:'Opens in the Itda app',open:'Open in app',fl:{'4층':'4F','3층':'3F'},n:{start:'Start the exhibition',entrance:'Prologue',salon:'The Salon',society:'Civil Society',talk:'Voices of the City',industry:"The Businessman's Room",atelier:"The Painter's Workspace",nadar:"Nadar's Studio",monet:'The Impressionist Exhibition',down:'To the 3rd floor',series:'Monet Gallery · The Series',lazare:'Saint-Lazare Station',rouen:'Rouen Cathedral',london:'The Houses of Parliament, London',poplars:'Poplars',haystacks:'Haystacks',waterlilies:'Water Lilies',giverny:'Giverny',meules:'Haystacks',lineage:'A Lineage of Perception'}},
+ ja:{msg:'Itdaアプリで開きます',open:'アプリで開く',fl:{'4층':'4階','3층':'3階'},n:{start:'展示をはじめる',entrance:'プロローグ',salon:'サロン',society:'市民社会',talk:'人々の会話',industry:'実業家の部屋',atelier:'画家の作業場',nadar:'ナダールの写真館',monet:'印象派展',down:'3階へ',series:'モネ展示室・連作',lazare:'サン・ラザール駅',rouen:'ルーアン大聖堂',london:'ロンドン国会議事堂',poplars:'ポプラ並木',haystacks:'積みわら',waterlilies:'睡蓮',giverny:'ジヴェルニー',meules:'積みわら',lineage:'感覚の系譜'}},
+ zh:{msg:'将在 Itda 应用中打开',open:'在应用中打开',fl:{'4층':'4楼','3층':'3楼'},n:{start:'开始观展',entrance:'序章',salon:'沙龙',society:'市民社会',talk:'人们的对话',industry:'商人的房间',atelier:'画家的工作空间',nadar:'纳达尔照相馆',monet:'印象派展览',down:'前往3楼',series:'莫奈展厅·系列作品',lazare:'圣拉扎尔火车站',rouen:'鲁昂大教堂',london:'伦敦国会大厦',poplars:'白杨树',haystacks:'干草堆',waterlilies:'睡莲',giverny:'吉维尼',meules:'干草堆',lineage:'感知的谱系'}}};
 document.documentElement.lang=LG;
 if(TX[LG]){document.body.style.wordBreak='normal';document.getElementById('msg').textContent=TX[LG].msg;document.getElementById('open').textContent=TX[LG].open;
-  for(var k in Z){Z[k]=[TX[LG].fl[Z[k][0]]||Z[k][0],TX[LG].n[k]||Z[k][1]];}}
+  for(var k in Z){Z[k]=[TX[LG].fl[Z[k][0]]||Z[k][0],TX[LG].n[k]||Z[k][1],Z[k][2]];}}
 var id=(location.pathname.split('/z/')[1]||'').replace(/\/.*$/,'').toLowerCase();
 var z=Z[id];
 if(z){document.getElementById('floor').textContent='MONET 100 · '+z[0];document.getElementById('name').textContent=z[1];document.title='MONET 100 · '+z[1];}
-var stop=id==='start'?'entrance':id;
-document.getElementById('open').href=z?('civilization-explorer://stop/'+stop+'?a=1'):'civilization-explorer://';
+document.getElementById('open').href='civilization-explorer://'+(z?z[2]:'');
 </script>
 </body></html>
