@@ -13,7 +13,7 @@ const task = ZONES.find((z) => z.id === 'monet').tasks[0];
 { const st = document.createElement('style'); st.textContent = '.v3-cam.sim-on.locked .sim{padding-bottom:150px}.v3-cam.locked .sim-art{max-height:calc(100dvh - 210px)}'; document.head.appendChild(st); }
 const V3 = '../../experience-v3/';
 // 11/18: 해돋이 원본 하나로 통일 — 마르모탕 원본(img/sunrise_original.jpg, design/sunrise-brief 5773px 축소) · 영상은 그 색에 맞춘 판(video/sunrise-scene-graded.mp4). sunrise_target.jpg 는 인식용으로 대비를 올린 판이라 화면에 쓰지 않는다
-const VIDEO = 'https://it-ta.com/design/experience-v3/video/sunrise-scene-graded.mp4';   // 11/26 영상 = 서버에서 바로 재생(확정 시점을 몰라 서버 파일만 바꾸면 되게)
+const VIDEO = new URL(V3 + 'video/sunrise-scene-graded.mp4', document.baseURI).href;   // 11/26 앱은 뒤에서 서버 최신본을 받아 둠(mediaSync) · 없으면 서버에서
 const PAINT = new URL(V3 + 'img/sunrise_original.jpg', document.baseURI).href;
 const VAR = 752 / 560;                                   // 영상 가로/세로
 // 타깃 세로/가로 — mind/sunrise.mind 컴파일 순서(해돋이 원본 img/sunrise_target.jpg · 생라자르 · 에트르타 · 수련)

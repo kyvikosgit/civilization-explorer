@@ -13,8 +13,8 @@ const CAFE = (...at) => CAFE_LINES.map((l, k) => ({ ...at[k], ...l }));
 
 // 11/26 미션 문구 = 클라이언트 'IT-TA 앱 콘텐츠 및 QR 운영 안내' M01~M05 — 미션 수행 · 오답 = question · wrong, 완료 = successTitle(완료 화면 제목) + successGuide(맨 아래 안내)
 //   완료 화면의 해설(successBody · successVerdict · after · note)은 기존 그대로 유지
-// 11/26 영상은 확정 시점을 몰라 서버에서 바로 재생(앱 안 묶음에 넣지 않음) — 서버 파일만 바꾸면 앱 업데이트 없이 바뀜
-export const VIDEO_BASE = 'https://it-ta.com/design/experience-v3/';
+// 11/26 영상(video/…): 앱은 켠 뒤 뒤에서 서버 최신본을 받아 폰에 둠(kippu-app/src/lib/mediaSync.ts) — 서버 파일만 바꾸면 앱 업데이트 없이 바뀜.
+//   폰에 없거나 깨졌으면 서버에서 바로 재생(expLocalShim). 웹은 원래 서버
 export const ZONES = [
   {
     id: 'salon', no: 'B', loc: '4F · B 아카데미 살롱', title: '올해의 그림',
@@ -71,9 +71,9 @@ export const ZONES = [
         find: '카페 게르부아 벽면을 카메라로 비춰 보세요',
         mind: 'mind/guerbois.mind',
         wall: { place: '카페 게르부아', img: 'img/cafe_plan.jpg', ratio: 1086 / 1448, windows: { w: 0.24, h: 0.18 }, spots: CAFE(
-          { x: 0.276, y: 0.524, video: VIDEO_BASE + 'video/cafe_w1.mp4', clip: [0.174, 0.3572, 0.2044, 0.2725], glass: [0.1959, 0.0203, 0.6081, 0.9527] },
-          { x: 0.477, y: 0.524, video: VIDEO_BASE + 'video/cafe_w2.mp4', clip: [0.375, 0.3572, 0.2044, 0.2725], glass: [0.2669, 0.0203, 0.4662, 0.9527] },
-          { x: 0.676, y: 0.524, video: VIDEO_BASE + 'video/cafe_w3.mp4', clip: [0.5745, 0.3572, 0.2044, 0.2725], glass: [0.2027, 0.0203, 0.5912, 0.9527] }) },
+          { x: 0.276, y: 0.524, video: 'video/cafe_w1.mp4', clip: [0.174, 0.3572, 0.2044, 0.2725], glass: [0.1959, 0.0203, 0.6081, 0.9527] },
+          { x: 0.477, y: 0.524, video: 'video/cafe_w2.mp4', clip: [0.375, 0.3572, 0.2044, 0.2725], glass: [0.2669, 0.0203, 0.4662, 0.9527] },
+          { x: 0.676, y: 0.524, video: 'video/cafe_w3.mp4', clip: [0.5745, 0.3572, 0.2044, 0.2725], glass: [0.2027, 0.0203, 0.5912, 0.9527] }) },
         parts: [{ img: 'img/cafe_win1.jpg', rect: [0.174, 0.3572, 0.2044, 0.2725] }, { img: 'img/cafe_win2.jpg', rect: [0.375, 0.3572, 0.2044, 0.2725] }, { img: 'img/cafe_win3.jpg', rect: [0.5745, 0.3572, 0.2044, 0.2725] }],
         skip: '건너뛰고 칼럼으로 가기',
       },

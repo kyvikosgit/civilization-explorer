@@ -275,7 +275,6 @@ function toScan() {                                         // 칼럼 → 스캔
 // ── 3 살펴보기 — 떠 있는 포스터 + 한 줄 설명(전단지 3장은 부스 삽화 애니메이션 그대로)
 const loop = document.createElement('video');
 loop.muted = true; loop.defaultMuted = true; loop.loop = true; loop.preload = 'auto';
-loop.crossOrigin = 'anonymous';   // 11/26 영상을 서버에서 바로 받아 그림(유리) 안에 그림 — 다른 주소 영상도 그릴 수 있게
 loop.setAttribute('muted', ''); loop.setAttribute('playsinline', ''); loop.setAttribute('webkit-playsinline', '');
 loop.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
 document.body.appendChild(loop);

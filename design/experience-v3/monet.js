@@ -48,7 +48,7 @@ const SUN = {
   END_DELAY_MS: 900,
 };
 const SUN_RM = { OUT_S: 2.4, TAIL_S: 0.3 };                  // 움직임 줄이기: 틀 안 크로스페이드만
-const SCENE_VIDEO = 'https://it-ta.com/design/experience-v3/video/sunrise-scene-graded.mp4';   // 11/26 서버에서 바로 재생   // 11/18: 원본 그림(sunrise_target) 색으로 맞춘 판                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
+const SCENE_VIDEO = '../../experience-v3/video/sunrise-scene-graded.mp4';   // 11/18: 원본 그림(sunrise_target) 색으로 맞춘 판                // 실제 AI 영상(정지 카메라 · 약 10초 · 4:3, 브리프 design/sunrise-brief.html)
 const SCENE_READY = true;                                     // 실제 영상(10/23 팀원 제작, 752×560 · 10초 · H.264로 다시 인코딩). 못 불러오면 임시 영상으로
 // 실제 영상을 그림에 맞추는 값 — 해 · 작은 배 위치를 재서 맞춤(가운데 기준 1.05배 · 아래로 높이의 2.5%). 해·배 오차 0.6% 이내, 가장자리 빈틈 없음
 const SCENE_FIT = { s: 1.05, x: 0, y: 0.025 };
