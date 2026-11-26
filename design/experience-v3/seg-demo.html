@@ -95,7 +95,9 @@ function boxMean(src, dst, w, h, r) {   // 상자 평균(적분 영상) — 가�
 async function makeSession() {
   // 폰 그래픽 칩 먼저(WebGPU → WebGL), 안 되면 CPU
   const want = new URLSearchParams(location.search).get('ep');   // 시험: ?ep=wasm 이면 CPU 로만
-  for (const [mod, eps] of [['ort.webgpu.min.mjs', ['webgpu']], ['ort.wasm.min.mjs', ['wasm']]].filter(([, e]) => !want || e[0] === want)) {
+  // 11/26 기본 = CPU(wasm) 하나. 그래픽 칩(webgpu)은 같은 일에 메모리를 약 340MB 더 씀(맥 크롬 실측 870 vs 530MB) → 아이폰 카톡 · 앱 웹뷰에서 켜 두기만 해도 18~20초 뒤 터짐.
+  //   시험할 때만 ?ep=webgpu
+  for (const [mod, eps] of [['ort.webgpu.min.mjs', ['webgpu']], ['ort.wasm.min.mjs', ['wasm']]].filter(([, e]) => (want || 'wasm') === e[0])) {
     try {
       if (eps[0] === 'webgpu' && !navigator.gpu) continue;
       ort = await import(ORT + mod); ort.env.wasm.wasmPaths = ORT; ort.env.wasm.numThreads = 1;
@@ -109,7 +111,7 @@ async function makeSession() {
 async function boot() {
   $('go').disabled = true; $('go').textContent = '준비 중…';
   try {
-    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 960 }, height: { ideal: 540 } }, audio: false });
     v.srcObject = st; await v.play();
     sess = await makeSession();
   } catch (e) { $('err').textContent = '카메라나 모델을 열지 못했습니다: ' + (e.message || e); $('go').disabled = false; $('go').textContent = '다시 시도'; return; }
@@ -220,11 +222,12 @@ async function analyzeOnce() {
 let glowA = 0;
 function frame() {
   requestAnimationFrame(frame);
-  const on = performance.now() - hitT < 350;   // 잠깐 놓쳐도 깜빡이지 않게
+  const on = performance.now() - hitT < 500;   // 잠깐 놓쳐도 깜빡이지 않게
   glowA += ((on ? 1 : 0) - glowA) * 0.2;
   $('ret').classList.toggle('on', on);
   if (on && !done) { if (!aimT) aimT = performance.now(); } else if (!on) aimT = 0;
-  const p = aimT ? Math.min(1, (performance.now() - aimT) / 800) : 0;
+  const p = aimT ? Math.min(1, (performance.now() - aimT) / 2200) : 0;   // 11/26 너무 빨리 끝나던 것 — 2.2초 동안 비추고 있어야 인식(찾아내는 맛)
+  const mt = done ? '' : p > 0 ? '분석 중… 그대로 비춰 주세요' : '조준점을 텀블러에 대 보세요'; if ($('msg').firstChild.textContent !== mt) { $('msg').firstChild.textContent = mt; $('msg').classList.toggle('hid', !mt); }
   $('ringc').setAttribute('stroke-dashoffset', String(176 * (1 - p)));
   if (p >= 1 && !done) { done = true; stopped = !SHOW; $('ok').classList.add('on'); navigator.vibrate?.(30); recogT = Date.now(); mark('recognized'); if (stopped) freeEngine(); }   // 인식 완료 → AI 멈춤
   fxx.setTransform(dpr, 0, 0, dpr, 0, 0); fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = 1; fxx.clearRect(0, 0, W, H);
