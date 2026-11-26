@@ -34,7 +34,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="start" id="start"><h1>사람들의 대화</h1><p>카페 게르부아와 박람회 거리 그림을<br>화면에 가득 비춰 보세요. 그림 속 사람들의 대화가 들립니다.</p><button type="button" id="go">카메라 켜기</button><p id="err"></p></div>
+<div class="start" id="start"><h1>사람들의 대화</h1><p>카페 게르부아와 박람회 거리 그림을<br>화면에 가득 비춰 보세요. 그림 속 사람들의 대화가 들립니다.</p><p id="lead" hidden>카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
 <button type="button" class="close" id="close" aria-label="닫기"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 <div class="hint" id="hint" hidden><span>그림을 화면에 가득 비춰 주세요</span></div>
 <div id="dbg" hidden></div>
@@ -44,7 +44,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 document.getElementById('close').addEventListener('click', function () { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'close' })); else if (history.length > 1) history.back(); else location.href = 'https://app.it-ta.com/exhibition/monet100'; });
 (function () {
   var q = new URLSearchParams(location.search), DEBUG = q.has('debug'), ROT = q.has('rot') ? +q.get('rot') || 0 : 0,   // 11/25 폰 확인: 돌린 타깃도 엔진이 원래(가로) 방향으로 알려 줌 → 돌리지 않음(0). 점검용 ?rot=1 · ?rot=-1
-      SLAM = !q.has('noslam');
+      SLAM = q.has('slam');   // 11/26: 기본 끔 — 켜면 아이폰이 '동작 및 방향 접근' 허락 창을 띄우고 첫 터치가 필요해서(시작 단추). 그림 인식만으로도 매 장면 벽에 붙음
   // 11/25 최종 그림(미술팀 261117) — 카페 = 실내(가로), 박람회 거리 = 세로. 인식은 가운데 3:4 만 쓰므로 판을 그림 전체 크기로 늘림(FULL)
   //   대사는 기술 점검용 자리 채움(기획서 260928 대사) — 최종 원고 · 인물 자리를 받으면 바꿈. 영상은 최종 그림으로 새로 만들어야 해서 지금은 없음(글만)
   var ROTATED = { cafe: true, street: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2400 / 2053] };
@@ -231,28 +231,37 @@ document.getElementById('close').addEventListener('click', function () { if (win
     if (DEBUG) { $('dbg').hidden = false; $('dbg').textContent = JSON.stringify(dbg, null, 1); }
   }
 
+  function statusModule() {
+    var ready = function () { $('start').style.display = 'none'; $('hint').hidden = false; };
+    return { name: 'm100status', onStart: ready, onCameraStatusChange: function (e) {
+      if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
+      else if (e.status === 'failed') { $('start').style.display = ''; $('go').hidden = false; $('lead').hidden = true; $('err').textContent = '카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'; }
+    } };
+  }
   function boot() {
     Promise.all(['cafe', 'street'].map(function (n) { return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
       XR8.addCameraPipelineModules([
         XR8.GlTextureRenderer.pipelineModule(), XR8.CameraPixelArray.pipelineModule({ luminance: false, maxDimension: 192 }), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
         XRExtras.FullWindowCanvas.pipelineModule(),   // 캔버스를 화면 크기 · 화소 밀도에 맞춤(좌상단에 작게 그려지던 문제)
-        XRExtras.Loading.pipelineModule(),            // 카메라 · 동작 센서 허락 안내
-        XRExtras.RuntimeError.pipelineModule(),
+        statusModule(),                               // 11/26: 8th Wall 로딩 화면(로고) · 오류 화면 대신 우리 안내 한 줄
         wallModule()]);
       XR8.run({ canvas: $('c') });
+      $('start').style.display = 'none'; $('hint').hidden = false;   // 엔진을 켜면 바로 카메라 화면으로(못 켜면 위 statusModule 이 안내를 다시 띄움)
     });
   }
-  $('go').addEventListener('click', function () {
-    Object.keys(videos).forEach(function (k) { videos[k].play().then(function () { videos[k].pause(); }).catch(function () {}); });   // 첫 터치로 재생 권한
+  // 11/26: 시작 단추 없이 바로 카메라(공간 고정을 끄면 동작 센서 허락이 필요 없어 터치 없이 시작 가능) — 못 켜면 그때만 단추
+  function start() {
+    $('go').hidden = true; $('lead').hidden = false; $('err').textContent = '';
+    Object.keys(videos).forEach(function (k) { videos[k].play().then(function () { videos[k].pause(); }).catch(function () {}); });
     var asks = [window.DeviceOrientationEvent, window.DeviceMotionEvent].filter(function (E) { return SLAM && E && typeof E.requestPermission === 'function'; }).map(function (E) { return E.requestPermission().catch(function () { return 'denied'; }); });
-    Promise.all(asks).then(function (r) {
-      if (r.indexOf('denied') >= 0) { $('err').textContent = '동작 및 방향 접근을 허용해야 그림이 제자리에 고정됩니다. 다시 시작을 눌러 허용해 주세요.'; return; }
-      $('start').style.display = 'none'; $('hint').hidden = false;
+    Promise.all(asks).then(function () {
       var fontReady = document.fonts && document.fonts.load ? document.fonts.load(FONT, '가나다').catch(function () {}) : Promise.resolve();
       fontReady.then(function () { if (window.XR8) boot(); else window.addEventListener('xrloaded', boot); });
     });
-  });
+  }
+  $('go').addEventListener('click', function () { location.reload(); });
+  if (SLAM) { $('go').hidden = false; $('lead').hidden = true; $('go').onclick = start; } else start();
 })();
 </script>
 </body>
