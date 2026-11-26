@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<title>탐사 도구 시험 · 텀블러</title>
+<!-- 11/26 '탐사 도구' 시험 — 화면 가운데 조준점을 물체에 대면 그 물체 실루엣만 테두리가 빛남(게임식 하이라이트)
+     물체 분할 AI(YOLO11n-seg, tools/seg — 텀블러 한 바퀴 영상 7초 → 장면 98장 자동 윤곽 → 학습) 를 폰 브라우저에서 매 장면 돌림(onnxruntime-web)
+     어느 각도든 지금 보이는 실루엣 그대로. 조준점이 실루엣 안에 0.8초 머물면 '인식됨' -->
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<style>
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:Freesentation,-apple-system,sans-serif;overflow:hidden}
+video{display:none}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;background:#000;z-index:20}
+.start h1{margin:0;font-size:22px}.start p{margin:0;color:#aaa;font-size:15px;line-height:1.6;word-break:keep-all}
+.start button{font:700 17px inherit;background:#fff;color:#111;border:0;border-radius:12px;padding:15px 30px}
+.reticle{position:fixed;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;z-index:5;pointer-events:none;transition:transform .25s,opacity .25s}
+.reticle i{position:absolute;width:12px;height:12px;border:2px solid rgba(255,255,255,.85)}
+.reticle i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}.reticle i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
+.reticle i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}.reticle i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0}
+.reticle b{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:#fff}
+.reticle.on{transform:scale(.8)}.reticle.on i{border-color:#bfe8b9}
+.ring{position:fixed;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;z-index:5;pointer-events:none}
+.ring circle{fill:none;stroke:#bfe8b9;stroke-width:3;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
+.msg{position:fixed;left:0;right:0;bottom:calc(40px + env(safe-area-inset-bottom));text-align:center;z-index:6}
+.msg span{background:rgba(0,0,0,.55);padding:10px 16px;border-radius:20px;font-size:15px}
+.ok{position:fixed;left:50%;top:22%;transform:translate(-50%,-50%) scale(.9);background:rgba(40,70,40,.92);padding:16px 24px;border-radius:16px;font-size:20px;font-weight:700;opacity:0;transition:.25s;z-index:7}
+.ok.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#dbg{position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));font:11px ui-monospace,Menlo,monospace;color:rgba(255,255,255,.6);z-index:6}
+</style>
+</head>
+<body>
+<video id="v" playsinline muted></video>
+<canvas id="c"></canvas>
+<canvas id="fx"></canvas>
+<div class="reticle" id="ret" hidden><i></i><i></i><i></i><i></i><b></b></div>
+<svg class="ring" id="ring" viewBox="0 0 64 64" hidden><circle cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="176" id="ringc"/></svg>
+<div class="msg" id="msg" hidden><span>조준점을 텀블러에 대 보세요</span></div>
+<div class="ok" id="ok">인식됨 ✓ 텀블러</div>
+<div id="dbg"></div>
+<div class="start" id="start"><h1>탐사 도구 시험</h1><p>화면 가운데 조준점을 텀블러에 대면<br>텀블러 모양 그대로 테두리가 빛납니다. 어느 각도에서든.</p><button id="go" type="button">카메라 켜기</button><p id="err"></p></div>
+<script type="module">
+const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
+const $ = (id) => document.getElementById(id);
+const S = 416, P = 104, NC = 1, NM = 32;
+let sess, ort, busy = false, last = null, aimT = 0, done = false;
+const v = $('v'), c = $('c'), fx = $('fx'), cx = c.getContext('2d'), fxx = fx.getContext('2d');
+const inp = document.createElement('canvas'); inp.width = inp.height = S; const ix = inp.getContext('2d', { willReadFrequently: true });
+const mk = document.createElement('canvas'); mk.width = mk.height = P; const mx = mk.getContext('2d');
+const maskC = document.createElement('canvas'); const mcx = maskC.getContext('2d');
+let W = 0, H = 0, dpr = Math.min(2, devicePixelRatio || 1);
+function size() { W = innerWidth; H = innerHeight; for (const k of [c, fx]) { k.width = W * dpr; k.height = H * dpr; } maskC.width = W; maskC.height = H; }
+addEventListener('resize', size);
+
+async function boot() {
+  $('go').disabled = true; $('go').textContent = '준비 중…';
+  try {
+    ort = await import(ORT + 'ort.wasm.min.mjs'); ort.env.wasm.wasmPaths = ORT; ort.env.wasm.numThreads = 1;
+    sess = await ort.InferenceSession.create('model/demo/tumbler-seg.onnx', { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
+    const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+    v.srcObject = st; await v.play();
+  } catch (e) { $('err').textContent = '카메라나 모델을 열지 못했습니다: ' + (e.message || e); $('go').disabled = false; $('go').textContent = '다시 시도'; return; }
+  $('start').style.display = 'none'; $('ret').hidden = false; $('ring').hidden = false; $('msg').hidden = false; size(); loop();
+}
+$('go').addEventListener('click', boot);
+
+// 화면에 보이는 그대로(가득 채움) 그린 장면을 추론에도 씀 — 결과 실루엣이 화면 좌표와 바로 맞음
+function drawCam() {
+  const vw = v.videoWidth, vh = v.videoHeight; if (!vw) return null;
+  const s = Math.max(W / vw, H / vh), dw = vw * s, dh = vh * s;
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  return { s, ox: (W - dw) / 2, oy: (H - dh) / 2 };
+}
+async function infer() {
+  busy = true;
+  const k = S / Math.max(W, H), lw = W * k, lh = H * k, px = (S - lw) / 2, py = (S - lh) / 2;   // 화면 → 416 정사각(가장자리 회색)
+  ix.fillStyle = '#727272'; ix.fillRect(0, 0, S, S); ix.drawImage(c, px, py, lw, lh);
+  const d = ix.getImageData(0, 0, S, S).data, t = new Float32Array(3 * S * S);
+  for (let i = 0, n = S * S; i < n; i++) { t[i] = d[i * 4] / 255; t[i + n] = d[i * 4 + 1] / 255; t[i + 2 * n] = d[i * 4 + 2] / 255; }
+  const t0 = performance.now();
+  const out = await sess.run({ images: new ort.Tensor('float32', t, [1, 3, S, S]) });
+  const o0 = out.output0.data, o1 = out.output1.data, N = out.output0.dims[2];
+  let best = -1, bs = 0.35;
+  for (let j = 0; j < N; j++) { const sc = o0[4 * N + j]; if (sc > bs) { bs = sc; best = j; } }
+  if (best < 0) { last = null; busy = false; $('dbg').textContent = `${Math.round(performance.now() - t0)}ms · 없음`; return; }
+  const bx = o0[best], by = o0[N + best], bw = o0[2 * N + best], bh = o0[3 * N + best];
+  const coef = new Float32Array(NM); for (let m = 0; m < NM; m++) coef[m] = o0[(4 + NC + m) * N + best];
+  // 실루엣 = 계수 · 원형(104×104), 상자 밖은 지움
+  const img = mx.createImageData(P, P), q = P / S;
+  const x0 = (bx - bw / 2) * q, x1 = (bx + bw / 2) * q, y0 = (by - bh / 2) * q, y1 = (by + bh / 2) * q;
+  for (let y = 0; y < P; y++) for (let x = 0; x < P; x++) {
+    let a = 0; const pi = y * P + x; for (let m = 0; m < NM; m++) a += coef[m] * o1[m * P * P + pi];
+    const inBox = x >= x0 - 1.5 && x <= x1 + 1.5 && y >= y0 - 1.5 && y <= y1 + 1.5;
+    const val = inBox ? 1 / (1 + Math.exp(-a)) : 0;
+    img.data[pi * 4] = img.data[pi * 4 + 1] = img.data[pi * 4 + 2] = 255; img.data[pi * 4 + 3] = Math.max(0, Math.min(255, (val - 0.3) / 0.4 * 255));   // 부드러운 가장자리(계단 없이 키워지게)
+  }
+  mx.putImageData(img, 0, 0);
+  // 104 정사각 → 화면 좌표
+  mcx.clearRect(0, 0, W, H); mcx.imageSmoothingEnabled = true;
+  mcx.filter = `blur(${(S / k / P * 0.9).toFixed(1)}px)`;   // 104칸 실루엣을 화면 크기로 키울 때 계단이 보이지 않게 한 칸만큼 번지게
+  mcx.drawImage(mk, -px / k, -py / k, S / k, S / k); mcx.filter = 'none';
+  // 조준점이 실루엣 안인가(화면 가운데 화소)
+  const cpx = mcx.getImageData(W / 2 | 0, H / 2 | 0, 1, 1).data[3];
+  last = { hit: cpx > 128, sc: bs, t: performance.now() };
+  $('dbg').textContent = `${Math.round(performance.now() - t0)}ms · ${bs.toFixed(2)}`;
+  busy = false;
+}
+let glowA = 0, scanY = 0;
+function loop() {
+  requestAnimationFrame(loop);
+  if (!drawCam()) return;
+  if (!busy && sess) infer();
+  const hit = !!(last && last.hit && performance.now() - last.t < 600);
+  glowA += ((hit ? 1 : 0) - glowA) * 0.18;
+  $('ret').classList.toggle('on', hit);
+  // 머무르면 고리가 차고 '인식됨'
+  if (hit && !done) { if (!aimT) aimT = performance.now(); } else if (!hit) aimT = 0;
+  const p = aimT ? Math.min(1, (performance.now() - aimT) / 800) : 0;
+  $('ringc').setAttribute('stroke-dashoffset', String(176 * (1 - p)));
+  if (p >= 1 && !done) { done = true; $('ok').classList.add('on'); navigator.vibrate?.(30); setTimeout(() => { $('ok').classList.remove('on'); done = false; aimT = 0; }, 1800); }
+  // 효과: 실루엣 바깥 빛(번짐) + 또렷한 윤곽선 + 안쪽을 훑는 스캔 빛
+  fxx.setTransform(dpr, 0, 0, dpr, 0, 0); fxx.clearRect(0, 0, W, H);
+  if (glowA < 0.02) return;
+  const t = performance.now() / 1000;
+  fxx.save(); fxx.globalAlpha = glowA;
+  fxx.filter = 'blur(10px)'; fxx.drawImage(maskC, 0, 0);   // 번짐
+  fxx.filter = 'none'; fxx.globalCompositeOperation = 'source-in'; fxx.fillStyle = '#d6f5cf'; fxx.fillRect(0, 0, W, H);
+  fxx.globalCompositeOperation = 'destination-out'; fxx.filter = 'blur(1px)'; fxx.drawImage(maskC, 0, 0);   // 안쪽은 비워 바깥 빛만
+  fxx.filter = 'none'; fxx.globalCompositeOperation = 'source-over';
+  // 또렷한 윤곽선: 조금 키운 실루엣에서 실루엣을 빼서
+  const ln = document.createElement('canvas'); ln.width = W; ln.height = H; const lx = ln.getContext('2d');
+  lx.filter = 'blur(1.6px)'; lx.drawImage(maskC, 0, 0); lx.filter = 'none';
+  lx.globalCompositeOperation = 'source-in'; lx.fillStyle = '#ffffff'; lx.fillRect(0, 0, W, H);
+  lx.globalCompositeOperation = 'destination-out'; lx.drawImage(maskC, 0, 0); lx.drawImage(maskC, 0, 0);
+  fxx.drawImage(ln, 0, 0); fxx.drawImage(ln, 0, 0); fxx.drawImage(ln, 0, 0);   // 윤곽선을 또렷하게
+  // 스캔 빛: 실루엣 안을 위에서 아래로 훑음
+  scanY = (t * 0.55) % 1.3 - 0.15;
+  const sc = document.createElement('canvas'); sc.width = W; sc.height = H; const sx = sc.getContext('2d');
+  const g = sx.createLinearGradient(0, H * scanY - 60, 0, H * scanY + 60);
+  g.addColorStop(0, 'rgba(214,245,207,0)'); g.addColorStop(0.5, 'rgba(214,245,207,.35)'); g.addColorStop(1, 'rgba(214,245,207,0)');
+  sx.fillStyle = g; sx.fillRect(0, 0, W, H); sx.globalCompositeOperation = 'destination-in'; sx.drawImage(maskC, 0, 0);
+  fxx.drawImage(sc, 0, 0);
+  fxx.restore();
+}
+</script>
+</body>
+</html>
