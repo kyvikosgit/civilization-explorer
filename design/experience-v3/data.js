@@ -52,7 +52,7 @@ export const ZONES = [
       successBody: '',   // 11/26 사용자: 완료 화면 해설 두 문단 뺌
       successGuide: '내 수집품에 추가되었습니다.\n변화의 복도로 이동해 주세요.',
       after: '아카데미 살롱은 그 시대 아름다움의 기준을 정했다.\n그러나 시대는 이미 그 기준을 넘어 움직이고 있었다.',
-      item: { name: '올해의 그림', sub: '메르송 〈환영: 14세기의 전설〉, 1872', img: 'img/m_vision.jpg' },
+      item: { name: '1등급 메달 수상 그림', sub: '메르송 〈환영: 14세기의 전설〉, 1872', img: 'img/m_vision.jpg' },
     }],
   },
   {
@@ -76,7 +76,7 @@ export const ZONES = [
         skip: '건너뛰고 칼럼으로 가기',
       },
       {
-        id: 'flyer', title: '모리스 칼럼 전단지', collect: true, after: 'people',
+        id: 'flyer', title: '바티뇰파 전단지', collect: true, after: 'people',
         question: '모리스 칼럼에 붙은 카페 게르부아의 바티뇰파 전단지를 찾아 카메라에 담아 주세요.',
         find: '모리스 칼럼의 전단지에 카메라를 비추세요',
         mind: 'mind/flyer.mind',
@@ -97,7 +97,7 @@ export const ZONES = [
         successGuide: '내 수집품에 추가되었습니다.\n사람들의 대화도 들어보거나, 옆 공간으로 이동해 주세요.',
         // 11/18: 결과 화면 끝 맺음줄(salon 의 after 와 같은 자리) — 사실만
         note: '카페 게르부아의 탁자에 모이던 화가들은\n1874년, 살롱 밖에서 첫 전시를 열었다.',
-        item: { name: '모리스 칼럼 전단지', sub: '바티뇰파, 1860년대 말', img: 'img/fl_batignolles.jpg', contain: true },
+        item: { name: '바티뇰파 전단지', sub: '모리스 칼럼, 1860년대 말', img: 'img/fl_batignolles.jpg', contain: true },
       },
     ],
   },
@@ -170,7 +170,7 @@ export const ZONES = [
       successBody: '비웃음에서 태어난 이름\n\n비평가 루이 르루아는 이 그림의 제목을 비꼬아, 전시를 다룬 글에 「인상주의자들의 전시회」라는 제목을 붙였습니다. 글 속 관람객은 이 그림 앞에서 이렇게 말합니다.\n"인상이라… 그럴 줄 알았지. 인상을 받았으니 뭔가 인상이 들어 있긴 하겠지."\n"막 그리기 시작한 벽지도 이 바다 그림보다는 더 완성돼 있다."\n비웃으며 붙인 이 이름은 그대로 한 화파의 이름이 되었습니다.',
       successGuide: '내 수집품에 추가되었습니다.\n미디어 전시장으로 이동해 주세요.',
       after: '1874년 봄, 나다르의 옛 사진관에서 열린 첫 전시.\n비웃음으로 붙은 그 이름은\n곧 그들 스스로의 이름이 되었다.',   // 11/18: 맺음줄
-      item: { name: '인상, 해돋이', sub: '클로드 모네, 1872', img: 'img/sunrise_original.jpg' },
+      item: { name: '〈인상, 해돋이〉', sub: '클로드 모네, 1872', img: 'img/sunrise_original.jpg' },
     }],
   },
 ];

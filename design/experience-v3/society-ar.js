@@ -73,7 +73,7 @@ function openFlyer() {
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => guide.reset(),
     onFound: (i, ui) => {
-      const t = targets[i], head = `<div class="dc">모리스 칼럼 전단지</div><div class="dt">${esc(t.title)}</div>`;
+      const t = targets[i], head = `<div class="dc">바티뇰파 전단지</div><div class="dt">${esc(t.title)}</div>`;
       ui.show({ html: `${head}<div class="dd">${esc(t.desc)}</div>`, buttons: [
         { label: '다른 전단지 비추기', cls: 'line', on: () => ui.release() },
         { label: flyer.cta, on: () => (t.correct ? win() : ui.show({ html: `${head}<div class="fb">${esc(t.feedback)}</div>`, buttons: [{ label: '다시 찾기', on: () => ui.release() }] })) },
