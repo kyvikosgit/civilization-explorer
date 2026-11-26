@@ -56,6 +56,10 @@ const S = 320, P = 80, NC = 1, NM = 32, MODEL = 'model/demo/tumbler-seg-320.onnx
 const SHOW = new URLSearchParams(location.search).has('show');   // 시험용: 조준 없이도 잡히면 테두리 표시
 const MODE = 'fill';   // 11/26 확정: 색칠(테두리보다 가볍고 가장자리 오차가 덜 보임). 테두리 코드는 남겨 둠(MODE = 'line')
 let stopped = false;   // 인식되면 AI 멈춤(폰 부담) — '다시 비춰 보기'로 다시
+let runs = 0, recogT = 0;
+function mark(state) { try { sessionStorage.setItem('segLog', JSON.stringify({ t: Date.now(), ep, runs, state, since: recogT ? Math.round((Date.now() - recogT) / 1000) : -1 })); } catch {} }
+const prevLog = (() => { try { return JSON.parse(sessionStorage.getItem('segLog')); } catch { return null; } })();
+addEventListener('pagehide', () => { try { sessionStorage.removeItem('segLog'); } catch {} });   // 정상으로 닫힘 = 기록 지움
 let sess, ort, ep = '', hitT = 0, aimT = 0, done = false, hit = false, prevHit = false;
 const v = $('v'), fx = $('fx'), fxx = fx.getContext('2d');
 const inp = document.createElement('canvas'); inp.width = inp.height = S; const ix = inp.getContext('2d', { willReadFrequently: true });
@@ -66,7 +70,10 @@ const G = S * 2, MAXA = G * G;
 let W = 0, H = 0, dpr = Math.min(2, devicePixelRatio || 1);
 const gcv = document.createElement('canvas'); gcv.width = gcv.height = G; const gx2 = gcv.getContext('2d', { willReadFrequently: true });
 const mask = document.createElement('canvas'), glow = document.createElement('canvas');
+mask.width = mask.height = glow.width = glow.height = G;   // 11/26 6판: 크기 고정 — 분석마다 새 그림(ImageData)을 만들지 않음(아이폰 메모리)
 const mc = mask.getContext('2d'), gc = glow.getContext('2d');
+const mImg = mc.createImageData(G, G), gImg = gc.createImageData(G, G);
+let inT = null;   // 입력 텐서도 한 번만
 const lg80 = new Float32Array(P * P);
 const F = () => new Float32Array(MAXA);
 const gI_ = F(), pP = F(), t1 = F(), t2 = F(), mI_ = F(), mP = F(), aA = F(), bB = F(), al = F(), sl = F(), bl = F(), integ = new Float64Array((G + 1) * (G + 1));
@@ -85,7 +92,8 @@ function boxMean(src, dst, w, h, r) {   // 상자 평균(적분 영상) — 가�
 
 async function makeSession() {
   // 폰 그래픽 칩 먼저(WebGPU → WebGL), 안 되면 CPU
-  for (const [mod, eps] of [['ort.webgpu.min.mjs', ['webgpu']], ['ort.min.mjs', ['webgl']], ['ort.wasm.min.mjs', ['wasm']]]) {
+  const want = new URLSearchParams(location.search).get('ep');   // 시험: ?ep=wasm 이면 CPU 로만
+  for (const [mod, eps] of [['ort.webgpu.min.mjs', ['webgpu']], ['ort.min.mjs', ['webgl']], ['ort.wasm.min.mjs', ['wasm']]].filter(([, e]) => !want || e[0] === want)) {
     try {
       if (eps[0] === 'webgpu' && !navigator.gpu) continue;
       ort = await import(ORT + mod); ort.env.wasm.wasmPaths = ORT; ort.env.wasm.numThreads = 1;
@@ -107,7 +115,20 @@ async function boot() {
   requestAnimationFrame(frame); analyze();
 }
 $('go').addEventListener('click', boot);
-$('again').addEventListener('click', () => { $('ok').classList.remove('on'); done = false; aimT = 0; hitT = 0; prevHit = false; geo = null; if (stopped) { stopped = false; clearTimeout(timer); analyze(); } });
+if (prevLog && Date.now() - prevLog.t < 120000) $('err').textContent = `직전에 페이지가 다시 열림 — ${prevLog.ep} · 분석 ${prevLog.runs}번 · 마지막 상태 ${prevLog.state}${prevLog.since >= 0 ? ` · 인식 ${prevLog.since}초 뒤` : ''}`;
+setInterval(() => { if (sess || stopped) mark(stopped ? (sess ? 'stopped' : 'freed') : 'run'); }, 2000);
+async function freeEngine() {   // 인식 뒤 = 계산이 끝날 때까지 기다렸다가 AI 를 내려 그래픽 메모리를 돌려줌
+  clearTimeout(timer); while (analyzing) await new Promise((r) => setTimeout(r, 30));
+  if (!stopped || !sess) return; const s0 = sess; sess = null; inT = null; mark('freed');
+  try { await s0.release(); } catch {}
+}
+$('again').addEventListener('click', async () => {
+  $('ok').classList.remove('on'); done = false; aimT = 0; hitT = 0; prevHit = false; geo = null;
+  if (!stopped) return;
+  $('again').disabled = true;
+  try { if (!sess) sess = await makeSession(); } catch (e) { $('dbg').textContent = '모델 다시 열기 실패'; }
+  $('again').disabled = false; stopped = false; clearTimeout(timer); analyze();
+});
 document.addEventListener('visibilitychange', () => { if (!document.hidden && !stopped && sess) { clearTimeout(timer); analyze(); } });
 
 // 화면에 보이는(가득 채운) 영역 = 영상의 어느 부분인지
@@ -117,7 +138,7 @@ function view() {
 }
 // 분석: 보이는 영역 → 320 정사각(가장자리 회색) → 실루엣 → 빛 테두리 그림. 끝나면 바로 다음
 async function analyze() {
-  if (stopped || document.hidden) return;   // 인식 뒤 · 화면 꺼짐 = 계산 안 함
+  if (stopped || document.hidden || !sess) return;   // 인식 뒤 · 화면 꺼짐 = 계산 안 함
   if (analyzing) return; analyzing = true;
   try { await analyzeOnce(); } finally { analyzing = false; }
   if (stopped || document.hidden) return;
@@ -132,7 +153,8 @@ async function analyzeOnce() {
   const d = ix.getImageData(0, 0, S, S).data, n = S * S;
   for (let i = 0; i < n; i++) { tensor[i] = d[i * 4] / 255; tensor[i + n] = d[i * 4 + 1] / 255; tensor[i + 2 * n] = d[i * 4 + 2] / 255; }
   let out;
-  try { out = await sess.run({ images: new ort.Tensor('float32', tensor, [1, 3, S, S]) }); } catch (e) { await new Promise((r) => setTimeout(r, 200)); return; }
+  if (!inT) inT = new ort.Tensor('float32', tensor, [1, 3, S, S]);
+  try { out = await sess.run({ images: inT }); } catch (e) { await new Promise((r) => setTimeout(r, 200)); return; }
   const o0 = out.output0.getData ? await out.output0.getData() : out.output0.data, o1 = out.output1.getData ? await out.output1.getData() : out.output1.data, N = out.output0.dims[2];
   try { out.output0.dispose?.(); out.output1.dispose?.(); } catch {}
   let best = -1, bs = 0.6;   // 11/26 엉뚱한 곳(비슷한 밝기)에 반응하던 것 — 확신 60% 넘을 때만
@@ -172,17 +194,16 @@ async function analyzeOnce() {
       for (let i = 0; i < A; i++) { const qv = aA[i] * gI_[i] + bB[i], t = Math.min(1, Math.max(0, (qv - 0.32) / 0.36)); al[i] = t * t * (3 - 2 * t); }
       boxMean(al, sl, rw, rh, 1); boxMean(al, bl, rw, rh, 9);   // sl = 선 · bl = 바깥 번짐
       }
-      if (mask.width !== rw || mask.height !== rh) { mask.width = glow.width = rw; mask.height = glow.height = rh; }
-      const mImg = mc.createImageData(rw, rh), gImg = gc.createImageData(rw, rh), md = mImg.data, gq = gImg.data;
+      const md = mImg.data, gq = gImg.data;
       if (fill) for (let i = 0; i < A; i++) {
-        const a = al[i]; md[i * 4] = md[i * 4 + 1] = md[i * 4 + 2] = 255; md[i * 4 + 3] = a * 255;
-        gq[i * 4] = 191; gq[i * 4 + 1] = 232; gq[i * 4 + 2] = 185; gq[i * 4 + 3] = a * 120;   // 연두 반투명
+        const a = al[i], o = ((ry + (i / rw | 0)) * G + rx + i % rw) * 4; md[o] = md[o + 1] = md[o + 2] = 255; md[o + 3] = a * 255;
+        gq[o] = 191; gq[o + 1] = 232; gq[o + 2] = 185; gq[o + 3] = a * 120;   // 연두 반투명
       } else for (let i = 0; i < A; i++) {
-        const a = al[i], edge = Math.min(1, Math.max(0, 1 - Math.abs(sl[i] - 0.5) / 0.32) * 1.5), halo = Math.max(0, bl[i] - a) * 2;
-        md[i * 4] = md[i * 4 + 1] = md[i * 4 + 2] = 255; md[i * 4 + 3] = a * 255;
-        gq[i * 4] = 214 + 41 * edge; gq[i * 4 + 1] = 245 + 10 * edge; gq[i * 4 + 2] = 207 + 48 * edge; gq[i * 4 + 3] = Math.min(1, edge + halo) * 255;
+        const o = ((ry + (i / rw | 0)) * G + rx + i % rw) * 4, a = al[i], edge = Math.min(1, Math.max(0, 1 - Math.abs(sl[i] - 0.5) / 0.32) * 1.5), halo = Math.max(0, bl[i] - a) * 2;
+        md[o] = md[o + 1] = md[o + 2] = 255; md[o + 3] = a * 255;
+        gq[o] = 214 + 41 * edge; gq[o + 1] = 245 + 10 * edge; gq[o + 2] = 207 + 48 * edge; gq[o + 3] = Math.min(1, edge + halo) * 255;
       }
-      mc.putImageData(mImg, 0, 0); gc.putImageData(gImg, 0, 0);
+      mc.putImageData(mImg, 0, 0, rx, ry, rw, rh); gc.putImageData(gImg, 0, 0, rx, ry, rw, rh);
       geo = { x: rx, y: ry, w: rw, h: rh, px, py, k, sc: SC };
       // 조준점이 실루엣 안인가
       const cx = Math.round((W / 2 * k + px) * SC) - rx, cy = Math.round((H / 2 * k + py) * SC) - ry;
@@ -192,7 +213,7 @@ async function analyzeOnce() {
     } else { hit = false; prevHit = false; }
   } else { hit = false; prevHit = false; }
   $('dbg').textContent = `${ep} · ${Math.round(performance.now() - t0)}ms`;
-  lastDt = performance.now() - t0;
+  lastDt = performance.now() - t0; runs++; if (runs % 15 === 0) mark('run');
 }
 let glowA = 0;
 function frame() {
@@ -203,7 +224,7 @@ function frame() {
   if (on && !done) { if (!aimT) aimT = performance.now(); } else if (!on) aimT = 0;
   const p = aimT ? Math.min(1, (performance.now() - aimT) / 800) : 0;
   $('ringc').setAttribute('stroke-dashoffset', String(176 * (1 - p)));
-  if (p >= 1 && !done) { done = true; stopped = !SHOW; $('ok').classList.add('on'); navigator.vibrate?.(30); }   // 인식 완료 → AI 멈춤
+  if (p >= 1 && !done) { done = true; stopped = !SHOW; $('ok').classList.add('on'); navigator.vibrate?.(30); recogT = Date.now(); mark('recognized'); if (stopped) freeEngine(); }   // 인식 완료 → AI 멈춤
   fxx.setTransform(dpr, 0, 0, dpr, 0, 0); fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = 1; fxx.clearRect(0, 0, W, H);
   if (glowA < 0.02) return;
   // 스캔 빛: 실루엣 안을 위에서 아래로(그라데이션 띠를 실루엣 모양으로 오림)
@@ -214,8 +235,8 @@ function frame() {
   const gx = (geo.x / geo.sc - geo.px) / geo.k, gy = (geo.y / geo.sc - geo.py) / geo.k, gw = geo.w / geo.sc / geo.k, gh = geo.h / geo.sc / geo.k;   // 다듬은 그림 → 화면 자리
   fxx.fillStyle = g; fxx.fillRect(gx, Math.max(gy, y - 60), gw, Math.max(0, Math.min(gy + gh, y + 60) - Math.max(gy, y - 60)));   // 스캔 띠는 실루엣 상자 안에만
   fxx.imageSmoothingEnabled = true; fxx.imageSmoothingQuality = 'high';
-  fxx.globalCompositeOperation = 'destination-in'; fxx.drawImage(mask, gx, gy, gw, gh);
-  fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = glowA; fxx.drawImage(glow, gx, gy, gw, gh); fxx.globalAlpha = 1;
+  fxx.globalCompositeOperation = 'destination-in'; fxx.drawImage(mask, geo.x, geo.y, geo.w, geo.h, gx, gy, gw, gh);
+  fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = glowA; fxx.drawImage(glow, geo.x, geo.y, geo.w, geo.h, gx, gy, gw, gh); fxx.globalAlpha = 1;
 }
 </script>
 </body>
