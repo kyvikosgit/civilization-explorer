@@ -51,7 +51,8 @@ const CSS = `
 .v3-done .d-foot .v3-end .ve-got{display:none}
 .v3-done .d-foot .v3-end .ve-more{margin-top:6px;padding:6px 12px}
 .v3-fly{position:fixed;z-index:9001;pointer-events:none;object-fit:cover;box-shadow:0 8px 22px rgba(0,0,0,.18)}
-.v3-done .d-col{margin-top:16px;text-align:center}
+.v3-done .d-col{margin-top:18px;text-align:center;padding:14px 12px 16px;border-radius:16px;background:var(--d-panel)}   /* 11/26 나의 수집품 = 한 판으로 감쌈 */
+.v3-done .d-col .d-slots span:not(.on){background:#FFFFFF}
 .v3-done .d-colt{font-size:13.5px;font-weight:700;color:var(--d-sub)}
 .v3-done .d-colt b{color:var(--d-ink)}
 .v3-done .d-slots{margin-top:8px;display:flex;justify-content:center;gap:8px}
