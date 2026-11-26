@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="robots" content="noindex">
-<title>벽 AR 시험 · 8th Wall</title>
+<title>사람들의 대화 · 시민사회</title>
 <!-- 11/25 시민사회 꺾인 벽 — 8th Wall 엔진(배포용 바이너리, SLAM 포함) 시험. 그림을 한 번 인식하면 공간에 고정돼 손을 움직여도 붙어 있게
      면마다 각자 인식(카페 · 박람회 거리), 90도 계산 없음. 카페 = 영상, 거리 = 영상 없음
      대사 = 기획서 260928 그대로, 11/25: 화면 위 상자가 아니라 그림 벽 위(그 인물 머리 위)에 글자가 한 자씩 스르륵 써지는 AR 글(벽과 같은 원근) — 화면 가운데에 가장 가까운 인물 하나만
@@ -13,6 +13,7 @@
      11/25 티 안 나게: (1) 움직이는 부분만 덮기 — 영상 화소가 첫 장면(*_ref.jpg)과 달라진 곳만 보이고 나머지는 카메라에 비친 실제 그림
                      (2) 실시간 색 맞춤 — 카메라 화소(CameraPixelArray)를 원본 그림 같은 자리와 비교해 영상 밝기 · 대비 · 색을 맞춤 (3) 카메라 같은 흐림 · 잡티 조금
      ?rot=1 · ?rot=-1 : 영상을 90° 돌려 보기(점검용, 기본 0) · ?debug=1 : 판을 붉게 + 상태 · ?noslam=1 : 공간 고정 끄기(점검용) -->
+<script src="../i18n.js"></script>  <!-- 11/26 앱 언어(영 · 일 · 중) — 안내 글은 사전으로, 벽 위 대사는 아래 makeText 전에 M100_T 로 -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"></script>
@@ -26,17 +27,21 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 .hint{position:fixed;left:0;right:0;bottom:calc(44px + env(safe-area-inset-bottom));text-align:center;z-index:5}
 .hint span{background:rgba(0,0,0,.5);padding:8px 14px;border-radius:18px;font-size:15px}
 #dbg{position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:8px;white-space:pre;z-index:6}
+.close{position:fixed;right:max(12px,env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));width:44px;height:44px;border-radius:22px;border:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:30}
 .credit{position:fixed;right:8px;bottom:calc(6px + env(safe-area-inset-bottom));font-size:9px;color:rgba(255,255,255,.45);z-index:5}
 .credit a{color:inherit}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="start" id="start"><h1>벽 AR 시험 (8th Wall)</h1><p>카페 그림이나 거리 그림을 화면에 가득 비춰 주세요.<br>한 번 잡히면 폰을 움직여도 그 자리에 붙어 있어야 합니다.</p><button type="button" id="go">시작</button><p id="err"></p></div>
+<div class="start" id="start"><h1>사람들의 대화</h1><p>카페 게르부아와 박람회 거리 그림을<br>화면에 가득 비춰 보세요. 그림 속 사람들의 대화가 들립니다.</p><button type="button" id="go">카메라 켜기</button><p id="err"></p></div>
+<button type="button" class="close" id="close" aria-label="닫기"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 <div class="hint" id="hint" hidden><span>그림을 화면에 가득 비춰 주세요</span></div>
 <div id="dbg" hidden></div>
 <div class="credit">AR: 8th Wall Engine © Niantic Spatial · <a href="https://github.com/8thwall/engine/blob/main/LICENSE" target="_blank" rel="noopener">XR Engine License</a> · 보증 없음</div>
 <script>
+// 11/26 앱 · 웹에서 나가기 — 앱(웹뷰)은 체험 화면을 닫고, 웹은 뒤로
+document.getElementById('close').addEventListener('click', function () { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'close' })); else if (history.length > 1) history.back(); else location.href = 'https://app.it-ta.com/exhibition/monet100'; });
 (function () {
   var q = new URLSearchParams(location.search), DEBUG = q.has('debug'), ROT = q.has('rot') ? +q.get('rot') || 0 : 0,   // 11/25 폰 확인: 돌린 타깃도 엔진이 원래(가로) 방향으로 알려 줌 → 돌리지 않음(0). 점검용 ?rot=1 · ?rot=-1
       SLAM = !q.has('noslam');
@@ -137,8 +142,9 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
           var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); g.add(m);
           var heads = HEADS[k].map(function (h) {
             var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o);
-            var tx = makeText(h.t); tx.mesh.visible = false; g.add(tx.mesh);
-            return { o: o, t: h.t, face: k, hx: h.x, hy: h.y, tx: tx, a: 0, t0: 0 };
+            var tt = window.M100_T ? window.M100_T(h.t) : h.t;   // 11/26 앱 언어로(한 글자씩 그리기 전에 문장째 바꿈)
+            var tx = makeText(tt); tx.mesh.visible = false; g.add(tx.mesh);
+            return { o: o, t: tt, face: k, hx: h.x, hy: h.y, tx: tx, a: 0, t0: 0 };
           });
           faces[k] = { g: g, m: m, heads: heads, sized: false };
         });
@@ -175,7 +181,12 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
   var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 720, LH = 74, PAD = 28;   // 머리 위에 좁게(한 줄 12자 안팎)
   function wrap(ctx, text, maxW) {   // 한국어는 낱자 단위로 줄바꿈(띄어쓰기 우선)
     var words = text.split(' '), lines = [], cur = '';
-    words.forEach(function (w) { var t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width <= maxW) cur = t; else { if (cur) lines.push(cur); cur = w; } });
+    words.forEach(function (w) {
+      var t = cur ? cur + ' ' + w : w; if (ctx.measureText(t).width <= maxW) { cur = t; return; }
+      if (cur) lines.push(cur); cur = '';
+      // 11/26 띄어쓰기가 없는 일본어 · 중국어(또는 아주 긴 낱말)는 글자 단위로 줄바꿈
+      Array.from(w).forEach(function (ch) { var u = cur + ch; if (ctx.measureText(u).width <= maxW || !cur) cur = u; else { lines.push(cur); cur = ch; } });
+    });
     if (cur) lines.push(cur); return lines;
   }
   function makeText(text) {

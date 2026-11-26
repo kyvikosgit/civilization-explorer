@@ -182,6 +182,7 @@ export function openCam(o) {
   if (o.mind) {
     startScan($('.ar'), o.mind, (o.targets || []).length, {
       setup: o.fx ? (ctx) => (me.fx = o.fx(ctx)) : null, center: !!o.center,
+      highlight: !o.fx && o.highlight !== false,   // 11/26 자체 연출이 없는 물체 인식(전단지 · 기차표)은 잡힌 물체 테두리를 빛내고 0.9초 뒤 다음으로
       onFound: found,
       onLost: (i) => {
         me.fx?.lost?.(i);

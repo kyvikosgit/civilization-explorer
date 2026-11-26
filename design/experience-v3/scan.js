@@ -16,7 +16,44 @@ if (md?.getUserMedia && !md.__m100wrap) {
   md.__m100wrap = true;
 }
 
-export async function startScan(container, mindUrl, count, { onFound, onLost, onError, onReady, setup, center = false }) {
+// 11/26 하이라이트: 잡힌 물체(전단지 · 기차표) 둘레에 빛나는 테두리가 그 물체에 붙어 그려지고 안쪽이 한 번 밝아진 뒤(약 0.9초) 다음으로 — QR 처럼 바로 넘어가지 않게
+function makeHighlight(anchors, dims) {
+  const items = anchors.map((a, i) => {
+    const d = dims && dims[i], r = d ? d[1] / d[0] : 1;
+    const g = new THREE.Group(); g.visible = false; g.renderOrder = 999;
+    const mat = (c, o) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthTest: false, depthWrite: false });
+    const fill = new THREE.Mesh(new THREE.PlaneGeometry(1, r), mat(0xffffff, 0)); g.add(fill);
+    const edge = [], glow = [];
+    const bar = (w, h, x, y, arr, c, o) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat(c, o)); m.position.set(x, y, 0.001); g.add(m); arr.push(m); };
+    for (const [t, arr, c] of [[0.05, glow, 0xd8ecd4], [0.014, edge, 0xffffff]]) {
+      bar(1 + t, t, 0, r / 2, arr, c, 0); bar(1 + t, t, 0, -r / 2, arr, c, 0);
+      bar(t, r + t, -0.5, 0, arr, c, 0); bar(t, r + t, 0.5, 0, arr, c, 0);
+    }
+    a.group.add(g);
+    return { g, fill, edge, glow, t0: 0, cb: null, timer: 0 };
+  });
+  return {
+    start(i, cb) {
+      const h = items[i]; if (!h) { cb(); return; }
+      h.g.visible = true; h.t0 = performance.now(); clearTimeout(h.timer);
+      h.timer = setTimeout(() => cb(), 900);
+    },
+    stop(i) { const h = items[i]; if (!h) return; clearTimeout(h.timer); h.g.visible = false; h.t0 = 0; },
+    tick() {
+      const now = performance.now();
+      for (const h of items) {
+        if (!h.g.visible || !h.t0) continue;
+        const t = (now - h.t0) / 1000, p = Math.min(1, t / 0.45), e = 1 - Math.pow(1 - p, 3);
+        h.g.scale.setScalar(1.1 - 0.1 * e);                                   // 살짝 크게 나타나 물체 테두리에 딱 맞게 붙음
+        h.edge.forEach((m) => (m.material.opacity = e));
+        h.glow.forEach((m) => (m.material.opacity = 0.55 * e * (0.75 + 0.25 * Math.sin(t * 6))));   // 은은히 숨 쉬는 바깥 빛
+        h.fill.material.opacity = t < 0.9 ? 0.22 * Math.sin(Math.min(1, t / 0.9) * Math.PI) : 0;   // 안쪽이 한 번 밝아졌다 가라앉음
+      }
+    },
+  };
+}
+
+export async function startScan(container, mindUrl, count, { onFound, onLost, onError, onReady, setup, center = false, highlight = false }) {
   await stopScan();
   const me = { stopped: false, container };
   cur = me;
@@ -30,12 +67,14 @@ export async function startScan(container, mindUrl, count, { onFound, onLost, on
     me.mindar = mindar;
     const anchors = [];
     let timer = 0, shown = -1;
+    let hl = null;
+    const fire = (i) => (hl ? hl.start(i, () => { if (shown === i) onFound(i); }) : onFound(i));
     for (let i = 0; i < count; i++) {
       const a = mindar.addAnchor(i);
       anchors.push(a);
       if (center) continue;                             // 가운데 판정은 아래 매 프레임에서
-      a.onTargetFound = () => { clearTimeout(timer); timer = setTimeout(() => { shown = i; onFound(i); }, 350); };
-      a.onTargetLost = () => { clearTimeout(timer); if (shown === i) { shown = -1; onLost?.(i); } };
+      a.onTargetFound = () => { clearTimeout(timer); timer = setTimeout(() => { shown = i; fire(i); }, 350); };
+      a.onTargetLost = () => { clearTimeout(timer); hl?.stop(i); if (shown === i) { shown = -1; onLost?.(i); } };
     }
     // 가운데 판정: 보이는 그림마다 한가운데를 화면에 투영해 칸 안인지 본다
     const v = new THREE.Vector3();
@@ -56,16 +95,17 @@ export async function startScan(container, mindUrl, count, { onFound, onLost, on
       if (p !== want) { want = p; wantT = now; }
       if (shown >= 0 && p !== shown) {                                  // 지금 그림이 칸을 벗어남 — 0.5초 유예
         if (!outT) outT = now;
-        if (now - outT > 500) { const i = shown; shown = -1; outT = 0; onLost?.(i); }
+        if (now - outT > 500) { const i = shown; shown = -1; outT = 0; hl?.stop(i); onLost?.(i); }
       } else outT = 0;
-      if (shown < 0 && want >= 0 && now - wantT > 350) { shown = want; onFound(want); }
+      if (shown < 0 && want >= 0 && now - wantT > 350) { shown = want; fire(want); }
     };
     const fx = setup ? setup({ THREE, mindar, anchors }) : null;
     await mindar.start();
     if (me.stopped) { await stopScan(me); return; }
+    if (highlight) { try { hl = makeHighlight(anchors, mindar.controller?.markerDimensions); } catch (e) { hl = null; } }
     const { renderer, scene, camera } = mindar;
     const t0 = performance.now();
-    renderer.setAnimationLoop(() => { if (center) centerTick(); me.fxTick?.((performance.now() - t0) / 1000); renderer.render(scene, camera); });
+    renderer.setAnimationLoop(() => { if (center) centerTick(); hl?.tick(); me.fxTick?.((performance.now() - t0) / 1000); renderer.render(scene, camera); });
     me.fxTick = fx?.tick;
     onReady?.();
   } catch (e) {
