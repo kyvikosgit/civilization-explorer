@@ -20,9 +20,10 @@ const CSS = `
 /* ── 미션 완료 공통 화면(11/06) — 구역마다 다르던 끝 화면을 하나로. 정답 연출이 끝나면 이 판이 덮는다 */
 .v3-done{--d-bg:#FFFFFF;--d-ink:#111111;--d-sub:#707070;--d-line:#ECE9E2;--d-panel:#F5F5F3;--d-pt:#739071;--d-sage:#739071;--d-sage-deep:#5B7559;--d-tint:#EEF2EC;position:fixed;inset:0;z-index:9000;background:var(--d-bg);color:var(--d-ink);font-family:Freesentation,Pretendard,sans-serif;word-break:keep-all;display:flex;flex-direction:column;opacity:0;transition:opacity .35s ease}
 .v3-done.on{opacity:1}
-.v3-done .d-bar{flex:none;height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;border-bottom:1px solid transparent}
-.v3-done .d-bar a{width:44px;height:44px;display:grid;place-items:center;color:var(--d-ink);text-decoration:none;position:relative}
-.v3-done .d-bar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+/* 11/26 뒤로 단추 = 체험 화면 위 막대와 똑같이(experience-v2/proto/proto-base.css .topbar · .icon-btn: 40칸 · 아이콘 24 · 선 2) */
+.v3-done .d-bar{flex:none;height:calc(52px + env(safe-area-inset-top, 0px));padding:env(safe-area-inset-top, 0px) 12px 0;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;border-bottom:1px solid transparent}
+.v3-done .d-bar a{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;color:var(--d-ink);text-decoration:none;position:relative}
+.v3-done .d-bar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .v3-done .d-loc{text-align:center;font-size:17px;font-weight:700;color:var(--d-ink);letter-spacing:-.01em}
 .v3-done .d-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 20px 24px}
 .v3-done .d-in{max-width:440px;margin:0 auto}
