@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<title>인식 하이라이트 시험 · 텀블러</title>
+<!-- 11/26 물체 인식 하이라이트 시험 — 실제 미션(전단지 · 기차표)과 같은 코드(camui.js · scan.js highlight)
+     인식 대상 = 사용자 책상 위 텀블러 사진 3장(img/demo/tumbler_*.jpg → mind/demo-tumbler.mind). 잡히면 테두리가 빛나고 0.9초 뒤 '인식됨' -->
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="cam.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/",
+  "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
+} }
+</script>
+<style>
+html,body{margin:0;height:100%;background:#111;color:#fff;font-family:Freesentation,-apple-system,sans-serif}
+.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center}
+.start h1{margin:0;font-size:22px}.start p{margin:0;color:#aaa;font-size:15px;line-height:1.6;word-break:keep-all}
+.start button{font:700 17px inherit;background:#fff;color:#111;border:0;border-radius:12px;padding:15px 30px}
+.ok{text-align:center;padding:6px 4px 2px}.ok b{display:block;font-size:20px;margin-bottom:6px}.ok span{color:#bbb;font-size:15px}
+</style>
+</head>
+<body>
+<div class="start" id="start"><h1>인식 하이라이트 시험</h1><p>책상 위 텀블러를 로고가 보이게 비춰 보세요.<br>잡히면 텀블러 테두리가 빛나고, 잠시 뒤 '인식됨'이 뜹니다.</p><button id="go" type="button">카메라 켜기</button></div>
+<script type="module">
+import { openCam } from './camui.js';
+const go = () => {
+  document.getElementById('start').style.display = 'none';
+  openCam({
+    title: '시험 · 텀블러 비추기',
+    find: '텀블러를 로고가 보이게 비춰 보세요',
+    hint: '조금 더 가까이, 로고가 화면 가운데 오게 비춰 보세요',
+    mind: 'mind/demo-tumbler.mind',
+    targets: [{ title: '텀블러', img: 'img/demo/tumbler_145.jpg' }, { title: '텀블러', img: 'img/demo/tumbler_144.jpg' }, { title: '텀블러', img: 'img/demo/tumbler_146.jpg' }],
+    dots: false, center: true,
+    onFound: (i, ui) => ui.show({
+      html: `<div class="ok"><b>인식됨 ✓</b><span>사진 ${i + 1}번과 맞았어요. 실제 미션에서는 여기서 완료 화면으로 넘어갑니다.</span></div>`,
+      buttons: [{ label: '다시 비춰 보기', on: () => ui.release() }],
+    }),
+    onClose: () => { document.getElementById('start').style.display = ''; },
+  });
+};
+document.getElementById('go').addEventListener('click', go);
+</script>
+</body>
+</html>
