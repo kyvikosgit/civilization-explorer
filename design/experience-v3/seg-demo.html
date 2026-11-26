@@ -47,7 +47,7 @@ canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 <script type="module">
 const ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
 const $ = (id) => document.getElementById(id);
-const S = 320, P = 80, NC = 1, NM = 32, MODEL = 'model/demo/tumbler-seg-320.onnx';
+const S = 320, P = 80, NC = 1, NM = 32, MODEL = 'model/demo/tumbler-seg-320.onnx?v=1126b';
 let sess, ort, ep = '', hitT = 0, aimT = 0, done = false, hit = false, prevHit = false;
 const v = $('v'), fx = $('fx'), fxx = fx.getContext('2d');
 const inp = document.createElement('canvas'); inp.width = inp.height = S; const ix = inp.getContext('2d', { willReadFrequently: true });
