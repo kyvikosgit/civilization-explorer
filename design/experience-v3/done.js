@@ -107,9 +107,9 @@ if (EMBED) {
 }
 
 // 끝 줄 하나. item: { name, img, contain } · more: 체험 더보기를 누르면(없으면 단추 없음) · light: 밝은 바탕 페이지
-export function endRow(zoneId, { item, got = '수집품을 받았습니다', more, moreLabel = '체험 더보기', light = false, btn = '다음' } = {}) {
+export function endRow(zoneId, { item, got = '수집품을 받았습니다', more, moreLabel = '체험 더보기', light = false, btn = '다음', then = null } = {}) {
   style();
-  const nx = nextOf(zoneId);
+  const nx = then ? { href: then.href, title: '' } : nextOf(zoneId);   // 11/26 then = 이어지는 체험(시민사회 → 사람들의 대화 벽 AR)
   // 앱 안(웹뷰 · 앱 웹 버전 iframe)에서는 다음 구역으로 — 앱이 그 구역 도슨트부터 이어 준다(어느 구역인지는 앱 동선이 정함)
   const inApp = !!window.__m100app || EMBED;
   const el = document.createElement('div');
@@ -118,8 +118,8 @@ export function endRow(zoneId, { item, got = '수집품을 받았습니다', mor
   el.innerHTML = `${item ? `<p class="ve-got">${pic}<span>${esc(got)} · <b>${esc(item.name)}</b></span></p>` : ''}
     ${inApp
       // 11/20: 앱 안에서는 [다음] 하나 — 누르면 구역 화면으로 돌아가며 이 화면이 체험 카드로 줄어든다(앱 src/lib/expReturn.ts)
-      ? `<div class="ve-btns"><a class="ve-btn fill" href="${esc(nx.href)}" style="flex:1">${esc(btn)}</a></div>`
-      : `<div class="ve-btns"><a class="ve-btn line" href="${esc(HUB)}">목록으로 돌아가기</a><a class="ve-btn fill" href="${esc(nx.href)}">다음 미션으로<small>${esc(nx.title)}</small></a></div>`}
+      ? `<div class="ve-btns"><a class="ve-btn fill" href="${esc(nx.href)}" style="flex:1">${esc(then ? then.label : btn)}</a></div>`
+      : `<div class="ve-btns"><a class="ve-btn line" href="${esc(HUB)}">목록으로 돌아가기</a><a class="ve-btn fill" href="${esc(nx.href)}">${then ? esc(then.label) : `다음 미션으로<small>${esc(nx.title)}</small>`}</a></div>`}
 `;   // 11/20: 체험 더보기는 모두 뺌(사용자 지시) — more · moreLabel 은 받기만 함
   void more; void moreLabel;
   return el;
@@ -142,7 +142,7 @@ const CC = { salon: 'img/cc_salon.jpg', flyer: 'img/cc_flyer.jpg', ticket: 'img/
 const ccOf = (id) => (CC[id] ? new URL(CC[id], V3).href : '');
 // 11/26 위 가운데 = 앱 구역 화면과 같은 구역 이름(구역 번호 B · C-2 같은 운영 코드는 안 보임)
 const ZONE_NAME = { salon: '아카데미 살롱', society: '시민사회', industry: '사업가의 방', atelier: '화가의 작업 공간', nadar: '나다르 사진관', monet: '인상파 전시회' };
-export function showComplete(zoneId, { item, title = '', body = '', note = '', more, cap = '미션 완료' } = {}) {
+export function showComplete(zoneId, { item, title = '', body = '', note = '', more, cap = '미션 완료', then = null } = {}) {
   style();
   void more;
   const zone = ZONES.find((z) => z.id === zoneId);
@@ -170,7 +170,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
     <div class="d-foot"></div>`;
   // 11/23 앱 안 단추 이름: 새로 받은 수집품 = [수집품에 저장], 이미 담아 둔 것 = [확인] (누르면 구역 화면으로 돌아가 체험 카드로 줄어든다)
   const already = slot >= 0 && SAVED0.has(COLLECT_IDS[slot]);
-  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, btn: slot < 0 ? '다음' : already ? '확인' : '수집품에 저장' }));
+  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, then, btn: slot < 0 ? '다음' : already ? '확인' : '수집품에 저장' }));
   document.body.appendChild(el);
   const api = { el, hide() { el.classList.remove('on'); setTimeout(() => el.remove(), 350); } };
   // 11/26 기차표도 다른 미션처럼 단추를 눌러야 넘어감(완료 화면 자동 넘김은 사용자 지시로 뺌 — 수집품 · 해설을 읽는 중에 넘어가 버림)

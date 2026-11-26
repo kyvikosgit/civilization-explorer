@@ -72,13 +72,8 @@ function openFlyer() {
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => guide.reset(),
-    onFound: (i, ui) => {
-      const t = targets[i], head = `<div class="dc">바티뇰파 전단지</div><div class="dt">${esc(t.title)}</div>`;
-      ui.show({ html: `${head}<div class="dd">${esc(t.desc)}</div>`, buttons: [
-        { label: '다른 전단지 비추기', cls: 'line', on: () => ui.release() },
-        { label: flyer.cta, on: () => (t.correct ? win() : ui.show({ html: `${head}<div class="fb">${esc(t.feedback)}</div>`, buttons: [{ label: '다시 찾기', on: () => ui.release() }] })) },
-      ] });
-    },
+    // 11/26 실물 전단지 한 장만 인식 — 잡히면(테두리가 빛난 뒤) 묻지 않고 바로 수집 완료 화면으로
+    onFound: (i) => { if (targets[i]?.correct) win(); },
   });
 }
 // 정답 — 카메라가 닫히고, 칼럼에서 그 전단지가 떼어져 가운데로 떠오른다(v2 살펴보기 + 삽화 영상)
@@ -98,7 +93,8 @@ async function win() {
 function showEnd() {
   // 11/06: 미션 완료는 구역 공통 화면(done.js) — 벽면 대화(체험 더보기)에서 돌아와도 같은 화면
   const [name, , ...rest] = flyer.successBody.split('\n');
-  showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), note: flyer.note, more: (d) => { d.hide(); openPeople(); } });
+  // 11/26: 완료 화면의 다음 = 바로 이어지는 체험 '사람들의 대화'(카페 · 박람회 벽을 비추는 AR — xr8/, 사이트에서 엶)
+  showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), note: flyer.note, then: { label: '사람들의 대화 보러 가기', href: 'https://it-ta.com/design/experience-v3/xr8/index.html' + location.search.replace(/[?&](got|o)=[^&]*/g, '') }, more: (d) => { d.hide(); openPeople(); } });
 }
 
 // 끝난 뒤 뒤로 = 목록으로(옛 단계 — 칼럼 · 거리 — 로 되돌아가면 할 일이 없다)
