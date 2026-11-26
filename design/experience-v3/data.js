@@ -83,15 +83,10 @@ export const ZONES = [
         find: '모리스 칼럼의 전단지에 카메라를 비추세요',
         mind: 'mind/flyer.mind',
         cta: '이 전단지로 고르기',
+        // 11/26 실제 모리스 칼럼에 붙는 전단지 한 장만 인식(다른 후보 두 장은 뺌) — mind/flyer.mind = img/fl_guerbois_real.jpg(현장 실물 사진)
         targets: [
-          { id: 'f1', title: '카페 게르부아 · 바티뇰파 모임', img: 'img/fl_batignolles.jpg', correct: true,
+          { id: 'f1', title: '카페 게르부아 · 바티뇰파 모임', img: 'img/fl_guerbois_real.jpg', correct: true,
             desc: '매주 목요일과 일요일 저녁, 카페 게르부아의 한 켠에서 바티뇰파 모임이 열립니다. 관심 있는 자, 누구든 환영합니다.' },
-          { id: 'f2', title: '봉 마르셰 백화점', img: 'img/fl_bonmarche.jpg',
-            desc: '취향은 더 이상 귀족만의 특권이 아닙니다. 이곳에서는, 당신의 취향이 곧 당신의 이름입니다.',
-            feedback: '이 전단지는 아니에요. 카페 게르부아의 바티뇰파 전단지를 찾아보세요.' },
-          { id: 'f3', title: '파리 만국 박람회', img: 'img/fl_expo.jpg',
-            desc: '42개국에서 5만여 출품자가 참가합니다. 직접 와서 보고, 경험하고, 느껴보십시오.',
-            feedback: '이 전단지는 아니에요. 카페 게르부아의 바티뇰파 전단지를 찾아보세요.' },
         ],
         wrong: '이 전단지는 아니에요. 카페 게르부아의 바티뇰파 전단지를 찾아보세요.',   // 11/26 클라이언트 오답 안내
         successTitle: '바티뇰파 전단지를 찾았어요!',
@@ -99,7 +94,7 @@ export const ZONES = [
         successGuide: '내 수집품에 추가되었습니다.\n사람들의 대화도 들어보거나, 옆 공간으로 이동해 주세요.',
         // 11/18: 결과 화면 끝 맺음줄(salon 의 after 와 같은 자리) — 사실만
         note: '카페 게르부아의 탁자에 모이던 화가들은\n1874년, 살롱 밖에서 첫 전시를 열었다.',
-        item: { name: '바티뇰파 전단지', sub: '모리스 칼럼, 1860년대 말', img: 'img/fl_batignolles.jpg', contain: true },
+        item: { name: '바티뇰파 전단지', sub: '모리스 칼럼, 1860년대 말', img: 'img/fl_guerbois_real.jpg', contain: true },
       },
     ],
   },

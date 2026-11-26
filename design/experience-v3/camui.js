@@ -27,6 +27,8 @@ function build() {
   return root;
 }
 
+// 11/26 사용자: '카메라 없이 고르기'(웹 시험용)는 뺌 — 카메라로 비춰야만 수집. 카메라를 못 쓰면 권한 · 오류 안내만
+const NO_PICK = true;
 let cur = null;
 export function openCam(o) {
   if (!root) build();
@@ -134,7 +136,7 @@ export function openCam(o) {
     me.aimT = setTimeout(() => found(i), 1500);
   };
   btns.forEach((b, i) => { b.onclick = () => aim(i); });
-  $('.pick-open').hidden = !btns.length;
+  $('.pick-open').hidden = NO_PICK || !btns.length;
   // ── 앱(NFC 가능, exp/[id].tsx 가 __m100app.nfc 를 알려 준다): 카메라와 함께 — 비추든 태그에 대든 그 대상으로(링크로 넘어가지 않음)
   //    안드로이드: 시스템 창 없이 뒤에서 태그를 기다린다 — 안내만 보이고, 대면 바로
   //    아이폰: 앱이 태그를 읽으면 시스템 창('스캔 준비 완료')이 반드시 뜬다(애플 규칙, 끌 수 없음) — 그래서 저절로 띄우지 않고
@@ -175,7 +177,7 @@ export function openCam(o) {
   me.nfcRead = nfcRead;
 
   // 카메라를 아예 못 쓰면(권한 거부 · 카메라 없음 · 인식 타깃 준비 전) 고르기를 바로 펼친다
-  const camless = (why) => { me.camless = true; el.classList.add('camless'); openPick(why); if (o.hold) reveal(); };
+  const camless = (why) => { me.camless = true; el.classList.add('camless'); if (NO_PICK && !appNfc) { el.classList.add('failed'); $('.err').textContent = why || '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.'; if (o.hold) reveal(); return; } openPick(why); if (o.hold) reveal(); };
 
   if (o.mind) {
     startScan($('.ar'), o.mind, (o.targets || []).length, {
@@ -191,7 +193,7 @@ export function openCam(o) {
         console.warn('[cam]', e?.name || 'Error', e?.message || String(e));   // 11/18: scan.js 가 실제 카메라 오류를 넘긴다(권한 거부 → 권한 안내)
         const denied = /Permission|NotAllowed/i.test(e?.name + e?.message);
         const msg = denied ? '카메라 권한이 없어 직접 골라 봅니다' : '카메라를 켜지 못해 직접 골라 봅니다';
-        if (!btns.length) { if (o.onFail) return o.onFail(denied ? '미션을 수행하려면 카메라 사용을 허용해 주세요.\n설정에서 카메라 권한을 켤 수 있어요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.'); el.classList.add('failed'); $('.err').textContent = msg; if (o.hold) reveal(); return; }
+        if (NO_PICK || !btns.length) { if (o.onFail) return o.onFail(denied ? '미션을 수행하려면 카메라 사용을 허용해 주세요.\n설정에서 카메라 권한을 켤 수 있어요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.'); el.classList.add('failed'); $('.err').textContent = denied ? '미션을 수행하려면 카메라 사용을 허용해 주세요.\n설정에서 카메라 권한을 켤 수 있어요.' : '카메라를 켜지 못했습니다.\n잠시 후 다시 시도해 주세요.'; if (o.hold) reveal(); return; }
         camless(msg);
       },
     });
