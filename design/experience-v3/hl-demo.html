@@ -27,7 +27,7 @@ html,body{margin:0;height:100%;background:#111;color:#fff;font-family:Freesentat
 </style>
 </head>
 <body>
-<div class="start" id="start"><h1>인식 하이라이트 시험</h1><p>책상 위 텀블러를 로고가 보이게 비춰 보세요.<br>잡히면 텀블러 테두리가 빛나고, 잠시 뒤 '인식됨'이 뜹니다.</p><button id="go" type="button">카메라 켜기</button></div>
+<div class="start" id="start"><h1>인식 하이라이트 시험</h1><p>책상 위 텀블러를 로고(STANLEY)가 보이게, 화면에 크게 비춰 보세요.<br>잡히면 텀블러 테두리가 빛나고, 잠시 뒤 '인식됨'이 뜹니다.</p><button id="go" type="button">카메라 켜기</button></div>
 <script type="module">
 import { openCam } from './camui.js';
 const go = () => {
@@ -37,7 +37,7 @@ const go = () => {
     find: '텀블러를 로고가 보이게 비춰 보세요',
     hint: '조금 더 가까이, 로고가 화면 가운데 오게 비춰 보세요',
     mind: 'mind/demo-tumbler.mind',
-    targets: [{ title: '텀블러', img: 'img/demo/tumbler_145.jpg', outline: { line: 'img/demo/tumbler_145_line.png', fill: 'img/demo/tumbler_145_fill.png' } }],   // 11/26 사각형 대신 텀블러 윤곽 그대로
+    targets: ['145', '144', '146'].map((n) => ({ title: '텀블러', img: `img/demo/tumbler_${n}_t.jpg`, outline: { line: `img/demo/tumbler_${n}_line.png`, fill: `img/demo/tumbler_${n}_fill.png` } })),   // 11/26 세 각도 · 배경 지운 사진(텀블러에서만 인식) · 윤곽 그대로 빛남
     dots: false, center: true,
     onFound: (i, ui) => ui.show({
       html: `<div class="ok"><b>인식됨 ✓</b><span>실제 미션에서는 여기서 완료 화면으로 넘어갑니다.</span></div>`,
