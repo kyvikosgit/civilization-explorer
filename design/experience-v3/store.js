@@ -14,11 +14,17 @@ try {
   }
 } catch {}
 
+// 11/26 '다시 체험하기' — 이 체험의 수집품만 이번 탭에서 '안 모은 것'처럼 다룬다(수집함 기록은 그대로). 다시 맞혀 담으면 풀림
+const AG = 'm100again';
+const again = () => { try { return JSON.parse(sessionStorage.getItem(AG)) || []; } catch { return []; } };
+const unagain = (id) => { try { const a = again().filter((x) => x !== id); a.length ? sessionStorage.setItem(AG, JSON.stringify(a)) : sessionStorage.removeItem(AG); } catch {} };
+export function replay(ids) { try { sessionStorage.setItem(AG, JSON.stringify(ids)); } catch {} location.reload(); }
+
 export const store = {
-  solved: (id) => !!read().solved?.[id],      // 정답을 맞힘
-  saved: (id) => window.M100_INTRO?.mode !== 'only' && !!read().saved?.[id],        // 수집함에 담음 (11/20: 도입만 볼 때는 늘 처음처럼 — 결과 화면이 도입 위에 뜨지 않게)
+  solved: (id) => !again().includes(id) && !!read().solved?.[id],      // 정답을 맞힘
+  saved: (id) => window.M100_INTRO?.mode !== 'only' && !again().includes(id) && !!read().saved?.[id],        // 수집함에 담음 (11/20: 도입만 볼 때는 늘 처음처럼 — 결과 화면이 도입 위에 뜨지 않게)
   solve(id) { const s = read(); (s.solved ||= {})[id] = Date.now(); write(s); },
-  save(id) { const s = read(); (s.saved ||= {})[id] = Date.now(); (s.solved ||= {})[id] ||= Date.now(); write(s); },
+  save(id) { unagain(id); const s = read(); (s.saved ||= {})[id] = Date.now(); (s.solved ||= {})[id] ||= Date.now(); write(s); },
   redeemed: () => read().redeemed || 0,       // 굿즈 수령 시각
   redeem() { const s = read(); s.redeemed = Date.now(); write(s); },
   // 늘 실제 카메라. 카메라를 쓸 수 없을 때의 직접 고르기는 카메라 화면 안의 예비 단추(camui.js)

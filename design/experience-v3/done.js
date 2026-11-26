@@ -2,7 +2,7 @@
 //   수집품은 정답과 함께 저절로 담긴다(저장 단추 없음). 체험 더보기 = 그 구역의 둘러보기 요소(메인 미션이 끝난 뒤에만)
 //   문서 기준(<base>)이 v2 폴더인 페이지가 있어 주소는 이 파일 자리(v3)를 기준으로 만든다
 import { ZONES, COLLECT_IDS, findTask } from './data.js';
-import { store } from './store.js';
+import { store, replay } from './store.js';
 
 const V3 = new URL('./', import.meta.url).href;
 export const HUB = V3 + 'index.html';
@@ -170,15 +170,14 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
     </div></div>
     <div class="d-foot"></div>`;
   // 11/23 앱 안 단추 이름: 새로 받은 수집품 = [수집품에 저장], 이미 담아 둔 것 = [확인] (누르면 구역 화면으로 돌아가 체험 카드로 줄어든다)
-  const already = slot >= 0 && SAVED0.has(COLLECT_IDS[slot]);
-  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, then, btn: slot < 0 ? '다음' : already ? '확인' : '수집품에 저장' }));
+  el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, then, btn: slot < 0 ? '다음' : '확인' }));   // 11/26 담기는 연출이 이미 끝났으니 [확인]('수집품에 저장' 뺌)
   document.body.appendChild(el);
   // 11/26 흰 완료 화면 위에서 아이폰 맨 위(시간 · 배터리) 글자가 흰색이라 묻히던 것 — 앱이 읽는 바탕색(theme-color)을 흰색으로 바꿔 상태 막대를 검은 글자로
   let tc = document.querySelector('meta[name=theme-color]'); if (!tc) { tc = document.createElement('meta'); tc.name = 'theme-color'; document.head.appendChild(tc); }
   const tc0 = tc.getAttribute('content'); tc.setAttribute('content', '#FFFFFF');
   // 11/26 '다시 체험'(작게) — 구역 화면에서 빼고 여기로. 누르면 이 체험을 처음부터 다시
   const again = document.createElement('button'); again.type = 'button'; again.className = 'd-again'; again.textContent = '다시 체험하기';
-  again.onclick = () => location.reload();
+  again.onclick = () => replay(slot >= 0 ? [COLLECT_IDS[slot]] : []);   // 그냥 새로 고치면 '이미 모음'이라 완료 화면이 또 떴음
   el.querySelector('.d-txt')?.after(again);
   const api = { el, hide() { el.classList.remove('on'); if (tc0) tc.setAttribute('content', tc0); setTimeout(() => el.remove(), 350); } };
   // 11/26 기차표도 다른 미션처럼 단추를 눌러야 넘어감(완료 화면 자동 넘김은 사용자 지시로 뺌 — 수집품 · 해설을 읽는 중에 넘어가 버림)
