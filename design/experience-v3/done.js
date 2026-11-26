@@ -38,6 +38,7 @@ const CSS = `
 .v3-done .d-txt{margin-top:20px;padding-top:18px;border-top:1px solid var(--d-line);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
 .v3-done.read .d-txt{opacity:1;transform:none}
 .v3-done .d-title{font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;line-height:1.4}
+.v3-done .d-again{display:block;margin:22px auto 6px;padding:8px 16px;border:1px solid var(--d-line);border-radius:999px;background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--d-sub)}
 .v3-done .d-guide{margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--d-panel);font-size:15px;font-weight:700;line-height:1.5;text-align:center;white-space:pre-line}
 .v3-done .d-body{margin-top:8px;font-size:15.5px;line-height:1.7;white-space:pre-line}
 .v3-done .d-note{margin:34px auto 4px;max-width:320px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:15.5px;font-weight:600;line-height:1.8;letter-spacing:-.01em;color:var(--d-ink);white-space:pre-line;word-break:keep-all;opacity:0;transform:translateY(8px);transition:opacity 1s .6s,transform 1s .6s}
@@ -172,7 +173,14 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
   const already = slot >= 0 && SAVED0.has(COLLECT_IDS[slot]);
   el.querySelector('.d-foot').appendChild(endRow(zoneId, { light: true, then, btn: slot < 0 ? '다음' : already ? '확인' : '수집품에 저장' }));
   document.body.appendChild(el);
-  const api = { el, hide() { el.classList.remove('on'); setTimeout(() => el.remove(), 350); } };
+  // 11/26 흰 완료 화면 위에서 아이폰 맨 위(시간 · 배터리) 글자가 흰색이라 묻히던 것 — 앱이 읽는 바탕색(theme-color)을 흰색으로 바꿔 상태 막대를 검은 글자로
+  let tc = document.querySelector('meta[name=theme-color]'); if (!tc) { tc = document.createElement('meta'); tc.name = 'theme-color'; document.head.appendChild(tc); }
+  const tc0 = tc.getAttribute('content'); tc.setAttribute('content', '#FFFFFF');
+  // 11/26 '다시 체험'(작게) — 구역 화면에서 빼고 여기로. 누르면 이 체험을 처음부터 다시
+  const again = document.createElement('button'); again.type = 'button'; again.className = 'd-again'; again.textContent = '다시 체험하기';
+  again.onclick = () => location.reload();
+  el.querySelector('.d-txt')?.after(again);
+  const api = { el, hide() { el.classList.remove('on'); if (tc0) tc.setAttribute('content', tc0); setTimeout(() => el.remove(), 350); } };
   // 11/26 기차표도 다른 미션처럼 단추를 눌러야 넘어감(완료 화면 자동 넘김은 사용자 지시로 뺌 — 수집품 · 해설을 읽는 중에 넘어가 버림)
   requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('on'))); setTimeout(() => el.classList.add('on'), 80);   // 그리기가 잠깐 멈춘 화면(뒤 3D 로딩 중)에서도 뜨게
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
