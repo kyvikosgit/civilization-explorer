@@ -728,7 +728,7 @@
  "1841년, 짜서 쓰는 주석 튜브물감이 나왔다. 화가는 이제 물감을 들고 바깥의 빛 앞에 섰다.": "1841: squeezable tin paint tubes arrived. Now painters could carry their colours out into the open light.",
  "1870년대, 생라자르역의 기차는 파리 사람들을 노르망디 바다로 실어 날랐다. 화가들도 그 기차를 타고 바다의 빛을 찾아 나섰다.": "In the 1870s, trains from Gare Saint-Lazare carried Parisians to the Normandy coast. Painters, too, rode those trains in search of the light on the sea.",
  "1874년 봄, 나다르의 옛 사진관에서 열린 첫 전시. 비웃음으로 붙은 그 이름은 곧 그들 스스로의 이름이 되었다.": "Spring 1874: the first exhibition, held in Nadar's former studio. The name given in mockery soon became the name they claimed for themselves.",
- "금속 튜브물감 이전까지 화가들은 물감을 돼지 방광에 담아 다녔어요. 쉽게 터지고 금방 굳어, 물감을 가지고 야외로 나가기가 쉽지 않았습니다. 하지만 튜브물감의 발명은 화가들이 물감을 간편하게 들고 야외로 나갈 수 있게 해주었습니다. 이제 화가들은 기억이 아니라, 눈앞의 순간을 그대로 화폭에 담을 수 있게 되었습니다.": "Metal paint tubes\n\nBefore them, painters carried their paint in pig bladders. They burst easily and dried quickly, so taking paint outdoors was hard. The invention of the paint tube let painters easily carry their colours outside. Now they could put the moment in front of their eyes straight onto the canvas, rather than painting from memory.",
+ "금속 튜브물감 이전까지 화가들은 물감을 돼지 방광에 담아 다녔어요. 쉽게 터지고 금방 굳어, 물감을 가지고 야외로 나가기가 쉽지 않았습니다. 하지만 튜브물감의 발명은 화가들이 물감을 간편하게 들고 야외로 나갈 수 있게 해주었습니다. 이제 화가들은 기억이 아니라, 눈앞의 순간을 그대로 화폭에 담을 수 있게 되었습니다.": "Metal tube paint\n\nBefore them, painters carried their paint in pig bladders. They burst easily and dried quickly, so taking paint outdoors was hard. The invention of the paint tube let painters easily carry their colours outside. Now they could put the moment in front of their eyes straight onto the canvas, rather than painting from memory.",
  "바티뇰파(École des Batignolles) 카페가 있던 바티뇰 지역의 이름을 딴 것으로, 마네를 중심으로 모네·르누아르·드가·바지유 등이 모였습니다. 이들 대부분이 훗날 \"인상주의\"라는 이름으로 불리게 됩니다.": "The Batignolles group (École des Batignolles)\n\nNamed after the Batignolles district where the café stood, it gathered Monet, Renoir, Degas, Bazille and others around Manet. Most of them would later be known as the \"Impressionists\".",
  "비웃음에서 태어난 이름 비평가 루이 르루아는 이 그림의 제목을 비꼬아, 전시를 다룬 글에 「인상주의자들의 전시회」라는 제목을 붙였습니다. 글 속 관람객은 이 그림 앞에서 이렇게 말합니다. \"인상이라… 그럴 줄 알았지. 인상을 받았으니 뭔가 인상이 들어 있긴 하겠지.\" \"막 그리기 시작한 벽지도 이 바다 그림보다는 더 완성돼 있다.\" 비웃으며 붙인 이 이름은 그대로 한 화파의 이름이 되었습니다.": "A name born of ridicule\n\nThe critic Louis Leroy mocked this painting's title, heading his review \"The Exhibition of the Impressionists\". A visitor in his piece says in front of the painting: \"Impression… I was sure of it. Since I was impressed, there had to be some impression in it.\" \"Wallpaper in its earliest stage is more finished than this seascape.\" The name given in mockery became the name of a whole school of painting.",
  "아카데미 살롱은 그 시대 아름다움의 기준을 정했다. 그러나 시대는 이미 그 기준을 넘어 움직이고 있었다.": "The Academy Salon set the standard of beauty for its age. But the age was already moving beyond that standard.",
@@ -739,5 +739,9 @@
  "화가의 작업 공간": "The Painter's Workspace",
  "나다르 사진관": "Nadar's Studio",
  "인상파 전시회": "The Impressionist Exhibition",
- "수집품": "Collection"
+ "수집품": "Collection",
+ "금속 튜브물감": "Metal tube paint",
+ "금속 튜브물감을 수집했어요! 여행 준비 완료!": "You've collected the metal tube paint! Ready for your trip!",
+ "화가의 작업 공간에서 금속 튜브물감을 찾아 카메라에 담아 주세요.": "Find the metal tube paint in the painter's workspace and capture it with your camera.",
+ "이 물건은 금속 튜브물감이 아니에요. 화가의 작업 공간을 다시 살펴보세요.": "This object isn't the metal tube paint. Take another look around the painter's workspace."
 }

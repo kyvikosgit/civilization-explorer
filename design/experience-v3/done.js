@@ -51,13 +51,12 @@ const CSS = `
 .v3-done .d-foot .v3-end .ve-got{display:none}
 .v3-done .d-foot .v3-end .ve-more{margin-top:6px;padding:6px 12px}
 .v3-fly{position:fixed;z-index:9001;pointer-events:none;object-fit:cover;box-shadow:0 8px 22px rgba(0,0,0,.18)}
-.v3-done .d-col{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 16px;border-radius:14px;background:var(--d-panel)}
-.v3-done .d-tag{flex:none;max-width:86%;font-size:13px;font-weight:600;color:#6E6A62;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 11/26 부제 = 카드 안 그림 아래 이름표(그림과 겹치지 않게 간격 두고) */
-.v3-done .d-colt{font-size:14px;font-weight:700;color:var(--d-sub);white-space:nowrap;text-align:left;line-height:1.35}
+.v3-done .d-col{margin-top:16px;text-align:center}
+.v3-done .d-colt{font-size:13.5px;font-weight:700;color:var(--d-sub)}
 .v3-done .d-colt b{color:var(--d-ink)}
-.v3-done .d-slots{display:flex;justify-content:flex-end;gap:6px}
+.v3-done .d-slots{margin-top:8px;display:flex;justify-content:center;gap:8px}
 /* 11/23 앱과 같은 수집품 카드: 크림 종이 + 이중 액자(앱 src/lib/CollectCard.tsx) · 못 모은 칸 = 점선 */
-.v3-done .d-slots span{width:38px;height:50px;border-radius:4px;background:#F6F3EE;border:1.5px dashed #D3CCBE;overflow:hidden;display:block;box-sizing:border-box}
+.v3-done .d-slots span{width:42px;height:56px;border-radius:4px;background:#F6F3EE;border:1.5px dashed #D3CCBE;overflow:hidden;display:block;box-sizing:border-box}
 .v3-done .d-slots span.me{border-color:var(--d-pt)}
 .v3-done .d-slots span{border-radius:7px}
 .v3-done .d-slots span.on{background:#F0E9DC;border:1px solid rgba(58,53,43,.14)}
@@ -163,7 +162,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
       <p class="d-cap">${esc(cap)}</p>
       ${img ? `<div class="d-card"><img src="${esc(img)}" alt=""></div>` : ''}
       ${item?.name ? `<p class="d-name">${esc(item.name)}</p>` : ''}${item?.sub ? `<p class="d-sub">${esc(item.sub)}</p>` : ''}
-      ${slot >= 0 ? `<div class="d-col"><p class="d-colt">수집품 <b>${got - 1}</b> / ${total}</p><div class="d-slots">${COLLECT_IDS.map((id, i) => { const it = findTask(id)?.task?.item; const on = i !== slot && store.saved(id); return `<span class="${on ? 'on' : ''}${i === slot ? ' me' : ''}">${on && (ccOf(id) || it?.img) ? `<img src="${esc(ccOf(id) || new URL(it.img, V3).href)}" alt="">` : ''}</span>`; }).join('')}</div></div>` : ''}
+      ${slot >= 0 ? `<div class="d-col"><p class="d-colt">나의 수집품 <b>${got - 1}</b> / ${total}</p><div class="d-slots">${COLLECT_IDS.map((id, i) => { const it = findTask(id)?.task?.item; const on = i !== slot && store.saved(id); return `<span class="${on ? 'on' : ''}${i === slot ? ' me' : ''}">${on && (ccOf(id) || it?.img) ? `<img src="${esc(ccOf(id) || new URL(it.img, V3).href)}" alt="">` : ''}</span>`; }).join('')}</div></div>` : ''}
       <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}${guide ? `<p class="d-guide">${esc(guide)}</p>` : ''}</div>
     </div></div>
     <div class="d-foot"></div>`;
