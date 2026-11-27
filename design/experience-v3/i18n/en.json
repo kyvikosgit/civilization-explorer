@@ -777,5 +777,7 @@
  "수상작을 비추면 그림 둘레가 금빛으로 빛납니다": "When you find the winner, a golden glow appears around it",
  "수상작 찾기": "Find the winner",
  "튜브물감이 든 화구 상자에\n조준점을 대 보세요": "Aim the crosshair at the paint box\nholding the tube paints",
- "분석 중… 그대로 비춰 주세요": "Analyzing… hold steady"
+ "분석 중… 그대로 비춰 주세요": "Analyzing… hold steady",
+ "카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.": "Could not load the camera engine. Please try again.",
+ "카메라를 켜지 못했습니다. 다시 시도해 주세요.": "Could not turn on the camera. Please try again."
 }

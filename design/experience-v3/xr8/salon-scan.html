@@ -15,7 +15,17 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
-<!-- 8th Wall 엔진은 스캔할 때만 불러옴(boot) — 11/27: 엔진이 돈 화면 위에 완료 화면을 띄우면 위 막대가 틀어져(폰) 완료 화면은 엔진 없이 새로 연 화면에서 -->
+<!-- 8th Wall 엔진은 스캔할 때만 — 완료 화면(done=1, 다시 체험 표시 없음)은 엔진 없이(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐, 폰)
+     11/27: 엔진을 나중에 끼워 넣던 방식에서 '네트워크를 확인해 주세요'가 뜸(폰) → 처음 시험해서 되던 방식(문서에 바로 쓰기)으로 되돌림 -->
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), ag = [];
+  try { ag = JSON.parse(sessionStorage.getItem('m100again') || '[]'); } catch (e) {}
+  if (q.get('again')) ag = ag.concat(q.get('again').split(','));
+  window.__noXR = q.get('done') === '1' && ag.indexOf('salon') < 0;
+  if (!window.__noXR) document.write('<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"><\/script><script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous"><\/script>');
+})();
+</script>
 <style>
 html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;word-break:keep-all}
 #c{position:fixed;left:0;top:0}
@@ -175,18 +185,23 @@ function statusModule() {
   } };
 }
 function boot() {
-  const run = () => Promise.all([1, 2, 3, 4, 5].map((n) => fetch(`image-targets-salon/s${n}.json`).then((r) => r.json()))).then((data) => {
-    XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: true });
-    XR8.addCameraPipelineModules([
-      XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
-      XRExtras.FullWindowCanvas.pipelineModule(), statusModule(), salonModule()]);
-    XR8.run({ canvas: $('c') });
-  }).catch(() => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T('네트워크를 확인해 주세요'); });
+  // 실패 이유를 나눠서(작은 글로 코드도) — 11/27 '네트워크를 확인해 주세요'만 떠서 원인을 알 수 없던 것
+  const fail = (msg, why) => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T(msg) + (why ? `  (${why})` : ''); };
+  const run = async () => {
+    let data;
+    try { data = await Promise.all([1, 2, 3, 4, 5].map((n) => fetch(`image-targets-salon/s${n}.json`, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('t' + r.status); return r.json(); }))); }
+    catch (e) { fail('네트워크를 확인해 주세요', 'targets ' + (e?.message || '')); return; }
+    try {
+      XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: true });
+      XR8.addCameraPipelineModules([
+        XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
+        XRExtras.FullWindowCanvas.pipelineModule(), statusModule(), salonModule()]);
+      XR8.run({ canvas: $('c') });
+    } catch (e) { fail('카메라를 켜지 못했습니다. 다시 시도해 주세요.', 'xr ' + (e?.message || e)); }
+  };
   if (window.XR8) { run(); return; }
   window.addEventListener('xrloaded', run, { once: true });
-  const add = (src, async) => new Promise((ok, no) => { const e = document.createElement('script'); e.src = src; e.crossOrigin = 'anonymous'; e.async = !!async; e.onload = ok; e.onerror = no; document.head.appendChild(e); });
-  add('https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js').then(() => add('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js', true))
-    .catch(() => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T('네트워크를 확인해 주세요'); });
+  setTimeout(() => { if (!window.XR8) fail('카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.', 'engine'); }, 20000);
 }
 $('go').addEventListener('click', () => location.reload());
 </script>

@@ -6,7 +6,7 @@
 const V3 = new URL('./', import.meta.url).href;
 const ORT_CDN = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
 const ORT_LOCAL = new URL('../_vendor/ort/', import.meta.url).href;
-const S = 320, P = 80, NM = 32, DWELL = 2200;
+const S = 320, P = 80, NM = 32, DWELL = 1200;   // 11/27 2.2초 → 1.2초(사용자: 너무 김)
 const T = (s) => (window.M100_T ? window.M100_T(s) : s);
 
 const CSS = `
@@ -25,9 +25,9 @@ const CSS = `
 .v3-seg .ret i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}.v3-seg .ret i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0}
 .v3-seg .ret b{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;border-radius:50%;background:#fff}
 .v3-seg .ret.on{transform:scale(.8)}.v3-seg .ret.on i{border-color:#bfe8b9}
-.v3-seg .ring{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;z-index:2;pointer-events:none;transition:opacity .3s}
+.v3-seg .ring{display:none;position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;z-index:2;pointer-events:none;transition:opacity .3s}
 .v3-seg .ring circle{fill:none;stroke:#bfe8b9;stroke-width:3;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
-.v3-seg .msg{position:absolute;left:16px;right:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px));text-align:center;z-index:2;transition:opacity .3s}
+.v3-seg .msg{display:none;position:absolute;left:16px;right:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px));text-align:center;z-index:2;transition:opacity .3s}
 .v3-seg .msg span{display:inline-block;background:rgba(0,0,0,.55);padding:10px 16px;border-radius:20px;font-size:15px;line-height:1.5;white-space:pre-line}
 .v3-seg.caught .top,.v3-seg.caught .ret,.v3-seg.caught .ring,.v3-seg.caught .msg{opacity:0}
 .v3-seg img.cut{position:absolute;max-width:none;max-height:none;z-index:4;pointer-events:none;filter:drop-shadow(0 0 14px rgba(214,245,207,.75)) drop-shadow(0 10px 20px rgba(0,0,0,.35));transform-origin:center;will-change:transform,left,top,width,height}
@@ -73,8 +73,9 @@ export function openSegScan(o) {
   const mask = document.createElement('canvas'), glow = document.createElement('canvas'); mask.width = mask.height = glow.width = glow.height = S;
   const mc = mask.getContext('2d'), gc = glow.getContext('2d'), mImg = mc.createImageData(S, S), gImg = gc.createImageData(S, S);
   let W = 0, H = 0, dpr = Math.min(2, devicePixelRatio || 1), stream = null, stopped = false, analyzing = false, timer = 0, lastDt = 60, raf = 0;
-  let inT = null, geo = null, hitT = 0, aimT = 0, prevHit = false, glowA = 0, caught = false, last = null;
-  const size = () => { W = innerWidth; H = innerHeight; fx.width = W * dpr; fx.height = H * dpr; };
+  let inT = null, geo = null, hitT = 0, aimT = 0, prevHit = false, glowA = 0, caught = false, last = null, prog = 0;
+  const lineCv = document.createElement('canvas'), lc = lineCv.getContext('2d');
+  const size = () => { W = innerWidth; H = innerHeight; fx.width = W * dpr; fx.height = H * dpr; lineCv.width = W; lineCv.height = H; };
   size(); addEventListener('resize', size);
   const view = () => { const vw = v.videoWidth, vh = v.videoHeight, s = Math.max(W / vw, H / vh); return { sx: (vw - W / s) / 2, sy: (vh - H / s) / 2, sw: W / s, sh: H / s }; };
 
@@ -105,7 +106,7 @@ export function openSegScan(o) {
     if (best < 0) { prevHit = false; return; }
     const bx = o0[best], by = o0[N + best], bw = o0[2 * N + best], bh = o0[3 * N + best], q = P / S, PP = P * P;
     for (let m = 0; m < NM; m++) coef[m] = o0[(5 + m) * N + best];
-    const x0 = (bx - bw / 2) * q, x1 = (bx + bw / 2) * q, y0 = (by - bh / 2) * q, y1 = (by + bh / 2) * q;   // 실루엣은 물건 상자 안만(밖으로 번지면 가장자리에 세로 줄)
+    const x0 = (bx - bw / 2) * q - 1, x1 = (bx + bw / 2) * q + 1, y0 = (by - bh / 2) * q - 1, y1 = (by + bh / 2) * q + 1;   // 실루엣은 물건 상자 + 한 칸(넓으면 가장자리 줄 · 좁으면 물건이 잘림)
     for (let y = 0; y < P; y++) for (let x = 0; x < P; x++) {
       const pi = y * P + x; let a = -12;
       if (x >= x0 && x <= x1 && y >= y0 && y <= y1) { a = 0; for (let m = 0; m < NM; m++) a += coef[m] * o1[m * PP + pi]; }
@@ -124,11 +125,13 @@ export function openSegScan(o) {
         gq[oo] = 191; gq[oo + 1] = 232; gq[oo + 2] = 185; gq[oo + 3] = a * 120; } }
     fillHoles(rx, ry, rw, rh);
     mc.putImageData(mImg, 0, 0, rx, ry, rw, rh); gc.putImageData(gImg, 0, 0, rx, ry, rw, rh);
-    geo = { x: rx, y: ry, w: rw, h: rh, px, py, k, r, lw, lh };
+    // 물건이 화면 안에 다 들어왔는가(가장자리에 걸리면 오린 그림이 잘림 → 다 들어올 때까지 인식을 끝내지 않음)
+    const E = 3, full = bx - bw / 2 > px + E && bx + bw / 2 < px + lw - E && by - bh / 2 > py + E && by + bh / 2 < py + lh - E;
+    geo = { x: rx, y: ry, w: rw, h: rh, px, py, k, r, lw, lh, full, b: [(bx - bw / 2 - px) / k, (by - bh / 2 - py) / k, bw / k, bh / k] };
     const cx = Math.round(W / 2 * k + px) - rx, cy = Math.round(H / 2 * k + py) - ry;
     const h1 = cx >= 0 && cy >= 0 && cx < rw && cy < rh && al[(ry + cy) * S + rx + cx] > 0.5;
     const hit = h1 && prevHit; prevHit = h1;
-    if (hit) { hitT = performance.now(); last = geo; }
+    if (hit) { hitT = performance.now(); if (full || !last) last = geo; }
   }
   const seen = new Uint8Array(S * S), stack = new Int32Array(S * S), bA = new Uint8Array(S * S), bB = new Uint8Array(S * S);
   // 실루엣 다듬기 — 닫힘(팽창 → 침식, 반지름 R)으로 가장자리 틈을 막은 뒤, 바깥에서 닿지 않는 빈 칸(밝은 물감 · 화구)을 채움
@@ -164,20 +167,38 @@ export function openSegScan(o) {
     $('.ret').classList.toggle('on', on);
     if (!caught) {
       if (on) { if (!aimT) aimT = now; } else aimT = 0;
-      const p = aimT ? Math.min(1, (now - aimT) / DWELL) : 0;
-      ring.setAttribute('stroke-dashoffset', String(176 * (1 - p)));
-      const mt = p > 0 ? BUSY : FIND; if (msgEl.textContent !== mt) msgEl.textContent = mt;
-      if (p >= 1 && last) catchIt();
+      let p = aimT ? Math.min(1, (now - aimT) / DWELL) : 0;
+      if (p > 0.85 && !(geo && geo.full)) { p = 0.85; aimT = now - DWELL * 0.85; }   // 화면 밖으로 걸쳐 있으면 끝내지 않고 기다림
+      prog += (p - prog) * 0.35;
+      if (p >= 1 && last && last.full) catchIt();
     }
     fxx.setTransform(dpr, 0, 0, dpr, 0, 0); fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = 1; fxx.clearRect(0, 0, W, H);
     if (glowA < 0.02 || !geo || caught) return;
     const g = geo, gx = (g.x - g.px) / g.k, gy = (g.y - g.py) / g.k, gw = g.w / g.k, gh = g.h / g.k;
-    const t = now / 1000, y = H * ((t * 0.55) % 1.3 - 0.15), grd = fxx.createLinearGradient(0, y - 60, 0, y + 60);
-    grd.addColorStop(0, 'rgba(214,245,207,0)'); grd.addColorStop(0.5, 'rgba(214,245,207,.32)'); grd.addColorStop(1, 'rgba(214,245,207,0)');
-    fxx.fillStyle = grd; fxx.fillRect(gx, Math.max(gy, y - 60), gw, Math.max(0, Math.min(gy + gh, y + 60) - Math.max(gy, y - 60)));
-    fxx.imageSmoothingEnabled = true; fxx.imageSmoothingQuality = 'high';
-    fxx.globalCompositeOperation = 'destination-in'; fxx.drawImage(mask, g.x, g.y, g.w, g.h, gx, gy, gw, gh);
-    fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = glowA; fxx.drawImage(glow, g.x, g.y, g.w, g.h, gx, gy, gw, gh); fxx.globalAlpha = 1;
+    // 11/27 진행 = 화면 효과로만: ① 실루엣이 옅게 칠해지고 ② 위에서 아래로 훑는 빛이 지나간 곳은 진하게 차오름(진행) ③ 물건 둘레 모서리 표식이 바깥에서 조여 들어옴
+    const sy = gy + gh * prog, band = 26;
+    fxx.globalAlpha = 0.3 * glowA; fxx.drawImage(glow, g.x, g.y, g.w, g.h, gx, gy, gw, gh);
+    if (prog > 0.01) {
+      fxx.save(); fxx.beginPath(); fxx.rect(gx, gy, gw, sy - gy); fxx.clip();
+      fxx.globalAlpha = 0.8 * glowA; fxx.drawImage(glow, g.x, g.y, g.w, g.h, gx, gy, gw, gh);   // 훑고 지나간 곳 — 조금 더 진하게(물건이 가려지지 않을 만큼)
+      fxx.restore();
+      // 훑는 빛(실루엣 모양으로 오림)
+      const grd = fxx.createLinearGradient(0, sy - band, 0, sy + band * 0.4);
+      grd.addColorStop(0, 'rgba(230,255,224,0)'); grd.addColorStop(0.75, 'rgba(240,255,236,.85)'); grd.addColorStop(1, 'rgba(240,255,236,0)');
+      lc.clearRect(0, 0, W, H); lc.globalCompositeOperation = 'source-over'; lc.fillStyle = grd; lc.fillRect(gx, sy - band, gw, band * 1.4);
+      lc.globalCompositeOperation = 'destination-in'; lc.drawImage(mask, g.x, g.y, g.w, g.h, gx, gy, gw, gh);
+      fxx.globalAlpha = glowA; fxx.globalCompositeOperation = 'lighter'; fxx.drawImage(lineCv, 0, 0, W, H); fxx.globalCompositeOperation = 'source-over';
+    }
+    // 모서리 표식 — 물건 상자 둘레, 진행에 따라 바깥(22px)에서 상자 선까지 조여 듦
+    const [bx0, by0, bw0, bh0] = g.b, pad = 22 * (1 - prog) + 4, L = Math.min(26, Math.min(bw0, bh0) * 0.22);
+    const X0 = bx0 - pad, Y0 = by0 - pad, X1 = bx0 + bw0 + pad, Y1 = by0 + bh0 + pad;
+    fxx.globalAlpha = glowA * (0.55 + 0.45 * prog); fxx.strokeStyle = '#D6F5CF'; fxx.lineWidth = 2.5; fxx.lineCap = 'round';
+    fxx.beginPath();
+    fxx.moveTo(X0, Y0 + L); fxx.lineTo(X0, Y0); fxx.lineTo(X0 + L, Y0);
+    fxx.moveTo(X1 - L, Y0); fxx.lineTo(X1, Y0); fxx.lineTo(X1, Y0 + L);
+    fxx.moveTo(X0, Y1 - L); fxx.lineTo(X0, Y1); fxx.lineTo(X0 + L, Y1);
+    fxx.moveTo(X1 - L, Y1); fxx.lineTo(X1, Y1); fxx.lineTo(X1, Y1 - L);
+    fxx.stroke(); fxx.globalAlpha = 1;
   }
 
   // 인식 — 화면을 멈추고 물건을 실루엣대로 오려 가운데로 띄운 뒤 onFound
