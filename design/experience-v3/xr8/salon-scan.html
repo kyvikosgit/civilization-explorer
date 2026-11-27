@@ -23,7 +23,7 @@
   try { ag = JSON.parse(sessionStorage.getItem('m100again') || '[]'); } catch (e) {}
   if (q.get('again')) ag = ag.concat(q.get('again').split(','));
   window.__noXR = q.get('done') === '1' && ag.indexOf('salon') < 0;
-  if (!window.__noXR) document.write('<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"><\/script><script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous"><\/script>');
+  if (!window.__noXR) document.write('<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"><\/script><script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"><\/script>');
 })();
 </script>
 <style>
@@ -191,6 +191,8 @@ function boot() {
     let data;
     try { data = await Promise.all([1, 2, 3, 4, 5].map((n) => fetch(`image-targets-salon/s${n}.json`, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('t' + r.status); return r.json(); }))); }
     catch (e) { fail('네트워크를 확인해 주세요', 'targets ' + (e?.message || '')); return; }
+    // 11/27 그림 인식(XrController)은 엔진의 'slam' 묶음에 들어 있음 — 미리 받게 해 두지 않으면 XrController 가 비어 있어 카메라가 안 켜짐(폰 캡처: XR8.XrController null)
+    try { if (!XR8.XrController && XR8.loadChunk) await XR8.loadChunk('slam'); } catch (e) { fail('카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.', 'slam ' + (e?.message || e)); return; }
     try {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: true });
       XR8.addCameraPipelineModules([
