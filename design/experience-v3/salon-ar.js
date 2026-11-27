@@ -7,7 +7,7 @@
 import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
-import { store } from './store.js';
+import { store, againIds } from './store.js';
 
 const V3 = '../../experience-v3/';
 const task = ZONES.find((z) => z.id === 'salon').tasks[0];
@@ -37,11 +37,11 @@ function fx({ THREE, anchors }) {
 
 // ── 메인: 벽 전체 비추기 → 화면의 벽에서 고르기
 const guide = makeGuide();
-const INFO = {
+const INFO = {   // 11/27 다시 현장 스캔: 벽 앞 안내 → [수상작 찾기] → 8th Wall 스캔 화면(xr8/salon-scan.html)
   coach: { img: WALL, kind: 'photo', land: true },
-  title: '후보작 다섯 점이 걸린 벽 전체를\n카메라로 비춰 보세요',
-  sub: '벽이 화면에 뜨면, 그중 올해의 당선작을 골라 주세요',
-  buttons: [{ label: '후보작 심사하기', cam: true, on: begin }],
+  title: '벽의 후보작 가운데\n1등급 메달을 받은 그림을 찾아 비춰 보세요',
+  sub: '수상작을 비추면 그림 둘레가 금빛으로 빛납니다',
+  buttons: [{ label: '수상작 찾기', cam: true, on: () => toScan() }],
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
 };
 let picking = false;
@@ -112,8 +112,10 @@ let gone = false;
 function toScan() {
   if (gone || window.M100_INTRO?.mode === 'only' || store.saved('salon')) return; gone = true;
   // 앱 안(폰 안 묶음 file://)에는 8th Wall 페이지가 없으므로 사이트에서 연다(시민사회 벽 AR 과 같음)
-  const base = location.protocol === 'file:' ? 'https://it-ta.com/design/experience-v3/xr8/salon-scan.html' : new URL(V3 + 'xr8/salon-scan.html', location.href).href.split('?')[0];
-  location.href = base + location.search;
+  const base = location.protocol === 'file:' ? 'https://it-ta.com/design/experience-v3/xr8/salon-scan.html' : new URL(V3 + 'xr8/salon-scan.html', document.baseURI).href.split('?')[0];
+  const q = new URLSearchParams(location.search); q.delete('again');
+  if (againIds().includes('salon')) q.set('again', 'salon');   // 완료 화면의 '다시 체험하기'에서 왔으면 스캔 화면도 처음부터
+  location.href = base + '?' + q.toString();
 }
-window.addEventListener('salon:wall', () => setTimeout(toScan, RM ? 0 : 500));
-window.addEventListener('salon:tap', toScan);
+window.addEventListener('salon:wall', () => setTimeout(() => { if (!store.saved('salon') && window.M100_INTRO?.mode !== 'only') showGuide(); }, RM ? 0 : 500));
+window.addEventListener('salon:tap', () => { if (!guide.shown) showGuide(); });

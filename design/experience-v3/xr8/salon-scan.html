@@ -15,8 +15,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous"></script>
+<!-- 8th Wall 엔진은 스캔할 때만 불러옴(boot) — 11/27: 엔진이 돈 화면 위에 완료 화면을 띄우면 위 막대가 틀어져(폰) 완료 화면은 엔진 없이 새로 연 화면에서 -->
 <style>
 html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;word-break:keep-all}
 #c{position:fixed;left:0;top:0}
@@ -157,11 +156,14 @@ function win() {
   winT = performance.now(); $('sheet').classList.remove('on'); $('hint').hidden = true; $('found').classList.add('on');
   navigator.vibrate?.([18, 50, 24]);
   store.solve(task.id); collect(task.id);
-  // 오라를 2.6초 보여 준 뒤 엔진 · 카메라를 끄고 완료 화면(폰 부담 — 계속 켜 두지 않음)
+  // 오라를 2.6초 보여 준 뒤 엔진 · 카메라를 끄고, 엔진 없이 이 화면을 새로 열어 완료 화면(수집 목록에 salon 을 넣어 넘김 · 다시 체험 표시는 뺌)
   setTimeout(() => {
     ended = true; $('found').classList.remove('on');
     try { XR8.stop(); } catch {}
-    finish();
+    const q = new URLSearchParams(location.search); q.delete('again');
+    const got = (q.get('got') || '').split(',').filter(Boolean); if (!got.includes(task.id)) got.push(task.id);
+    q.set('got', got.join(',')); q.set('done', '1');
+    location.replace(location.pathname + '?' + q.toString());
   }, 2600);
 }
 
@@ -180,7 +182,11 @@ function boot() {
       XRExtras.FullWindowCanvas.pipelineModule(), statusModule(), salonModule()]);
     XR8.run({ canvas: $('c') });
   }).catch(() => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T('네트워크를 확인해 주세요'); });
-  if (window.XR8) run(); else window.addEventListener('xrloaded', run, { once: true });
+  if (window.XR8) { run(); return; }
+  window.addEventListener('xrloaded', run, { once: true });
+  const add = (src, async) => new Promise((ok, no) => { const e = document.createElement('script'); e.src = src; e.crossOrigin = 'anonymous'; e.async = !!async; e.onload = ok; e.onerror = no; document.head.appendChild(e); });
+  add('https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js').then(() => add('https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js', true))
+    .catch(() => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T('네트워크를 확인해 주세요'); });
 }
 $('go').addEventListener('click', () => location.reload());
 </script>

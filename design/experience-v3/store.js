@@ -18,6 +18,11 @@ try {
 const AG = 'm100again';
 const again = () => { try { return JSON.parse(sessionStorage.getItem(AG)) || []; } catch { return []; } };
 const unagain = (id) => { try { const a = again().filter((x) => x !== id); a.length ? sessionStorage.setItem(AG, JSON.stringify(a)) : sessionStorage.removeItem(AG); } catch {} };
+try {   // 11/27 앱 안 묶음(file://) → 사이트 스캔 화면처럼 출처가 바뀌어도 '다시 체험'이 이어지게 — 주소로 넘긴 again=<id,…>
+  const ag = new URLSearchParams(location.search).get('again');
+  if (ag) sessionStorage.setItem(AG, JSON.stringify(ag.split(',').filter(Boolean)));
+} catch {}
+export const againIds = () => again();
 export function replay(ids) { try { sessionStorage.setItem(AG, JSON.stringify(ids)); } catch {} location.reload(); }
 
 export const store = {
