@@ -105,6 +105,15 @@ function startPick() {
   window.__salon.pick();
   window.__salon.arrange();
 }
-void showGuide;
-window.addEventListener('salon:wall', () => setTimeout(startPick, RM ? 0 : 500));
-window.addEventListener('salon:tap', startPick);
+void showGuide; void startPick;
+// 11/27 다시 현장 스캔(사용자 지시): 입장 연출이 벽에 닿으면 8th Wall 스캔 화면으로 — 벽의 후보작 중 1등급 메달 그림을 비추면 그 그림 둘레에 같은 오라(AR) → 완료 화면
+//   (11/23 의 '화면에서 고르기'는 startPick 으로 남겨 둠, 안 부름) · 도입만 보는 경우(?intro=only)는 넘어가지 않음
+let gone = false;
+function toScan() {
+  if (gone || window.M100_INTRO?.mode === 'only' || store.saved('salon')) return; gone = true;
+  // 앱 안(폰 안 묶음 file://)에는 8th Wall 페이지가 없으므로 사이트에서 연다(시민사회 벽 AR 과 같음)
+  const base = location.protocol === 'file:' ? 'https://it-ta.com/design/experience-v3/xr8/salon-scan.html' : new URL(V3 + 'xr8/salon-scan.html', location.href).href.split('?')[0];
+  location.href = base + location.search;
+}
+window.addEventListener('salon:wall', () => setTimeout(toScan, RM ? 0 : 500));
+window.addEventListener('salon:tap', toScan);

@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets-salon/s3_luminance.jpg",
+  "metadata": null,
+  "name": "s3",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 41,
+    "width": 989,
+    "height": 1319,
+    "isRotated": true,
+    "originalWidth": 989,
+    "originalHeight": 1400
+  },
+  "resources": {
+    "originalImage": "s3_original.jpg",
+    "croppedImage": "s3_cropped.jpg",
+    "thumbnailImage": "s3_thumbnail.jpg",
+    "luminanceImage": "s3_luminance.jpg"
+  },
+  "created": 1795741277521,
+  "updated": 1795741277521
+}

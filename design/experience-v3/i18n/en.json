@@ -766,5 +766,11 @@
  "카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.": "Could not turn on the camera. Please allow camera access.",
  "그림 속 사람들의 대화가 들립니다.": "You will hear the people in the paintings talking.",
  "카페 벽과 만국박람회 벽을 비춰 주세요": "Point your camera at the café wall or the World's Fair wall",
- "카페 벽과 만국박람회 벽을 비춰 주세요.": "Point your camera at the café wall or the World's Fair wall."
+ "카페 벽과 만국박람회 벽을 비춰 주세요.": "Point your camera at the café wall or the World's Fair wall.",
+ "벽의 후보작 가운데": "Among the candidates on the wall,",
+ "1등급 메달을 받은 그림을 찾아 비춰 보세요.": "find the painting that won the first-class medal and point your camera at it.",
+ "1등급 메달을 받은 그림을 찾아": "Find the painting that won the first-class medal",
+ "1등급 메달 · 올해의 당선작": "First-class medal · Painting of the year",
+ "심사평": "Jury's comment",
+ "네트워크를 확인해 주세요": "Please check your network connection"
 }

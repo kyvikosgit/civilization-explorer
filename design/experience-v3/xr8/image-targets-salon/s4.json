@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets-salon/s4_luminance.jpg",
+  "metadata": null,
+  "name": "s4",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 41,
+    "width": 989,
+    "height": 1319,
+    "isRotated": false,
+    "originalWidth": 989,
+    "originalHeight": 1400
+  },
+  "resources": {
+    "originalImage": "s4_original.jpg",
+    "croppedImage": "s4_cropped.jpg",
+    "thumbnailImage": "s4_thumbnail.jpg",
+    "luminanceImage": "s4_luminance.jpg"
+  },
+  "created": 1795741277545,
+  "updated": 1795741277545
+}

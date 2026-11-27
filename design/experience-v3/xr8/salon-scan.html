@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<title>올해의 그림 · 아카데미 살롱</title>
+<!-- 11/27 살롱 체험 = 다시 현장 스캔(사용자 지시): 벽의 후보작 다섯 점 중 1등급 메달 그림을 찾아 비춘다 — 8th Wall 이미지 타깃(시민사회 벽 AR 과 같은 엔진 · 설정)
+     정답(〈환영〉) = 그림 둘레에 살롱 3D 화면과 같은 오라 셰이더(salon.js AURA)가 AR 로 일렁임 → 2.6초 뒤 엔진 · 카메라 끄고 수집 완료 화면(done.js)
+     오답 = 그 그림의 심사평(data.js feedback) — [다시 비추기]
+     타깃 = tools/xr8/make_salon_targets.mjs → ./image-targets-salon/s1..s5.json(전개도 A1 재단본, 왼쪽부터 01–05)
+     공간 고정(SLAM) 끔 — 동작 센서 허락 창 없이 바로 카메라. 8th Wall 로딩 화면 · 로고 없이 우리 안내만 -->
+<script src="../i18n.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous"></script>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;word-break:keep-all}
+#c{position:fixed;left:0;top:0}
+.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:28px;text-align:center;background:#000;z-index:20}
+.start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:15px;line-height:1.6;margin:0}
+.start button{font:700 17px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:15px 30px}
+.top{position:fixed;left:0;right:0;top:0;z-index:6;padding:calc(env(safe-area-inset-top,0px) + 6px) 12px 0;height:calc(52px + env(safe-area-inset-top,0px));display:grid;grid-template-columns:40px 1fr 40px;align-items:center;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0))}
+.top button{width:40px;height:40px;border-radius:20px;border:0;background:none;color:#fff;display:grid;place-items:center}
+.top button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.top b{text-align:center;font-size:16px;font-weight:700}
+.hint{position:fixed;left:16px;right:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px));text-align:center;z-index:5;transition:opacity .3s}
+.hint span{display:inline-block;background:rgba(0,0,0,.55);padding:10px 16px;border-radius:20px;font-size:15px;line-height:1.5;white-space:pre-line}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:8;background:#F7F3EC;color:#2A2119;border-radius:18px 18px 0 0;padding:22px 20px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-height:70vh;overflow:auto}
+.sheet.on{transform:none}
+.sheet .k{font-size:13px;font-weight:700;color:#8A6A3A;margin:0 0 4px}
+.sheet h2{font-family:Paperlogy,Freesentation,sans-serif;font-size:20px;margin:0 0 2px}
+.sheet .s{font-size:14px;color:#7A7066;margin:0 0 12px}
+.sheet .b{font-size:15px;line-height:1.7;white-space:pre-line;margin:0 0 16px}
+.sheet button{width:100%;min-height:52px;border:0;border-radius:12px;background:#2A2119;color:#F7F0DF;font:800 16px Freesentation,sans-serif}
+.found{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 74px);transform:translate(-50%,-6px);z-index:7;display:flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border-radius:999px;background:rgba(20,16,13,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:15px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .35s,transform .35s}
+.found.on{opacity:1;transform:translate(-50%,0)}
+.found i{width:18px;height:18px;border-radius:50%;background:#E9C77B center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>아카데미 살롱</b><span></span></div>
+<div class="start" id="start"><h1>올해의 그림</h1><p>벽의 후보작 가운데<br>1등급 메달을 받은 그림을 찾아 비춰 보세요.</p><p id="lead">카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
+<div class="hint" id="hint" hidden><span>1등급 메달을 받은 그림을 찾아<br>카메라로 비춰 보세요</span></div>
+<div class="found" id="found"><i></i><span>1등급 메달 · 올해의 당선작</span></div>
+<div class="sheet" id="sheet"><p class="k">심사평</p><h2 id="shT"></h2><p class="s" id="shS"></p><p class="b" id="shB"></p><button type="button" id="shGo">다른 그림 비추기</button></div>
+<script type="module">
+import { ZONES } from '../data.js';
+import { store } from '../store.js';
+import { collect, showComplete } from '../done.js';
+
+const $ = (id) => document.getElementById(id);
+const T = (s) => (window.M100_T ? window.M100_T(s) : s);
+const task = ZONES.find((z) => z.id === 'salon').tasks[0];
+const TG = task.targets;                                     // 왼쪽부터 01–05 = s1..s5
+const WIN = TG.findIndex((t) => t.correct);                  // 〈환영〉
+const WIN_W = { title: '환영: 14세기의 전설', artist: '뤽 올리비에 메르송', year: '1872' };   // salon.js WORKS 와 같은 값(완료 화면 제목)
+// 인식한 3:4(가운데) → 그림 전체. 세로 그림 = 위아래로 1400/1319, 가로(03) = 돌린 타깃이라 긴 변으로
+const SIZE = [[989, 1400], [989, 1400], [1400, 989], [989, 1400], [989, 1400]], CROP = 1319;
+const ROTATED = [false, false, true, false, false];
+
+function finish() {
+  const t = task;
+  showComplete('salon', { item: t.item, title: `〈${WIN_W.title}〉 · ${WIN_W.artist}, ${WIN_W.year}`, body: `${t.successBody || ''}\n\n${t.successVerdict || ''}`.trim(), note: t.after });
+  $('top').style.display = 'none'; $('hint').hidden = true;
+}
+// 이미 맞힌 체험(앱 수집 목록 · 이 폰 기록) = 카메라 없이 바로 완료 화면
+if (store.saved(task.id)) { $('start').style.display = 'none'; finish(); }
+else boot();
+
+// 닫기: 앱은 체험 화면을 닫고, 웹은 뒤로
+$('back').addEventListener('click', () => {
+  if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'close' }));
+  else if (history.length > 1) history.back(); else location.href = '../salon.html';
+});
+
+// ── 정답 오라 — salon.js AURA 셰이더 그대로(액자 둘레를 따라 일렁이며 흐르는 금빛). 단위도 같게: 그림 긴 변 = 1, 액자 테 M = 0.07
+function auraMesh(pw, ph) {
+  const M = 0.07, P = 0.7, ow = pw + 2 * M, oh = ph + 2 * M, w = ow + 2 * P, h = oh + 2 * P;
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { t: { value: 0 }, op: { value: 0 }, hs: { value: new THREE.Vector2(ow / 2, oh / 2) }, size: { value: new THREE.Vector2(w, h) } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform float t, op; uniform vec2 hs, size; varying vec2 vUv;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
+      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int k = 0; k < 3; k++) { v += a * noise(p); p *= 2.0; a *= 0.5; } return v; }
+      void main(){
+        vec2 p = (vUv - 0.5) * size;
+        float r = 0.06; vec2 q = abs(p) - hs + r; float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+        if (d < -0.02) discard;
+        float ang = atan(p.y, p.x);
+        float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9));
+        float n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
+        float core = exp(-max(d, 0.0) * 7.5);
+        float haze = exp(-max(d, 0.0) * 2.7) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.52, 0.69, d));
+        float a = clamp(core * 0.95 + haze * 0.7, 0.0, 1.0) * op;
+        vec3 col = mix(vec3(1.0, 0.86, 0.55), vec3(1.0, 0.98, 0.9), core);
+        gl_FragColor = vec4(col * a, a);
+      }`,
+    transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  return new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+}
+
+let aura = null, auraG = null, winT = 0, ended = false, sheetOn = false, lastWrong = -1, wrongAt = 0;
+function salonModule() {
+  return {
+    name: 'm100salon',
+    onStart() {
+      const xs = XR8.Threejs.xrScene();
+      xs.camera.position.set(0, 3, 0);
+      XR8.XrController.updateCameraProjectionMatrix({ origin: xs.camera.position, facing: xs.camera.quaternion });
+      auraG = new THREE.Group(); auraG.visible = false; xs.scene.add(auraG);
+      const [w, h] = SIZE[WIN], a = w / h;
+      aura = auraMesh(a >= 1 ? 1 : a, a >= 1 ? 1 / a : 1); aura.renderOrder = 5; auraG.add(aura);
+    },
+    onUpdate() {
+      if (!aura) return;
+      const now = performance.now();
+      aura.material.uniforms.t.value = now / 1000;
+      const k = winT ? Math.min(1, (now - winT) / 700) : 0;           // 0.7초에 걸쳐 피어남
+      aura.material.uniforms.op.value = k * k * (3 - 2 * k);
+    },
+    listeners: [
+      { event: 'reality.imagefound', process: onImage },
+      { event: 'reality.imageupdated', process: onImage },
+    ],
+  };
+}
+function onImage(e) {
+  if (ended) return;
+  const d = e.detail, i = +String(d.name).slice(1) - 1; if (!(i >= 0 && i < 5)) return;
+  if (i === WIN) {
+    // 그림 전체 크기(긴 변) = 인식한 3:4 의 긴 변 × 1400/1319
+    const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
+    auraG.position.copy(d.position); auraG.quaternion.copy(d.rotation);
+    const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true;
+    if (!winT) win();
+  } else if (!winT && !sheetOn && (i !== lastWrong || performance.now() - wrongAt > 4000)) wrong(i);
+}
+// 점검용(화면에 안 보임): 인식 없이 흐름만 — window.__salonSim(2) = 정답, 0 = 오답
+window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); } else if (!winT) wrong(i); };
+function wrong(i) {
+  const t = TG[i]; lastWrong = i; sheetOn = true;
+  navigator.vibrate?.(12);
+  $('shT').textContent = T(`〈${t.title}〉`); $('shS').textContent = T(t.sub || '');
+  $('shB').textContent = T(t.feedback || '아쉽지만 1등급 메달을 받은 그림이 아니에요. 다른 후보 작품을 살펴보세요.');
+  $('sheet').classList.add('on'); $('hint').hidden = true;
+}
+$('shGo').addEventListener('click', () => { $('sheet').classList.remove('on'); sheetOn = false; wrongAt = performance.now(); $('hint').hidden = false; });
+function win() {
+  winT = performance.now(); $('sheet').classList.remove('on'); $('hint').hidden = true; $('found').classList.add('on');
+  navigator.vibrate?.([18, 50, 24]);
+  store.solve(task.id); collect(task.id);
+  // 오라를 2.6초 보여 준 뒤 엔진 · 카메라를 끄고 완료 화면(폰 부담 — 계속 켜 두지 않음)
+  setTimeout(() => {
+    ended = true; $('found').classList.remove('on');
+    try { XR8.stop(); } catch {}
+    finish();
+  }, 2600);
+}
+
+function statusModule() {
+  const ready = () => { $('start').style.display = 'none'; $('hint').hidden = false; };
+  return { name: 'm100status', onStart: ready, onCameraStatusChange(e) {
+    if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
+    else if (e.status === 'failed') { $('start').style.display = ''; $('go').hidden = false; $('lead').hidden = true; $('err').textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); }
+  } };
+}
+function boot() {
+  const run = () => Promise.all([1, 2, 3, 4, 5].map((n) => fetch(`image-targets-salon/s${n}.json`).then((r) => r.json()))).then((data) => {
+    XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: true });
+    XR8.addCameraPipelineModules([
+      XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
+      XRExtras.FullWindowCanvas.pipelineModule(), statusModule(), salonModule()]);
+    XR8.run({ canvas: $('c') });
+  }).catch(() => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T('네트워크를 확인해 주세요'); });
+  if (window.XR8) run(); else window.addEventListener('xrloaded', run, { once: true });
+}
+$('go').addEventListener('click', () => location.reload());
+</script>
+</body>
+</html>
