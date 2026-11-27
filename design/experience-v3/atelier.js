@@ -17,6 +17,7 @@
 import { toast } from '../experience-v2/proto/js/proto-common.js';
 import { openCam, closeCam } from './camui.js';
 import { openDetect, closeDetect } from './detect.js';
+import { openSegScan, preloadSeg } from './segscan.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
 import { collect, endRow, mountEnd, showComplete } from './done.js';
@@ -187,6 +188,8 @@ if (IOS_UL && !SOLVED) setTimeout(() => toast('튜브물감 상자에 휴대폰 
 document.body.classList.add('can-scan');
 // 소품 인식 모델(model/props.tflite) — 지금은 대체 소품(공개 사진)으로 학습한 시험판. 돼지 방광은 대체 분류가 없어 빠져 있다
 const MODEL = V3 + 'model/props.tflite';
+// 11/27 현장 화구 상자(나무 트레이 + 뚜껑 + 물감 · 화구) 실루엣 인식 — 현장 영상 22초로 학습(tools/seg/paintbox). 조준점을 대고 2.2초 → 화면을 멈추고 상자를 오려 수집 완료로
+const SEG_MODEL = V3 + 'model/paintbox-seg-320.onnx';
 // 11/06: 미션은 튜브물감 하나 찾기 — 다른 소품은 인식 · 고르기 대상이 아니다(둘러보기는 체험 더보기)
 const pickFallback = (why) => {
   const list = [BY.tube];
@@ -202,6 +205,7 @@ const NFC_KEYS = { easel: 0, pochade: 0, canvas: 1, stool: 2, tube: 3 };
 const guide = makeGuide();
 function showGuide() {
   if (guide.shown || document.body.classList.contains('modal')) return;
+  if (!store.saved(TASK.id)) preloadSeg(SEG_MODEL);
   // 11/18: 제목은 할 일 한 줄(역할 줄의 질문을 되풀이하지 않는다)
   const h = guide.show({
     coach: { img: src('tube'), kind: 'photo' },
@@ -227,15 +231,14 @@ function startScan() {
     openCam({ title: '에트르타 · 튜브물감 찾기', find: '', mind: null, pending: '', targets: [{ title: BY.tube.name, img: src('tube') }], nfc: { tube: 0 }, nfcAny: () => 0, nfcMsg: '튜브물감 상자에 휴대폰 윗부분을 가까이 대세요', nfcBtn: '튜브물감 상자에 폰 대기', nfcAuto: true, onFound: () => { closeCam(); reveal('tube'); } });
     return;
   }
-  openDetect({
+  openSegScan({
+    model: SEG_MODEL, name: '화구 상자',
     title: '에트르타 · 튜브물감 찾기',
-    find: '튜브물감이 든 화구 상자에 카메라를 비추세요',
-    model: MODEL,
-    names: { tube: BY.tube.name },
-    onFound: (id) => { closeDetect(); reveal(id); },
-    onFallback: (why) => { closeDetect(); pickFallback(why); },
+    find: '튜브물감이 든 화구 상자에\n조준점을 대 보세요',
+    onFound: () => reveal('tube'),   // 오린 상자가 가운데 뜬 채로 → 수집 완료 화면이 덮음
     onClose: () => showGuide(),
   });
+  void openDetect; void closeDetect; void MODEL; void pickFallback;   // (10월 시험판 소품 인식 — 안 씀)
 }
 
 // 태그 주소 → 물건: …/n/?t=bladder 또는 …/c3-tube.html?o=bladder
