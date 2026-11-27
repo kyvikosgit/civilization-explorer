@@ -67,7 +67,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
   // 붙음 시험용 영상(tools/xr8/make_text_video.py): 그림은 멈춘 채 머리 위 대사만 한 글자씩 — '달라진 곳만 덮기'라 글자만 보인다. ref = 첫 장면(글 없음)
   var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004], full: true }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_text.mp4', ref: 'street_text_ref.jpg', px: [1080, 1684] },
     // 11/27 현장 창문(카페 그림 오른쪽 위 x 0.68–0.91 · y 0.24–0.65, 특징점 185개로 맞춤) — 3번 구간(12–18초)만 창문 모양에 맞게 펴서 얹음. 영상에 박힌 글은 지우고(인물만 움직임) 대사는 화면에서 따로 씀(ownText)
-    cafe3: { src: 'cafe3_turns.mp4', ref: 'cafe3_turns_ref.jpg', px: [694, 800], full: true, ownText: true } };
+    cafe3: { src: 'cafe3_turns.mp4', ref: 'cafe3_turns_ref.jpg', px: [694, 800], ownText: true, bars: [0.476, 0.514, 0.483, 0.509] } };   // 11/27 움직이는 사람만 얹음(창 전체를 덮으면 창살이 사라지고 색이 바뀜) · bars = 실제 창살 자리(사진 기준 x0,x1,y0,y1)는 비움
   var $ = function (id) { return document.getElementById(id); };
   var videos = {};
   Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
@@ -78,11 +78,12 @@ document.getElementById('close').addEventListener('click', function () { if (win
   function liveMat(k) {
     var V = VIDEO[k], vt = new THREE.VideoTexture(videos[k]), ref = new THREE.TextureLoader().load(V.ref); ref.minFilter = THREE.LinearFilter;
     TONE[k] = { gain: new THREE.Vector3(1, 1, 1), off: new THREE.Vector3(0, 0, 0) };
-    var U = UU[k] = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE[k].gain }, uOff: { value: TONE[k].off }, uTexel: { value: new THREE.Vector2(1 / V.px[0], 1 / V.px[1]) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 }, uFull: { value: V.full ? 1 : 0 } };
+    var U = UU[k] = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE[k].gain }, uOff: { value: TONE[k].off }, uTexel: { value: new THREE.Vector2(1 / V.px[0], 1 / V.px[1]) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 }, uFull: { value: V.full ? 1 : 0 },
+      uBars: { value: V.bars ? new THREE.Vector4(V.bars[0], V.bars[1], 1 - V.bars[3], 1 - V.bars[2]) : new THREE.Vector4(-1, -1, -1, -1) } };
     return new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: [
-        'uniform sampler2D uVid, uRef; uniform vec3 uGain, uOff; uniform vec2 uTexel; uniform float uTime, uDbg, uFull; varying vec2 vUv;',
+        'uniform sampler2D uVid, uRef; uniform vec3 uGain, uOff; uniform vec2 uTexel; uniform float uTime, uDbg, uFull; uniform vec4 uBars; varying vec2 vUv;',
         'float df(vec2 p){ return length(texture2D(uVid, p).rgb - texture2D(uRef, p).rgb); }',
         'float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
         'void main(){',
@@ -93,6 +94,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
         '  vec3 c = (texture2D(uVid, vUv).rgb * 2.0 + texture2D(uVid, vUv + vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv - vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv + vec2(0.0, uTexel.y)).rgb + texture2D(uVid, vUv - vec2(0.0, uTexel.y)).rgb) / 6.0;',
         '  c = clamp(c * uGain + uOff + (h(vUv * 917.0 + uTime) - 0.5) * 0.025, 0.0, 1.0);',
         '  float a = m * e.x * e.y;',
+        '  if (uBars.x >= 0.0) { float bx = smoothstep(uBars.x - 0.004, uBars.x, vUv.x) * (1.0 - smoothstep(uBars.y, uBars.y + 0.004, vUv.x)); float by = smoothstep(uBars.z - 0.004, uBars.z, vUv.y) * (1.0 - smoothstep(uBars.w, uBars.w + 0.004, vUv.y)); a *= 1.0 - max(bx, by); }',   // 실제 창살은 늘 앞에
         '  if (uDbg > 0.5) { c = mix(c, vec3(1.0, 0.0, 0.0), 0.45); a = max(a, 0.18 * e.x * e.y); }',
         '  gl_FragColor = vec4(c, a);',
         '}'].join('\n') });
@@ -167,7 +169,9 @@ document.getElementById('close').addEventListener('click', function () { if (win
   // 타깃 자리에 판을 놓는다. 가로 그림을 90° 돌려 세로 타깃으로 만들었으므로(isRotated) 엔진이 세로로 알려 주면 판을 90° 돌려 맞춘다
   function place(e) {
     var d = e.detail, f = faces[d.name]; if (!f) return;
-    f.g.position.copy(d.position); f.g.quaternion.copy(d.rotation); f.g.scale.set(d.scale, d.scale, d.scale); f.g.visible = true;
+    // 11/27 떨림 줄이기 — 인식 위치가 장면마다 조금씩 튀는 것을 부드럽게 따라감(처음 · 오래 놓쳤다 다시 잡을 땐 바로)
+    var fresh = !f.g.visible || Date.now() - (seen[d.name] || 0) > 800, kf = fresh ? 1 : 0.3;
+    f.g.position.lerp(d.position, kf); f.g.quaternion.slerp(d.rotation, kf); var sc = f.g.scale.x + (d.scale - f.g.scale.x) * kf; f.g.scale.set(sc, sc, sc); f.g.visible = true;
     if (!f.sized) {
       var w = d.scaledWidth, h = d.scaledHeight;
       var fl = FULL[d.name] || [1, 1];   // 인식한 3:4 → 그림 전체
@@ -200,7 +204,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     var c = document.createElement('canvas'), ctx = c.getContext('2d'); ctx.font = FONT;
     var lines = wrap(ctx, text, CW - PAD * 2); c.width = CW; c.height = lines.length * LH + PAD * 2;
     ctx.font = FONT;   // 캔버스 크기를 바꾸면 글꼴 설정이 초기화된다 — 다시 지정하지 않으면 글자 폭을 10px 기본 글꼴로 재서 한자리에 뭉침(11/25 버그)
-    var tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+    var tex = new THREE.CanvasTexture(c); tex.generateMipmaps = true; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.anisotropy = 4;   // 11/27 글이 자글자글하던 것 — 작게 줄여 그릴 때 밉맵으로 부드럽게
     var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false, toneMapped: false }));
     mesh.renderOrder = 10;
     var chars = []; lines.forEach(function (ln, li) { var x = 0, w = ctx.measureText(ln).width, x0 = (CW - w) / 2; Array.from(ln).forEach(function (ch) { chars.push({ ch: ch, x: x0 + x, y: PAD + li * LH + LH * 0.78 }); x += ctx.measureText(ch).width; }); });
