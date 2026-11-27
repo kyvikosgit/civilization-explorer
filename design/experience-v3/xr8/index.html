@@ -167,11 +167,14 @@ document.getElementById('close').addEventListener('click', function () { if (win
     };
   }
   // 타깃 자리에 판을 놓는다. 가로 그림을 90° 돌려 세로 타깃으로 만들었으므로(isRotated) 엔진이 세로로 알려 주면 판을 90° 돌려 맞춘다
+  var TQ = new THREE.Quaternion(), TP = new THREE.Vector3();
   function place(e) {
     var d = e.detail, f = faces[d.name]; if (!f) return;
     // 11/27 떨림 줄이기 — 인식 위치가 장면마다 조금씩 튀는 것을 부드럽게 따라감(처음 · 오래 놓쳤다 다시 잡을 땐 바로)
     var fresh = !f.g.visible || Date.now() - (seen[d.name] || 0) > 800, kf = fresh ? 1 : 0.3;
-    f.g.position.lerp(d.position, kf); f.g.quaternion.slerp(d.rotation, kf); var sc = f.g.scale.x + (d.scale - f.g.scale.x) * kf; f.g.scale.set(sc, sc, sc); f.g.visible = true;
+    // 엔진이 주는 rotation 은 그냥 객체 → three 의 slerp 가 NaN 을 냄(11/27 인식 안 됨 원인). Quaternion 으로 옮겨서 씀
+    TQ.set(d.rotation.x, d.rotation.y, d.rotation.z, d.rotation.w); TP.set(d.position.x, d.position.y, d.position.z);
+    f.g.position.lerp(TP, kf); f.g.quaternion.slerp(TQ, kf); var sc = f.g.scale.x + (d.scale - f.g.scale.x) * kf; f.g.scale.set(sc, sc, sc); f.g.visible = true;
     if (!f.sized) {
       var w = d.scaledWidth, h = d.scaledHeight;
       var fl = FULL[d.name] || [1, 1];   // 인식한 3:4 → 그림 전체
