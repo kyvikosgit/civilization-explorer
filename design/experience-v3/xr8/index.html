@@ -47,12 +47,17 @@ document.getElementById('close').addEventListener('click', function () { if (win
       SLAM = q.has('slam');   // 11/26: 기본 끔 — 켜면 아이폰이 '동작 및 방향 접근' 허락 창을 띄우고 첫 터치가 필요해서(시작 단추). 그림 인식만으로도 매 장면 벽에 붙음
   // 11/25 최종 그림(미술팀 261117) — 카페 = 실내(가로), 박람회 거리 = 세로. 인식은 가운데 3:4 만 쓰므로 판을 그림 전체 크기로 늘림(FULL)
   //   대사는 기술 점검용 자리 채움(기획서 260928 대사) — 최종 원고 · 인물 자리를 받으면 바꿈. 영상은 최종 그림으로 새로 만들어야 해서 지금은 없음(글만)
-  var ROTATED = { cafe: true, street: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2400 / 2053] };
+  var ROTATED = { cafe: true, street: false, cafe3: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2400 / 2053], cafe3: [1387 / 1200, 1] };
+  // 11/27 현장: 카페 그림 앞에 창문 벽체 — 창 안(3번째 테이블)만 보여 카페 전체 인식이 안 됨 → 창 안 장면을 따로 인식(cafe3 = 사용자 현장 사진, tools/xr8/make_cafe3_target.mjs)
+  //   영상은 이 장면용이 없어 글(대사)만. 글 폭은 창이 좁아 그림 폭의 절반(TW)
+  var TW = { cafe: 0.24, street: 0.24, cafe3: 0.5 };
   var HEADS = {
     cafe: [
       { x: 0.108, y: 0.50, t: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
       { x: 0.455, y: 0.50, t: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
       { x: 0.955, y: 0.53, t: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' }],
+    cafe3: [   // 창 안 오른쪽 모자 쓴 사람(창 폭 안에 들게 글 가운데를 0.75 로)
+      { x: 0.75, y: 0.66, t: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' }],
     street: [
       { x: 0.615, y: 0.455, t: '박람회 참가국이 42개국이라고? 이걸 다 보려면 며칠은 걸리겠어.' },
       { x: 0.23, y: 0.425, t: '그 동양 전시관 가 봤어요? 그림이 너무 특이하고 신기해요.' },
@@ -135,7 +140,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
         var xs = XR8.Threejs.xrScene(); camera = xs.camera; v3 = new THREE.Vector3();
         camera.position.set(0, 3, 0);
         XR8.XrController.updateCameraProjectionMatrix({ origin: camera.position, facing: camera.quaternion });
-        ['cafe', 'street'].forEach(function (k) {
+        ['cafe', 'street', 'cafe3'].forEach(function (k) {
           var g = new THREE.Group(); g.visible = false; xs.scene.add(g);
           // 판 = 그 면 그림(가로) 크기. 카페만 영상을 보이고, 거리는 안 보이는 판(머리 자리 계산용)
           var mat = VIDEO[k] ? liveMat(k) : new THREE.MeshBasicMaterial({ visible: false });
@@ -169,7 +174,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       // 글판: 그림 벽과 같은 면 · 같은 위쪽 방향으로, 머리 꼭대기 바로 위에(그림 가로의 24% 폭)
       var up = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), f.m.rotation.z), cw = f.m.scale.x;
       f.heads.forEach(function (hd) {
-        var p = new THREE.Vector3(hd.hx - 0.5, 0.5 - hd.hy, 0).applyMatrix4(f.m.matrix), tw = cw * 0.24, th = tw * hd.tx.ar;
+        var p = new THREE.Vector3(hd.hx - 0.5, 0.5 - hd.hy, 0).applyMatrix4(f.m.matrix), tw = cw * (TW[d.name] || 0.24), th = tw * hd.tx.ar;
         hd.tx.mesh.scale.set(tw, th, 1); hd.tx.mesh.rotation.z = f.m.rotation.z;
         hd.tx.mesh.position.copy(p).addScaledVector(up, th / 2 + cw * 0.01).setZ(cw * 0.002);
       });
@@ -239,7 +244,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     } };
   }
   function boot() {
-    Promise.all(['cafe', 'street'].map(function (n) { return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
+    Promise.all(['cafe', 'street', 'cafe3'].map(function (n) { return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
       XR8.addCameraPipelineModules([
         XR8.GlTextureRenderer.pipelineModule(), XR8.CameraPixelArray.pipelineModule({ luminance: false, maxDimension: 192 }), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),

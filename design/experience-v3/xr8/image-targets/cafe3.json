@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets/cafe3_luminance.jpg",
+  "metadata": null,
+  "name": "cafe3",
+  "type": "PLANAR",
+  "properties": {
+    "left": 94,
+    "top": 0,
+    "width": 1200,
+    "height": 1600,
+    "isRotated": false,
+    "originalWidth": 1387,
+    "originalHeight": 1600
+  },
+  "resources": {
+    "originalImage": "cafe3_original.jpg",
+    "croppedImage": "cafe3_cropped.jpg",
+    "thumbnailImage": "cafe3_thumbnail.jpg",
+    "luminanceImage": "cafe3_luminance.jpg"
+  },
+  "created": 1795741704149,
+  "updated": 1795741704149
+}
