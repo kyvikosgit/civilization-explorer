@@ -119,7 +119,7 @@ export const ZONES = [
       extraPending: '우키요에 등 인상주의 시대를 연 배경 설명 · 원고 대기',
       after: '1870년대, 생라자르역의 기차는\n파리 사람들을 노르망디 바다로 실어 날랐다.\n화가들도 그 기차를 타고 바다의 빛을 찾아 나섰다.',   // 11/18: 운영 공지 대신 맺음줄
       next: { label: '바로 옆 에트르타로', href: 'atelier.html' },
-      item: { name: '노르망디행 기차표', sub: '생라자르 → 노르망디', img: 'img/t_ticket.png', contain: true },
+      item: { name: '노르망디행 기차표', sub: '생라자르 → 노르망디', img: 'img/t_ticket_final.png', contain: true },
     }],
   },
   {
@@ -135,7 +135,7 @@ export const ZONES = [
       successBody: '금속 튜브물감\n\n이전까지 화가들은 물감을 돼지 방광에 담아 다녔어요. 쉽게 터지고 금방 굳어, 물감을 가지고 야외로 나가기가 쉽지 않았습니다.\n하지만 튜브물감의 발명은 화가들이 물감을 간편하게 들고 야외로 나갈 수 있게 해주었습니다.\n이제 화가들은 기억이 아니라, 눈앞의 순간을 그대로 화폭에 담을 수 있게 되었습니다.',
       successGuide: '내 수집품에 추가되었습니다.\n나다르 사진관으로 이동해 주세요.',
       after: '1841년, 짜서 쓰는 주석 튜브물감이 나왔다.\n화가는 이제 물감을 들고 바깥의 빛 앞에 섰다.',   // 11/18: 맺음줄
-      item: { name: '금속 튜브물감', sub: '아틀리에를 벗어난 화가', img: 'img/ob_tube_cut.png', contain: true },
+      item: { name: '금속 튜브물감', sub: '아틀리에를 벗어난 화가', img: 'img/ob_paintbox_cut.png', contain: true },
     }],
   },
   {
