@@ -15,6 +15,7 @@ const V3 = '../../experience-v3/';
 // 11/18: 해돋이 원본 하나로 통일 — 마르모탕 원본(img/sunrise_original.jpg, design/sunrise-brief 5773px 축소) · 영상은 그 색에 맞춘 판(video/sunrise-scene-graded.mp4). sunrise_target.jpg 는 인식용으로 대비를 올린 판이라 화면에 쓰지 않는다
 const VIDEO = new URL(V3 + 'video/sunrise-scene-graded.mp4', document.baseURI).href;   // 11/26 앱은 뒤에서 서버 최신본을 받아 둠(mediaSync) · 없으면 서버에서
 const PAINT = new URL(V3 + 'img/sunrise_original.jpg', document.baseURI).href;
+const PLAY_MS = 4500;   // 11/27 사용자: 영상을 끝까지(10초) 틀지 않고 몇 초만 살아났다가 그림으로 → 수집품 카드로
 const VAR = 752 / 560;                                   // 영상 가로/세로
 // 타깃 세로/가로 — mind/sunrise.mind 컴파일 순서(해돋이 원본 img/sunrise_target.jpg · 생라자르 · 에트르타 · 수련)
 const RATIO = [1241 / 1600, 0.744, 0.801, 1.255];
@@ -62,15 +63,13 @@ function start() {
       navigator.vibrate?.([20, 60, 30]);
       if (live) {
         // 카메라 화면 속 그림 위에서 재생 → 끝나면 그림으로(겹친 영상이 걷히면 카메라에 비친 진짜 그림)
-        await ui.fx.play((f) => { skip = f; });
-        await ui.fx.fadeOut();
-        await wait(250);
-        handoff(ui.fx.rect(WIN) || ui.simRect?.());
+        await ui.fx.play((f) => { skip = f; }, PLAY_MS);
+        handoff(ui.fx.rect(WIN) || ui.simRect?.(), ui.fx);   // 영상이 흐르는 그 자리에 그림이 겹쳐 떠오르고(영상은 아래에서 걷힘) → 수집품 카드 자리로
       } else {
         // 카메라 없이 고르기: 화면에 보이는 그 그림 자리에서 — 해설 판이 뜨면 그림이 위로 올라가며 작아진다(cam.css .locked, .45초). 다 옮겨 간 뒤에 잰다
         await wait(500);
         const r = ui.simRect?.();
-        await new Promise((done) => inPlace(r, done, (f) => { skip = f; }, () => ui.simRect?.()));   // 11/18: 그림 칸이 움직여도 영상이 금색 모서리 안에 맞게 따라간다
+        await new Promise((done) => inPlace(r, done, (f) => { skip = f; }, () => ui.simRect?.(), PLAY_MS));   // 11/18: 그림 칸이 움직여도 영상이 금색 모서리 안에 맞게 따라간다
         handoff(ui.simRect?.() || r);
       }
     },
@@ -143,9 +142,10 @@ function sunFx({ THREE, mindar, anchors }) {
   return {
     rect,
     // 처음부터 한 번 재생 — 끝나거나 건너뛰면 끝
-    play(onSkip) {
+    play(onSkip, ms) {
       return new Promise((done) => {
         let over = false; const end = () => { if (over) return; over = true; done(); };
+        if (ms) setTimeout(end, ms);
         onSkip?.(end);
         want = 1; try { v.currentTime = 0; } catch {} v.play().catch(() => setTimeout(end, 400));
         v.addEventListener('ended', end, { once: true });
@@ -172,7 +172,7 @@ function sunFx({ THREE, mindar, anchors }) {
 }
 
 // ── 화면 위 고정 자리에서(카메라 없이 고르기 · 다시 보기): 그 그림 자리 그대로 영상이 살아났다가 다시 그림이 된다
-function inPlace(rect, then, onSkip, follow) {
+function inPlace(rect, then, onSkip, follow, ms) {
   const r = rect || centerRect();
   const el = document.createElement('div');
   el.className = 'v3-bloom';
@@ -191,29 +191,40 @@ function inPlace(rect, then, onSkip, follow) {
     el.remove(); then?.();
   };
   onSkip?.(end);
+  if (ms) setTimeout(end, ms);
   vid.addEventListener('ended', end);
   vid.addEventListener('error', end);   // 11/18: 영상을 못 불러오면 멈춰 있지 않고 바로 그림으로
   el.querySelector('.bl-skip')?.addEventListener('click', end);
 }
 
-// ── 그림이 된 그 자리에서 — 11/18: 옮겨 가지 않는다. 영상이 걷힌 그 자리에 원본 그림을 그대로 두고 카메라를 닫은 뒤 결과 화면으로
-async function handoff(rect) {
+// ── 그림이 된 그 자리에서 수집품 카드로 — 11/27: 영상 위로 원본 그림이 떠오르고, 흰 완료 화면이 깔리는 동안 그 그림이 카드 속 액자 자리로 옮겨 가 카드가 된다
+//   (전에는 검은 바탕 → 카메라 닫힘 → 완료 화면이 따로 떠서 끊겨 보였음)
+const CARD_IN = { l: 60 / 720, t: 229 / 960, r: 658 / 720, b: 693 / 960 };   // img/cc_sunrise.jpg 안의 그림 자리(금색 틀 안쪽)
+async function handoff(rect, fx) {
   const r = rect || centerRect();
   const el = document.createElement('div');
-  el.className = 'v3-bloom';
-  el.innerHTML = `<div class="bl-bg"></div><img class="bl-paint" src="${PAINT}" alt="">`;
+  el.className = 'v3-bloom'; el.style.zIndex = '9500';   // 완료 화면(9000) 위에서 날아간다
+  el.innerHTML = `<img class="bl-paint" src="${PAINT}" alt="">`;
   document.body.appendChild(el);
-  const paint = el.querySelector('.bl-paint'), bg = el.querySelector('.bl-bg');
+  const paint = el.querySelector('.bl-paint');
   box(paint, r);
-  await Promise.all([
-    paint.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: 'forwards' }).finished,
-    bg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out', fill: 'forwards' }).finished,
-  ]);
-  closeCam();
-  window.__c5sun.endNow();
-  await wait(reduceMotionOn() ? 0 : 700);
-  finishMission();
-  await wait(500);
+  try { await paint.decode(); } catch {}
+  await paint.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'ease-out', fill: 'forwards' }).finished;
+  fx?.fadeOut();
+  if (reduceMotionOn()) { finishMission(); setTimeout(() => { closeCam(); window.__c5sun.endNow(); el.remove(); }, 400); return; }
+  const d = finishMission();
+  const card = d?.el.querySelector('.d-card'), cimg = card?.querySelector('img');
+  if (!cimg) { setTimeout(() => { closeCam(); window.__c5sun.endNow(); el.remove(); }, 400); return; }
+  // 카드는 바로 제자리 크기로(제 연출 대신 이 그림이 날아 들어감) · 카드 사진은 그림이 도착하면 드러냄
+  card.style.transition = 'none'; card.style.transform = 'none'; card.style.opacity = '1'; cimg.style.opacity = '0';
+  try { await cimg.decode(); } catch {}
+  setTimeout(() => { closeCam(); window.__c5sun.endNow(); }, 400);   // 흰 완료 화면이 다 깔린 뒤에 카메라를 닫는다(뒤 장면이 비치지 않게)
+  const c = cimg.getBoundingClientRect();
+  const to = { l: c.left + c.width * CARD_IN.l, t: c.top + c.height * CARD_IN.t, r: c.left + c.width * CARD_IN.r, b: c.top + c.height * CARD_IN.b };
+  setTimeout(() => { cimg.style.transition = 'opacity .45s ease-out'; cimg.style.opacity = '1'; }, 420);   // 그림이 내려앉는 동안 카드(바탕 · 금색 틀)가 둘레에 함께 드러남
+  await paint.animate([{ ...kf(r), boxShadow: '0 0 0 rgba(0,0,0,0)' }, { ...kf(to), boxShadow: '0 0 0 rgba(0,0,0,0)' }],
+    { duration: 820, easing: EASE, fill: 'forwards' }).finished;
+  await paint.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, fill: 'forwards' }).finished;
   el.remove();
 }
 const reduceMotionOn = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -225,5 +236,5 @@ function finishMission() {
   // 11/06: 미션 완료는 구역 공통 화면(done.js) — 체험 더보기 = 연작 보기
   //   11/18: 제목은 해설의 첫 줄(이름 줄과 겹치지 않게), 맺음줄 note
   const [head, ...body] = task.successBody.split('\n\n');
-  showComplete('monet', { item: task.item, title: head, body: body.join('\n\n'), note: task.after, more: (d) => { d.hide(); document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); setTimeout(() => b.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200); } });
+  return showComplete('monet', { item: task.item, title: head, body: body.join('\n\n'), note: task.after, more: (d) => { d.hide(); document.body.classList.add('more'); const b = document.getElementById('toSeries'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); setTimeout(() => b.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200); } });
 }
