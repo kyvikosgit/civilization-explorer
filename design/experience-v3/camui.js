@@ -3,7 +3,7 @@
 import { startScan, stopScan } from './scan.js';
 
 const ICO = {
-  close: '<svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',   // 11/28 체험 화면 공통 '<'(닫기 X 대신)
+  close: '<svg class="ico" viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg>',   // 11/28 체험 화면 공통 '<'(닫기 X 대신)
 };
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 export { esc };

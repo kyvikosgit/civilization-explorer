@@ -62,7 +62,7 @@ export function openSegScan(o) {
   style(); if (cur) cur.close(true);
   const el = document.createElement('div'); el.className = 'v3-seg';
   el.innerHTML = `<video playsinline muted autoplay></video><canvas class="fx"></canvas><div class="dim"></div>
-    <div class="top"><button type="button" aria-label="${T('닫기')}"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>${T(({ '에트르타': '화가의 작업 공간' })[String(o.title || '').split(' · ')[0]] || String(o.title || '').split(' · ')[0])}</b><span></span></div>
+    <div class="top"><button type="button" aria-label="${T('닫기')}"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></button><b>${T(({ '에트르타': '화가의 작업 공간' })[String(o.title || '').split(' · ')[0]] || String(o.title || '').split(' · ')[0])}</b><span></span></div>
     <div class="ret"><i></i><i></i><i></i><i></i><b></b></div>
     <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="176"/></svg>
     <div class="msg"><span></span></div><div class="wait">${T('카메라를 켜고 있어요')}</div>`;

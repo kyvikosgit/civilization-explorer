@@ -68,7 +68,7 @@ function backToHub() {
   const old = $('#flowBack'); if (!old) return;
   const b = old.cloneNode(false); old.replaceWith(b);   // 지도로 가던 동작을 떼어 낸다
   b.setAttribute('aria-label', '목록으로');
-  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+  b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg>';
   b.onclick = () => { location.href = '../../experience-v3/index.html'; };
 }
 // 11/17: 이미 맞혔으면 들어오자마자 결과 화면(다시 체험 화면이 아니라)

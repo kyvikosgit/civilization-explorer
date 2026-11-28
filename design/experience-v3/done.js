@@ -171,7 +171,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
   if (ct?.successTitle) { body = [title, (body || '').trim()].filter(Boolean).join('\n\n'); title = ct.successTitle; guide = ct.successGuide || ''; }
   const el = document.createElement('div');
   el.className = 'v3-done';
-  el.innerHTML = `<div class="d-bar"><a href="${esc(HUB)}" aria-label="목록으로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></a>
+  el.innerHTML = `<div class="d-bar"><a href="${esc(HUB)}" aria-label="목록으로"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></a>
       <div class="d-loc">${esc(ZONE_NAME[zoneId] || (zone ? zone.loc.replace('4F · ', '').replace(`${zone.no} `, '') : ''))}</div>
       <span></span></div>
     <div class="d-scroll"><div class="d-in">
@@ -265,7 +265,7 @@ async function uncurl(o, fr, curl) {
   fr.style.opacity = '1'; box.remove();
 }
 export function liftImg(id) { return new URL(`img/lift_${id}.webp`, V3).href; }
-export async function liftToCard(id, { from = '', rect = null, complete, cleanup, lifted = false, hold = false, curl = 0, xfade = 420 } = {}) {
+export async function liftToCard(id, { from = '', rect = null, complete, cleanup, lifted = false, hold = false, curl = 0, xfade = 420, replace = null } = {}) {
   style();
   const L = liftRect(id), r0 = rect || L, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const el = document.createElement('div'); el.className = 'v3-lift';
@@ -275,7 +275,7 @@ export async function liftToCard(id, { from = '', rect = null, complete, cleanup
   Object.assign(o.style, pos(lifted ? L : r0));
   await Promise.all([to, fr].filter(Boolean).map((im) => im.decode().catch(() => {})));
   const A = (n, k, o2) => n.animate(k, { fill: 'forwards', ...o2 }).finished.catch(() => {});
-  if (lifted) { bg.style.opacity = '1'; to.style.opacity = '1'; }
+  if (lifted) { bg.style.opacity = '1'; to.style.opacity = '1'; if (replace) requestAnimationFrame(() => replace.remove()); }   // replace = hold 로 떠 있던 판(같은 자리 · 같은 그림) — 새 판이 그려진 뒤 걷음(깜빡임 없게)
   else if (reduce) { bg.style.opacity = '1'; to.style.opacity = '1'; if (fr) fr.style.opacity = '0'; Object.assign(o.style, pos(L)); }
   else {
     if (fr && curl) await uncurl(o, fr, curl);                                          // 11/28 말려 있던 종이(현장 전단지)가 그 자리에서 살짝 펴짐

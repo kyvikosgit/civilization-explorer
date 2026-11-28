@@ -68,7 +68,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>인상파 전시회</b><span></span></div>
+<div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></button><b>인상파 전시회</b><span></span></div>
 <div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>〈인상, 해돋이〉에<br>카메라를 비춰 보세요</span></div>
 <div class="card win" id="card"><img src="../img/sunrise_original.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><span>인상주의라는 이름을 낳은 그림</span></span></div><button type="button" class="cskip" id="skip">건너뛰기</button></div>
@@ -174,13 +174,13 @@ async function lift() {
   if (liftT) return; liftT = performance.now();
   $('top').style.opacity = '0';
   // 떠올라 가운데까지는 이 화면에서, 카드로 들어가는 건 엔진 없이 새로 연 화면에서(살롱과 같음)
-  await liftToCard('sunrise', { from: '../img/sunrise_original.jpg', rect: paintRect(), hold: true });
+  const held = await liftToCard('sunrise', { from: '../img/sunrise_original.jpg', rect: paintRect(), complete: null, hold: true });
+  // 11/28 페이지를 새로 열지 않고 이 화면에서 엔진만 끄고 이어 감(새로 열 때 한 프레임 비어 깜빡이던 것)
   ended = true;
   try { XR8.stop(); } catch {}
-  const q = new URLSearchParams(location.search); q.delete('again');
-  const got = (q.get('got') || '').split(',').filter(Boolean); if (!got.includes(task.id)) got.push(task.id);
-  q.set('got', got.join(',')); q.set('done', '1'); q.set('lift', '1');
-  location.replace(location.pathname + '?' + q.toString());
+  try { XR8.clearCameraPipelineModules(); } catch {}
+  $('c').style.visibility = 'hidden'; $('top').style.display = 'none'; $('hint').hidden = true;
+  await liftToCard('sunrise', { lifted: true, replace: held, complete: () => finish() });
 }
 
 function statusModule() {
