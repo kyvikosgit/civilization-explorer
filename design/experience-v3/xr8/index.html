@@ -66,9 +66,13 @@ document.getElementById('close').addEventListener('click', function () { if (win
       { x: 0.84, y: 0.42, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
   };
   // 붙음 시험용 영상(tools/xr8/make_text_video.py): 그림은 멈춘 채 머리 위 대사만 한 글자씩 — '달라진 곳만 덮기'라 글자만 보인다. ref = 첫 장면(글 없음)
-  var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004], full: true }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_text.mp4', ref: 'street_text_ref.jpg', px: [1080, 1684] },
+  var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004], full: true }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_live.mp4', ref: 'street_live_ref.jpg', px: [864, 1348], full: true, ownText: true },   /* 11/28 박람회 = Veo 3.1 Fast(인쇄 원본에서 사람만 움직임, 가리는 것 없어 그림 전체를 덮음) · 대사는 화면에서(자막 원고는 나중에) · 이전 = street_text.mp4 */
     // 11/27 현장 창문(카페 그림 오른쪽 위 x 0.68–0.91 · y 0.24–0.65, 특징점 185개로 맞춤) — 3번 구간(12–18초)만 창문 모양에 맞게 펴서 얹음. 영상에 박힌 글은 지우고(인물만 움직임) 대사는 화면에서 따로 씀(ownText)
-    cafe3: { src: 'cafe3_turns.mp4', ref: 'cafe3_turns_ref.jpg', px: [694, 800], ownText: true, bars: [0.476, 0.514, 0.483, 0.509] } };   // 11/27 움직이는 사람만 얹음(창 전체를 덮으면 창살이 사라지고 색이 바뀜) · bars = 실제 창살 자리(사진 기준 x0,x1,y0,y1)는 비움
+    // 11/28 사용자: 창틀을 비운 '움직이는 사람만' 판은 현장에서 깨져 보임 → 창 안 전체를 영상으로 덮되(반사 없는 깨끗한 원본으로 만든 Veo 영상)
+    //   실제 창은 그림보다 앞에 서 있으므로(현장 사진 12장 시차 맞춤: 창 폭의 0.151) 창 구멍 · 창살을 그 깊이에 두고 카메라 자리에서 계산 — 비스듬히 봐도 창틀 밖으로 새지 않고 창살이 제 자리
+    //   glass = { depth: 창 폭 단위, open: 창 구멍 크기(판 대비), bscale: 창살 그림 크기, alpha: 영상 불투명도(실제 유리 반사가 옅게 비침) } · ?va= 로 불투명도 점검
+    cafe3: { src: 'cafe3_live.mp4', ref: 'cafe3_live_ref.jpg', px: [1040, 1200], ownText: true, full: true,
+      glass: { depth: 0.151, open: 0.915, bscale: 0.922, alpha: q.has('va') ? +q.get('va') : 0.9, bars: 'cafe3_bars.webp' } } };   // 11/27 움직이는 사람만 얹음(창 전체를 덮으면 창살이 사라지고 색이 바뀜) · bars = 실제 창살 자리(사진 기준 x0,x1,y0,y1)는 비움
   var $ = function (id) { return document.getElementById(id); };
   var videos = {};
   Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
@@ -80,11 +84,14 @@ document.getElementById('close').addEventListener('click', function () { if (win
     var V = VIDEO[k], vt = new THREE.VideoTexture(videos[k]), ref = new THREE.TextureLoader().load(V.ref); ref.minFilter = THREE.LinearFilter;
     TONE[k] = { gain: new THREE.Vector3(1, 1, 1), off: new THREE.Vector3(0, 0, 0) };
     var U = UU[k] = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE[k].gain }, uOff: { value: TONE[k].off }, uTexel: { value: new THREE.Vector2(1 / V.px[0], 1 / V.px[1]) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 }, uFull: { value: V.full ? 1 : 0 },
-      uBars: { value: V.bars ? new THREE.Vector4(V.bars[0], V.bars[1], 1 - V.bars[3], 1 - V.bars[2]) : new THREE.Vector4(-1, -1, -1, -1) } };
+      uBars: { value: V.bars ? new THREE.Vector4(V.bars[0], V.bars[1], 1 - V.bars[3], 1 - V.bars[2]) : new THREE.Vector4(-1, -1, -1, -1) },
+      uGlass: { value: V.glass ? new THREE.Vector4(V.glass.depth, V.glass.open, V.glass.bscale, V.glass.alpha) : new THREE.Vector4(0, 0, 1, 1) }, uCam: { value: new THREE.Vector3(0, 0, 2) },
+      uBarTex: { value: V.glass ? new THREE.TextureLoader().load(V.glass.bars) : null } };
+    if (U.uBarTex.value) U.uBarTex.value.minFilter = THREE.LinearFilter;
     return new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: [
-        'uniform sampler2D uVid, uRef; uniform vec3 uGain, uOff; uniform vec2 uTexel; uniform float uTime, uDbg, uFull; uniform vec4 uBars; varying vec2 vUv;',
+        'uniform sampler2D uVid, uRef, uBarTex; uniform vec3 uGain, uOff, uCam; uniform vec2 uTexel; uniform float uTime, uDbg, uFull; uniform vec4 uBars, uGlass; varying vec2 vUv;',
         'float df(vec2 p){ return length(texture2D(uVid, p).rgb - texture2D(uRef, p).rgb); }',
         'float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
         'void main(){',
@@ -96,6 +103,12 @@ document.getElementById('close').addEventListener('click', function () { if (win
         '  c = clamp(c * uGain + uOff + (h(vUv * 917.0 + uTime) - 0.5) * 0.025, 0.0, 1.0);',
         '  float a = m * e.x * e.y;',
         '  if (uBars.x >= 0.0) { float bx = smoothstep(uBars.x - 0.004, uBars.x, vUv.x) * (1.0 - smoothstep(uBars.y, uBars.y + 0.004, vUv.x)); float by = smoothstep(uBars.z - 0.004, uBars.z, vUv.y) * (1.0 - smoothstep(uBars.w, uBars.w + 0.004, vUv.y)); a *= 1.0 - max(bx, by); }',   // 실제 창살은 늘 앞에
+        '  if (uGlass.x > 0.0) {',   // 창 구멍 · 창살(그림보다 uGlass.x 앞) — 이 화소로 오는 시선이 창 면을 지나는 자리
+        '    vec3 p = vec3(vUv - 0.5, 0.0); float t = (uGlass.x - uCam.z) / (p.z - uCam.z); vec2 qq = (uCam + t * (p - uCam)).xy;',
+        '    vec2 o = smoothstep(vec2(uGlass.y * 0.5), vec2(uGlass.y * 0.5 - 0.004), abs(qq)); float ins = o.x * o.y;',
+        '    vec4 b = texture2D(uBarTex, qq / uGlass.z + 0.5);',
+        '    c = mix(c, b.rgb, b.a); a = ins * mix(uGlass.w, 1.0, b.a);',
+        '  }',
         '  if (uDbg > 0.5) { c = mix(c, vec3(1.0, 0.0, 0.0), 0.45); a = max(a, 0.18 * e.x * e.y); }',
         '  gl_FragColor = vec4(c, a);',
         '}'].join('\n') });
@@ -153,13 +166,15 @@ document.getElementById('close').addEventListener('click', function () { if (win
           var heads = HEADS[k].map(function (h) {
             var o = new THREE.Object3D(); o.position.set(h.x - 0.5, 0.5 - h.y, 0); m.add(o);
             var tt = window.M100_T ? window.M100_T(h.t) : h.t;   // 11/26 앱 언어로(한 글자씩 그리기 전에 문장째 바꿈)
-            var tx = makeText(tt); tx.mesh.visible = false; g.add(tx.mesh);
+            var tx = makeText(tt); tx.mesh.visible = false; tx.mesh.renderOrder = 5; g.add(tx.mesh);   // 영상 판 위에
             return { o: o, t: tt, face: k, hx: h.x, hy: h.y, tx: tx, a: 0, t0: 0 };
           });
           faces[k] = { g: g, m: m, heads: heads, sized: false };
         });
       },
-      onUpdate: function (a) { Object.keys(UU).forEach(function (k) { UU[k].uTime.value = (UU[k].uTime.value + 0.013) % 100; }); tone(a && a.processGpuResult && a.processGpuResult.camerapixelarray); placeSay(); },
+      onUpdate: function (a) { Object.keys(UU).forEach(function (k) { UU[k].uTime.value = (UU[k].uTime.value + 0.013) % 100;
+          var f = faces[k]; if (VIDEO[k].glass && f && f.sized && camera) { f.g.updateMatrixWorld(true); var cl = f.m.worldToLocal(camera.position.clone()); UU[k].uCam.value.set(cl.x, cl.y, cl.z * f.m.scale.z / f.m.scale.x); /* 판 단위(가로 · 세로 ±0.5, 깊이 = 창 폭 단위) */ }
+        }); tone(a && a.processGpuResult && a.processGpuResult.camerapixelarray); placeSay(); },
       listeners: [
         { event: 'reality.imagefound', process: place },
         { event: 'reality.imageupdated', process: place },
@@ -255,7 +270,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     } };
   }
   function boot() {
-    Promise.all(['cafe', 'street', 'cafe3', 'cafe3a1', 'cafe3a2', 'cafe3a3', 'cafe3a4'].map(function (n) {   // 11/28 cafe3a1–a4 = 현장 사진 여러 각도(tools/xr8/make_cafe3_angles.mjs) — 모두 cafe3 로 return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
+    Promise.all(['cafe', 'street', 'cafe3', 'cafe3a1', 'cafe3a2', 'cafe3a3', 'cafe3a4'].map(function (n) {   /* 11/28 cafe3a1–a4 = 현장 사진 여러 각도(tools/xr8/make_cafe3_angles.mjs) — 모두 cafe3 로 */ return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
       XR8.addCameraPipelineModules([
         XR8.GlTextureRenderer.pipelineModule(), XR8.CameraPixelArray.pipelineModule({ luminance: false, maxDimension: 192 }), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
