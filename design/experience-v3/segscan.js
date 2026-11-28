@@ -225,7 +225,20 @@ export function openSegScan(o) {
         stopped = true; cancelAnimationFrame(raf); el.remove(); if (cur === api) cur = null;
         document.removeEventListener('visibilitychange', onVis); removeEventListener('resize', size);
       };
-      o.onFound?.(url, { l: sx, t: sy, r: sx + sw, b: sy + sh }, teardown);
+      // 11/28 사용자: 실루엣대로 오린 건 자글자글 — 상자 둘레를 넉넉하게(사방 22%) 네모로 잘라 가장자리만 부드럽게 흐린 사진을 넘긴다(그 사진이 떠오르며 물감통 사진으로 바뀜)
+      const pad = 0.22, bx = Math.max(0, sx - sw * pad), by = Math.max(0, sy - sh * pad), bx1 = Math.min(W, sx + sw * (1 + pad)), by1 = Math.min(H, sy + sh * (1 + pad));
+      const k = g.k * sc;   // 화면 1px = 영상 k 화소(위 오리기와 같은 대응: 영상 x = r.sx + 화면 x · k)
+      const rc = document.createElement('canvas'), rw = Math.max(1, Math.round((bx1 - bx) * Math.min(2, k))), rh = Math.max(1, Math.round((by1 - by) * Math.min(2, k)));
+      rc.width = rw; rc.height = rh; const rx = rc.getContext('2d');
+      rx.drawImage(v, r.sx + bx * k, r.sy + by * k, (bx1 - bx) * k, (by1 - by) * k, 0, 0, rw, rh);
+      rx.globalCompositeOperation = 'destination-in';   // 가장자리 9% 를 부드럽게 투명으로(네모 테두리가 딱 끊기지 않게)
+      const f = Math.min(rw, rh) * 0.09;
+      const gx = rx.createLinearGradient(0, 0, rw, 0); gx.addColorStop(0, 'rgba(0,0,0,0)'); gx.addColorStop(f / rw, '#000'); gx.addColorStop(1 - f / rw, '#000'); gx.addColorStop(1, 'rgba(0,0,0,0)');
+      rx.fillStyle = gx; rx.fillRect(0, 0, rw, rh);
+      const gy = rx.createLinearGradient(0, 0, 0, rh); gy.addColorStop(0, 'rgba(0,0,0,0)'); gy.addColorStop(f / rh, '#000'); gy.addColorStop(1 - f / rh, '#000'); gy.addColorStop(1, 'rgba(0,0,0,0)');
+      rx.fillStyle = gy; rx.fillRect(0, 0, rw, rh);
+      let soft = url; try { soft = rc.toDataURL('image/png'); } catch {}
+      o.onFound?.(soft, { l: bx, t: by, r: bx1, b: by1 }, teardown);
       return;
     }
     const img = document.createElement('img'); img.className = 'cut'; img.alt = '';

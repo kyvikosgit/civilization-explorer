@@ -240,7 +240,7 @@ function startScan() {
     onFound: (cut, rect, teardown) => {
       if (store.saved(TASK.id)) { teardown(); return reveal('tube'); }
       store.solve(TASK.id); collect(TASK.id); closeAll(true);
-      liftToCard('paint', { from: cut, rect, cleanup: teardown, complete: () => showResult() });
+      liftToCard('paint', { from: cut, rect, xfade: 820, cleanup: teardown, complete: () => showResult() });   // 넉넉한 네모 사진 → 천천히 물감통 사진으로
     },
     onClose: () => showGuide(),
   });

@@ -60,6 +60,8 @@ const CSS = `
 .v3-lift .lf-o img{position:absolute;inset:0;width:100%;height:100%;display:block}
 .v3-lift .lf-to{object-fit:contain;opacity:0;filter:drop-shadow(0 14px 22px rgba(40,28,16,.28))}
 .v3-lift .lf-from{object-fit:contain}
+.v3-lift .lf-curl{position:absolute;inset:0;perspective:900px;transform-style:preserve-3d}
+.v3-lift .lf-curl i{position:absolute;left:0;width:100%;background-repeat:no-repeat;backface-visibility:hidden;will-change:transform}
 .v3-done .d-col{margin-top:18px;text-align:center;padding:14px 12px 16px;border-radius:16px;background:var(--d-panel)}   /* 11/26 나의 수집품 = 한 판으로 감쌈 */
 .v3-done .d-col .d-slots span:not(.on){background:#FFFFFF}
 .v3-done .d-colt{display:flex;align-items:center;justify-content:center;gap:8px;font-family:Paperlogy,Freesentation,sans-serif;font-size:16px;font-weight:800;color:var(--d-ink);letter-spacing:-.01em}
@@ -231,8 +233,36 @@ export function liftRect(id) {
 const LIFT_EASE = 'cubic-bezier(.45,0,.2,1)';
 const pos = (r) => ({ left: `${r.l}px`, top: `${r.t}px`, width: `${r.r - r.l}px`, height: `${r.b - r.t}px` });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// 말린 종이 → 평평하게: 그림을 가로 띠 N개로 나눠 원통처럼 위아래 끝이 앞으로 말린 모양에서 시작해 0.75초 동안 곡률을 0으로(띠는 서로 이어진 채로)
+//   curl = 끝이 앞으로 꺾인 각도(라디안, 0.5 ≈ 29°). 끝나면 띠를 걷고 평평한 그림(fr)을 보인다
+async function uncurl(o, fr, curl) {
+  const N = 14, W = o.clientWidth, H = o.clientHeight, src = fr.currentSrc || fr.src;
+  const box = document.createElement('div'); box.className = 'lf-curl'; o.appendChild(box);
+  const sh = H / N, strips = [];
+  for (let k = 0; k < N; k++) { const st = document.createElement('i'); Object.assign(st.style, { top: `${k * sh}px`, height: `${sh + 0.6}px`, backgroundImage: `url("${src}")`, backgroundSize: `${W}px ${H}px`, backgroundPosition: `0 ${-k * sh}px` }); box.appendChild(st); strips.push(st); }
+  const set = (c, op) => {   // c = 끝 각도(라디안). 가운데에서 끝까지 각도가 고르게 늘어나는 원통 굽힘
+    const R = c > 1e-4 ? (H / 2) / c : 0;
+    strips.forEach((st, k) => {
+      const s0 = (k + 0.5) * sh - H / 2, a = R ? s0 / R : 0;
+      const y = R ? R * Math.sin(a) : s0, z = R ? R * (1 - Math.cos(a)) : 0;
+      st.style.transform = `translate3d(0, ${(y - s0).toFixed(2)}px, ${z.toFixed(2)}px) rotateX(${(a * 180 / Math.PI).toFixed(2)}deg)`;
+    });
+    box.style.opacity = op;   // 띠마다 투명도를 주면 겹친 이음매가 줄로 보임 → 통째로
+  };
+  set(curl, 0); fr.style.opacity = '0';
+  const t0 = performance.now(), T_IN = 240, T_FLAT = 760;
+  await new Promise((done) => {
+    const tick = () => {
+      const t = performance.now() - t0, op = Math.min(1, t / T_IN), u = Math.max(0, Math.min(1, (t - T_IN * 0.6) / T_FLAT)), e = 1 - Math.pow(1 - u, 3);
+      set(curl * (1 - e), op);
+      if (u < 1) requestAnimationFrame(tick); else done();
+    };
+    requestAnimationFrame(tick);
+  });
+  fr.style.opacity = '1'; box.remove();
+}
 export function liftImg(id) { return new URL(`img/lift_${id}.webp`, V3).href; }
-export async function liftToCard(id, { from = '', rect = null, complete, cleanup, lifted = false, hold = false } = {}) {
+export async function liftToCard(id, { from = '', rect = null, complete, cleanup, lifted = false, hold = false, curl = 0, xfade = 420 } = {}) {
   style();
   const L = liftRect(id), r0 = rect || L, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const el = document.createElement('div'); el.className = 'v3-lift';
@@ -245,12 +275,13 @@ export async function liftToCard(id, { from = '', rect = null, complete, cleanup
   if (lifted) { bg.style.opacity = '1'; to.style.opacity = '1'; }
   else if (reduce) { bg.style.opacity = '1'; to.style.opacity = '1'; if (fr) fr.style.opacity = '0'; Object.assign(o.style, pos(L)); }
   else {
-    if (fr) await A(fr, [{ opacity: 0 }, { opacity: 1 }], { duration: 220 });          // 비친 그대로의 물건이 화면 위로 겹쳐 올라옴(카메라 화면과 같은 자리)
+    if (fr && curl) await uncurl(o, fr, curl);                                          // 11/28 말려 있던 종이(현장 전단지)가 그 자리에서 살짝 펴짐
+    else if (fr) await A(fr, [{ opacity: 0 }, { opacity: 1 }], { duration: 220 });     // 비친 그대로의 물건이 화면 위로 겹쳐 올라옴(카메라 화면과 같은 자리)
     else await A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
     navigator.vibrate?.(14);
     await A(o, [{ transform: 'none' }, { transform: 'translateY(-14px) scale(1.06)' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.3,1)' });   // 붕 — 떠오름
     const glide = A(o, [{ ...pos(r0), transform: 'translateY(-14px) scale(1.06)' }, { ...pos(L), transform: 'none' }], { duration: 760, easing: LIFT_EASE });
-    if (fr) { A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, delay: 160 }); A(fr, [{ opacity: 1 }, { opacity: 0 }], { duration: 420, delay: 260 }); }
+    if (fr) { A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: xfade, delay: 160 }); A(fr, [{ opacity: 1 }, { opacity: 0 }], { duration: xfade, delay: 260 }); }
     A(bg, [{ opacity: 0 }, { opacity: 1 }], { duration: 560, delay: 200, easing: 'ease-out' });
     await glide; await sleep(220);
   }

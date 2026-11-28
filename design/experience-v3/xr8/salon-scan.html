@@ -51,9 +51,11 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 .pick.on{opacity:1;transform:none;pointer-events:auto}
 .pick button{width:100%;max-width:400px;min-height:54px;border:0;border-radius:14px;background:#F2EDE2;color:#141210;font:800 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.found{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 74px);transform:translate(-50%,-6px);z-index:7;display:flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border-radius:999px;background:rgba(20,16,13,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:15px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .35s,transform .35s}
+.found{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 62px);transform:translate(-50%,-6px);z-index:7;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px 0 9px;box-sizing:border-box;border-radius:18px;background:rgba(20,16,13,.66);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:14.5px;font-weight:700;line-height:1;letter-spacing:-.01em;white-space:nowrap;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
 .found.on{opacity:1;transform:translate(-50%,0)}
-.found i{width:18px;height:18px;border-radius:50%;background:#E9C77B center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.found span{display:block;line-height:1;padding-top:1px}
+.found i{flex:none;width:20px;height:20px;border-radius:50%;background:#E9C77B center/13px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.found.no i{background:rgba(242,237,226,.22) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
 </style>
 </head>
 <body>
@@ -61,7 +63,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>아카데미 살롱</b><span></span></div>
 <div class="start" id="start"><h1>올해의 그림</h1><p>벽의 후보작 가운데<br>1등급 메달을 받은 그림을 찾아 비춰 보세요.</p><p id="lead">카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
 <div class="hint" id="hint" hidden><span>1등급 메달을 받은 그림을 찾아<br>카메라로 비춰 보세요</span></div>
-<div class="found" id="found"><i></i><span>1등급 메달 · 올해의 당선작</span></div>
+<div class="found" id="found"><i></i><span id="foundT">1등급 메달 · 올해의 당선작</span></div>
 <div class="pick" id="pick"><button type="button" id="pickGo">이 그림 선택하기</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
@@ -127,7 +129,8 @@ function auraMesh(pw, ph) {
   return new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
 }
 
-let aura = null, auraG = null, winT = 0, ended = false, lastWrong = -1, wrongAt = 0, liftT = 0, xs = null, PW = 1, PH = 1;
+let aura = null, auraG = null, winT = 0, ended = false, lastWrong = -1, wrongAt = 0, liftT = 0, xs = null, PW = 1, PH = 1, winSeen = 0, auraK = 0, probe = null, probeG = null, probeT = 0, probeI = -1, probeSeen = 0;
+const WON = '1등급 메달 · 올해의 당선작';
 function salonModule() {
   return {
     name: 'm100salon',
@@ -139,14 +142,40 @@ function salonModule() {
       const [w, h] = SIZE[WIN], a = w / h;
       PW = a >= 1 ? 1 : a; PH = a >= 1 ? 1 / a : 1;
       aura = auraMesh(PW, PH); aura.renderOrder = 5; auraG.add(aura);
+      // 11/28 오답도 '비췄다'는 반응 — 그 그림 테두리가 하얗게 한 번 빛나고 빛 한 줄이 위에서 아래로 훑고 지나감(금빛 오라와 다르게)
+      probeG = new THREE.Group(); probeG.visible = false; xs.scene.add(probeG);
+      probe = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
+        uniforms: { p: { value: 0 }, op: { value: 0 }, r: { value: 1 } },
+        vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: `uniform float p, op, r; varying vec2 vUv;
+          void main(){
+            vec2 d = min(vUv, 1.0 - vUv) * vec2(1.0, r); float e = min(d.x, d.y);
+            float edge = exp(-e * 90.0) * 0.9;
+            float band = exp(-pow((vUv.y - (1.05 - p * 1.1)) * 14.0, 2.0)) * 0.55;
+            float a = clamp(edge + band, 0.0, 1.0) * op;
+            gl_FragColor = vec4(vec3(1.0, 0.98, 0.94) * a, a);
+          }`,
+        transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+      probe.renderOrder = 4; probeG.add(probe);
     },
     onUpdate() {
       if (!aura) return;
       const now = performance.now();
       aura.material.uniforms.t.value = now / 1000;
-      let k = winT ? Math.min(1, (now - winT) / 700) : 0;           // 0.7초에 걸쳐 피어남
-      if (liftT) k *= Math.max(0, 1 - (now - liftT) / 300);           // 고르면 그림이 떠오르며 오라는 걷힘
-      aura.material.uniforms.op.value = k * k * (3 - 2 * k);
+      // 11/28 정답 그림이 화면에서 벗어나면(0.35초 넘게 안 잡힘) 오라도 걷힘 — 잔상이 남던 것. 다시 잡으면 다시 피어남
+      const vis = winT && !liftT && now - winSeen < 350;
+      auraK += ((vis ? 1 : 0) - auraK) * (vis ? 0.09 : 0.2);
+      if (liftT) auraK *= 0.8;
+      aura.material.uniforms.op.value = auraK * auraK * (3 - 2 * auraK);
+      if (!vis && auraK < 0.02) auraG.visible = false;
+      if (winT && !liftT) { $('pick').classList.toggle('on', vis && now - winT > 600); $('found').classList.toggle('on', !!vis); }
+      if (probe) {
+        const pp = probeT ? (now - probeT) / 1000 : 9;
+        const pv = now - probeSeen < 350;
+        probe.material.uniforms.p.value = Math.min(1, pp / 0.8);
+        probe.material.uniforms.op.value = pp < 1.4 && pv ? (pp < 0.15 ? pp / 0.15 : pp > 1.0 ? 1 - (pp - 1.0) / 0.4 : 1) : 0;
+        probeG.visible = pp < 1.4 && pv;
+      }
     },
     listeners: [
       { event: 'reality.imagefound', process: onImage },
@@ -161,27 +190,40 @@ function onImage(e) {
     // 그림 전체 크기(긴 변) = 인식한 3:4 의 긴 변 × 1400/1319
     const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
     auraG.position.copy(d.position); auraG.quaternion.copy(d.rotation);
-    const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true;
+    const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true; winSeen = performance.now();
     if (!winT) win();
-  } else if (!winT && (i !== lastWrong || performance.now() - wrongAt > 4000)) wrong(i);
+  } else {
+    if (i === probeI) { placeProbe(d, i); probeSeen = performance.now(); }
+    if (!winT && (i !== lastWrong || performance.now() - wrongAt > 4000)) { placeProbe(d, i); probeSeen = performance.now(); wrong(i); }
+  }
+}
+function placeProbe(d, i) {   // 그 오답 그림 전체 크기 · 자리에 훑는 빛 판
+  if (!probeG) return;
+  const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
+  const [w, h] = SIZE[i], a = w / h, pw = a >= 1 ? 1 : a, ph = a >= 1 ? 1 / a : 1;
+  probeG.position.copy(d.position); probeG.quaternion.copy(d.rotation);
+  const sc = d.scale * L; probeG.scale.set(sc, sc, sc); probe.scale.set(pw, ph, 1); probe.material.uniforms.r.value = ph / pw;
 }
 // 점검용(화면에 안 보임): 인식 없이 흐름만 — window.__salonSim(2) = 정답, 0 = 오답
-window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); } else if (!winT) wrong(i); };
+window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); setTimeout(() => $('pick').classList.add('on'), 650); } else if (!winT) wrong(i); };
 // 11/28 사용자: 오답은 설명 판 없이 아래 안내 한 줄만 잠깐 — '다른 작품을 스캔해 보세요'
 const HINT0 = $('hint').querySelector('span').innerHTML;
 let hintT = 0;
 function wrong(i) {
-  lastWrong = i; wrongAt = performance.now();
-  navigator.vibrate?.(10);
+  lastWrong = i; wrongAt = performance.now(); probeI = i; probeT = performance.now();
+  navigator.vibrate?.(12);
+  // 위 알림 — 비춘 그림 이름 + '1등급 메달이 아니에요'(정답 알림과 같은 자리 · 같은 모양, 아이콘만 다름)
+  const fd = $('found'); fd.classList.add('no'); $('foundT').textContent = T(`〈${TG[i].title}〉 · 1등급 메달이 아니에요`); fd.classList.add('on');
+  clearTimeout(window.__foundT); window.__foundT = setTimeout(() => { if (!winT) fd.classList.remove('on'); }, 2200);
   const sp = $('hint').querySelector('span'); sp.textContent = T('이 그림은 아니에요 · 다른 작품을 스캔해 보세요');
   $('hint').hidden = false; clearTimeout(hintT);
   hintT = setTimeout(() => { if (!winT) sp.innerHTML = HINT0; }, 2600);
 }
 // 11/28 정답 = 오라 + 위 알림 + [이 그림 선택하기] — 누르면 그림이 그 자리에서 떠올라 수집품 카드로(done.js liftToCard)
 function win() {
-  winT = performance.now(); clearTimeout(hintT); $('hint').hidden = true; $('found').classList.add('on');
+  winT = performance.now(); winSeen = winT; clearTimeout(hintT); clearTimeout(window.__foundT); $('hint').hidden = true;
+  $('found').classList.remove('no'); $('foundT').textContent = T(WON); $('found').classList.add('on');
   navigator.vibrate?.([18, 50, 24]);
-  setTimeout(() => $('pick').classList.add('on'), 650);
 }
 const V = new THREE.Vector3();
 function paintRect() {   // 정답 그림(액자 안 그림)의 화면 자리 — 오라 판 네 모서리를 화면에 투영

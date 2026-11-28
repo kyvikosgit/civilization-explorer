@@ -95,7 +95,7 @@ function rectFx({ THREE, mindar, anchors }) {
 async function win(rect) {
   if (ended) return;   // 떠오르는 동안 다시 잡혀도 한 번만
   store.solve(flyer.id); collect(flyer.id); ended = true; document.body.classList.add('ended');
-  if (rect !== undefined) { await liftToCard('flyer', { from: targets[0].img, rect, cleanup: () => closeCam(), complete: () => showEnd() }); return; }
+  if (rect !== undefined) { await liftToCard('flyer', { from: targets[0].img, rect, curl: 0.6, cleanup: () => closeCam(), complete: () => showEnd() }); /* 11/28 현장 전단지는 살짝 말려 있음 → 그 자리에서 펴진 뒤 떠오름 */ return; }
   await closeCam(true);
   if (c1().viewer) {   // 3D 칼럼일 때만 전단지를 떼어 보여 준다(11/23 기본은 칼럼 그림 — 바로 완료 화면)
     const i = c1().ITEMS.findIndex((it) => it.id === 'f1');

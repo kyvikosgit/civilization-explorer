@@ -84,7 +84,7 @@ $('back').addEventListener('click', () => {
 // ── 그림 위 영상 판 — 그림 비율로 가운데를 잘라 쓰고, 가장자리는 아주 살짝 풀어 그림에 스며들게
 const vid = document.createElement('video');
 Object.assign(vid, { src: VIDEO, muted: true, playsInline: true, preload: 'auto', crossOrigin: 'anonymous' }); vid.setAttribute('playsinline', ''); vid.setAttribute('muted', '');
-let plane = null, G = null, xs = null, foundT = 0, playing = false, liftT = 0, ended = false, want = 0, onV = 0;
+let plane = null, G = null, xs = null, foundT = 0, playing = false, liftT = 0, ended = false, want = 0, onV = 0, seenT = 0;
 function sunModule() {
   return {
     name: 'm100sun',
@@ -107,7 +107,9 @@ function sunModule() {
     },
     onUpdate() {
       if (!plane) return;
-      onV += (want - onV) * (want ? 0.12 : 0.1);                    // 영상이 그림 위로 스며들었다가 걷힘(약 0.6초)
+      const vis = performance.now() - seenT < 250;                   // 11/28 그림을 놓치면 영상도 걷힘(놓친 판이 허공에 남지 않게)
+      const tgt = want && vis ? 1 : 0;
+      onV += (tgt - onV) * (tgt ? 0.12 : vis ? 0.1 : 0.3);           // 영상이 그림 위로 스며들었다가 걷힘(약 0.6초)
       plane.material.uniforms.on.value = onV;
     },
     listeners: [
@@ -121,7 +123,7 @@ function onImage(e) {
   const d = e.detail; if (d.name !== 'sun') return;
   const L = Math.max(d.scaledWidth, d.scaledHeight);               // 가운데 1200×1600 = 긴 변 전체 → 그림 긴 변 그대로
   G.position.copy(d.position); G.quaternion.copy(d.rotation);
-  const s = d.scale * L; G.scale.set(s, s, s); G.visible = true;
+  const s = d.scale * L; G.scale.set(s, s, s); G.visible = true; seenT = performance.now();
   if (!foundT) found();
 }
 window.__sunSim = () => { if (!foundT) found(); };   // 점검용(화면에 안 보임)
