@@ -54,16 +54,18 @@ document.getElementById('close').addEventListener('click', function () { if (win
       SLAM = q.has('slam');   // 11/26: 기본 끔 — 켜면 아이폰이 '동작 및 방향 접근' 허락 창을 띄우고 첫 터치가 필요해서(시작 단추). 그림 인식만으로도 매 장면 벽에 붙음
   // 11/25 최종 그림(미술팀 261117) — 카페 = 실내(가로), 박람회 거리 = 세로. 인식은 가운데 3:4 만 쓰므로 판을 그림 전체 크기로 늘림(FULL)
   //   대사는 기술 점검용 자리 채움(기획서 260928 대사) — 최종 원고 · 인물 자리를 받으면 바꿈. 영상은 최종 그림으로 새로 만들어야 해서 지금은 없음(글만)
-  var ROTATED = { cafe: true, street: false, cafe3: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2400 / 2053], cafe3: [1387 / 1200, 1] };
+  var ROTATED = { cafe: true, street: false, cafe3: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2400 / 2053], cafe3: [1387 / 1200, 1], cafe1: [1205 / 1007, 1], cafe2: [1, 1155 / 689] };
+  ROTATED.cafe1 = false; ROTATED.cafe2 = false;
   // 11/27 현장: 카페 그림 앞에 창문 벽체 — 창 안(그림 오른쪽 위)만 보여 카페 전체 인식이 안 됨 → 창 안 장면을 따로 인식(cafe3 = 사용자 현장 사진, tools/xr8/make_cafe3_target.mjs)
   //   영상 = 3번 구간을 창 모양에 맞춘 cafe3_turns.mp4, 대사는 화면에서. 글 폭은 창이 좁아 그림 폭의 절반(TW)
-  var TW = { cafe: 0.24, street: 0.24, cafe3: 0.41 };   // cafe3 판이 창틀까지 커진 만큼 줄임(글 크기 그대로)
-  var ALIAS = { cafe3a1: 'cafe3', cafe3a2: 'cafe3', cafe3a3: 'cafe3', cafe3a4: 'cafe3' }, lock = {};
+  var TW = { cafe: 0.24, street: 0.24, cafe3: 0.41, cafe1: 0.4, cafe2: 0.6 };   // cafe3 판이 창틀까지 커진 만큼 줄임(글 크기 그대로)
+  var ALIAS = { cafe3a1: 'cafe3', cafe3a2: 'cafe3', cafe3a3: 'cafe3', cafe3a4: 'cafe3', cafe1a: 'cafe1', cafe1b: 'cafe1', cafe2a: 'cafe2', cafe2b: 'cafe2' }, lock = {};
   var HEADS = {
     cafe: [
       { x: 0.108, y: 0.50, t: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
       { x: 0.455, y: 0.50, t: '마네가 살롱에서 또 낙선했다며? 그 사람 그림이 뭐가 문제인지 나는 도통 모르겠어.' },
       { x: 0.955, y: 0.53, t: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' }],
+    cafe1: [], cafe2: [],   // 11/28 왼쪽 창 · 가운데 문 창 — 대사(자막)는 나중에
     cafe3: [   // 창 안 오른쪽 모자 쓴 사람(창 폭 안에 들게 글 가운데를 0.75 로)
       { x: 0.6896, y: 0.625, t: '그런데 말이야, 우리끼리 전시회를 연다고 누가 봐주기나 할까? 살롱 없이 팔리긴 할까?' }],   // 11/28 판이 창틀까지 커져 판 기준 자리로(창 안 0.75 · 0.66)
     street: [
@@ -80,6 +82,10 @@ document.getElementById('close').addEventListener('click', function () { if (win
     // 11/28 사용자: 창틀 안쪽(그림 면)에 영상을 깔면 상이 뒤에 맺혀 실제 창틀 끝자락과 어긋남 → 창틀까지 덮는 판을 창틀 깊이에 띄움
     //   영상 = 정면 현장 사진(004)의 창틀 · 둘레 + 안쪽은 창살 구운 영상(cafe3_framed.mp4, 창 영역의 1.319 × 1.28 배), 바깥 4% 는 벽에 스며들게(cafe3_framed_edge.png)
     //   front = { depth: 그림보다 앞(창 폭 단위, 현장 사진 12장 시차 0.151), ext: 창 영역 대비 판 크기, k: 그 깊이에서의 크기(정면 카메라 거리 기준 1/1.084) }
+    // 11/28 왼쪽 창(cafe1) · 가운데 문 창(cafe2) — 오른쪽 창과 같은 방식: 11/25 전체 벽 영상(글 없는 원본, tools/xr8/gen/cafe_veo31fast_6s_v4cycle.mp4)을 창 자리대로 자르고
+    //   정면 현장 사진의 창틀 · 둘레(왼쪽은 창살도)를 입혀 창틀 깊이(원본 그림 83px 앞 = 오른쪽 창에서 잰 값)에 띄움. off = 판 가운데가 유리 가운데에서 벗어난 만큼(유리 크기 단위, 아래 +)
+    cafe1: { src: 'cafe1_framed.mp4', ref: 'cafe1_framed_ref.jpg', px: [1092, 1230], ownText: true, full: true, mask: 'cafe1_edge.png', front: { depth: 0.1515, ext: [1.3285, 1.3443], k: 0.8826, off: [-0.0091, 0.0246] } },
+    cafe2: { src: 'cafe2_framed.mp4', ref: 'cafe2_framed_ref.jpg', px: [590, 1170], ownText: true, full: true, mask: 'cafe2_edge.png', front: { depth: 0.3532, ext: [1.2553, 1.1143], k: 0.8763, off: [0, 0] } },
     cafe3: { src: 'cafe3_framed.mp4', ref: 'cafe3_framed_ref.jpg', px: [900, 1008], ownText: true, full: true, mask: 'cafe3_framed_edge.png',
       front: { depth: 0.151, ext: [1829 / 1387, 2048 / 1600], k: 0.922 } } };
   var $ = function (id) { return document.getElementById(id); };
@@ -169,7 +175,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
         var xs = XR8.Threejs.xrScene(); camera = xs.camera; v3 = new THREE.Vector3();
         camera.position.set(0, 3, 0);
         XR8.XrController.updateCameraProjectionMatrix({ origin: camera.position, facing: camera.quaternion });
-        ['cafe', 'street', 'cafe3'].forEach(function (k) {
+        ['cafe', 'street', 'cafe3', 'cafe1', 'cafe2'].forEach(function (k) {
           var g = new THREE.Group(); g.visible = false; xs.scene.add(g);
           // 판 = 그 면 그림(가로) 크기. 카페만 영상을 보이고, 거리는 안 보이는 판(머리 자리 계산용)
           var mat = VIDEO[k] ? liveMat(k) : new THREE.MeshBasicMaterial({ visible: false });
@@ -216,7 +222,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       var w = d.scaledWidth, h = d.scaledHeight;
       var fl = FULL[d.name] || [1, 1];   // 인식한 3:4 → 그림 전체
       if (ROTATED[d.name]) { f.m.scale.set(Math.max(w, h) * fl[0], Math.min(w, h) * fl[1], 1); f.m.rotation.z = ROT * Math.PI / 2; } else f.m.scale.set(w * fl[0], h * fl[1], 1);
-      var FR = VIDEO[d.name] && VIDEO[d.name].front; if (FR) { f.m.position.z = FR.depth * f.m.scale.x; f.m.scale.x *= FR.ext[0] * FR.k; f.m.scale.y *= FR.ext[1] * FR.k; }   // 창틀 깊이에 · 창틀까지 덮는 크기
+      var FR = VIDEO[d.name] && VIDEO[d.name].front; if (FR) { var g0x = f.m.scale.x, g0y = f.m.scale.y;   /* 판 단위 = 타깃 그림 전체(유리) 크기 */ f.m.position.z = FR.depth * g0x; if (FR.off) { f.m.position.x += FR.off[0] * g0x * FR.k; f.m.position.y -= FR.off[1] * g0y * FR.k; } f.m.scale.x = g0x * FR.ext[0] * FR.k; f.m.scale.y = g0y * FR.ext[1] * FR.k; }   // 창틀 깊이에 · 창틀까지 덮는 크기
       f.sized = true; f.m.updateMatrix();
       // 글판: 그림 벽과 같은 면 · 같은 위쪽 방향으로, 머리 꼭대기 바로 위에(그림 가로의 24% 폭)
       var up = new THREE.Vector3(0, 1, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), f.m.rotation.z), cw = f.m.scale.x;
@@ -291,7 +297,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     } };
   }
   function boot() {
-    Promise.all(['cafe', 'street', 'cafe3', 'cafe3a1', 'cafe3a2', 'cafe3a3', 'cafe3a4'].map(function (n) {   /* 11/28 cafe3a1–a4 = 현장 사진 여러 각도(tools/xr8/make_cafe3_angles.mjs) — 모두 cafe3 로 */ return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
+    Promise.all(['street', 'cafe3', 'cafe3a1', 'cafe3a4', 'cafe1', 'cafe1a', 'cafe1b', 'cafe2', 'cafe2a', 'cafe2b'].map(function (n) {   /* 11/28 엔진 한도 10개 — 현장에서 안 보이는 카페 전체 그림(cafe) · 오른쪽 창 각도 2장은 뺌 */   /* 11/28 cafe3a1–a4 = 현장 사진 여러 각도(tools/xr8/make_cafe3_angles.mjs) — 모두 cafe3 로 */ return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
       XR8.addCameraPipelineModules([
         XR8.GlTextureRenderer.pipelineModule(), XR8.CameraPixelArray.pipelineModule({ luminance: false, maxDimension: 192 }), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),

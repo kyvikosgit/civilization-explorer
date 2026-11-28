@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets/cafe2b_luminance.jpg",
+  "metadata": null,
+  "name": "cafe2b",
+  "type": "PLANAR",
+  "properties": {
+    "left": 0,
+    "top": 233,
+    "width": 517,
+    "height": 689,
+    "isRotated": false,
+    "originalWidth": 517,
+    "originalHeight": 1155
+  },
+  "resources": {
+    "originalImage": "cafe2b_original.jpg",
+    "croppedImage": "cafe2b_cropped.jpg",
+    "thumbnailImage": "cafe2b_thumbnail.jpg",
+    "luminanceImage": "cafe2b_luminance.jpg"
+  },
+  "created": 1795875983754,
+  "updated": 1795875983754
+}
