@@ -18,6 +18,7 @@ export function nextOf(zoneId) {
 
 const CSS = `
 /* ── 미션 완료 공통 화면(11/06) — 구역마다 다르던 끝 화면을 하나로. 정답 연출이 끝나면 이 판이 덮는다 */
+.v3-done,.v3-done *,.v3-done *::before,.v3-done *::after,.v3-end,.v3-end *,.v3-lift,.v3-lift *{box-sizing:border-box}   /* 11/28 페이지마다 여백 계산이 달라(살롱 · 해돋이 스캔) 위 막대가 안전 영역만큼 두 번 높아지던 것 */
 .v3-done{--d-bg:#FFFFFF;--d-ink:#111111;--d-sub:#707070;--d-line:#ECE9E2;--d-panel:#F5F5F3;--d-pt:#739071;--d-sage:#739071;--d-sage-deep:#5B7559;--d-tint:#EEF2EC;position:fixed;inset:0;z-index:9000;background:var(--d-bg);color:var(--d-ink);font-family:Freesentation,Pretendard,sans-serif;word-break:keep-all;display:flex;flex-direction:column;opacity:0;transition:opacity .35s ease}
 .v3-done.on{opacity:1}
 /* 11/26 뒤로 단추 = 체험 화면 위 막대와 똑같이(experience-v2/proto/proto-base.css .topbar · .icon-btn: 40칸 · 아이콘 24 · 선 2) */
