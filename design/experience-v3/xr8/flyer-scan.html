@@ -101,6 +101,7 @@ const T = (s) => (window.M100_T ? window.M100_T(s) : s);
 const task = ZONES.find((z) => z.id === 'society').tasks.find((t) => t.id === 'flyer');
 const TG = task.targets;                                     // f1 하나(현장 실물 전단지)
 const WIN = 0;
+const DBG = new URLSearchParams(location.search).has('debug') ? {} : null;
 const WIN_W = { title: '환영: 14세기의 전설', artist: '뤽 올리비에 메르송', year: '1872' };   // salon.js WORKS 와 같은 값(완료 화면 제목)
 // 인식한 3:4(가운데) → 그림 전체. 세로 그림 = 위아래로 1400/1319, 가로(03) = 돌린 타깃이라 긴 변으로
 const SIZE = [[999, 1240]], CROP = 1240;   // 전단지 전체 999×1240 · 인식 3:4 = 930×1240(높이 전체)
@@ -134,7 +135,7 @@ function cylAura(d) {
   if (!(r > 0 && h > 0 && al > 0)) return null;
   const P = h * 0.12, pa = P / r;   // 번짐 폭(세로 12%) — 호 방향은 각도로
   const geo = new THREE.CylinderGeometry(r, r, h + 2 * P, 48, 1, true, a0 - pa, al + 2 * pa);
-  const m = auraMesh(1, 1); m.geometry.dispose(); m.geometry = geo;
+  const m = auraMesh(1, 1); m.geometry.dispose(); m.geometry = geo; m.material.side = THREE.DoubleSide;
   const U = m.material.uniforms; U.hs.value.set(r * al / 2 / h, 0.5); U.size.value.set(r * (al + 2 * pa) / h, (h + 2 * P) / h);   // 세로 = 1 로 맞춘 단위(평면 오라와 같은 번짐 폭)
   return m;
 }
@@ -231,9 +232,11 @@ function onImage(e) {
   if (i === WIN) {
     // 그림 전체 크기(긴 변) = 인식한 3:4 의 긴 변 × 1400/1319
     const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
-    if (d.type === 'CYLINDER' && !cyl) { const m = cylAura(d); if (m) { cyl = { r: d.radiusTop || d.geometry?.radiusTop, h: d.height || d.geometry?.height, a0: d.arcStartRadians ?? d.geometry?.arcStartRadians, al: d.arcLengthRadians ?? d.geometry?.arcLengthRadians }; auraG.remove(aura); aura = m; aura.renderOrder = 5; auraG.add(aura); } }
+    if (DBG && !DBG.done) { DBG.done = true; const el = document.createElement('pre'); el.style.cssText = 'position:fixed;left:8px;right:8px;top:120px;z-index:99;font:11px/1.4 monospace;color:#0f0;background:rgba(0,0,0,.7);padding:8px;white-space:pre-wrap;pointer-events:none'; el.textContent = JSON.stringify(d, (k, v) => (typeof v === 'number' ? Math.round(v * 1000) / 1000 : v)).slice(0, 900); document.body.appendChild(el); }   // ?debug=1: 엔진이 준 값
+    const curved = (d.radiusTop || d.geometry?.radiusTop) > 0 || /CYL|CON/.test(String(d.type || ''));   // 11/28 엔진은 'CYLINDRICAL' 로 알려 줌(이름 대신 반지름이 있으면 원통)
+    if (curved && !cyl) { const m = cylAura(d); if (m) { cyl = { r: d.radiusTop || d.geometry?.radiusTop, h: d.height || d.geometry?.height, a0: d.arcStartRadians ?? d.geometry?.arcStartRadians, al: d.arcLengthRadians ?? d.geometry?.arcLengthRadians }; auraG.remove(aura); aura = m; aura.renderOrder = 5; auraG.add(aura); } }
     auraG.position.copy(d.position); auraG.quaternion.copy(d.rotation);
-    if (cyl) { auraG.scale.setScalar(d.scale); auraG.visible = true; winSeen = performance.now(); if (!winT) win(); return; }
+    if (cyl) { auraG.scale.setScalar(d.scale > 0 ? d.scale : 1); auraG.visible = true; winSeen = performance.now(); if (!winT) win(); return; }
     const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true; winSeen = performance.now();
     if (!winT) win();
   } else {
