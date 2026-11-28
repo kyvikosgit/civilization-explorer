@@ -66,11 +66,11 @@ document.getElementById('close').addEventListener('click', function () { if (win
       { x: 0.84, y: 0.42, t: '예전엔 다들 비슷하게 입고 다녔는데, 요즘은 다들 자기만의 느낌이 있는 것 같아. 취향과 개성이 중요해졌어.' }],
   };
   // 붙음 시험용 영상(tools/xr8/make_text_video.py): 그림은 멈춘 채 머리 위 대사만 한 글자씩 — '달라진 곳만 덮기'라 글자만 보인다. ref = 첫 장면(글 없음)
-  var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004], full: true }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_live_l.mp4', ref: 'street_live_l_ref.jpg', px: [864, 1348], ownText: true },   /* 11/28 박람회 새 Veo 영상 — 예전 자막 판처럼 '첫 장면과 달라진 곳만' 얹음(전체를 덮으면 판이 떠 보임). 안 움직이는 곳은 첫 장면으로 고정(tools/xr8/gen/lock_static.py) · 대사는 화면에서 */
+  var VIDEO = { cafe: q.get('v') === 'all' ? { src: 'cafe_live.mp4', ref: 'cafe_live_ref.jpg', px: [1600, 1004] } : { src: 'cafe_turns.mp4', ref: 'cafe_turns_ref.jpg', px: [1600, 1004], full: true }   /* 11/25 기본 = 말하는 테이블만 그 대사 6초 동안 움직임(총 18초) · ?v=all = 전체가 움직임 */, street: { src: 'street_live.mp4', ref: 'street_live_ref.jpg', px: [864, 1348], ownText: true, full: true },   /* 11/28 사용자: 해돋이처럼 새 Veo 영상 전체를 벽 그림에 그대로 덮음(사람만 잘라 얹으면 가장자리가 깨짐) · 대사는 화면에서 */
     // 11/27 현장 창문(카페 그림 오른쪽 위 x 0.68–0.91 · y 0.24–0.65, 특징점 185개로 맞춤) — 3번 구간(12–18초)만 창문 모양에 맞게 펴서 얹음. 영상에 박힌 글은 지우고(인물만 움직임) 대사는 화면에서 따로 씀(ownText)
-    // 11/28 카페 창 = 새 Veo 영상(반사 없는 원본에서)에 현장 사진 창살을 구워 넣은 것 — 예전처럼 '첫 장면과 달라진 곳만' 얹음(벽에 딱 붙는 방식). 안 움직이는 곳은 첫 장면으로 고정(lock_static.py)
+    // 11/28 카페 창 = 새 Veo 영상(반사 없는 원본에서)에 현장 사진 창살을 구워 넣은 것 — 사용자: 해돋이처럼 영상 전체를 창에 덮음(달라진 곳만 얹으면 실제 창살이 가려져 사라져 보임)
     //   (같은 날 시험한 '창 전체 덮기 + 창살 깊이 계산'(glass)은 판이 떠 보여 안 씀 — liveMat 의 uGlass 코드는 남겨 둠)
-    cafe3: { src: 'cafe3_barvid_l.mp4', ref: 'cafe3_barvid_l_ref.jpg', px: [1040, 1200], ownText: true } };
+    cafe3: { src: 'cafe3_barvid.mp4', ref: 'cafe3_barvid_ref.jpg', px: [1040, 1200], ownText: true, full: true } };
   var $ = function (id) { return document.getElementById(id); };
   var videos = {};
   Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
@@ -196,7 +196,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     if (ALIAS[nm]) e.detail.name = grp;
     var d = e.detail, f = faces[d.name]; if (!f) return;
     // 11/27 떨림 줄이기 — 인식 위치가 장면마다 조금씩 튀는 것을 부드럽게 따라감(처음 · 오래 놓쳤다 다시 잡을 땐 바로)
-    var fresh = !f.g.visible || Date.now() - (seen[d.name] || 0) > 800, kf = fresh ? 1 : 0.6;   // 11/28 0.3 → 0.6: 덮는 영상이 판을 늦게 따라가 떠 보이던 것
+    var fresh = !f.g.visible || Date.now() - (seen[d.name] || 0) > 800, kf = 1; void fresh;   // 11/28 해돋이와 같이 인식 위치를 그대로(부드럽게 따라가면 덮는 영상이 늦게 붙어 떠 보임)
     // 엔진이 주는 rotation 은 그냥 객체 → three 의 slerp 가 NaN 을 냄(11/27 인식 안 됨 원인). Quaternion 으로 옮겨서 씀
     TQ.set(d.rotation.x, d.rotation.y, d.rotation.z, d.rotation.w); TP.set(d.position.x, d.position.y, d.position.z);
     f.g.position.lerp(TP, kf); f.g.quaternion.slerp(TQ, kf); var sc = f.g.scale.x + (d.scale - f.g.scale.x) * kf; f.g.scale.set(sc, sc, sc); f.g.visible = true;
