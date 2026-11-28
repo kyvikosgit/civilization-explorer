@@ -265,7 +265,7 @@ async function uncurl(o, fr, curl) {
   fr.style.opacity = '1'; box.remove();
 }
 export function liftImg(id) { return new URL(`img/lift_${id}.webp`, V3).href; }
-export async function liftToCard(id, { from = '', rect = null, complete, cleanup, lifted = false, hold = false, curl = 0, xfade = 420, replace = null } = {}) {
+export async function liftToCard(id, { from = '', rect = null, complete, cleanup, lifted = false, hold = false, curl = 0, xfade = 420, replace = null, still = false, onShown = null } = {}) {
   style();
   const L = liftRect(id), r0 = rect || L, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const el = document.createElement('div'); el.className = 'v3-lift';
@@ -277,7 +277,11 @@ export async function liftToCard(id, { from = '', rect = null, complete, cleanup
   const A = (n, k, o2) => n.animate(k, { fill: 'forwards', ...o2 }).finished.catch(() => {});
   if (lifted) { bg.style.opacity = '1'; to.style.opacity = '1'; if (replace) requestAnimationFrame(() => replace.remove()); }   // replace = hold 로 떠 있던 판(같은 자리 · 같은 그림) — 새 판이 그려진 뒤 걷음(깜빡임 없게)
   else if (reduce) { bg.style.opacity = '1'; to.style.opacity = '1'; if (fr) fr.style.opacity = '0'; Object.assign(o.style, pos(L)); }
-  else {
+  else if (still) {   // 11/28 이미 가운데에 떠 온 그림(3D 로 펴서 옮김) — 같은 자리에서 겹쳐 받고 원본 사진으로 바뀌며 흰 바탕만
+    if (fr) { await A(fr, [{ opacity: 0 }, { opacity: 1 }], { duration: 120 }); onShown?.(); A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: xfade }); A(fr, [{ opacity: 1 }, { opacity: 0 }], { duration: xfade, delay: 100 }); }
+    else { onShown?.(); await A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: 200 }); }
+    await A(bg, [{ opacity: 0 }, { opacity: 1 }], { duration: 520, easing: 'ease-out' }); await sleep(120);
+  } else {
     if (fr && curl) await uncurl(o, fr, curl);                                          // 11/28 말려 있던 종이(현장 전단지)가 그 자리에서 살짝 펴짐
     else if (fr) await A(fr, [{ opacity: 0 }, { opacity: 1 }], { duration: 220 });     // 비친 그대로의 물건이 화면 위로 겹쳐 올라옴(카메라 화면과 같은 자리)
     else await A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: 300 });

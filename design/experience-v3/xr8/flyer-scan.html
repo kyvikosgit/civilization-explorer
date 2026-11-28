@@ -94,7 +94,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <script type="module">
 import { ZONES } from '../data.js';
 import { store } from '../store.js';
-import { collect, showComplete, liftToCard } from '../done.js';
+import { collect, showComplete, liftToCard, liftRect } from '../done.js';
 
 const $ = (id) => document.getElementById(id);
 const T = (s) => (window.M100_T ? window.M100_T(s) : s);
@@ -309,7 +309,8 @@ $('pickGo').addEventListener('click', async () => {
   $('pick').classList.remove('on'); hideCard(); $('top').style.opacity = '0';
   store.solve(task.id); collect(task.id);
   // 떠올라 가운데까지는 이 화면에서, 카드로 들어가는 건 엔진 없이 새로 연 화면에서(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐)
-  const held = await liftToCard('flyer', { from: '../' + TG[0].img, rect: paintRect(), complete: null, hold: true, curl: 0.6 });   // 말린 전단지가 펴진 뒤 떠오름
+  await fly3D();   // 11/28 스캔된 그 자리 · 곡면 그대로의 전단지가 떠오르며 펴지고 화면 가운데(수집품 자리)로 — 3D 로
+  const held = await liftToCard('flyer', { from: '../' + TG[0].img, rect: liftRect('flyer'), complete: null, hold: true, still: true, onShown: () => { if (flyG) flyG.visible = false; } });
   // 11/28 페이지를 새로 열지 않고 이 화면에서 엔진만 끄고 이어 감(새로 열 때 한 프레임 비어 깜빡이던 것)
   ended = true;
   try { XR8.stop(); } catch {}
@@ -317,6 +318,53 @@ $('pickGo').addEventListener('click', async () => {
   $('c').style.visibility = 'hidden'; $('top').style.display = 'none'; $('hint').hidden = true;
   await liftToCard('flyer', { lifted: true, replace: held, complete: () => finish() });
 });
+
+// ── 3D 로 떠오르기: 인식한 자리(auraG 와 같은 자세 · 크기)에 같은 곡면으로 전단지 사진을 덮고 → 곡률 0 으로 펴면서 화면 정면 · 가운데로
+let flyG = null;
+const AR = 999 / 1240;   // 전단지 가로/세로
+function bendTo(m, r, Wd, Hd, c) {
+  const p = m.geometry.attributes.position, uv = m.geometry.attributes.uv;
+  for (let i = 0; i < p.count; i++) {
+    const u = uv.getX(i) - 0.5, v = uv.getY(i) - 0.5;
+    let x = u * Wd, z = r;
+    if (c > 1e-3 && r > 0) { const R = r / c, th = (u * Wd) / R; x = R * Math.sin(th); z = R * Math.cos(th) - R + r; }
+    p.setXYZ(i, x, v * Hd, z);
+  }
+  p.needsUpdate = true;
+}
+function fly3D() {
+  return new Promise((done) => {
+    if (!xs || !auraG) { done(); return; }
+    const cam = xs.camera;
+    const r = cyl ? cyl.r : 0, Hd = cyl ? cyl.h : 1, Wd = Hd * AR;   // 원통 = 엔진이 준 반지름 · 높이(세로 전체), 평면 = 긴 변 1
+    const tex = new THREE.TextureLoader().load('../' + TG[0].img);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 48, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }));
+    m.renderOrder = 6; m.frustumCulled = false; bendTo(m, r, Wd, Hd, cyl ? 1 : 0);
+    flyG = new THREE.Group(); flyG.add(m); xs.scene.add(flyG);
+    auraG.updateMatrixWorld(true);
+    const p0 = auraG.position.clone(), q0 = auraG.quaternion.clone(), s0 = auraG.scale.x;
+    flyG.position.copy(p0); flyG.quaternion.copy(q0); flyG.scale.setScalar(s0);
+    // 끝 자세: 카메라 정면, 수집품 자리(liftRect) 크기 · 위치, 지금과 같은 거리
+    const L = liftRect('flyer'), ndc = (x, y) => new THREE.Vector3((x / innerWidth) * 2 - 1, -(y / innerHeight) * 2 + 1, 0.5).unproject(cam).sub(cam.position).normalize();
+    const front = new THREE.Vector3(0, 0, r).multiplyScalar(s0).applyQuaternion(q0).add(p0), D = front.distanceTo(cam.position);
+    const cx = (L.l + L.r) / 2, cy = (L.t + L.b) / 2;
+    const top = cam.position.clone().addScaledVector(ndc(cx, L.t), D), bot = cam.position.clone().addScaledVector(ndc(cx, L.b), D);
+    const s1 = top.distanceTo(bot) / Hd, q1 = cam.quaternion.clone();
+    const c1 = cam.position.clone().addScaledVector(ndc(cx, cy), D);
+    const p1 = c1.clone().sub(new THREE.Vector3(0, 0, r * s1).applyQuaternion(q1));
+    const t0 = performance.now(), T = 1100, ease = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+    navigator.vibrate?.(14);
+    const tick = () => {
+      const k = Math.min(1, (performance.now() - t0) / T), e = ease(k);
+      m.material.opacity = Math.min(1, (performance.now() - t0) / 160);                           // 실제 전단지 위에 같은 자리로 겹쳐 올라옴
+      const cb = cyl ? 1 - Math.min(1, Math.max(0, (k - 0.08) / 0.62)) : 0;                         // 곡률이 삭 펴짐
+      bendTo(m, r, Wd, Hd, cb * cb * (3 - 2 * cb));
+      flyG.position.lerpVectors(p0, p1, e); flyG.quaternion.slerpQuaternions(q0, q1, e); flyG.scale.setScalar(s0 + (s1 - s0) * e);
+      if (k < 1) requestAnimationFrame(tick); else done();
+    };
+    requestAnimationFrame(tick);
+  });
+}
 
 function statusModule() {
   const ready = () => { $('start').style.display = 'none'; $('hint').hidden = false; };
