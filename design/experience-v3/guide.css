@@ -26,7 +26,8 @@
 /* 비추는 동작 — 진짜 그림 앞으로 폰이 다가와 네 귀가 잠기고 빛이 한 번 퍼진다(4초 반복) */
 .g-coach{position:relative;width:236px;height:128px;margin-bottom:18px}
 .g-coach .c-art{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;box-shadow:0 8px 22px rgba(0,0,0,.55)}
-.g-coach .c-art img{display:block;object-fit:cover}
+.g-coach .c-art{width:max-content}   /* 11/28 가운데 정렬(left 50%) 때문에 폭이 반으로 눌려 그림이 정사각형이 되던 것 */
+.g-coach .c-art img{display:block;object-fit:cover;max-width:none}
 .g-coach .c-art.gilt{padding:6px;background:linear-gradient(135deg,#F0D48E,#A87A2E 45%,#E9C77A 70%,#8C6424);outline:1px solid rgba(0,0,0,.35)}
 .g-coach .c-art.gilt img{width:148px;height:96px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
 .g-coach .c-art.paper img{width:82px;height:122px}
@@ -50,7 +51,7 @@
 .g-coach.land .c-phone{width:118px;height:66px;margin:-33px 0 0 -59px}
 .g-coach.land .c-cam{left:6px;top:50%;width:3px;height:14px;margin:-7px 0 0}
 .g-coach.land .c-finder{inset:9px 22px}
-.g-coach.land .c-art.gilt img{width:132px;height:100px}
+.g-coach.land .c-art.gilt img{width:129px;height:100px}   /* 〈인상, 해돋이〉 1600×1241 비율 */
 
 /* 화면이 낮으면(가로 · 작은 폰) 왼쪽 그림, 오른쪽 글 */
 @media (max-height:520px){

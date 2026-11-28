@@ -174,7 +174,7 @@ async function lift() {
   if (liftT) return; liftT = performance.now();
   $('top').style.opacity = '0';
   // 떠올라 가운데까지는 이 화면에서, 카드로 들어가는 건 엔진 없이 새로 연 화면에서(살롱과 같음)
-  const held = await liftToCard('sunrise', { from: '../img/sunrise_original.jpg', rect: paintRect(), complete: null, hold: true });
+  const held = await liftToCard('sunrise', { from: '../img/sunrise_print.jpg',   /* 11/28 현장 인쇄 색 */ rect: paintRect(), complete: null, hold: true });
   // 11/28 페이지를 새로 열지 않고 이 화면에서 엔진만 끄고 이어 감(새로 열 때 한 프레임 비어 깜빡이던 것)
   ended = true;
   try { XR8.stop(); } catch {}
