@@ -225,7 +225,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
 //   ② 가운데로 옮겨 가는 동안 깨끗한 수집품 그림(lift_<id>.webp, 카드 속 물건과 똑같은 것)으로 바뀌고 뒤에 흰 바탕이 깔린다
 //   ③ 완료 화면(complete())이 뜨면 그 그림이 카드 속 물건 자리로 정확히 내려앉아 카드가 된다 — 잘리거나 지저분한 사진이 남지 않게
 //   lifted: 이미 가운데에 떠 있는 상태로 시작 · hold: 가운데까지만(살롱 · 해돋이 8th Wall 은 엔진을 끄려고 hold 로 멈춘 뒤 페이지를 새로 열어 lifted 로 이어 감)
-const LIFT = { salon: [43, 194, 633, 538], flyer: [91, 134, 538, 667], ticket: [43, 284, 633, 342], paint: [64, 162, 592, 606], sunrise: [43, 211, 633, 500] };   // 카드(720×960) 안 물건 자리 — kippu-app/scripts/collect/lift_objs.py
+const LIFT = { salon: [43, 230, 633, 458], flyer: [91, 134, 538, 667], ticket: [43, 284, 633, 342], paint: [64, 162, 592, 606], sunrise: [43, 211, 633, 500] };   // 카드(720×960) 안 물건 자리 — kippu-app/scripts/collect/lift_objs.py
 export function liftRect(id) {
   const [, , w0, h0] = LIFT[id], a = w0 / h0, W = innerWidth, H = innerHeight;
   let w = Math.min(W * 0.72, 330), h = w / a;
