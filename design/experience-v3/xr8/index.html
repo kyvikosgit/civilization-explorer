@@ -54,7 +54,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       SLAM = q.has('slam');   // 11/26: 기본 끔 — 켜면 아이폰이 '동작 및 방향 접근' 허락 창을 띄우고 첫 터치가 필요해서(시작 단추). 그림 인식만으로도 매 장면 벽에 붙음
   // 11/25 최종 그림(미술팀 261117) — 카페 = 실내(가로), 박람회 거리 = 세로. 인식은 가운데 3:4 만 쓰므로 판을 그림 전체 크기로 늘림(FULL)
   //   대사는 기술 점검용 자리 채움(기획서 260928 대사) — 최종 원고 · 인물 자리를 받으면 바꿈. 영상은 최종 그림으로 새로 만들어야 해서 지금은 없음(글만)
-  var ROTATED = { cafe: true, street: false, cafe3: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2185 / 2053], cafe3: [1387 / 1200, 1], cafe1: [1205 / 1007, 1], cafe2: [1, 1155 / 689] };
+  var ROTATED = { cafe: true, street: false, cafe3: false }, FULL = { cafe: [2400 / 2007, 1], street: [1, 2185 / 2053], cafe3: [1387 / 1200, 1], cafe1: [1050 / 882, 1], cafe2: [1, 1436 / 853] };   /* 11/29 정면 사진 타깃(유리 안 전체 → 엔진이 가운데 3:4 만 씀) */
   ROTATED.cafe1 = false; ROTATED.cafe2 = false;
   // 11/27 현장: 카페 그림 앞에 창문 벽체 — 창 안(그림 오른쪽 위)만 보여 카페 전체 인식이 안 됨 → 창 안 장면을 따로 인식(cafe3 = 사용자 현장 사진, tools/xr8/make_cafe3_target.mjs)
   //   영상 = 3번 구간을 창 모양에 맞춘 cafe3_turns.mp4, 대사는 화면에서. 글 폭은 창이 좁아 그림 폭의 절반(TW)
@@ -84,8 +84,10 @@ document.getElementById('close').addEventListener('click', function () { if (win
     //   front = { depth: 그림보다 앞(창 폭 단위, 현장 사진 12장 시차 0.151), ext: 창 영역 대비 판 크기, k: 그 깊이에서의 크기(정면 카메라 거리 기준 1/1.084) }
     // 11/28 왼쪽 창(cafe1) · 가운데 문 창(cafe2) — 오른쪽 창과 같은 방식: 11/25 전체 벽 영상(글 없는 원본, tools/xr8/gen/cafe_veo31fast_6s_v4cycle.mp4)을 창 자리대로 자르고
     //   현장 영상(11/28 23:46) 정면 프레임의 유리 + 얇은 창틀(왼쪽은 창살도)을 입혀 그 영상 시차로 잰 창틀 깊이(문 74.5 · 왼쪽 94.3, 원본 그림 px)에 띄움 — tools/xr8/make_cafe12.py. off = 판 가운데가 유리 가운데에서 벗어난 만큼(유리 크기 단위, 아래 +)
-    cafe1: { src: 'cafe1_framed.mp4', ref: 'cafe1_framed_ref.jpg', px: [1096, 1220], ownText: true, full: true, mask: 'cafe1_edge.png', front: { depth: 0.1721, ext: [0.92, 0.92], k: 0.8934, off: [-0.0013, 0.0017] } },   /* 11/29 판 = 유리만 · 사방 4% 안쪽(비스듬히 · 가까이서 실제 창틀을 덮지 않게 — 틈은 뒤의 같은 그림) */
-    cafe2: { src: 'cafe2_framed.mp4', ref: 'cafe2_framed_ref.jpg', px: [470, 1050], ownText: true, full: true, mask: 'cafe2_edge.png', front: { depth: 0.317, ext: [0.92, 0.92], k: 0.8956, off: [-0.0043, -0.0025] } },   /* 11/29 판 = 유리만 · 사방 4% 안쪽(비스듬히 · 가까이서 실제 창틀을 덮지 않게 — 틈은 뒤의 같은 그림) */
+    // 11/29 사용자: 회전 영상으로 맞추면 틀어짐 → 영상 생성용으로 준 정면 사진 한 장씩만 기준(오른쪽 창과 같은 방식) — tools/xr8/make_cafe12_front.py
+    //   타깃 = 그 사진을 그림 좌표로 편 유리 안 · 판 = 같은 사진의 창틀 + 둘레, 유리 안(창살 빼고)만 생성 영상 · 깊이 = 창틀 시차(왼쪽 94.3 · 문 74.5 그림 px) · k · off = 사진 찍은 카메라 자리 기준
+    cafe1: { src: 'cafe1_framed.mp4', ref: 'cafe1_framed_ref.jpg', px: [1198, 1324], ownText: true, full: true, mask: 'cafe1_edge.png', front: { depth: 0.1796, ext: [1.141, 1.1259], k: 0.8984, off: [0.0423, 0.0018] } },
+    cafe2: { src: 'cafe2_framed.mp4', ref: 'cafe2_framed_ref.jpg', px: [600, 1176], ownText: true, full: true, mask: 'cafe2_edge.png', front: { depth: 0.3239, ext: [1.3043, 1.1395], k: 0.902, off: [-0.004, -0.0063] } },
     cafe3: { src: 'cafe3_framed.mp4', ref: 'cafe3_framed_ref.jpg', px: [900, 1008], ownText: true, full: true, mask: 'cafe3_framed_edge.png',
       front: { depth: 0.151, ext: [1829 / 1387, 2048 / 1600], k: 0.922 } } };
   var $ = function (id) { return document.getElementById(id); };

@@ -4,13 +4,13 @@
   "name": "cafe1",
   "type": "PLANAR",
   "properties": {
-    "left": 99,
+    "left": 84,
     "top": 0,
-    "width": 1007,
-    "height": 1342,
+    "width": 882,
+    "height": 1176,
     "isRotated": false,
-    "originalWidth": 1205,
-    "originalHeight": 1342
+    "originalWidth": 1050,
+    "originalHeight": 1176
   },
   "resources": {
     "originalImage": "cafe1_original.jpg",
@@ -18,6 +18,6 @@
     "thumbnailImage": "cafe1_thumbnail.jpg",
     "luminanceImage": "cafe1_luminance.jpg"
   },
-  "created": 1795875983682,
-  "updated": 1795875983682
+  "created": 1795885190729,
+  "updated": 1795885190729
 }

@@ -5,12 +5,12 @@
   "type": "PLANAR",
   "properties": {
     "left": 0,
-    "top": 233,
-    "width": 517,
-    "height": 689,
+    "top": 292,
+    "width": 640,
+    "height": 853,
     "isRotated": false,
-    "originalWidth": 517,
-    "originalHeight": 1155
+    "originalWidth": 640,
+    "originalHeight": 1436
   },
   "resources": {
     "originalImage": "cafe2_original.jpg",
@@ -18,6 +18,6 @@
     "thumbnailImage": "cafe2_thumbnail.jpg",
     "luminanceImage": "cafe2_luminance.jpg"
   },
-  "created": 1795875983734,
-  "updated": 1795875983734
+  "created": 1795885190757,
+  "updated": 1795885190757
 }
