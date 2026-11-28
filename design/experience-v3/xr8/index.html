@@ -239,7 +239,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       });
     }
     seen[d.name] = Date.now(); dbg[d.name] = 'tracked ' + (d.scaledWidth || 0).toFixed(2) + 'x' + (d.scaledHeight || 0).toFixed(2);
-    var vv = videos[d.name]; if (vv && vv.paused) { if (vv.preload !== 'auto') { vv.preload = 'auto'; vv.load(); } vv.play().catch(function () { needTap(); }); }
+    var vv = videos[d.name]; if (vv && vv.paused && Date.now() - (vv.__try || 0) > 1000) { vv.__try = Date.now(); if (vv.preload !== 'auto') { vv.preload = 'auto'; vv.load(); } vv.play().catch(function () { needTap(); }); }   /* 재시도는 1초에 한 번 */
   }
   // ── 벽 위 글: 캔버스에 글을 그려 벽면과 같은 판에 붙인다. 한 글자씩 0.35초 동안 스르륵(투명 → 진하게), 초당 11자
   var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 720, LH = 74, PAD = 28;   // 머리 위에 좁게(한 줄 12자 안팎)
@@ -303,7 +303,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     } };
   }
   function boot() {
-    Promise.all(['street', 'cafe3', 'cafe3a1', 'cafe3a4', 'cafe1', 'cafe1a', 'cafe1b', 'cafe2', 'cafe2a', 'cafe2b'].map(function (n) {   /* 11/28 엔진 한도 10개 — 현장에서 안 보이는 카페 전체 그림(cafe) · 오른쪽 창 각도 2장은 뺌 */   /* 11/28 cafe3a1–a4 = 현장 사진 여러 각도(tools/xr8/make_cafe3_angles.mjs) — 모두 cafe3 로 */ return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
+    Promise.all(['street', 'cafe3', 'cafe3a1', 'cafe1', 'cafe2'].map(function (n) {   /* 11/29 10개 → 5개: 저전력 모드에서 인식이 안 되던 것(대조할 그림이 많아 처리가 밀림) */   /* 11/28 엔진 한도 10개 — 현장에서 안 보이는 카페 전체 그림(cafe) · 오른쪽 창 각도 2장은 뺌 */   /* 11/28 cafe3a1–a4 = 현장 사진 여러 각도(tools/xr8/make_cafe3_angles.mjs) — 모두 cafe3 로 */ return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
       XR8.addCameraPipelineModules([
         XR8.GlTextureRenderer.pipelineModule(), XR8.CameraPixelArray.pipelineModule({ luminance: false, maxDimension: 192 }), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
