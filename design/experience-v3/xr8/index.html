@@ -101,13 +101,13 @@ document.getElementById('close').addEventListener('click', function () { if (win
     TONE[k] = { gain: new THREE.Vector3(1, 1, 1), off: new THREE.Vector3(0, 0, 0) };
     var U = UU[k] = { uVid: { value: vt }, uRef: { value: ref }, uGain: { value: TONE[k].gain }, uOff: { value: TONE[k].off }, uTexel: { value: new THREE.Vector2(1 / V.px[0], 1 / V.px[1]) }, uTime: { value: 0 }, uDbg: { value: DEBUG ? 1 : 0 }, uFull: { value: V.full ? 1 : 0 },
       uBars: { value: V.bars ? new THREE.Vector4(V.bars[0], V.bars[1], 1 - V.bars[3], 1 - V.bars[2]) : new THREE.Vector4(-1, -1, -1, -1) },
-      uGlass: { value: V.glass ? new THREE.Vector4(V.glass.depth, V.glass.open, V.glass.bscale, V.glass.alpha) : new THREE.Vector4(0, 0, 1, 1) }, uCam: { value: new THREE.Vector3(0, 0, 2) }, uVis: { value: 0 }, uHasMask: { value: V.mask ? 1 : 0 }, uMask: { value: V.mask ? new THREE.TextureLoader().load(V.mask) : null },
+      uGlass: { value: V.glass ? new THREE.Vector4(V.glass.depth, V.glass.open, V.glass.bscale, V.glass.alpha) : new THREE.Vector4(0, 0, 1, 1) }, uCam: { value: new THREE.Vector3(0, 0, 2) }, uVis: { value: 0 }, uLive: { value: 0 }, uHasMask: { value: V.mask ? 1 : 0 }, uMask: { value: V.mask ? new THREE.TextureLoader().load(V.mask) : null },
       uBarTex: { value: V.glass && V.glass.bars ? new THREE.TextureLoader().load(V.glass.bars) : null }, uBarOn: { value: V.glass && V.glass.bars ? 1 : 0 } };
     if (U.uBarTex.value) U.uBarTex.value.minFilter = THREE.LinearFilter;
     return new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
       vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: [
-        'uniform sampler2D uVid, uRef, uBarTex; uniform vec3 uGain, uOff, uCam; uniform vec2 uTexel; uniform float uTime, uDbg, uFull, uVis, uHasMask, uBarOn; uniform sampler2D uMask; uniform vec4 uBars, uGlass; varying vec2 vUv;',
+        'uniform sampler2D uVid, uRef, uBarTex; uniform vec3 uGain, uOff, uCam; uniform vec2 uTexel; uniform float uTime, uDbg, uFull, uVis, uHasMask, uBarOn, uLive; uniform sampler2D uMask; uniform vec4 uBars, uGlass; varying vec2 vUv;',
         'float df(vec2 p){ return length(texture2D(uVid, p).rgb - texture2D(uRef, p).rgb); }',
         'float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
         'void main(){',
@@ -116,6 +116,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
         '  float m = uFull > 0.5 ? 1.0 : smoothstep(0.05, 0.16, d);',   // full: 영상 전체를 덮음(구간 밝기 · 어둡게가 실제 벽에 보이게)   // 첫 장면과 달라진 곳(움직이는 사람 · 연기 등)만
         '  vec2 e = smoothstep(vec2(0.0), vec2(0.03), vUv) * smoothstep(vec2(0.0), vec2(0.03), 1.0 - vUv);',
         '  vec3 c = (texture2D(uVid, vUv).rgb * 2.0 + texture2D(uVid, vUv + vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv - vec2(uTexel.x, 0.0)).rgb + texture2D(uVid, vUv + vec2(0.0, uTexel.y)).rgb + texture2D(uVid, vUv - vec2(0.0, uTexel.y)).rgb) / 6.0;',
+        '  c = mix(texture2D(uRef, vUv).rgb, c, uLive);',   // 11/29 영상이 막혀 있으면(저전력 모드) 첫 장면 정지 그림 — 검게 덮거나 숨기지 않음
         '  c = clamp(c * uGain + uOff + (h(vUv * 917.0 + uTime) - 0.5) * 0.025, 0.0, 1.0);',
         '  float a = m * e.x * e.y;',
         '  if (uBars.x >= 0.0) { float bx = smoothstep(uBars.x - 0.004, uBars.x, vUv.x) * (1.0 - smoothstep(uBars.y, uBars.y + 0.004, vUv.x)); float by = smoothstep(uBars.z - 0.004, uBars.z, vUv.y) * (1.0 - smoothstep(uBars.w, uBars.w + 0.004, vUv.y)); a *= 1.0 - max(bx, by); }',   // 실제 창살은 늘 앞에
@@ -193,7 +194,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       onUpdate: function (a) {
         // 11/28 0.25초 넘게 안 잡힌 면은 걷음(영상 · 대사 글 모두) — 다시 잡히면 바로 다시
         var nowV = Date.now();
-        Object.keys(faces).forEach(function (k) { var f = faces[k], on = nowV - (seen[k] || 0) < 250 && f.g.visible !== undefined; if (!f.vis) f.vis = 0; f.vis += ((on ? 1 : 0) - f.vis) * (on ? 0.35 : 0.3); var vv2 = videos[k], live = vv2 && !vv2.paused && vv2.readyState >= 2 && vv2.currentTime > 0.05; if (vv2 && !live && nowV - (seen[k] || 0) < 250 && nowV - (f.firstSeen || (f.firstSeen = nowV)) > 900) needTap(); if (nowV - (seen[k] || 0) > 1500) f.firstSeen = 0;   /* 11/29 인식됐는데 0.9초 넘게 영상이 안 나오면(저전력 모드 등) '화면을 한 번 눌러 주세요' */ if (UU[k]) UU[k].uVis.value = live ? f.vis : 0; if (vv2 && !vv2.paused && nowV - (seen[k] || 0) > 1500) vv2.pause();   /* 11/29 못 틀면 검게 덮던 것 · 안 보이는 면 멈춤 */ f.heads.forEach(function (hd) { if (hd.tx && hd.tx.mesh.material) hd.tx.mesh.material.opacity = Math.min(hd.tx.mesh.material.opacity, f.vis); }); if (f.vis < 0.02 && !on) f.g.visible = false; });
+        Object.keys(faces).forEach(function (k) { var f = faces[k], on = nowV - (seen[k] || 0) < 250 && f.g.visible !== undefined; if (!f.vis) f.vis = 0; f.vis += ((on ? 1 : 0) - f.vis) * (on ? 0.35 : 0.3); var vv2 = videos[k], live = vv2 && !vv2.paused && vv2.readyState >= 2 && vv2.currentTime > 0.05; if (vv2 && !live && nowV - (seen[k] || 0) < 250 && nowV - (f.firstSeen || (f.firstSeen = nowV)) > 900) needTap(); if (nowV - (seen[k] || 0) > 1500) f.firstSeen = 0;   /* 11/29 인식됐는데 0.9초 넘게 영상이 안 나오면(저전력 모드 등) '화면을 한 번 눌러 주세요' */ if (UU[k]) { UU[k].uVis.value = f.vis; UU[k].uLive.value += ((live ? 1 : 0) - UU[k].uLive.value) * 0.25; } if (vv2 && !vv2.paused && nowV - (seen[k] || 0) > 1500) vv2.pause();   /* 11/29 못 틀면 검게 덮던 것 · 안 보이는 면 멈춤 */ f.heads.forEach(function (hd) { if (hd.tx && hd.tx.mesh.material) hd.tx.mesh.material.opacity = Math.min(hd.tx.mesh.material.opacity, f.vis); }); if (f.vis < 0.02 && !on) f.g.visible = false; });
         Object.keys(UU).forEach(function (k) { UU[k].uTime.value = (UU[k].uTime.value + 0.013) % 100;
           var f = faces[k]; if (VIDEO[k].glass && f && f.sized && camera) { f.g.updateMatrixWorld(true); var cl = f.m.worldToLocal(camera.position.clone()); UU[k].uCam.value.set(cl.x, cl.y, cl.z * f.m.scale.z / f.m.scale.x); /* 판 단위(가로 · 세로 ±0.5, 깊이 = 창 폭 단위) */ }
         }); tone(a && a.processGpuResult && a.processGpuResult.camerapixelarray); placeSay(); },
@@ -209,7 +210,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
   // 11/29 아이폰 저전력 모드: 화면을 누르기 전엔 영상 자동재생이 막힘 → 막히면 아래 안내, 한 번 누르면 모든 창 영상을 풀어 줌
   var tapShown = false;
   function needTap() { if (tapShown) return; tapShown = true; var h = $('hint'); if (h) { h.querySelector('span').textContent = window.M100_T ? window.M100_T('화면을 한 번 눌러 주세요') : '화면을 한 번 눌러 주세요'; h.hidden = false; } }
-  function unlockAll() { Object.keys(videos).forEach(function (k) { var v = videos[k]; if (v.preload !== 'auto') { v.preload = 'auto'; v.load(); } var was = Date.now() - (seen[k] || 0) < 1500; v.play().then(function () { if (!was) v.pause(); }).catch(function () {}); }); if (tapShown) { tapShown = false; var h = $('hint'); if (h) h.querySelector('span').textContent = window.M100_T ? window.M100_T('카페 벽과 만국박람회 벽을 비춰 주세요') : '카페 벽과 만국박람회 벽을 비춰 주세요'; } }
+  function unlockAll() { Object.keys(videos).forEach(function (k) { var v = videos[k]; if (Date.now() - (seen[k] || 0) > 1500) return; if (v.preload !== 'auto') { v.preload = 'auto'; v.load(); } v.play().catch(function () {}); });   /* 지금 보이는 창 영상만 */ if (tapShown) { tapShown = false; var h = $('hint'); if (h) h.querySelector('span').textContent = window.M100_T ? window.M100_T('카페 벽과 만국박람회 벽을 비춰 주세요') : '카페 벽과 만국박람회 벽을 비춰 주세요'; } }
   document.addEventListener('touchend', unlockAll, { passive: true }); document.addEventListener('click', unlockAll);
   function place(e) {
     // 11/28 여러 각도 타깃(같은 창 사진 5장)이 동시에 잡히면 서로 조금씩 다른 자리를 번갈아 알려 판이 붕붕 떠다님 →
