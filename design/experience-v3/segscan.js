@@ -165,7 +165,7 @@ export function openSegScan(o) {
     if (hit) { hitT = performance.now(); if (full || !last) last = geo; }
   }
   // ── 11/28 살롱 · 전단지와 같은 오라 셰이더(WebGL) — 실루엣 바깥 거리장(거리 = 물건 긴 변 단위)을 매번 올려 그 둘레에 금빛이 일렁이며 번짐
-  const DR = 128, dist = new Float32Array(S * S), dtex = new Uint8Array(S * S);
+  const DR = 128, IN = 40, dist = new Float32Array(S * S), din = new Float32Array(S * S), dtex = new Uint8Array(S * S);   // 11/29 안쪽 거리(IN 칸까지)도 — 안쪽으로 스며드는 빛
   let glOK = false, gl = null, gprog = null, gtex = null, Ugeo = null, Ut = null, Uop = null, Uscr = null, Ulen = 1, Uc = null, gcen = [0, 0];
   function distField(rx, ry, rw, rh, L) {   // 2패스 근사 거리(칸 단위): 안 = 0, 바깥 = 가까운 실루엣까지
     const pad = 70, x0 = Math.max(0, rx - pad), y0 = Math.max(0, ry - pad), x1 = Math.min(S, rx + rw + pad), y1 = Math.min(S, ry + rh + pad), INF = 1e4;
@@ -174,7 +174,12 @@ export function openSegScan(o) {
     const A = 1, B = 1.4142;
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x; let d = dist[i]; if (x > x0) d = Math.min(d, dist[i - 1] + A); if (y > y0) { d = Math.min(d, dist[i - S] + A); if (x > x0) d = Math.min(d, dist[i - S - 1] + B); if (x < x1 - 1) d = Math.min(d, dist[i - S + 1] + B); } dist[i] = d; }
     for (let y = y1 - 1; y >= y0; y--) for (let x = x1 - 1; x >= x0; x--) { const i = y * S + x; let d = dist[i]; if (x < x1 - 1) d = Math.min(d, dist[i + 1] + A); if (y < y1 - 1) { d = Math.min(d, dist[i + S] + A); if (x < x1 - 1) d = Math.min(d, dist[i + S + 1] + B); if (x > x0) d = Math.min(d, dist[i + S - 1] + B); } dist[i] = d; }
-    for (let i = 0; i < S * S; i++) dtex[i] = Math.min(255, (Math.min(dist[i], DR) / DR) * 255);
+    // 안쪽: 실루엣 밖까지의 거리(같은 2패스)
+    din.fill(0);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (al[y * S + x] > 0.5) din[y * S + x] = INF;
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x; if (!din[i]) continue; let d = din[i]; if (x > x0) d = Math.min(d, din[i - 1] + A); if (y > y0) { d = Math.min(d, din[i - S] + A); if (x > x0) d = Math.min(d, din[i - S - 1] + B); if (x < x1 - 1) d = Math.min(d, din[i - S + 1] + B); } din[i] = d; }
+    for (let y = y1 - 1; y >= y0; y--) for (let x = x1 - 1; x >= x0; x--) { const i = y * S + x; if (!din[i]) continue; let d = din[i]; if (x < x1 - 1) d = Math.min(d, din[i + 1] + A); if (y < y1 - 1) { d = Math.min(d, din[i + S] + A); if (x < x1 - 1) d = Math.min(d, din[i + S + 1] + B); if (x > x0) d = Math.min(d, din[i + S - 1] + B); } din[i] = d; }
+    for (let i = 0; i < S * S; i++) { const sd = Math.min(dist[i], DR) - Math.min(din[i], IN); dtex[i] = Math.max(0, Math.min(255, ((sd + IN) / (DR + IN)) * 255)); }   // 부호 거리(안 = 음수)
     Ulen = L; gcen = [rx + rw / 2, ry + rh / 2];
     if (glOK) { gl.bindTexture(gl.TEXTURE_2D, gtex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, S, S, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, dtex); }
   }
@@ -188,12 +193,15 @@ export function openSegScan(o) {
       void main(){
         vec2 sp = vec2(gl_FragCoord.x, scr.y - gl_FragCoord.y) / scr * geo.zw;            /* 화면(CSS px) */
         vec2 m = vec2(sp.x * geo.x + PXY.x, sp.y * geo.x + PXY.y);   /* 화면 → 모델 칸(320) */
-        float dpx = texture2D(D, m / ${S}.0).r * ${DR}.0; float d = dpx / len;
-        if (dpx < 0.5) discard;
+        float dpx = texture2D(D, m / ${S}.0).r * ${DR + 40}.0 - 40.0; float d = dpx / len;
+        if (dpx < -39.0) discard;
         vec2 rel = m - cen; float ang = atan(rel.y, rel.x);
         float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9)), n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
         float core = exp(-max(d, 0.0) * 7.5);
         float haze = exp(-max(d, 0.0) * 2.7) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.52, 0.69, d));
+        /* 11/29 안쪽으로도 물결 깊이만큼 스며듦(전단지와 같음) — 실루엣의 자글자글한 가장자리를 덮음 */
+        if (d < 0.0) { float n3 = fbm(vec2(ang * 7.0 - t * 0.5, t * 0.7)) * 0.6 + fbm(vec2(-ang * 13.0 + t * 0.8, 1.7)) * 0.4; float k = 0.02 + 0.06 * n3;
+          core = exp(d / k) * (0.75 + 0.25 * smoothstep(0.25, 0.8, n2)); haze = exp(d / (k * 2.6)) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)); }
         float a = clamp(core * 0.95 + haze * 0.7, 0.0, 1.0) * op;
         vec3 col = mix(vec3(1.0, 0.86, 0.55), vec3(1.0, 0.98, 0.9), core);
         gl_FragColor = vec4(col * a * a, a * a);   /* 살롱(three AdditiveBlending)과 같은 밝기 */
