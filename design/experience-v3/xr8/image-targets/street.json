@@ -5,12 +5,12 @@
   "type": "PLANAR",
   "properties": {
     "left": 0,
-    "top": 174,
+    "top": 66,
     "width": 1540,
     "height": 2053,
     "isRotated": false,
     "originalWidth": 1540,
-    "originalHeight": 2400
+    "originalHeight": 2185
   },
   "resources": {
     "originalImage": "street_original.jpg",
@@ -18,6 +18,6 @@
     "thumbnailImage": "street_thumbnail.jpg",
     "luminanceImage": "street_luminance.jpg"
   },
-  "created": 1795598580991,
-  "updated": 1795598580991
+  "created": 1795878124571,
+  "updated": 1795878124571
 }
