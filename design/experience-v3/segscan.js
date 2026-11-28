@@ -180,14 +180,9 @@ export function openSegScan(o) {
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (al[y * S + x] > 0.5) din[y * S + x] = INF;
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x; if (!din[i]) continue; let d = din[i]; if (x > x0) d = Math.min(d, din[i - 1] + A); if (y > y0) { d = Math.min(d, din[i - S] + A); if (x > x0) d = Math.min(d, din[i - S - 1] + B); if (x < x1 - 1) d = Math.min(d, din[i - S + 1] + B); } din[i] = d; }
     for (let y = y1 - 1; y >= y0; y--) for (let x = x1 - 1; x >= x0; x--) { const i = y * S + x; if (!din[i]) continue; let d = din[i]; if (x < x1 - 1) d = Math.min(d, din[i + 1] + A); if (y < y1 - 1) { d = Math.min(d, din[i + S] + A); if (x < x1 - 1) d = Math.min(d, din[i + S + 1] + B); if (x > x0) d = Math.min(d, din[i + S - 1] + B); } din[i] = d; }
-    for (let i = 0; i < S * S; i++) dist[i] = Math.min(dist[i], DR) - Math.min(din[i], IN);   // 부호 거리(안 = 음수)
-    // 11/29 격자(320칸) 계단을 없애려고 부호 거리를 가로 · 세로로 두 번 흐림(반지름 3칸)
-    for (let pass = 0; pass < 2; pass++) {
-      for (let y = y0; y < y1; y++) { const row = y * S; let acc = 5 * dist[row + x0] + dist[row + Math.min(x1 - 1, x0 + 1)] + dist[row + Math.min(x1 - 1, x0 + 2)];   /* 앞 칸 창(x0−1) 합 — 가장자리는 x0 값 */ for (let x = x0; x < x1; x++) { const a1 = x + 3 < x1 ? dist[row + x + 3] : dist[row + x1 - 1], a0 = x - 4 >= x0 ? dist[row + x - 4] : dist[row + x0]; acc += a1 - a0; din[row + x] = acc / 7; } }
-      for (let x = x0; x < x1; x++) { let acc = 5 * din[y0 * S + x] + din[Math.min(y1 - 1, y0 + 1) * S + x] + din[Math.min(y1 - 1, y0 + 2) * S + x]; for (let y = y0; y < y1; y++) { const a1 = y + 3 < y1 ? din[(y + 3) * S + x] : din[(y1 - 1) * S + x], a0 = y - 4 >= y0 ? din[(y - 4) * S + x] : din[y0 * S + x]; acc += a1 - a0; dist[y * S + x] = acc / 7; } }
-    }
+    // 11/29 사용자: 외곽은 대충이면 됨 — CPU 흐림은 빼고(그래픽 칩 셰이더가 주변을 같이 읽어 둥글게), 부호 거리도 상자 주변만 기록
     dtex.fill(255);
-    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x; dtex[i] = Math.max(0, Math.min(255, ((dist[i] + IN) / (DR + IN)) * 255)); }
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x, sd = Math.min(dist[i], DR) - Math.min(din[i], IN); dtex[i] = Math.max(0, Math.min(255, ((sd + IN) / (DR + IN)) * 255)); }
     Ulen = L; gcen = [rx + rw / 2, ry + rh / 2];
     if (glOK) { gl.bindTexture(gl.TEXTURE_2D, gtex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, S, S, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, dtex); }
   }
@@ -201,7 +196,10 @@ export function openSegScan(o) {
       void main(){
         vec2 sp = vec2(gl_FragCoord.x, scr.y - gl_FragCoord.y) / scr * geo.zw;            /* 화면(CSS px) */
         vec2 m = vec2(sp.x * geo.x + PXY.x, sp.y * geo.x + PXY.y);   /* 화면 → 모델 칸(320) */
-        float dpx = texture2D(D, m / ${S}.0).r * ${DR + 40}.0 - 40.0; float d = dpx / len;
+        vec2 q = m / ${S}.0, o = vec2(2.5 / ${S}.0);   /* 주변 9칸 평균 = 격자 계단을 둥글게(그래픽 칩에서) */
+        float tv = (texture2D(D, q).r * 4.0 + texture2D(D, q + vec2(o.x, 0.0)).r + texture2D(D, q - vec2(o.x, 0.0)).r + texture2D(D, q + vec2(0.0, o.y)).r + texture2D(D, q - vec2(0.0, o.y)).r
+          + texture2D(D, q + o).r + texture2D(D, q - o).r + texture2D(D, q + vec2(o.x, -o.y)).r + texture2D(D, q + vec2(-o.x, o.y)).r) / 12.0;
+        float dpx = tv * ${DR + 40}.0 - 40.0; float d = dpx / len;
         if (dpx < -39.0) discard;
         vec2 rel = m - cen; float ang = atan(rel.y, rel.x);
         float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9)), n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
