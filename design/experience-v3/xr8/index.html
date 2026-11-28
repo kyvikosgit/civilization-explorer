@@ -51,6 +51,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
   // 11/27 현장: 카페 그림 앞에 창문 벽체 — 창 안(그림 오른쪽 위)만 보여 카페 전체 인식이 안 됨 → 창 안 장면을 따로 인식(cafe3 = 사용자 현장 사진, tools/xr8/make_cafe3_target.mjs)
   //   영상 = 3번 구간을 창 모양에 맞춘 cafe3_turns.mp4, 대사는 화면에서. 글 폭은 창이 좁아 그림 폭의 절반(TW)
   var TW = { cafe: 0.24, street: 0.24, cafe3: 0.5 };
+  var ALIAS = { cafe3a1: 'cafe3', cafe3a2: 'cafe3', cafe3a3: 'cafe3', cafe3a4: 'cafe3' };
   var HEADS = {
     cafe: [
       { x: 0.108, y: 0.50, t: '아카데미 살롱의 기준은 너무 낡았어. 세상이 바뀌었는데, 언제까지 그런 그림만 그릴 거냐고.' },
@@ -169,6 +170,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
   // 타깃 자리에 판을 놓는다. 가로 그림을 90° 돌려 세로 타깃으로 만들었으므로(isRotated) 엔진이 세로로 알려 주면 판을 90° 돌려 맞춘다
   var TQ = new THREE.Quaternion(), TP = new THREE.Vector3();
   function place(e) {
+    if (ALIAS[e.detail.name]) e.detail.name = ALIAS[e.detail.name];   // 여러 각도 타깃 → 같은 창(cafe3)
     var d = e.detail, f = faces[d.name]; if (!f) return;
     // 11/27 떨림 줄이기 — 인식 위치가 장면마다 조금씩 튀는 것을 부드럽게 따라감(처음 · 오래 놓쳤다 다시 잡을 땐 바로)
     var fresh = !f.g.visible || Date.now() - (seen[d.name] || 0) > 800, kf = fresh ? 1 : 0.3;
@@ -253,7 +255,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     } };
   }
   function boot() {
-    Promise.all(['cafe', 'street', 'cafe3'].map(function (n) { return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
+    Promise.all(['cafe', 'street', 'cafe3', 'cafe3a1', 'cafe3a2', 'cafe3a3', 'cafe3a4'].map(function (n) {   // 11/28 cafe3a1–a4 = 현장 사진 여러 각도(tools/xr8/make_cafe3_angles.mjs) — 모두 cafe3 로 return fetch('image-targets/' + n + '.json').then(function (r) { return r.json(); }); })).then(function (data) {
       XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: !SLAM });
       XR8.addCameraPipelineModules([
         XR8.GlTextureRenderer.pipelineModule(), XR8.CameraPixelArray.pipelineModule({ luminance: false, maxDimension: 192 }), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),

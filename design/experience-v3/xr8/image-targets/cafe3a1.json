@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets/cafe3a1_luminance.jpg",
+  "metadata": null,
+  "name": "cafe3a1",
+  "type": "PLANAR",
+  "properties": {
+    "left": 94,
+    "top": 0,
+    "width": 1200,
+    "height": 1600,
+    "isRotated": false,
+    "originalWidth": 1387,
+    "originalHeight": 1600
+  },
+  "resources": {
+    "originalImage": "cafe3a1_original.jpg",
+    "croppedImage": "cafe3a1_cropped.jpg",
+    "thumbnailImage": "cafe3a1_thumbnail.jpg",
+    "luminanceImage": "cafe3a1_luminance.jpg"
+  },
+  "created": 1795861113119,
+  "updated": 1795861113119
+}
