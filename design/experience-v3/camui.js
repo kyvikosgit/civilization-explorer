@@ -3,7 +3,7 @@
 import { startScan, stopScan } from './scan.js';
 
 const ICO = {
-  close: '<svg class="ico" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  close: '<svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',   // 11/28 체험 화면 공통 '<'(닫기 X 대신)
 };
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 export { esc };
@@ -17,7 +17,7 @@ function build() {
     <div class="sim"><div class="sim-view"><img class="sim-art" alt=""><i class="sim-glow"></i><div class="sim-medal"><small>SALON</small><b>1873</b></div>${'<u></u>'.repeat(10)}</div></div>
     <div class="aura"></div>
     <div class="flash"></div>
-    <div class="top"><button class="x" aria-label="닫기">${ICO.close}</button><div class="tt"><small class="cap"></small><b class="t"></b><span class="dots"></span></div><span></span></div>
+    <div class="top"><button class="x" aria-label="뒤로">${ICO.close}</button><div class="tt"><small class="cap"></small><b class="t"></b><span class="dots"></span></div><span></span></div>
     <div class="finder"><i></i><i></i><i></i><i></i><span class="bar"></span></div>
     <div class="msg"></div>
     <div class="err"></div>
@@ -40,7 +40,9 @@ export function openCam(o) {
   el.style.clipPath = '';
   // 위 한 줄: '구역 · 할 일' 을 둘로 나눠 작은 캡션과 제목으로
   const [cap, ...rest] = String(o.title || '').split(' · ');
-  $('.cap').textContent = rest.length ? cap : ''; $('.t').textContent = rest.length ? rest.join(' · ') : cap;
+  // 11/28 제목 = 구역 이름 하나(완료 화면 · 스캔 화면과 같게). '구역 · 할 일'의 앞부분을 구역 이름으로
+  const ZN = { '에트르타': '화가의 작업 공간', '모네 전시관': '인상파 전시회', '사업가의 사무실': '사업가의 방' };
+  $('.cap').textContent = ''; $('.t').textContent = ZN[cap] || cap;
   // 찾은 개수 — 대상이 여럿일 때만, 회색 → 금색 두 단계
   //   o.pick: 카메라 없이 고르기에 내놓을 대상 수(앞에서부터) — 같은 벽을 부분으로 나눈 인식 대상은 고르기에 안 보인다
   const n = o.pick ?? (o.targets || []).length, seen = new Set();

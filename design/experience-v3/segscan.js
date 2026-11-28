@@ -15,10 +15,10 @@ const CSS = `
 .v3-seg canvas.fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .v3-seg .dim{position:absolute;inset:0;background:rgba(0,0,0,.62);opacity:0;transition:opacity .45s;pointer-events:none}
 .v3-seg.caught .dim{opacity:1}
-.v3-seg .top{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px)) 12px 0;height:calc(52px + env(safe-area-inset-top,0px));display:grid;grid-template-columns:40px 1fr 40px;align-items:center;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0));z-index:3;transition:opacity .3s}
-.v3-seg .top button{width:40px;height:40px;border-radius:20px;border:0;background:none;color:#fff;display:grid;place-items:center}
+.v3-seg .top{position:absolute;left:0;right:0;top:0;box-sizing:border-box;color:#fff;padding:env(safe-area-inset-top,0px) 12px 0;height:calc(52px + env(safe-area-inset-top,0px));display:grid;grid-template-columns:40px 1fr 40px;align-items:center;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0));z-index:3;transition:opacity .3s}
+.v3-seg .top button{width:40px;height:40px;padding:0;margin:0;border-radius:20px;border:0;background:none;color:#fff;display:grid;place-items:center}
 .v3-seg .top svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.v3-seg .top b{text-align:center;font-size:16px;font-weight:700}
+.v3-seg .top b{text-align:center;font-size:17px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 11/28 공통 위 막대 */
 .v3-seg .ret{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;z-index:2;pointer-events:none;transition:transform .25s,opacity .3s}
 .v3-seg .ret i{position:absolute;width:12px;height:12px;border:2px solid rgba(255,255,255,.85)}
 .v3-seg .ret i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}.v3-seg .ret i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
@@ -27,8 +27,8 @@ const CSS = `
 .v3-seg .ret.on{transform:scale(.8)}.v3-seg .ret.on i{border-color:#bfe8b9}
 .v3-seg .ring{display:none;position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;z-index:2;pointer-events:none;transition:opacity .3s}
 .v3-seg .ring circle{fill:none;stroke:#bfe8b9;stroke-width:3;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%}
-.v3-seg .msg{display:none;position:absolute;left:16px;right:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px));text-align:center;z-index:2;transition:opacity .3s}
-.v3-seg .msg span{display:inline-block;background:rgba(0,0,0,.55);padding:10px 16px;border-radius:20px;font-size:15px;line-height:1.5;white-space:pre-line}
+.v3-seg .msg{display:none;position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);text-align:center;z-index:2;transition:opacity .3s}
+.v3-seg .msg span{display:inline-block;max-width:100%;box-sizing:border-box;background:rgba(20,16,13,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:10px 18px;border-radius:20px;font-size:15px;font-weight:500;line-height:1.45;white-space:pre-line;word-break:keep-all}
 .v3-seg.caught .top,.v3-seg.caught .ret,.v3-seg.caught .ring,.v3-seg.caught .msg{opacity:0}
 .v3-seg img.cut{position:absolute;max-width:none;max-height:none;z-index:4;pointer-events:none;filter:drop-shadow(0 0 14px rgba(214,245,207,.75)) drop-shadow(0 10px 20px rgba(0,0,0,.35));transform-origin:center;will-change:transform,left,top,width,height}
 .v3-seg .wait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;background:#000;font-size:15px;color:#bbb;text-align:center;padding:28px;line-height:1.6}
@@ -59,7 +59,7 @@ export function openSegScan(o) {
   style(); if (cur) cur.close(true);
   const el = document.createElement('div'); el.className = 'v3-seg';
   el.innerHTML = `<video playsinline muted autoplay></video><canvas class="fx"></canvas><div class="dim"></div>
-    <div class="top"><button type="button" aria-label="${T('닫기')}"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>${T(o.title || '')}</b><span></span></div>
+    <div class="top"><button type="button" aria-label="${T('닫기')}"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>${T(({ '에트르타': '화가의 작업 공간' })[String(o.title || '').split(' · ')[0]] || String(o.title || '').split(' · ')[0])}</b><span></span></div>
     <div class="ret"><i></i><i></i><i></i><i></i><b></b></div>
     <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="176"/></svg>
     <div class="msg"><span></span></div><div class="wait">${T('카메라를 켜는 중…')}</div>`;
