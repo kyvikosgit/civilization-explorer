@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<!-- v3 살롱: v2 c0.html 사본. 입장 연출 자원(그림·서체·c0.css)은 v2 폴더에서 그대로 읽는다(base) — v2 는 보관본이라 바뀌지 않는다 -->
+<!-- 11/29 v3 살롱 = 배경 그림 + 역할 문장 + 안내 시트(다른 체험과 같은 짜임) · 3D 입장 연출판은 salon-3d.html -->
 <base href="../experience-v2/proto/">
 <script src="../../experience-v3/i18n.js"></script>  <!-- 11/23: 앱 언어(영 · 일 · 중) -->
 <link rel="icon" href="data:,">
@@ -11,126 +11,29 @@
 <title>B · 올해의 그림</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="proto-base.css">
-<link rel="stylesheet" href="c0.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
 <link rel="stylesheet" href="../../experience-v3/cam.css">
 <link rel="stylesheet" href="../../experience-v3/guide.css">
-<link rel="stylesheet" href="../../experience-v3/salon.css">
 <script src="../../experience-v3/introctl.js"></script>  <!-- 11/20: ?intro=only · ?nointro (앱 구역 화면) -->
-<script type="importmap">
-{ "imports": {
-  "three": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/",
-  "mindar-image-three": "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-three.prod.js"
-} }
-</script>
+
+<style>
+html,body{margin:0;height:100%;background:#0b0605;overflow:hidden}
+.salon-bg{position:fixed;inset:0;background:#0b0605 url("../../experience-v3/img/salon_bg.jpg") center 30%/cover no-repeat}
+.salon-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,6,5,.72) 0%,rgba(11,6,5,.25) 30%,rgba(11,6,5,.2) 48%,rgba(11,6,5,.8) 72%,rgba(11,6,5,.95) 100%)}
+body.salon-lite .topbar{position:fixed!important;left:0;right:0;top:0;z-index:5;color:#FFF7EA;background:transparent!important}
+</style>
 </head>
-<body class="c0 intro-pending">
-
-<!-- 살롱 전시실 한 장면 — 입장 · 후보작 벽 · 앞으로 나온 그림 · 메달이 앉기까지 이 안에서(c0.js, 방은 c0-intro.js). 결과는 메달의 금빛을 지나 따로 한 장(#s3) -->
-<section class="scr on" id="s2">
-  <div class="stage" id="stage" data-mode="intro">
-    <canvas class="gl" id="gl" aria-label="1873년 살롱 전시실 · 후보작 다섯 점"></canvas>
-    <div class="labels" id="labels" aria-hidden="true"></div>
-    <div class="scrim" aria-hidden="true"></div>
-    <div class="topbar wall-top"><button class="icon-btn" id="back2" aria-label="벽으로 돌아가기"><i data-ic="back"></i></button><div class="tb-title" id="wallTitle" data-zone="아카데미 살롱"></div><span></span></div>
-
-    <!-- 역할 — 벽 위에 얇게 겹친다(벽을 누르지 않는다) -->
-    <div class="role" id="role">
-      <div class="eyebrow">Salon de 1873</div>
-      <h1>당신은 오늘의 심사위원입니다</h1>
-      <p class="lead">후보작 다섯 점 가운데 1873년 수상작을 찾아 주십시오. <button type="button" class="crit-link" id="critBtn">살롱의 기준</button></p>
-    </div>
-
-    <div class="gest" id="gest"><span class="pill">끌어서 돌려 보기 · 두 손가락으로 확대</span></div>
-    <div class="fcap" id="fcap" aria-live="polite"><div class="fc-hd"><b id="fcT"></b><small id="fcM"></small></div><p id="fcD"></p></div>
-    <div class="dock" id="dock"><button class="btn dark-line other" id="otherBtn" type="button">다른 그림 보기</button><button class="btn white award" id="award"><span class="m" id="awardMedal"></span>이 그림을 당선작으로</button></div>
-    <div class="intro-skip" aria-hidden="true">누르면 건너뜁니다</div>
-    <a class="hub-back" href="../../experience-v3/index.html" aria-label="체험 목록으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></a>
-    <div class="fade" aria-hidden="true"></div>
-  </div>
-</section>
-
-<!-- 결과 — 독립된 한 장. 내가 메달을 준 그림 하나를 크게, 아래에 오늘의 다섯 점 -->
-<section class="scr res" id="s3" aria-label="심사 결과">
-  <div class="res-bg" aria-hidden="true"></div>
-  <div class="topbar dark res-top"><button class="icon-btn" id="back3" aria-label="다시 고르기"><i data-ic="back"></i></button><div class="tb-title">Salon de 1873</div><span></span></div>
-  <div class="res-scroll" id="resScroll">
-    <div class="res-hero">
-      <div class="res-kick">당신이 고른 올해의 당선작</div>
-      <div class="res-wall">
-        <div class="gilt" id="resFrame"><div class="gilt-sight"><img alt="" id="resImg"></div><i class="gilt-sheen" aria-hidden="true"></i><div class="medal-pin" id="resMedal"><span class="m-svg"></span><i class="m-glint" aria-hidden="true"></i></div></div>
-      </div>
-      <h2 class="res-title" id="resTitle"></h2>
-      <div class="res-meta" id="resMeta"></div>
-    </div>
-    <p class="res-line" id="resLine"></p>
-    <div class="res-split">
-      <div class="res-split-hd"><h3>오늘의 심사</h3><small id="resStamp"></small></div>
-      <ol class="res-rank" id="resRank"></ol>
-    </div>
-  </div>
-  <!-- 끝 줄: done.js 공통 [목록으로 돌아가기 | 다음 미션으로] · 체험 더보기 — 정답을 고르면 salon.js 가 채운다 -->
-  <div class="res-btns"><button hidden id="again" type="button"></button></div>
-</section>
-
-<!-- 내가 메달을 준 그림 — 카드(기기에서 생성) -->
-<section class="scr" id="s4">
-  <div class="topbar dark"><button class="icon-btn" id="back4" aria-label="뒤로"><i data-ic="back"></i></button><div class="tb-title">수집함</div><span></span></div>
-  <div class="card-wrap">
-    <div class="card" id="card">
-      <div class="card-wall">
-        <div class="gilt card-frame" id="cardFrame"><div class="gilt-sight"><img alt="" id="cardImg"></div><div class="medal-pin"><span class="m-svg" id="cardMedal"></span></div></div>
-      </div>
-      <div class="card-body">
-        <div class="card-kick">Salon de 1873 · 내가 고른 당선작</div>
-        <h3 id="cardTitle"></h3>
-        <p id="cardMeta"></p>
-        <div class="card-pos" id="cardPos"></div>
-        <small id="cardShown"></small>
-      </div>
-    </div>
-  </div>
-  <div class="btns one card-btns"><button class="btn res-again" id="restart">처음으로</button></div>
-</section>
-
-<!-- 메달에서 번지는 금빛 → 결과 화면으로(둘레가 먼저 어두워지고, 금빛이 그 위로) -->
-<div class="xfade" id="xfade" aria-hidden="true"><i class="xf-dark"></i><i class="xf-gold"></i></div>
-
-<!-- 확인 시트 -->
-<div class="sheet" id="confirm">
-  <div class="grip"></div>
-  <h3 id="cfTitle">이 그림을 올해의 당선작으로 고를까요?</h3>
-  <div class="btns"><button class="btn line" id="cfBack" data-sheet-close>다시 보기</button><button class="btn" id="cfOk">당선작으로 고르기</button></div>
+<body class="page salon-lite">
+<div class="salon-bg" aria-hidden="true"></div>
+<div class="topbar">
+  <a class="icon-btn" href="../../experience-v3/index.html" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></a>
+  <div class="tb-title" data-zone="아카데미 살롱"></div><span></span>
 </div>
-
-<!-- 아닌 그림 — 그 그림의 심사평 -->
-<div class="sheet" id="wrong">
-  <div class="grip"></div>
-  <p class="wr-k">당선되지 못한 그림</p>
-  <h3 id="wrT"></h3>
-  <p class="wr-b" id="wrB"></p>
-  <div class="btns one"><button class="btn" id="wrOk">다른 그림 고르기</button></div>
+<div class="v3-role has-back" id="role">
+  <p class="eyebrow">Salon de 1873</p>
+  <h1>당신은 오늘의 심사위원입니다</h1>
+  <p class="lead">후보작 다섯 점 가운데 1873년 수상작을 찾아 주십시오.</p>
 </div>
-
-<!-- 살롱의 기준 -->
-<div class="sheet" id="crit">
-  <div class="grip"></div>
-  <h3>살롱의 기준</h3>
-  <ol class="crit-list">
-    <li>위대한 주제 <small>신화, 종교, 역사</small></li>
-    <li>정확한 인체</li>
-    <li>명확한 구도</li>
-    <li>완성된 묘사</li>
-    <li>고상한 감정</li>
-    <li>매끄러운 표면 <small>붓질이 보이면 안 됨</small></li>
-    <li>캔버스가 안 보이는 완벽한 채색</li>
-  </ol>
-  <div class="btns one"><button class="btn" data-sheet-close>닫기</button></div>
-</div>
-
-<div id="safeProbe" aria-hidden="true"></div>
-<script type="module" src="../../experience-v3/salon.js"></script>
-<script type="module" src="../../experience-v3/salon-ar.js"></script>
+<script type="module" src="../../experience-v3/salon-lite.js"></script>
 </body>
 </html>
