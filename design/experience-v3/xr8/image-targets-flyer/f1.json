@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets-flyer/f1_luminance.jpg",
+  "metadata": null,
+  "name": "f1",
+  "type": "PLANAR",
+  "properties": {
+    "left": 35,
+    "top": 0,
+    "width": 930,
+    "height": 1240,
+    "isRotated": false,
+    "originalWidth": 999,
+    "originalHeight": 1240
+  },
+  "resources": {
+    "originalImage": "f1_original.jpg",
+    "croppedImage": "f1_cropped.jpg",
+    "thumbnailImage": "f1_thumbnail.jpg",
+    "luminanceImage": "f1_luminance.jpg"
+  },
+  "created": 1795873026831,
+  "updated": 1795873026831
+}

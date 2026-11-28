@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<title>바티뇰파 전단지 · 시민사회</title>
+<!-- 11/28 시민사회 전단지 스캔 = 살롱 스캔(salon-scan.html)과 같은 화면 · 엔진(8th Wall) — 사용자: 카메라 틀 · 넓어지는 효과 없이 살롱 기준으로 통일
+     모리스 칼럼의 바티뇰파 전단지를 비추면 전단지 둘레에 살롱 정답과 같은 금빛 오라 + 아래 설명 카드 + [선택] → 말린 종이가 펴지며 떠올라 수집품(done.js liftToCard curl)
+     타깃 = tools/xr8/make_flyer_target.mjs → ./image-targets-flyer/f1.json(img/fl_guerbois_real.jpg 가운데 3:4 = 전단지 높이 전체) -->
+<script src="../i18n.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<!-- 8th Wall 엔진은 스캔할 때만 — 완료 화면(done=1, 다시 체험 표시 없음)은 엔진 없이(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐, 폰)
+     11/27: 엔진을 나중에 끼워 넣던 방식에서 '네트워크를 확인해 주세요'가 뜸(폰) → 처음 시험해서 되던 방식(문서에 바로 쓰기)으로 되돌림 -->
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), ag = [];
+  try { ag = JSON.parse(sessionStorage.getItem('m100again') || '[]'); } catch (e) {}
+  if (q.get('again')) ag = ag.concat(q.get('again').split(','));
+  window.__noXR = q.get('done') === '1' && ag.indexOf('flyer') < 0;
+  // 11/28 정답 그림을 골라 떠오른 채로 새로 열림(lift=1) — 첫 화면부터 흰 바탕 + 가운데 그 그림(엔진을 끄려고 새로 연 페이지에서 끊김 없이 이어 감, done.js liftRect 와 같은 자리)
+  window.__lift = q.get('lift') === '1' && q.get('done') === '1';
+  if (window.__lift) document.write('<style>html,body{background:#fff!important}.start,.top,.hint{display:none!important}</style><div id="lift0" style="position:fixed;inset:0;z-index:9400;background:#fff"><img src="../img/lift_flyer.webp" alt="" style="position:absolute;object-fit:contain;filter:drop-shadow(0 14px 22px rgba(40,28,16,.28));' + (function () { var W = innerWidth, H = innerHeight, a = 538 / 667, w = Math.min(W * 0.72, 330), h = w / a; if (h > H * 0.42) { h = H * 0.42; w = h * a; } return 'left:' + (W - w) / 2 + 'px;top:' + (H * 0.42 - h / 2) + 'px;width:' + w + 'px;height:' + h + 'px'; })() + '"></div>');
+  if (!window.__noXR) document.write('<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"><\/script><script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"><\/script>');
+})();
+</script>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;word-break:keep-all}
+#c{position:fixed;left:0;top:0}
+.start{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 32px;text-align:center;background:#0E0C0A}   /* 11/28 체험 카메라 공통 로딩 화면(위 막대는 그대로 보임) */
+.start .spin{width:34px;height:34px;box-sizing:border-box;border-radius:50%;border:2.5px solid rgba(242,237,226,.14);border-top-color:#E9C77B;animation:m100spin .9s linear infinite}
+@keyframes m100spin{to{transform:rotate(360deg)}}
+.start p{margin:0;color:rgba(242,237,226,.72);font-size:15px;line-height:1.5;white-space:pre-line;word-break:keep-all}
+.start #err:empty{display:none}
+.start button{min-height:56px;box-sizing:border-box;padding:0 28px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif}
+.start.fail .spin{display:none}
+.top{position:fixed;left:0;right:0;top:0;z-index:6;box-sizing:border-box;height:calc(52px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 12px 0;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;color:#fff;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0))}   /* 11/28 체험 화면 공통 위 막대 */
+.top button{width:40px;height:40px;padding:0;margin:0;border-radius:20px;border:0;background:none;color:inherit;display:grid;place-items:center}
+.top button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.top b{text-align:center;font-size:19px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hint{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);text-align:center;z-index:5;transition:opacity .3s;pointer-events:none}   /* 공통 아래 안내 줄 = 다음에 할 일 */
+.hint span{display:inline-block;max-width:100%;box-sizing:border-box;padding:10px 18px;border-radius:20px;background:rgba(20,16,13,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:15px;font-weight:500;line-height:1.45;white-space:pre-line;word-break:keep-all}
+.found{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translate(-50%,-6px);z-index:7;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px 0 9px;box-sizing:border-box;border-radius:18px;background:rgba(20,16,13,.66);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:14.5px;font-weight:700;line-height:1;letter-spacing:-.01em;white-space:nowrap;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}   /* 공통 인식 알림 = 무엇을 비췄는지(막대 바로 아래 12px) */
+.found.on{opacity:1;transform:translate(-50%,0)}
+.found span{display:block;line-height:1;padding-top:1px}
+.found i{flex:none;width:20px;height:20px;border-radius:50%;background:#E9C77B center/13px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.found.no i{background:rgba(242,237,226,.22) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:8;background:#F7F3EC;color:#2A2119;border-radius:18px 18px 0 0;padding:22px 20px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-height:70vh;overflow:auto}
+.sheet.on{transform:none}
+.sheet .k{font-size:13px;font-weight:700;color:#8A6A3A;margin:0 0 4px}
+.sheet h2{font-family:Paperlogy,Freesentation,sans-serif;font-size:20px;margin:0 0 2px}
+.sheet .s{font-size:14px;color:#7A7066;margin:0 0 12px}
+.sheet .b{font-size:15px;line-height:1.7;white-space:pre-line;margin:0 0 16px}
+.sheet button{width:100%;min-height:52px;border:0;border-radius:12px;background:#2A2119;color:#F7F0DF;font:800 16px Freesentation,sans-serif}
+.pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.pick.on{opacity:1;transform:none;pointer-events:auto}
+/* 11/28 비춘 그림 설명 카드(아래) — 작은 그림 · 제목 · 작가와 연도(명조) · 아래 한 줄(오답 = 다음에 할 일). 정답이면 [선택] 위로 올라감 */
+.card{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);z-index:7;max-width:420px;margin:0 auto;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:rgba(20,16,13,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;transform:translateY(12px);transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1),bottom .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.card.on{opacity:1;transform:none}
+.card{flex-wrap:wrap}
+.card .r{flex-basis:100%;margin:2px 0 0;padding-top:12px;border-top:1px solid rgba(242,237,226,.12);font-family:'Gowun Batang',serif;font-size:14.5px;line-height:1.7;color:rgba(242,237,226,.84);word-break:keep-all}   /* 11/28 오답 = 그 그림의 심사평(당선작이 아닌 이유) */
+.card .r:empty,.card .n:empty,.card .v.off{display:none}
+/* 11/28 정답 카드 꾸밈: 금색 테두리 · 위 금빛 · 오른쪽 위에 걸린 메달(살롱 POP 메달) · 위 작은 머리글 · 작품 설명 */
+.card .k{display:none;margin:0 0 2px;font-family:'Gowun Batang',serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#E9C77B}
+.card .medal{display:none;position:absolute;right:16px;top:-30px;width:38px;height:auto;border-radius:0;box-shadow:none;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));pointer-events:none}
+.card.win{border:1px solid rgba(233,199,123,.6);background:linear-gradient(180deg,rgba(74,54,24,.92) 0%,rgba(28,22,15,.9) 46%,rgba(20,16,13,.9) 100%);box-shadow:0 0 0 1px rgba(0,0,0,.25),0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,232,180,.25)}
+.card.win .k,.card.win .medal{display:block}
+.card.win .ct{padding-right:34px}
+.card.win img:not(.medal){box-shadow:0 0 0 2px #D9B25F,0 0 0 3px rgba(0,0,0,.4),0 0 16px rgba(233,199,123,.45)}
+.card .n{flex-basis:100%;margin:0;font-size:14px;font-weight:600;color:rgba(242,237,226,.7)}
+.card.up{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
+.card img{flex:none;width:58px;height:58px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 2px #B08A45,0 0 0 3px rgba(0,0,0,.4)}
+.card .ct{min-width:0;display:flex;flex-direction:column;gap:3px}
+.card b{font-family:'Gowun Batang',serif;font-weight:700;font-size:17px;line-height:1.35;color:#F2EDE2;word-break:keep-all}
+.card small{font-family:'Gowun Batang',serif;font-size:13.5px;color:rgba(242,237,226,.66);letter-spacing:.01em}
+.card .v{margin-top:4px;font-size:14px;font-weight:500;color:rgba(242,237,226,.78)}   /* 11/28 아이콘 없이 글 한 줄 */
+.card.win .v{color:#E9C77B}
+.pick{bottom:0}
+.pick button{width:100%;max-width:400px;box-sizing:border-box;min-height:56px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></button><b>시민사회</b><span></span></div>
+<div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
+<div class="hint" id="hint" hidden><span>모리스 칼럼의 바티뇰파 전단지를
+카메라로 비춰 보세요</span></div>
+<div class="card" id="card"><img id="cardImg" alt=""><div class="ct"><p class="k">바티뇰파 모임 전단지</p><b id="cardT"></b><small id="cardS"></small><span class="v"><span id="cardV"></span></span></div><p class="r" id="cardR"></p><p class="n" id="cardN"></p></div>
+<div class="pick" id="pick"><button type="button" id="pickGo">선택</button></div>
+<script type="module">
+import { ZONES } from '../data.js';
+import { store } from '../store.js';
+import { collect, showComplete, liftToCard } from '../done.js';
+
+const $ = (id) => document.getElementById(id);
+const T = (s) => (window.M100_T ? window.M100_T(s) : s);
+const task = ZONES.find((z) => z.id === 'society').tasks.find((t) => t.id === 'flyer');
+const TG = task.targets;                                     // f1 하나(현장 실물 전단지)
+const WIN = 0;
+const WIN_W = { title: '환영: 14세기의 전설', artist: '뤽 올리비에 메르송', year: '1872' };   // salon.js WORKS 와 같은 값(완료 화면 제목)
+// 인식한 3:4(가운데) → 그림 전체. 세로 그림 = 위아래로 1400/1319, 가로(03) = 돌린 타깃이라 긴 변으로
+const SIZE = [[999, 1240]], CROP = 1240;   // 전단지 전체 999×1240 · 인식 3:4 = 930×1240(높이 전체)
+const ROTATED = [false];
+
+function finish() {
+  const t = task;
+  const [name, , ...rest] = String(t.successBody || '').split('\n');   // society-ar.js showEnd 와 같은 완료 화면
+  return showComplete('society', { item: t.item, title: name, body: rest.join('\n'), note: t.note });
+  $('top').style.display = 'none'; $('hint').hidden = true;
+}
+// 이미 맞힌 체험(앱 수집 목록 · 이 폰 기록) = 카메라 없이 바로 완료 화면
+if (window.__lift) {   // 11/28 골라서 떠오른 그림이 가운데에 떠 있는 채로 열림 → 완료 화면 카드 속으로
+  $('start').style.display = 'none'; $('top').style.display = 'none';
+  const l0 = $('lift0');
+  liftToCard('flyer', { lifted: true, complete: () => { l0?.remove(); return finish(); } });
+  history.replaceState(null, '', location.pathname + '?' + (() => { const q = new URLSearchParams(location.search); q.delete('lift'); return q.toString(); })());
+} else if (store.saved(task.id)) { $('start').style.display = 'none'; finish(); }
+else boot();
+
+// 닫기: 앱은 체험 화면을 닫고, 웹은 뒤로
+$('back').addEventListener('click', () => {
+  if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'close' }));
+  else if (history.length > 1) history.back(); else location.href = '../society.html';
+});
+
+// ── 정답 오라 — salon.js AURA 셰이더 그대로(액자 둘레를 따라 일렁이며 흐르는 금빛). 단위도 같게: 그림 긴 변 = 1, 액자 테 M = 0.07
+function auraMesh(pw, ph) {
+  /* 종이 전단지 = 액자 테 없이 종이 가장자리 바로 바깥 */ const M = 0.025, P = 0.55, ow = pw + 2 * M, oh = ph + 2 * M, w = ow + 2 * P, h = oh + 2 * P;
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { t: { value: 0 }, op: { value: 0 }, hs: { value: new THREE.Vector2(ow / 2, oh / 2) }, size: { value: new THREE.Vector2(w, h) } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform float t, op; uniform vec2 hs, size; varying vec2 vUv;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
+      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int k = 0; k < 3; k++) { v += a * noise(p); p *= 2.0; a *= 0.5; } return v; }
+      void main(){
+        vec2 p = (vUv - 0.5) * size;
+        float r = 0.06; vec2 q = abs(p) - hs + r; float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+        if (d < -0.02) discard;
+        float ang = atan(p.y, p.x);
+        float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9));
+        float n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
+        float core = exp(-max(d, 0.0) * 7.5);
+        float haze = exp(-max(d, 0.0) * 2.7) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.52, 0.69, d));
+        float a = clamp(core * 0.95 + haze * 0.7, 0.0, 1.0) * op;
+        vec3 col = mix(vec3(1.0, 0.86, 0.55), vec3(1.0, 0.98, 0.9), core);
+        gl_FragColor = vec4(col * a, a);
+      }`,
+    transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false,
+  });
+  return new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+}
+
+const YEAR = ['1873', '1872', '1872', '1873', '1873'];   // salon.js WORKS 와 같은 값
+let aura = null, auraG = null, winT = 0, ended = false, lastWrong = -1, wrongAt = 0, liftT = 0, xs = null, PW = 1, PH = 1, winSeen = 0, auraK = 0, probe = null, probeG = null, probeT = 0, probeI = -1, probeSeen = 0;
+const WON = '1등급 메달 · 올해의 당선작';
+function flyerModule() {
+  return {
+    name: 'm100flyer',
+    onStart() {
+      xs = XR8.Threejs.xrScene();
+      xs.camera.position.set(0, 3, 0);
+      XR8.XrController.updateCameraProjectionMatrix({ origin: xs.camera.position, facing: xs.camera.quaternion });
+      auraG = new THREE.Group(); auraG.visible = false; xs.scene.add(auraG);
+      const [w, h] = SIZE[WIN], a = w / h;
+      PW = a >= 1 ? 1 : a; PH = a >= 1 ? 1 / a : 1;
+      aura = auraMesh(PW, PH); aura.renderOrder = 5; auraG.add(aura);
+      // 11/28 오답도 '비췄다'는 반응 — 그 그림 테두리가 하얗게 한 번 빛나고 빛 한 줄이 위에서 아래로 훑고 지나감(금빛 오라와 다르게)
+      probeG = new THREE.Group(); probeG.visible = false; xs.scene.add(probeG);
+      probe = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
+        uniforms: { p: { value: 0 }, op: { value: 0 }, r: { value: 1 } },
+        vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+        fragmentShader: `uniform float p, op, r; varying vec2 vUv;
+          void main(){
+            vec2 d = min(vUv, 1.0 - vUv) * vec2(1.0, r); float e = min(d.x, d.y);
+            float edge = exp(-e * 90.0) * 0.9;
+            float band = exp(-pow((vUv.y - (1.05 - p * 1.1)) * 14.0, 2.0)) * 0.55;
+            float a = clamp(edge + band, 0.0, 1.0) * op;
+            gl_FragColor = vec4(vec3(1.0, 0.98, 0.94) * a, a);
+          }`,
+        transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+      probe.renderOrder = 4; probeG.add(probe);
+    },
+    onUpdate() {
+      if (!aura) return;
+      const now = performance.now();
+      aura.material.uniforms.t.value = now / 1000;
+      // 11/28 정답 그림이 화면에서 벗어나면(0.35초 넘게 안 잡힘) 오라도 걷힘 — 잔상이 남던 것. 다시 잡으면 다시 피어남
+      const vis = winT && !liftT && now - winSeen < 350;
+      auraK += ((vis ? 1 : 0) - auraK) * (vis ? 0.09 : 0.2);
+      if (liftT) auraK *= 0.8;
+      aura.material.uniforms.op.value = auraK * auraK * (3 - 2 * auraK);
+      if (!vis && auraK < 0.02) auraG.visible = false;
+      if (winT && !liftT) {   // 정답 그림이 다시 보이면 오답 카드를 바로 덮어씀   // 정답 그림이 보이는 동안 = 정답 카드 + [선택], 벗어나면 둘 다 걷고 기본 안내
+        const on = !!vis; $('pick').classList.toggle('on', on && now - winT > 600);
+        if (on && cardMode !== 'win') { clearTimeout(cardT); showCard(WIN, 'win'); } else if (!on && cardMode === 'win') { hideCard(); $('hint').hidden = false; }
+      }
+      if (probe) {
+        const pp = probeT ? (now - probeT) / 1000 : 9;
+        const pv = now - probeSeen < 350;
+        probe.material.uniforms.p.value = Math.min(1, pp / 0.8);
+        probe.material.uniforms.op.value = pp < 1.4 && pv ? (pp < 0.15 ? pp / 0.15 : pp > 1.0 ? 1 - (pp - 1.0) / 0.4 : 1) : 0;
+        probeG.visible = pp < 1.4 && pv;
+      }
+    },
+    listeners: [
+      { event: 'reality.imagefound', process: onImage },
+      { event: 'reality.imageupdated', process: onImage },
+    ],
+  };
+}
+function onImage(e) {
+  if (ended || liftT) return;
+  const d = e.detail, i = +String(d.name).slice(1) - 1; if (!(i >= 0 && i < 5)) return;
+  if (i === WIN) {
+    // 그림 전체 크기(긴 변) = 인식한 3:4 의 긴 변 × 1400/1319
+    const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
+    auraG.position.copy(d.position); auraG.quaternion.copy(d.rotation);
+    const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true; winSeen = performance.now();
+    if (!winT) win();
+  } else {
+    if (i === probeI) { placeProbe(d, i); probeSeen = performance.now(); }
+    // 11/28 정답을 한 번 비춘 뒤에도(정답 그림이 화면에 없으면) 오답에 반응 — 전에는 정답 뒤로 오답이 다시 안 잡혔음
+    const winVis = winT && performance.now() - winSeen < 350;
+    if (!liftT && !winVis && (i !== lastWrong || performance.now() - wrongAt > 4000)) { placeProbe(d, i); probeSeen = performance.now(); wrong(i); }
+  }
+}
+function placeProbe(d, i) {   // 그 오답 그림 전체 크기 · 자리에 훑는 빛 판
+  if (!probeG) return;
+  const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
+  const [w, h] = SIZE[i], a = w / h, pw = a >= 1 ? 1 : a, ph = a >= 1 ? 1 / a : 1;
+  probeG.position.copy(d.position); probeG.quaternion.copy(d.rotation);
+  const sc = d.scale * L; probeG.scale.set(sc, sc, sc); probe.scale.set(pw, ph, 1); probe.material.uniforms.r.value = ph / pw;
+}
+// 점검용(화면에 안 보임): 인식 없이 흐름만 — window.__flyerSim(2) = 정답, 0 = 오답
+window.__flyerSim = (i) => { if (i === WIN) { if (!winT) win(); clearInterval(window.__simKeep); window.__simKeep = setInterval(() => { winSeen = performance.now(); }, 100); setTimeout(() => $('pick').classList.add('on'), 650); } else { clearInterval(window.__simKeep); winSeen = 0; wrong(i); } };   // 점검용: 정답을 계속 비추는 것처럼
+// 11/28 비춘 그림 설명 카드(아래): 오답 = 작은 그림 · 제목 · 작가와 연도 + '다른 작품을 비춰 보세요'(2.8초 뒤 기본 안내로) · 정답 = 같은 카드 + '1873년 살롱 1등급 메달' + [선택]
+const HINT0 = $('hint').querySelector('span').innerHTML;
+let cardMode = '', cardT = 0;
+function showCard(i, mode) {
+  const t = TG[i], c = $('card');
+  $('cardImg').src = '../' + t.img; $('cardT').textContent = T(t.title); $('cardS').textContent = T(task.item.sub || '');
+  $('cardV').textContent = ''; $('cardV').parentNode.classList.add('off');   // 정답 = 위 머리글(1873년 살롱 · 1등급 메달)이 대신
+  $('cardN').textContent = mode === 'win' ? '' : T('다른 작품을 비춰 보세요');   // 오답: 심사평 다음 맨 끝에 할 일   // 11/28 사용자: 판정 문구 · 체크 표시 없이 — 오답은 다음에 할 일만
+  const fb = String(t.feedback || ''), why = mode === 'win' ? String(t.desc || '').split('\n')[0].trim() : (fb.split('심사평 — ')[1] || '').split('\n')[0].trim();   // 오답 = 심사평 · 정답 = 작품 설명 첫 문단(data.js)
+  $('cardR').textContent = T(why);
+  c.classList.toggle('win', mode === 'win'); c.classList.toggle('up', mode === 'win'); c.classList.add('on'); cardMode = mode;
+  $('hint').hidden = true;
+}
+function hideCard() { $('card').classList.remove('on'); cardMode = ''; }
+function wrong(i) {
+  lastWrong = i; wrongAt = performance.now(); probeI = i; probeT = performance.now();
+  navigator.vibrate?.(12);
+  $('pick').classList.remove('on');
+  showCard(i, 'no');
+  clearTimeout(cardT); cardT = setTimeout(() => { if (cardMode === 'no') { hideCard(); const sp = $('hint').querySelector('span'); sp.textContent = T('다른 작품을 비춰 보세요'); $('hint').hidden = false; setTimeout(() => { if (!cardMode) sp.innerHTML = HINT0; }, 3000); } }, 7000);   // 심사평을 읽을 시간
+}
+// 정답 = 오라 + 정답 카드 + [선택] — 누르면 그림이 그 자리에서 떠올라 수집품 카드로(done.js liftToCard)
+function win() {
+  winT = performance.now(); winSeen = winT; wrongAt = 0; clearTimeout(cardT);
+  showCard(WIN, 'win');
+  navigator.vibrate?.([18, 50, 24]);
+}
+const V = new THREE.Vector3();
+function paintRect() {   // 정답 그림(액자 안 그림)의 화면 자리 — 오라 판 네 모서리를 화면에 투영
+  if (!auraG?.visible || !xs) return null;
+  auraG.updateMatrixWorld(true);
+  const pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([x, y]) => { V.set(x * PW / 2, y * PH / 2, 0).applyMatrix4(auraG.matrixWorld).project(xs.camera); return [(V.x + 1) / 2 * innerWidth, (1 - V.y) / 2 * innerHeight]; });
+  const X = pts.map((p) => p[0]), Y = pts.map((p) => p[1]);
+  const r = { l: Math.min(...X), t: Math.min(...Y), r: Math.max(...X), b: Math.max(...Y) };
+  return r.r - r.l > 30 && r.b - r.t > 30 && r.r > 0 && r.l < innerWidth ? r : null;
+}
+$('pickGo').addEventListener('click', async () => {
+  if (liftT) return; liftT = performance.now();
+  $('pick').classList.remove('on'); hideCard(); $('top').style.opacity = '0';
+  store.solve(task.id); collect(task.id);
+  // 떠올라 가운데까지는 이 화면에서, 카드로 들어가는 건 엔진 없이 새로 연 화면에서(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐)
+  const held = await liftToCard('flyer', { from: '../' + TG[0].img, rect: paintRect(), complete: null, hold: true, curl: 0.6 });   // 말린 전단지가 펴진 뒤 떠오름
+  // 11/28 페이지를 새로 열지 않고 이 화면에서 엔진만 끄고 이어 감(새로 열 때 한 프레임 비어 깜빡이던 것)
+  ended = true;
+  try { XR8.stop(); } catch {}
+  try { XR8.clearCameraPipelineModules(); } catch {}
+  $('c').style.visibility = 'hidden'; $('top').style.display = 'none'; $('hint').hidden = true;
+  await liftToCard('flyer', { lifted: true, replace: held, complete: () => finish() });
+});
+
+function statusModule() {
+  const ready = () => { $('start').style.display = 'none'; $('hint').hidden = false; };
+  return { name: 'm100status', onStart: ready, onCameraStatusChange(e) {
+    if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
+    else if (e.status === 'failed') { $('start').style.display = ''; $('start').classList.add('fail'); $('go').hidden = false; $('lead').hidden = true; $('err').textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); }
+  } };
+}
+function boot() {
+  // 실패 이유를 나눠서(작은 글로 코드도) — 11/27 '네트워크를 확인해 주세요'만 떠서 원인을 알 수 없던 것
+  const fail = (msg, why) => { $('start').classList.add('fail'); $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T(msg) + (why ? `  (${why})` : ''); };
+  const run = async () => {
+    let data;
+    try { data = await Promise.all([1].map((n) => fetch(`image-targets-flyer/f${n}.json`, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('t' + r.status); return r.json(); }))); }
+    catch (e) { fail('네트워크를 확인해 주세요', 'targets ' + (e?.message || '')); return; }
+    // 11/27 그림 인식(XrController)은 엔진의 'slam' 묶음에 들어 있음 — 미리 받게 해 두지 않으면 XrController 가 비어 있어 카메라가 안 켜짐(폰 캡처: XR8.XrController null)
+    try { if (!XR8.XrController && XR8.loadChunk) await XR8.loadChunk('slam'); } catch (e) { fail('카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.', 'slam ' + (e?.message || e)); return; }
+    try {
+      XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: true });
+      XR8.addCameraPipelineModules([
+        XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
+        XRExtras.FullWindowCanvas.pipelineModule(), statusModule(), flyerModule()]);
+      XR8.run({ canvas: $('c') });
+    } catch (e) { fail('카메라를 켜지 못했습니다. 다시 시도해 주세요.', 'xr ' + (e?.message || e)); }
+  };
+  if (window.XR8) { run(); return; }
+  window.addEventListener('xrloaded', run, { once: true });
+  setTimeout(() => { if (!window.XR8) fail('카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.', 'engine'); }, 20000);
+}
+$('go').addEventListener('click', () => location.reload());
+</script>
+</body>
+</html>

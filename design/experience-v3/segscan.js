@@ -35,6 +35,29 @@ const CSS = `
 .v3-seg .wait::before{content:'';width:34px;height:34px;box-sizing:border-box;border-radius:50%;border:2.5px solid rgba(242,237,226,.14);border-top-color:#E9C77B;animation:m100spin .9s linear infinite}
 .v3-seg .wait.fail::before{display:none}
 @keyframes m100spin{to{transform:rotate(360deg)}}
+/* 11/28 살롱 · 전단지 스캔과 같은 아래 설명 카드 · [선택] · 안내 줄(o.pick 일 때) */
+.v3-seg .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.v3-seg .pick.on{opacity:1;transform:none;pointer-events:auto}
+.v3-seg .card{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);z-index:7;max-width:420px;margin:0 auto;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:rgba(20,16,13,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;transform:translateY(12px);transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1),bottom .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.v3-seg .card.on{opacity:1;transform:none}
+.v3-seg .card{flex-wrap:wrap}
+.v3-seg .card .r{flex-basis:100%;margin:2px 0 0;padding-top:12px;border-top:1px solid rgba(242,237,226,.12);font-family:'Gowun Batang',serif;font-size:14.5px;line-height:1.7;color:rgba(242,237,226,.84);word-break:keep-all}   /* 11/28 오답 = 그 그림의 심사평(당선작이 아닌 이유) */
+.v3-seg .card .r:empty,.v3-seg .card .n:empty,.v3-seg .card .v.off{display:none}
+.v3-seg .card .k{display:none;margin:0 0 2px;font-family:'Gowun Batang',serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#E9C77B}
+.v3-seg .card.win{border:1px solid rgba(233,199,123,.6);background:linear-gradient(180deg,rgba(74,54,24,.92) 0%,rgba(28,22,15,.9) 46%,rgba(20,16,13,.9) 100%);box-shadow:0 0 0 1px rgba(0,0,0,.25),0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,232,180,.25)}
+.v3-seg .card.win .ct{padding-right:34px}
+.v3-seg .card .n{flex-basis:100%;margin:0;font-size:14px;font-weight:600;color:rgba(242,237,226,.7)}
+.v3-seg .card.up{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
+.v3-seg .card img{flex:none;width:58px;height:58px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 2px #B08A45,0 0 0 3px rgba(0,0,0,.4)}
+.v3-seg .card .ct{min-width:0;display:flex;flex-direction:column;gap:3px}
+.v3-seg .card b{font-family:'Gowun Batang',serif;font-weight:700;font-size:17px;line-height:1.35;color:#F2EDE2;word-break:keep-all}
+.v3-seg .card small{font-family:'Gowun Batang',serif;font-size:13.5px;color:rgba(242,237,226,.66);letter-spacing:.01em}
+.v3-seg .card .v{margin-top:4px;font-size:14px;font-weight:500;color:rgba(242,237,226,.78)}   /* 11/28 아이콘 없이 글 한 줄 */
+.v3-seg .card.win .v{color:#E9C77B}
+.v3-seg .pick{bottom:0}
+.v3-seg .pick button{width:100%;max-width:400px;box-sizing:border-box;min-height:56px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.v3-seg.pickmode .msg{display:block}
+.v3-seg .card{z-index:6}.v3-seg .pick{z-index:6}
 `;
 let styled = false, ort = null, sess = null, cur = null;
 function style() { if (styled) return; styled = true; const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); }
@@ -65,7 +88,9 @@ export function openSegScan(o) {
     <div class="top"><button type="button" aria-label="${T('닫기')}"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></button><b>${T(({ '에트르타': '화가의 작업 공간' })[String(o.title || '').split(' · ')[0]] || String(o.title || '').split(' · ')[0])}</b><span></span></div>
     <div class="ret"><i></i><i></i><i></i><i></i><b></b></div>
     <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="176"/></svg>
-    <div class="msg"><span></span></div><div class="wait">${T('카메라를 켜고 있어요')}</div>`;
+    <div class="msg"><span></span></div><div class="wait">${T('카메라를 켜고 있어요')}</div>
+    ${o.pick ? `<div class="card win up"><img src="${o.pick.img}" alt=""><div class="ct"><p class="k">${T(o.pick.kicker || '')}</p><b>${T(o.pick.title || '')}</b><small>${T(o.pick.sub || '')}</small></div><p class="r">${T(o.pick.desc || '')}</p></div><div class="pick"><button type="button">${T('선택')}</button></div>` : ''}`;
+  if (o.pick) { el.classList.add('pickmode'); if (!document.querySelector('link[href*="Gowun+Batang"]')) { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap'; document.head.appendChild(l); } }
   document.body.appendChild(el);
   const $ = (q) => el.querySelector(q);
   const v = $('video'), fx = $('canvas.fx'), fxx = fx.getContext('2d'), ring = $('.ring circle'), msgEl = $('.msg span'), wait = $('.wait');
@@ -76,7 +101,7 @@ export function openSegScan(o) {
   const mask = document.createElement('canvas'), glow = document.createElement('canvas'); mask.width = mask.height = glow.width = glow.height = S;
   const mc = mask.getContext('2d'), gc = glow.getContext('2d'), mImg = mc.createImageData(S, S), gImg = gc.createImageData(S, S);
   let W = 0, H = 0, dpr = Math.min(2, devicePixelRatio || 1), stream = null, stopped = false, analyzing = false, timer = 0, lastDt = 60, raf = 0;
-  let inT = null, geo = null, hitT = 0, aimT = 0, prevHit = false, glowA = 0, caught = false, last = null, prog = 0;
+  let inT = null, geo = null, hitT = 0, aimT = 0, prevHit = false, glowA = 0, caught = false, last = null, prog = 0, ready = false, readyA = 0;
   const lineCv = document.createElement('canvas'), lc = lineCv.getContext('2d');
   const size = () => { W = innerWidth; H = innerHeight; fx.width = W * dpr; fx.height = H * dpr; lineCv.width = W; lineCv.height = H; };
   size(); addEventListener('resize', size);
@@ -173,12 +198,27 @@ export function openSegScan(o) {
       let p = aimT ? Math.min(1, (now - aimT) / DWELL) : 0;
       if (p > 0.85 && !(geo && geo.full)) { p = 0.85; aimT = now - DWELL * 0.85; }   // 화면 밖으로 걸쳐 있으면 끝내지 않고 기다림
       prog += (p - prog) * 0.35;
-      if (p >= 1 && last && last.full) catchIt();
+      // 11/28 o.pick: 다 찾으면 저절로 넘기지 않고 — 물건 테두리에 금빛 오라 + 아래 설명 카드 · [선택](살롱 · 전단지와 같음). 물건이 화면에서 벗어나면 걷힘
+      if (o.pick) {
+        const want = on ? (ready || (p >= 1 && last && last.full)) : (ready && now - hitT < 900);
+        if (want !== ready) { ready = want; el.querySelector('.card')?.classList.toggle('on', ready); el.querySelector('.pick')?.classList.toggle('on', ready); el.querySelector('.msg').style.opacity = ready ? '0' : ''; if (ready) navigator.vibrate?.([18, 50, 24]); }
+      } else if (p >= 1 && last && last.full) catchIt();
     }
     fxx.setTransform(dpr, 0, 0, dpr, 0, 0); fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = 1; fxx.clearRect(0, 0, W, H);
     if (glowA < 0.02 || !geo || caught) return;
     const g = geo, gx = (g.x - g.px) / g.k, gy = (g.y - g.py) / g.k, gw = g.w / g.k, gh = g.h / g.k;
     // 11/27 진행 = 화면 효과로만: ① 실루엣이 옅게 칠해지고 ② 위에서 아래로 훑는 빛이 지나간 곳은 진하게 차오름(진행) ③ 물건 둘레 모서리 표식이 바깥에서 조여 들어옴
+    readyA += ((ready ? 1 : 0) - readyA) * 0.15;
+    if (readyA > 0.02) {   // 금빛 오라(살롱 정답과 같은 색) — 실루엣을 흐려 바깥으로 번지게 그리고 안쪽은 비워 물건이 그대로 보이게
+      const t = now / 1000;
+      lc.setTransform(1, 0, 0, 1, 0, 0); lc.globalCompositeOperation = 'source-over'; lc.globalAlpha = 1; lc.clearRect(0, 0, W, H);
+      lc.drawImage(mask, g.x, g.y, g.w, g.h, gx, gy, gw, gh); lc.globalCompositeOperation = 'source-in'; lc.fillStyle = 'rgb(255,214,140)'; lc.fillRect(0, 0, W, H);
+      fxx.save(); fxx.globalCompositeOperation = 'lighter';
+      for (const [bl, al] of [[28, 0.55], [14, 0.6], [5, 0.75]]) { fxx.filter = `blur(${bl}px)`; fxx.globalAlpha = readyA * al * (0.8 + 0.2 * Math.sin(t * 2.4 + bl)); fxx.drawImage(lineCv, 0, 0, W, H); }
+      fxx.filter = 'none'; fxx.globalCompositeOperation = 'destination-out'; fxx.globalAlpha = 1; fxx.drawImage(mask, g.x, g.y, g.w, g.h, gx, gy, gw, gh);
+      fxx.restore();
+      if (ready) return;
+    }
     const sy = gy + gh * prog, band = 26;
     fxx.globalAlpha = 0.3 * glowA; fxx.drawImage(glow, g.x, g.y, g.w, g.h, gx, gy, gw, gh);
     if (prog > 0.01) {
@@ -205,6 +245,7 @@ export function openSegScan(o) {
   }
 
   // 인식 — 화면을 멈추고 물건을 실루엣대로 오려 가운데로 띄운 뒤 onFound
+  el.querySelector('.pick button')?.addEventListener('click', () => { if (!caught && ready && last) { el.querySelector('.card')?.classList.remove('on'); el.querySelector('.pick')?.classList.remove('on'); catchIt(); } });
   function catchIt() {
     caught = true; clearTimeout(timer); navigator.vibrate?.([18, 50, 24]);
     const g = last, r = g.r, sc = r.sw / g.lw;                  // 모델 칸 1 = 영상 sc 화소

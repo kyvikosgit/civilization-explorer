@@ -3,7 +3,7 @@
 import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
-import { store } from './store.js';
+import { store, againIds } from './store.js';
 import { talkFx, startTalk, unlockAudio } from './talk.js';
 import { collect, endRow, showComplete, liftToCard } from './done.js';
 
@@ -64,7 +64,16 @@ const FLYER = {
   sub: '칼럼에 붙은 전단지 가운데\n그 모임 이름이 적힌 것을 찾아 비춰 보세요',
   buttons: [{ label: '전단지 찾기', cam: true, on: openFlyer }],
 };
+// 11/28 사용자: 전단지 카메라도 살롱 기준으로 — 8th Wall 스캔 화면(xr8/flyer-scan.html)에서 오라 · 설명 카드 · [선택] → 떠올라 수집품. 앱 안(file://)에는 8th Wall 페이지가 없으므로 사이트에서 연다
 function openFlyer() {
+  guide.hide();
+  const base = location.protocol === 'file:' ? 'https://it-ta.com/design/experience-v3/xr8/flyer-scan.html' : new URL(V3 + 'xr8/flyer-scan.html', document.baseURI).href.split('?')[0];
+  const q = new URLSearchParams(location.search); q.delete('again');
+  if (againIds().includes('flyer')) q.set('again', 'flyer');
+  location.href = base + '?' + q.toString();
+}
+void openFlyerCam;
+function openFlyerCam() {
   guide.busy('카메라를 켜는 중');
   openCam({
     title: '시민사회 · 모리스 칼럼', find: flyer.find, hint: '전단지가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',

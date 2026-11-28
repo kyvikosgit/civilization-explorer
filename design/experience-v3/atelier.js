@@ -237,6 +237,8 @@ function startScan() {
     find: '튜브물감이 든 화구 상자에\n조준점을 대 보세요',
     // 11/28 사용자: 오린 사진이 지저분하고 잘린 채로 떠올라 그대로 남던 것 — 오린 자리에서 떠오르며 깨끗한 수집품 그림(카드 속 물건과 같은 것)으로 바뀌어 카드로
     lift: true,
+    // 11/28 사용자: 다 찾아도 저절로 넘기지 않고 — 금빛 오라 + 아래 설명 카드 + [선택](살롱 · 전단지와 같음). 글은 원고(data.js successBody · after)
+    pick: { img: V3 + 'img/cc_paint.jpg', kicker: '1841년 · 주석 튜브물감', title: TASK.item.name, sub: '화구 상자', desc: TASK.successBody.split('\n\n')[1].split('\n').slice(0, 2).join(' ') },
     onFound: (cut, rect, teardown) => {
       if (store.saved(TASK.id)) { teardown(); return reveal('tube'); }
       store.solve(TASK.id); collect(TASK.id); closeAll(true);
