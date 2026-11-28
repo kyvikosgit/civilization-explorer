@@ -141,7 +141,7 @@ html.guide .gd{display:block}
 import { joinRoom } from './link.js';
 import { inkLoader, SCENE_SEC } from './ink.js';
 // 안내 글자: 관리 화면에서만(전시 모드에서는 숨김). 키 없음 알림(data-keep)은 전시 모드에서도 보임
-const IDLE = 'img/nadar_monet.jpg';          // 아틀리에 나다르가 찍은 모네 초상(프랑스 국립도서관) — 평소의 액자
+const IDLE = 'img/nadar_idle_renoir.jpg';    // 11/28 사용자: 평소의 액자 = 초상화 — 르누아르 〈클로드 모네〉 1875(오르세). 이전 = img/nadar_monet.jpg(나다르 사진)
 const HOLD = 10000;                          // 11/03 미팅: 관람객 사진은 약 10초 걸어 두고 평소로 — 그동안 QR 로 받는다(받는 건 최근 12장까지 그 뒤에도 됨)
 const KEEP = new Map();                      // 최근 사진 — QR 로 찾아오면 여기서 보낸다(서버에 저장하지 않음)
 const roomName = new URLSearchParams(location.search).get('room') || 'c4';

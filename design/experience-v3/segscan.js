@@ -2,7 +2,7 @@
 //   인식되는 순간 화면을 멈추고 그 물건을 실루엣 그대로 오려(누끼) 가운데로 띄운 뒤 → onFound(오린 그림 주소) — 다음 화면(수집 완료)으로 자연스럽게
 //   분할 AI = YOLO11n-seg 320(tools/seg) · 실행 = onnxruntime-web CPU(wasm) 하나 — 그래픽 칩(WebGPU)은 메모리를 많이 써 폰에서 터짐(11/26)
 //   앱 안(폰 안 묶음, file://) = 엔진을 묶음 안(design/_vendor/ort/)에서, 사이트 = CDN. 분석마다 새 그림 · 텐서를 만들지 않음(고정 버퍼), 인식 뒤 엔진을 내림
-//   openSegScan({ model, name, title, find, onFound(cutUrl, rect), onClose })
+//   openSegScan({ model, name, title, find, onFound(cutUrl, rect, teardown), onClose, lift })
 const V3 = new URL('./', import.meta.url).href;
 const ORT_CDN = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/';
 const ORT_LOCAL = new URL('../_vendor/ort/', import.meta.url).href;
@@ -217,6 +217,17 @@ export function openSegScan(o) {
     try { v.pause(); } catch {}
     el.classList.add('caught'); fxx.clearRect(0, 0, W, H);
     const sx = (g.x - g.px) / g.k, sy = (g.y - g.py) / g.k, sw = g.w / g.k, sh = g.h / g.k;
+    // 11/28 o.lift: 오린 그림을 여기서 띄우지 않고 부른 쪽(done.js liftToCard)에 화면 자리와 함께 넘긴다 — 깨끗한 수집품 그림으로 바뀌며 떠올라 카드로
+    if (o.lift) {
+      const teardown = () => {
+        Promise.resolve(sess).then((s) => { try { s?.release(); } catch {} }); sess = null;
+        try { stream?.getTracks().forEach((t) => t.stop()); } catch {}
+        stopped = true; cancelAnimationFrame(raf); el.remove(); if (cur === api) cur = null;
+        document.removeEventListener('visibilitychange', onVis); removeEventListener('resize', size);
+      };
+      o.onFound?.(url, { l: sx, t: sy, r: sx + sw, b: sy + sh }, teardown);
+      return;
+    }
     const img = document.createElement('img'); img.className = 'cut'; img.alt = '';
     Object.assign(img.style, { left: sx + 'px', top: sy + 'px', width: sw + 'px', height: sh + 'px' });
     if (url) { img.src = url; el.appendChild(img); }

@@ -53,6 +53,13 @@ const CSS = `
 .v3-done .d-foot .v3-end .ve-got{display:none}
 .v3-done .d-foot .v3-end .ve-more{margin-top:6px;padding:6px 12px}
 .v3-fly{position:fixed;z-index:9001;pointer-events:none;object-fit:cover;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+/* 11/28 '떠올라 수집품으로'(liftToCard) — 인식한 물건이 그 자리에서 떠올라 가운데 → 흰 완료 화면이 깔리며 카드 속 그 자리로 */
+.v3-lift{position:fixed;inset:0;z-index:9500;pointer-events:none}
+.v3-lift .lf-bg{position:absolute;inset:0;background:#FFFFFF;opacity:0}
+.v3-lift .lf-o{position:absolute;will-change:left,top,width,height,transform}
+.v3-lift .lf-o img{position:absolute;inset:0;width:100%;height:100%;display:block}
+.v3-lift .lf-to{object-fit:contain;opacity:0;filter:drop-shadow(0 14px 22px rgba(40,28,16,.28))}
+.v3-lift .lf-from{object-fit:contain}
 .v3-done .d-col{margin-top:18px;text-align:center;padding:14px 12px 16px;border-radius:16px;background:var(--d-panel)}   /* 11/26 나의 수집품 = 한 판으로 감쌈 */
 .v3-done .d-col .d-slots span:not(.on){background:#FFFFFF}
 .v3-done .d-colt{display:flex;align-items:center;justify-content:center;gap:8px;font-family:Paperlogy,Freesentation,sans-serif;font-size:16px;font-weight:800;color:var(--d-ink);letter-spacing:-.01em}
@@ -207,4 +214,61 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
     anim.finished.then(done, done);
   }, 1100);
   return api;
+}
+
+// ── 11/28 '떠올라 수집품으로' 공통(살롱 · 전단지 · 물감 · 해돋이) — 사용자: 인식되면 그 물건이 붕 떠서 수집품으로 자연스럽게
+//   ① 인식한 화면 자리(rect)에 그 물건(from = 비친 그대로의 그림 · 오려 낸 사진)이 겹쳐 떠오르고(살짝 커지며 그림자)
+//   ② 가운데로 옮겨 가는 동안 깨끗한 수집품 그림(lift_<id>.webp, 카드 속 물건과 똑같은 것)으로 바뀌고 뒤에 흰 바탕이 깔린다
+//   ③ 완료 화면(complete())이 뜨면 그 그림이 카드 속 물건 자리로 정확히 내려앉아 카드가 된다 — 잘리거나 지저분한 사진이 남지 않게
+//   lifted: 이미 가운데에 떠 있는 상태로 시작 · hold: 가운데까지만(살롱 · 해돋이 8th Wall 은 엔진을 끄려고 hold 로 멈춘 뒤 페이지를 새로 열어 lifted 로 이어 감)
+const LIFT = { salon: [43, 194, 633, 538], flyer: [91, 134, 538, 667], ticket: [43, 284, 633, 342], paint: [64, 162, 592, 606], sunrise: [43, 211, 633, 500] };   // 카드(720×960) 안 물건 자리 — kippu-app/scripts/collect/lift_objs.py
+export function liftRect(id) {
+  const [, , w0, h0] = LIFT[id], a = w0 / h0, W = innerWidth, H = innerHeight;
+  let w = Math.min(W * 0.72, 330), h = w / a;
+  if (h > H * 0.42) { h = H * 0.42; w = h * a; }
+  return { l: (W - w) / 2, t: H * 0.42 - h / 2, r: (W + w) / 2, b: H * 0.42 + h / 2 };
+}
+const LIFT_EASE = 'cubic-bezier(.45,0,.2,1)';
+const pos = (r) => ({ left: `${r.l}px`, top: `${r.t}px`, width: `${r.r - r.l}px`, height: `${r.b - r.t}px` });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export function liftImg(id) { return new URL(`img/lift_${id}.webp`, V3).href; }
+export async function liftToCard(id, { from = '', rect = null, complete, cleanup, lifted = false, hold = false } = {}) {
+  style();
+  const L = liftRect(id), r0 = rect || L, reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const el = document.createElement('div'); el.className = 'v3-lift';
+  el.innerHTML = `<i class="lf-bg"></i><div class="lf-o"><img class="lf-to" src="${esc(liftImg(id))}" alt="">${from && !lifted ? `<img class="lf-from" src="${esc(from)}" alt="">` : ''}</div>`;
+  document.body.appendChild(el);
+  const o = el.querySelector('.lf-o'), to = el.querySelector('.lf-to'), fr = el.querySelector('.lf-from'), bg = el.querySelector('.lf-bg');
+  Object.assign(o.style, pos(lifted ? L : r0));
+  await Promise.all([to, fr].filter(Boolean).map((im) => im.decode().catch(() => {})));
+  const A = (n, k, o2) => n.animate(k, { fill: 'forwards', ...o2 }).finished.catch(() => {});
+  if (lifted) { bg.style.opacity = '1'; to.style.opacity = '1'; }
+  else if (reduce) { bg.style.opacity = '1'; to.style.opacity = '1'; if (fr) fr.style.opacity = '0'; Object.assign(o.style, pos(L)); }
+  else {
+    if (fr) await A(fr, [{ opacity: 0 }, { opacity: 1 }], { duration: 220 });          // 비친 그대로의 물건이 화면 위로 겹쳐 올라옴(카메라 화면과 같은 자리)
+    else await A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: 300 });
+    navigator.vibrate?.(14);
+    await A(o, [{ transform: 'none' }, { transform: 'translateY(-14px) scale(1.06)' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.3,1)' });   // 붕 — 떠오름
+    const glide = A(o, [{ ...pos(r0), transform: 'translateY(-14px) scale(1.06)' }, { ...pos(L), transform: 'none' }], { duration: 760, easing: LIFT_EASE });
+    if (fr) { A(to, [{ opacity: 0 }, { opacity: 1 }], { duration: 420, delay: 160 }); A(fr, [{ opacity: 1 }, { opacity: 0 }], { duration: 420, delay: 260 }); }
+    A(bg, [{ opacity: 0 }, { opacity: 1 }], { duration: 560, delay: 200, easing: 'ease-out' });
+    await glide; await sleep(220);
+  }
+  if (hold) return el;   // 가운데에 떠 있는 채로 멈춤(흰 바탕) — 부른 쪽이 페이지를 새로 열어 lifted 로 이어 감
+  try { cleanup?.(); } catch {}
+  const d = complete?.();
+  const card = d?.el?.querySelector('.d-card'), cimg = card?.querySelector('img');
+  if (!cimg || reduce) { await sleep(300); bg.style.opacity = '0'; await A(o, [{ opacity: 1 }, { opacity: 0 }], { duration: 250 }); el.remove(); return d; }
+  card.style.transition = 'none'; card.style.transform = 'none'; card.style.opacity = '1'; cimg.style.opacity = '0';
+  try { await cimg.decode(); } catch {}
+  await sleep(60);
+  const c = cimg.getBoundingClientRect(), [x, y, w, h] = LIFT[id];
+  const T = { l: c.left + c.width * x / 720, t: c.top + c.height * y / 960, r: c.left + c.width * (x + w) / 720, b: c.top + c.height * (y + h) / 960 };
+  A(bg, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, delay: 120 });
+  setTimeout(() => { cimg.style.transition = 'opacity .35s ease-out'; cimg.style.opacity = '1'; }, 560);
+  await A(o, [{ ...pos(L) }, { ...pos(T) }], { duration: 760, easing: LIFT_EASE });
+  await sleep(320);
+  await A(o, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+  el.remove();
+  return d;
 }

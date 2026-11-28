@@ -5,7 +5,7 @@ import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
 import { store } from './store.js';
 import { talkFx, startTalk, unlockAudio } from './talk.js';
-import { collect, endRow, showComplete } from './done.js';
+import { collect, endRow, showComplete, liftToCard } from './done.js';
 
 const V3 = '../../experience-v3/', HUB = V3 + 'index.html';
 const zone = ZONES.find((z) => z.id === 'society');
@@ -69,16 +69,33 @@ function openFlyer() {
   openCam({
     title: '시민사회 · 모리스 칼럼', find: flyer.find, hint: '전단지가 화면에 가득 차도록\n조금 더 가까이 다가가 보세요',
     mind: V3 + flyer.mind, targets, demo: store.demo(), hold: true, center: true, dots: false,
+    highlight: false, fx: rectFx,   // 11/28 사용자: 흰 사각형 테두리 없이 — 잡히면 그 전단지가 그 자리에서 떠올라 수집품으로(다른 미션과 같은 연출)
     onEnter: () => guide.hide(),
     onFail: (msg) => { closeCam(); guide.fail(msg); },
     onClose: () => guide.reset(),
-    // 11/26 실물 전단지 한 장만 인식 — 잡히면(테두리가 빛난 뒤) 묻지 않고 바로 수집 완료 화면으로
-    onFound: (i) => { if (targets[i]?.correct) win(); },
+    onFound: (i, ui) => { if (targets[i]?.correct) win(ui.fx?.rect(i)); },
   });
 }
-// 정답 — 카메라가 닫히고, 칼럼에서 그 전단지가 떼어져 가운데로 떠오른다(v2 살펴보기 + 삽화 영상)
-async function win() {
+// 인식한 전단지의 화면 자리(네 모서리를 화면에 투영) — 떠오르는 연출의 출발점
+function rectFx({ THREE, mindar, anchors }) {
+  const p = new THREE.Vector3();
+  return {
+    rect(i) {
+      const a = anchors[i], dim = mindar.controller?.markerDimensions?.[i], c = mindar.container;
+      if (!a?.group.visible || !dim) return null;
+      const r = dim[1] / dim[0], cw = c.clientWidth, ch = c.clientHeight, b = c.getBoundingClientRect();
+      const pts = [[-0.5, r / 2], [0.5, r / 2], [0.5, -r / 2], [-0.5, -r / 2]].map(([x, y]) => { p.set(x, y, 0).applyMatrix4(a.group.matrixWorld).project(mindar.camera); return [b.left + (p.x * 0.5 + 0.5) * cw, b.top + (1 - (p.y * 0.5 + 0.5)) * ch]; });
+      const X = pts.map((q) => q[0]), Y = pts.map((q) => q[1]);
+      const o = { l: Math.min(...X), t: Math.min(...Y), r: Math.max(...X), b: Math.max(...Y) };
+      return o.r - o.l > 30 && o.b - o.t > 30 ? o : null;
+    },
+  };
+}
+// 정답 — 11/28: 카메라에 비친 그 전단지가 그 자리에서 떠올라(붕) 가운데로 → 완료 화면 카드 속으로(done.js liftToCard)
+async function win(rect) {
+  if (ended) return;   // 떠오르는 동안 다시 잡혀도 한 번만
   store.solve(flyer.id); collect(flyer.id); ended = true; document.body.classList.add('ended');
+  if (rect !== undefined) { await liftToCard('flyer', { from: targets[0].img, rect, cleanup: () => closeCam(), complete: () => showEnd() }); return; }
   await closeCam(true);
   if (c1().viewer) {   // 3D 칼럼일 때만 전단지를 떼어 보여 준다(11/23 기본은 칼럼 그림 — 바로 완료 화면)
     const i = c1().ITEMS.findIndex((it) => it.id === 'f1');
@@ -94,7 +111,7 @@ function showEnd() {
   // 11/06: 미션 완료는 구역 공통 화면(done.js) — 벽면 대화(체험 더보기)에서 돌아와도 같은 화면
   const [name, , ...rest] = flyer.successBody.split('\n');
   // 11/26: 완료 화면의 다음 = 바로 이어지는 체험 '사람들의 대화'(카페 · 박람회 벽을 비추는 AR — xr8/, 사이트에서 엶)
-  showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), note: flyer.note, then: { label: '사람들의 대화 보러 가기', href: 'https://it-ta.com/design/experience-v3/xr8/index.html' + location.search.replace(/[?&](got|o)=[^&]*/g, '') }, more: (d) => { d.hide(); openPeople(); } });
+  return showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), note: flyer.note, then: { label: '사람들의 대화 보러 가기', href: 'https://it-ta.com/design/experience-v3/xr8/index.html' + location.search.replace(/[?&](got|o)=[^&]*/g, '') }, more: (d) => { d.hide(); openPeople(); } });
 }
 
 // 끝난 뒤 뒤로 = 목록으로(옛 단계 — 칼럼 · 거리 — 로 되돌아가면 할 일이 없다)

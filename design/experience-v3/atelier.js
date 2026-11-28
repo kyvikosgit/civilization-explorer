@@ -20,7 +20,7 @@ import { openDetect, closeDetect } from './detect.js';
 import { openSegScan, preloadSeg } from './segscan.js';
 import { ZONES } from './data.js';
 import { store } from './store.js';
-import { collect, endRow, mountEnd, showComplete } from './done.js';
+import { collect, endRow, mountEnd, showComplete, liftToCard } from './done.js';
 import { makeGuide } from './guide.js';
 
 const $ = (s) => document.querySelector(s);
@@ -144,7 +144,7 @@ function choose(id) {
 // 11/18: 체험 더보기(v2 paint.html — 옛 판, 그림 분류도 틀림)는 결과 화면에서 뺐다. paint.html 파일은 그대로 둔다
 function showResult() {
   const [head, ...body] = TASK.successBody.split('\n\n');
-  showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), note: TASK.after });
+  return showComplete('atelier', { item: TASK.item, title: head, body: body.join('\n\n'), note: TASK.after });
 }
 // 체험 더보기 — 결과를 닫고 소품 칸(둘러보기)으로. 밖으로 나가 칠하기도 여기
 function moreEnd() {
@@ -235,7 +235,13 @@ function startScan() {
     model: SEG_MODEL, name: '화구 상자',
     title: '에트르타 · 튜브물감 찾기',
     find: '튜브물감이 든 화구 상자에\n조준점을 대 보세요',
-    onFound: () => reveal('tube'),   // 오린 상자가 가운데 뜬 채로 → 수집 완료 화면이 덮음
+    // 11/28 사용자: 오린 사진이 지저분하고 잘린 채로 떠올라 그대로 남던 것 — 오린 자리에서 떠오르며 깨끗한 수집품 그림(카드 속 물건과 같은 것)으로 바뀌어 카드로
+    lift: true,
+    onFound: (cut, rect, teardown) => {
+      if (store.saved(TASK.id)) { teardown(); return reveal('tube'); }
+      store.solve(TASK.id); collect(TASK.id); closeAll(true);
+      liftToCard('paint', { from: cut, rect, cleanup: teardown, complete: () => showResult() });
+    },
     onClose: () => showGuide(),
   });
   void openDetect; void closeDetect; void MODEL; void pickFallback;   // (10월 시험판 소품 인식 — 안 씀)

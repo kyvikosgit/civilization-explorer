@@ -23,6 +23,9 @@
   try { ag = JSON.parse(sessionStorage.getItem('m100again') || '[]'); } catch (e) {}
   if (q.get('again')) ag = ag.concat(q.get('again').split(','));
   window.__noXR = q.get('done') === '1' && ag.indexOf('salon') < 0;
+  // 11/28 정답 그림을 골라 떠오른 채로 새로 열림(lift=1) — 첫 화면부터 흰 바탕 + 가운데 그 그림(엔진을 끄려고 새로 연 페이지에서 끊김 없이 이어 감, done.js liftRect 와 같은 자리)
+  window.__lift = q.get('lift') === '1' && q.get('done') === '1';
+  if (window.__lift) document.write('<style>html,body{background:#fff!important}.start,.top,.hint{display:none!important}</style><div id="lift0" style="position:fixed;inset:0;z-index:9400;background:#fff"><img src="../img/lift_salon.webp" alt="" style="position:absolute;object-fit:contain;filter:drop-shadow(0 14px 22px rgba(40,28,16,.28));' + (function () { var W = innerWidth, H = innerHeight, a = 633 / 538, w = Math.min(W * 0.72, 330), h = w / a; if (h > H * 0.42) { h = H * 0.42; w = h * a; } return 'left:' + (W - w) / 2 + 'px;top:' + (H * 0.42 - h / 2) + 'px;width:' + w + 'px;height:' + h + 'px'; })() + '"></div>');
   if (!window.__noXR) document.write('<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"><\/script><script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"><\/script>');
 })();
 </script>
@@ -45,6 +48,9 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .sheet .s{font-size:14px;color:#7A7066;margin:0 0 12px}
 .sheet .b{font-size:15px;line-height:1.7;white-space:pre-line;margin:0 0 16px}
 .sheet button{width:100%;min-height:52px;border:0;border-radius:12px;background:#2A2119;color:#F7F0DF;font:800 16px Freesentation,sans-serif}
+.pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.pick.on{opacity:1;transform:none;pointer-events:auto}
+.pick button{width:100%;max-width:400px;min-height:54px;border:0;border-radius:14px;background:#F2EDE2;color:#141210;font:800 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .found{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 74px);transform:translate(-50%,-6px);z-index:7;display:flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border-radius:999px;background:rgba(20,16,13,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:15px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .35s,transform .35s}
 .found.on{opacity:1;transform:translate(-50%,0)}
 .found i{width:18px;height:18px;border-radius:50%;background:#E9C77B center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
@@ -56,11 +62,11 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <div class="start" id="start"><h1>올해의 그림</h1><p>벽의 후보작 가운데<br>1등급 메달을 받은 그림을 찾아 비춰 보세요.</p><p id="lead">카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
 <div class="hint" id="hint" hidden><span>1등급 메달을 받은 그림을 찾아<br>카메라로 비춰 보세요</span></div>
 <div class="found" id="found"><i></i><span>1등급 메달 · 올해의 당선작</span></div>
-<div class="sheet" id="sheet"><p class="k">심사평</p><h2 id="shT"></h2><p class="s" id="shS"></p><p class="b" id="shB"></p><button type="button" id="shGo">다른 그림 비추기</button></div>
+<div class="pick" id="pick"><button type="button" id="pickGo">이 그림 선택하기</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
 import { store } from '../store.js';
-import { collect, showComplete } from '../done.js';
+import { collect, showComplete, liftToCard } from '../done.js';
 
 const $ = (id) => document.getElementById(id);
 const T = (s) => (window.M100_T ? window.M100_T(s) : s);
@@ -74,11 +80,16 @@ const ROTATED = [false, false, true, false, false];
 
 function finish() {
   const t = task;
-  showComplete('salon', { item: t.item, title: `〈${WIN_W.title}〉 · ${WIN_W.artist}, ${WIN_W.year}`, body: `${t.successBody || ''}\n\n${t.successVerdict || ''}`.trim(), note: t.after });
+  return showComplete('salon', { item: t.item, title: `〈${WIN_W.title}〉 · ${WIN_W.artist}, ${WIN_W.year}`, body: `${t.successBody || ''}\n\n${t.successVerdict || ''}`.trim(), note: t.after });
   $('top').style.display = 'none'; $('hint').hidden = true;
 }
 // 이미 맞힌 체험(앱 수집 목록 · 이 폰 기록) = 카메라 없이 바로 완료 화면
-if (store.saved(task.id)) { $('start').style.display = 'none'; finish(); }
+if (window.__lift) {   // 11/28 골라서 떠오른 그림이 가운데에 떠 있는 채로 열림 → 완료 화면 카드 속으로
+  $('start').style.display = 'none'; $('top').style.display = 'none';
+  const l0 = $('lift0');
+  liftToCard('salon', { lifted: true, complete: () => { l0?.remove(); return finish(); } });
+  history.replaceState(null, '', location.pathname + '?' + (() => { const q = new URLSearchParams(location.search); q.delete('lift'); return q.toString(); })());
+} else if (store.saved(task.id)) { $('start').style.display = 'none'; finish(); }
 else boot();
 
 // 닫기: 앱은 체험 화면을 닫고, 웹은 뒤로
@@ -116,23 +127,25 @@ function auraMesh(pw, ph) {
   return new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
 }
 
-let aura = null, auraG = null, winT = 0, ended = false, sheetOn = false, lastWrong = -1, wrongAt = 0;
+let aura = null, auraG = null, winT = 0, ended = false, lastWrong = -1, wrongAt = 0, liftT = 0, xs = null, PW = 1, PH = 1;
 function salonModule() {
   return {
     name: 'm100salon',
     onStart() {
-      const xs = XR8.Threejs.xrScene();
+      xs = XR8.Threejs.xrScene();
       xs.camera.position.set(0, 3, 0);
       XR8.XrController.updateCameraProjectionMatrix({ origin: xs.camera.position, facing: xs.camera.quaternion });
       auraG = new THREE.Group(); auraG.visible = false; xs.scene.add(auraG);
       const [w, h] = SIZE[WIN], a = w / h;
-      aura = auraMesh(a >= 1 ? 1 : a, a >= 1 ? 1 / a : 1); aura.renderOrder = 5; auraG.add(aura);
+      PW = a >= 1 ? 1 : a; PH = a >= 1 ? 1 / a : 1;
+      aura = auraMesh(PW, PH); aura.renderOrder = 5; auraG.add(aura);
     },
     onUpdate() {
       if (!aura) return;
       const now = performance.now();
       aura.material.uniforms.t.value = now / 1000;
-      const k = winT ? Math.min(1, (now - winT) / 700) : 0;           // 0.7초에 걸쳐 피어남
+      let k = winT ? Math.min(1, (now - winT) / 700) : 0;           // 0.7초에 걸쳐 피어남
+      if (liftT) k *= Math.max(0, 1 - (now - liftT) / 300);           // 고르면 그림이 떠오르며 오라는 걷힘
       aura.material.uniforms.op.value = k * k * (3 - 2 * k);
     },
     listeners: [
@@ -142,7 +155,7 @@ function salonModule() {
   };
 }
 function onImage(e) {
-  if (ended) return;
+  if (ended || liftT) return;
   const d = e.detail, i = +String(d.name).slice(1) - 1; if (!(i >= 0 && i < 5)) return;
   if (i === WIN) {
     // 그림 전체 크기(긴 변) = 인식한 3:4 의 긴 변 × 1400/1319
@@ -150,32 +163,48 @@ function onImage(e) {
     auraG.position.copy(d.position); auraG.quaternion.copy(d.rotation);
     const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true;
     if (!winT) win();
-  } else if (!winT && !sheetOn && (i !== lastWrong || performance.now() - wrongAt > 4000)) wrong(i);
+  } else if (!winT && (i !== lastWrong || performance.now() - wrongAt > 4000)) wrong(i);
 }
 // 점검용(화면에 안 보임): 인식 없이 흐름만 — window.__salonSim(2) = 정답, 0 = 오답
 window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); } else if (!winT) wrong(i); };
+// 11/28 사용자: 오답은 설명 판 없이 아래 안내 한 줄만 잠깐 — '다른 작품을 스캔해 보세요'
+const HINT0 = $('hint').querySelector('span').innerHTML;
+let hintT = 0;
 function wrong(i) {
-  const t = TG[i]; lastWrong = i; sheetOn = true;
-  navigator.vibrate?.(12);
-  $('shT').textContent = T(`〈${t.title}〉`); $('shS').textContent = T(t.sub || '');
-  $('shB').textContent = T(t.feedback || '아쉽지만 1등급 메달을 받은 그림이 아니에요. 다른 후보 작품을 살펴보세요.');
-  $('sheet').classList.add('on'); $('hint').hidden = true;
+  lastWrong = i; wrongAt = performance.now();
+  navigator.vibrate?.(10);
+  const sp = $('hint').querySelector('span'); sp.textContent = T('이 그림은 아니에요 · 다른 작품을 스캔해 보세요');
+  $('hint').hidden = false; clearTimeout(hintT);
+  hintT = setTimeout(() => { if (!winT) sp.innerHTML = HINT0; }, 2600);
 }
-$('shGo').addEventListener('click', () => { $('sheet').classList.remove('on'); sheetOn = false; wrongAt = performance.now(); $('hint').hidden = false; });
+// 11/28 정답 = 오라 + 위 알림 + [이 그림 선택하기] — 누르면 그림이 그 자리에서 떠올라 수집품 카드로(done.js liftToCard)
 function win() {
-  winT = performance.now(); $('sheet').classList.remove('on'); $('hint').hidden = true; $('found').classList.add('on');
+  winT = performance.now(); clearTimeout(hintT); $('hint').hidden = true; $('found').classList.add('on');
   navigator.vibrate?.([18, 50, 24]);
-  store.solve(task.id); collect(task.id);
-  // 오라를 2.6초 보여 준 뒤 엔진 · 카메라를 끄고, 엔진 없이 이 화면을 새로 열어 완료 화면(수집 목록에 salon 을 넣어 넘김 · 다시 체험 표시는 뺌)
-  setTimeout(() => {
-    ended = true; $('found').classList.remove('on');
-    try { XR8.stop(); } catch {}
-    const q = new URLSearchParams(location.search); q.delete('again');
-    const got = (q.get('got') || '').split(',').filter(Boolean); if (!got.includes(task.id)) got.push(task.id);
-    q.set('got', got.join(',')); q.set('done', '1');
-    location.replace(location.pathname + '?' + q.toString());
-  }, 2600);
+  setTimeout(() => $('pick').classList.add('on'), 650);
 }
+const V = new THREE.Vector3();
+function paintRect() {   // 정답 그림(액자 안 그림)의 화면 자리 — 오라 판 네 모서리를 화면에 투영
+  if (!auraG?.visible || !xs) return null;
+  auraG.updateMatrixWorld(true);
+  const pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([x, y]) => { V.set(x * PW / 2, y * PH / 2, 0).applyMatrix4(auraG.matrixWorld).project(xs.camera); return [(V.x + 1) / 2 * innerWidth, (1 - V.y) / 2 * innerHeight]; });
+  const X = pts.map((p) => p[0]), Y = pts.map((p) => p[1]);
+  const r = { l: Math.min(...X), t: Math.min(...Y), r: Math.max(...X), b: Math.max(...Y) };
+  return r.r - r.l > 30 && r.b - r.t > 30 && r.r > 0 && r.l < innerWidth ? r : null;
+}
+$('pickGo').addEventListener('click', async () => {
+  if (liftT) return; liftT = performance.now();
+  $('pick').classList.remove('on'); $('found').classList.remove('on'); $('top').style.opacity = '0';
+  store.solve(task.id); collect(task.id);
+  // 떠올라 가운데까지는 이 화면에서, 카드로 들어가는 건 엔진 없이 새로 연 화면에서(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐)
+  await liftToCard('salon', { from: '../img/salon_0' + (WIN + 1) + '.jpg', rect: paintRect(), complete: null, hold: true });
+  ended = true;
+  try { XR8.stop(); } catch {}
+  const q = new URLSearchParams(location.search); q.delete('again');
+  const got = (q.get('got') || '').split(',').filter(Boolean); if (!got.includes(task.id)) got.push(task.id);
+  q.set('got', got.join(',')); q.set('done', '1'); q.set('lift', '1');
+  location.replace(location.pathname + '?' + q.toString());
+});
 
 function statusModule() {
   const ready = () => { $('start').style.display = 'none'; $('hint').hidden = false; };

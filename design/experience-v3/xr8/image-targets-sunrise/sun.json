@@ -1,0 +1,23 @@
+{
+  "imagePath": "image-targets-sunrise/sun_luminance.jpg",
+  "metadata": null,
+  "name": "sun",
+  "type": "PLANAR",
+  "properties": {
+    "left": 21,
+    "top": 0,
+    "width": 1200,
+    "height": 1600,
+    "isRotated": true,
+    "originalWidth": 1241,
+    "originalHeight": 1600
+  },
+  "resources": {
+    "originalImage": "sun_original.jpg",
+    "croppedImage": "sun_cropped.jpg",
+    "thumbnailImage": "sun_thumbnail.jpg",
+    "luminanceImage": "sun_luminance.jpg"
+  },
+  "created": 1795860639327,
+  "updated": 1795860639327
+}

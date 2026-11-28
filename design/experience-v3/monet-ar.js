@@ -5,7 +5,7 @@
 import { ZONES } from './data.js';
 import { openCam, closeCam, esc } from './camui.js';
 import { makeGuide } from './guide.js';
-import { store } from './store.js';
+import { store, againIds } from './store.js';
 import { collect, mountEnd, showComplete } from './done.js';
 
 const task = ZONES.find((z) => z.id === 'monet').tasks[0];
@@ -27,7 +27,7 @@ const INFO = {
   coach: { img: V3 + 'img/sunrise_original.jpg', kind: 'gilt', land: true },
   title: '비평가가 비웃은 그림을 찾아\n카메라로 비춰 보세요',
   sub: '“막 그리기 시작한 벽지도\n이 바다 그림보다는 더 완성돼 있다.”',
-  buttons: [{ label: '그림 찾기', cam: true, on: start }],
+  buttons: [{ label: '그림 찾기', cam: true, on: toScan }],   // 11/28 8th Wall 스캔 화면으로(이전 MindAR 카메라 = start, 남겨 둠)
   note: '카메라 권한을 물으면 ‘허용’을 눌러 주세요',
 };
 const SOLVED = store.saved(task.id);
@@ -42,6 +42,16 @@ window.addEventListener('c5:replay', () => {
   inPlace(frameRect(), () => document.getElementById('sunEnd').classList.add('on'));
 });
 
+// 11/28 사용자: MindAR 는 그림 위 영상이 붕붕 떠다님 → 8th Wall 스캔 화면(xr8/sunrise-scan.html, 살롱과 같은 엔진)
+//   그림을 비추면 그 자리에서 영상 4.5초 → 다시 그림 → 떠올라 수집품 카드로. 앱 안(file://)에는 8th Wall 페이지가 없으므로 사이트에서 연다
+function toScan() {
+  guide.hide();
+  const base = location.protocol === 'file:' ? 'https://it-ta.com/design/experience-v3/xr8/sunrise-scan.html' : new URL(V3 + 'xr8/sunrise-scan.html', document.baseURI).href.split('?')[0];
+  const q = new URLSearchParams(location.search); q.delete('again');
+  if (againIds().includes('sunrise')) q.set('again', 'sunrise');
+  location.href = base + '?' + q.toString();
+}
+void start;
 function start() {
   guide.hide();
   openCam({

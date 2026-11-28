@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#000000">
+<title>인상, 해돋이 · 인상파 전시회</title>
+<!-- 11/28 모네 〈인상, 해돋이〉 = 8th Wall 이미지 타깃(사용자: MindAR 는 그림 위 영상이 붕붕 떠다님) — 살롱 스캔(salon-scan.html)과 같은 엔진 · 설정
+     그림을 비추면 그 그림 자리에 그대로 영상이 살아났다가(4.5초) 다시 그림으로 → 그 그림이 떠올라(붕) 수집품 카드로(done.js liftToCard)
+     타깃 = tools/xr8/make_sunrise_target.mjs → ./image-targets-sunrise/sun.json(img/sunrise_target.jpg, 가로라 돌려서 · 가운데 1200×1600 = 긴 변 전체)
+     영상 = video/sunrise-scene-graded.mp4(원본 그림 색에 맞춘 판, 752×560) -->
+<script src="../i18n.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<!-- 8th Wall 엔진은 스캔할 때만 — 완료 화면(done=1, 다시 체험 표시 없음)은 엔진 없이(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐, 폰)
+     11/27: 엔진을 나중에 끼워 넣던 방식에서 '네트워크를 확인해 주세요'가 뜸(폰) → 처음 시험해서 되던 방식(문서에 바로 쓰기)으로 되돌림 -->
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), ag = [];
+  try { ag = JSON.parse(sessionStorage.getItem('m100again') || '[]'); } catch (e) {}
+  if (q.get('again')) ag = ag.concat(q.get('again').split(','));
+  window.__noXR = q.get('done') === '1' && ag.indexOf('sunrise') < 0;
+  // 11/28 정답 그림을 골라 떠오른 채로 새로 열림(lift=1) — 첫 화면부터 흰 바탕 + 가운데 그 그림(엔진을 끄려고 새로 연 페이지에서 끊김 없이 이어 감, done.js liftRect 와 같은 자리)
+  window.__lift = q.get('lift') === '1' && q.get('done') === '1';
+  if (window.__lift) document.write('<style>html,body{background:#fff!important}.start,.top,.hint{display:none!important}</style><div id="lift0" style="position:fixed;inset:0;z-index:9400;background:#fff"><img src="../img/lift_sunrise.webp" alt="" style="position:absolute;object-fit:contain;filter:drop-shadow(0 14px 22px rgba(40,28,16,.28));' + (function () { var W = innerWidth, H = innerHeight, a = 633 / 500, w = Math.min(W * 0.72, 330), h = w / a; if (h > H * 0.42) { h = H * 0.42; w = h * a; } return 'left:' + (W - w) / 2 + 'px;top:' + (H * 0.42 - h / 2) + 'px;width:' + w + 'px;height:' + h + 'px'; })() + '"></div>');
+  if (!window.__noXR) document.write('<script src="https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1.0.0/dist/xrextras.js" crossorigin="anonymous"><\/script><script src="https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1.0.0/dist/xr.js" async crossorigin="anonymous" data-preload-chunks="slam"><\/script>');
+})();
+</script>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;word-break:keep-all}
+#c{position:fixed;left:0;top:0}
+.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:28px;text-align:center;background:#000;z-index:20}
+.start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:15px;line-height:1.6;margin:0}
+.start button{font:700 17px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:15px 30px}
+.top{position:fixed;left:0;right:0;top:0;z-index:6;padding:calc(env(safe-area-inset-top,0px) + 6px) 12px 0;height:calc(52px + env(safe-area-inset-top,0px));display:grid;grid-template-columns:40px 1fr 40px;align-items:center;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0))}
+.top button{width:40px;height:40px;border-radius:20px;border:0;background:none;color:#fff;display:grid;place-items:center}
+.top button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.top b{text-align:center;font-size:16px;font-weight:700}
+.hint{position:fixed;left:16px;right:16px;bottom:calc(40px + env(safe-area-inset-bottom,0px));text-align:center;z-index:5;transition:opacity .3s}
+.hint span{display:inline-block;background:rgba(0,0,0,.55);padding:10px 16px;border-radius:20px;font-size:15px;line-height:1.5;white-space:pre-line}
+.pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.pick.on{opacity:1;transform:none;pointer-events:auto}
+.pick button{width:100%;max-width:400px;min-height:54px;border:0;border-radius:14px;background:#F2EDE2;color:#141210;font:800 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.found{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 74px);transform:translate(-50%,-6px);z-index:7;display:flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border-radius:999px;background:rgba(20,16,13,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-size:15px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .35s,transform .35s}
+.found.on{opacity:1;transform:translate(-50%,0)}
+.skip{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:8;border:1px solid rgba(255,255,255,.45);background:rgba(0,0,0,.35);color:#fff;font:600 14px Freesentation,sans-serif;padding:9px 18px;border-radius:999px;opacity:0;transition:opacity .3s;pointer-events:none}
+.skip.on{opacity:1;pointer-events:auto}
+.found i{width:18px;height:18px;border-radius:50%;background:#E9C77B center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>인상파 전시회</b><span></span></div>
+<div class="start" id="start"><h1>비평가가 비웃은 그림</h1><p>〈인상, 해돋이〉를 찾아<br>카메라로 비춰 보세요.</p><p id="lead">카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
+<div class="hint" id="hint" hidden><span>〈인상, 해돋이〉에<br>카메라를 비춰 보세요</span></div>
+<div class="found" id="found"><i></i><span>〈인상, 해돋이〉 · 1872</span></div>
+<button type="button" class="skip" id="skip">건너뛰기</button>
+<script type="module">
+import { ZONES } from '../data.js';
+import { store } from '../store.js';
+import { collect, showComplete, liftToCard } from '../done.js';
+
+const $ = (id) => document.getElementById(id);
+const T = (s) => (window.M100_T ? window.M100_T(s) : s);
+const task = ZONES.find((z) => z.id === 'monet').tasks[0];   // id 'sunrise'
+const RATIO = 1241 / 1600;                                   // 그림 세로/가로
+const VAR = 752 / 560;                                       // 영상 가로/세로
+const PLAY_MS = 4500;                                        // 11/27 사용자: 영상은 몇 초만 살아났다가 그림으로
+const VIDEO = new URL('../video/sunrise-scene-graded.mp4', location.href).href;
+
+function finish() {
+  const [head, ...body] = task.successBody.split('\n\n');
+  $('top').style.display = 'none'; $('hint').hidden = true;
+  return showComplete('monet', { item: task.item, title: head, body: body.join('\n\n'), note: task.after });
+}
+
+$('back').addEventListener('click', () => {
+  if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'close' }));
+  else if (history.length > 1) history.back(); else location.href = '../monet.html';
+});
+
+// ── 그림 위 영상 판 — 그림 비율로 가운데를 잘라 쓰고, 가장자리는 아주 살짝 풀어 그림에 스며들게
+const vid = document.createElement('video');
+Object.assign(vid, { src: VIDEO, muted: true, playsInline: true, preload: 'auto', crossOrigin: 'anonymous' }); vid.setAttribute('playsinline', ''); vid.setAttribute('muted', '');
+let plane = null, G = null, xs = null, foundT = 0, playing = false, liftT = 0, ended = false, want = 0, onV = 0;
+function sunModule() {
+  return {
+    name: 'm100sun',
+    onStart() {
+      xs = XR8.Threejs.xrScene();
+      xs.camera.position.set(0, 3, 0);
+      XR8.XrController.updateCameraProjectionMatrix({ origin: xs.camera.position, facing: xs.camera.quaternion });
+      G = new THREE.Group(); G.visible = false; xs.scene.add(G);
+      const tex = new THREE.VideoTexture(vid); tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+      const par = 1 / RATIO, k = [Math.min(1, par / VAR), Math.min(1, VAR / par)];
+      plane = new THREE.Mesh(new THREE.PlaneGeometry(1, RATIO), new THREE.ShaderMaterial({
+        uniforms: { map: { value: tex }, k: { value: new THREE.Vector2(...k) }, on: { value: 0 } },
+        vertexShader: 'varying vec2 q; void main(){ q = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }',
+        fragmentShader: `uniform sampler2D map; uniform vec2 k; uniform float on; varying vec2 q;
+          void main(){ float f = .015; float a = smoothstep(0., f, q.x) * smoothstep(0., f, 1. - q.x) * smoothstep(0., f, q.y) * smoothstep(0., f, 1. - q.y);
+            gl_FragColor = vec4(texture2D(map, .5 + (q - .5) * k).rgb, a * on); }`,
+        transparent: true, depthWrite: false, depthTest: false, toneMapped: false,
+      }));
+      plane.renderOrder = 5; G.add(plane);
+    },
+    onUpdate() {
+      if (!plane) return;
+      onV += (want - onV) * (want ? 0.12 : 0.1);                    // 영상이 그림 위로 스며들었다가 걷힘(약 0.6초)
+      plane.material.uniforms.on.value = onV;
+    },
+    listeners: [
+      { event: 'reality.imagefound', process: onImage },
+      { event: 'reality.imageupdated', process: onImage },
+    ],
+  };
+}
+function onImage(e) {
+  if (ended || liftT) return;
+  const d = e.detail; if (d.name !== 'sun') return;
+  const L = Math.max(d.scaledWidth, d.scaledHeight);               // 가운데 1200×1600 = 긴 변 전체 → 그림 긴 변 그대로
+  G.position.copy(d.position); G.quaternion.copy(d.rotation);
+  const s = d.scale * L; G.scale.set(s, s, s); G.visible = true;
+  if (!foundT) found();
+}
+window.__sunSim = () => { if (!foundT) found(); };   // 점검용(화면에 안 보임)
+let skipF = null;
+function found() {
+  foundT = performance.now(); $('hint').hidden = true; $('found').classList.add('on');
+  navigator.vibrate?.([20, 60, 30]);
+  store.solve(task.id); collect(task.id);                         // 정답과 함께 저절로 — 영상 중간에 나가도 수집품은 남는다
+  setTimeout(() => $('found').classList.remove('on'), 1600);
+  // 그림 → 영상(4.5초) → 그림 → 떠올라 수집품으로
+  let over = false;
+  const end = async () => {
+    if (over) return; over = true; $('skip').classList.remove('on');
+    want = 0; await new Promise((r) => setTimeout(r, 750)); try { vid.pause(); } catch {}
+    await new Promise((r) => setTimeout(r, 350));                  // 카메라 속 진짜 그림으로 돌아온 걸 잠깐 보고
+    lift();
+  };
+  skipF = end;
+  try { vid.currentTime = 0; } catch {}
+  vid.play().then(() => { playing = true; want = 1; setTimeout(() => $('skip').classList.add('on'), 900); setTimeout(end, PLAY_MS); }).catch(() => setTimeout(end, 600));   // 재생이 막혀도 멈춰 있지 않게
+  vid.addEventListener('ended', end, { once: true });
+}
+$('skip').addEventListener('click', () => skipF?.());
+const V = new THREE.Vector3();
+function paintRect() {
+  if (!G?.visible || !xs) return null;
+  G.updateMatrixWorld(true);
+  const pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([x, y]) => { V.set(x / 2, y * RATIO / 2, 0).applyMatrix4(G.matrixWorld).project(xs.camera); return [(V.x + 1) / 2 * innerWidth, (1 - V.y) / 2 * innerHeight]; });
+  const X = pts.map((p) => p[0]), Y = pts.map((p) => p[1]);
+  const r = { l: Math.min(...X), t: Math.min(...Y), r: Math.max(...X), b: Math.max(...Y) };
+  return r.r - r.l > 30 && r.b - r.t > 30 && r.r > 0 && r.l < innerWidth ? r : null;
+}
+async function lift() {
+  if (liftT) return; liftT = performance.now();
+  $('top').style.opacity = '0';
+  // 떠올라 가운데까지는 이 화면에서, 카드로 들어가는 건 엔진 없이 새로 연 화면에서(살롱과 같음)
+  await liftToCard('sunrise', { from: '../img/sunrise_original.jpg', rect: paintRect(), hold: true });
+  ended = true;
+  try { XR8.stop(); } catch {}
+  const q = new URLSearchParams(location.search); q.delete('again');
+  const got = (q.get('got') || '').split(',').filter(Boolean); if (!got.includes(task.id)) got.push(task.id);
+  q.set('got', got.join(',')); q.set('done', '1'); q.set('lift', '1');
+  location.replace(location.pathname + '?' + q.toString());
+}
+
+function statusModule() {
+  const ready = () => { $('start').style.display = 'none'; $('hint').hidden = false; };
+  return { name: 'm100status', onStart: ready, onCameraStatusChange(e) {
+    if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
+    else if (e.status === 'failed') { $('start').style.display = ''; $('go').hidden = false; $('lead').hidden = true; $('err').textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); }
+  } };
+}
+function boot() {
+  const fail = (msg, why) => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T(msg) + (why ? `  (${why})` : ''); };
+  vid.load();   // 영상은 미리 받아 둠(비추자마자 바로 살아나게)
+  const run = async () => {
+    let data;
+    try { data = [await fetch('image-targets-sunrise/sun.json', { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('t' + r.status); return r.json(); })]; }
+    catch (e) { fail('네트워크를 확인해 주세요', 'targets ' + (e?.message || '')); return; }
+    try { if (!XR8.XrController && XR8.loadChunk) await XR8.loadChunk('slam'); } catch (e) { fail('카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.', 'slam ' + (e?.message || e)); return; }
+    try {
+      XR8.XrController.configure({ imageTargetData: data, disableWorldTracking: true });
+      XR8.addCameraPipelineModules([
+        XR8.GlTextureRenderer.pipelineModule(), XR8.Threejs.pipelineModule(), XR8.XrController.pipelineModule(),
+        XRExtras.FullWindowCanvas.pipelineModule(), statusModule(), sunModule()]);
+      XR8.run({ canvas: $('c') });
+    } catch (e) { fail('카메라를 켜지 못했습니다. 다시 시도해 주세요.', 'xr ' + (e?.message || e)); }
+  };
+  if (window.XR8) { run(); return; }
+  window.addEventListener('xrloaded', run, { once: true });
+  setTimeout(() => { if (!window.XR8) fail('카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.', 'engine'); }, 20000);
+}
+// 시작 — 아래 정의(영상 · 엔진 모듈)가 다 만들어진 뒤에
+if (window.__lift) {   // 떠오른 그림이 가운데에 떠 있는 채로 열림 → 완료 화면 카드 속으로
+  $('start').style.display = 'none'; $('top').style.display = 'none';
+  const l0 = $('lift0');
+  liftToCard('sunrise', { lifted: true, complete: () => { l0?.remove(); return finish(); } });
+  history.replaceState(null, '', location.pathname + '?' + (() => { const q = new URLSearchParams(location.search); q.delete('lift'); return q.toString(); })());
+} else if (store.saved(task.id)) { $('start').style.display = 'none'; finish(); }
+else boot();
+$('go').addEventListener('click', () => location.reload());
+</script>
+</body>
+</html>
