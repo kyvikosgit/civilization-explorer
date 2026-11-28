@@ -110,8 +110,8 @@ async function win(rect) {
 function showEnd() {
   // 11/06: 미션 완료는 구역 공통 화면(done.js) — 벽면 대화(체험 더보기)에서 돌아와도 같은 화면
   const [name, , ...rest] = flyer.successBody.split('\n');
-  // 11/26: 완료 화면의 다음 = 바로 이어지는 체험 '사람들의 대화'(카페 · 박람회 벽을 비추는 AR — xr8/, 사이트에서 엶)
-  return showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), note: flyer.note, then: { label: '사람들의 대화 보러 가기', href: 'https://it-ta.com/design/experience-v3/xr8/index.html' + location.search.replace(/[?&](got|o)=[^&]*/g, '') }, more: (d) => { d.hide(); openPeople(); } });
+  // 11/28 사용자: 완료 화면 단추도 다른 구역과 같게([확인]) — '사람들의 대화'는 구역 화면 카드 · 현장 QR 로
+  return showComplete('society', { item: flyer.item, title: name, body: rest.join('\n'), note: flyer.note, more: (d) => { d.hide(); openPeople(); } });
 }
 
 // 끝난 뒤 뒤로 = 목록으로(옛 단계 — 칼럼 · 거리 — 로 되돌아가면 할 일이 없다)
