@@ -90,7 +90,8 @@ document.getElementById('close').addEventListener('click', function () { if (win
       front: { depth: 0.151, ext: [1829 / 1387, 2048 / 1600], k: 0.922 } } };
   var $ = function (id) { return document.getElementById(id); };
   var videos = {};
-  Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'auto', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
+  delete VIDEO.cafe;   /* 11/29 카페 전체 그림 타깃은 안 씀 — 그 영상(5.6MB)을 받지 않게 */
+  Object.keys(VIDEO).forEach(function (k) { var v = document.createElement('video'); Object.assign(v, { muted: true, loop: true, playsInline: true, crossOrigin: 'anonymous', preload: 'metadata', src: VIDEO[k].src }); v.setAttribute('playsinline', ''); videos[k] = v; });
   var faces = {}, seen = {}, dbg = {}, camera = null, v3 = null, curHead = null, cand = null, candAt = 0;
 
   // ── (1)(3) 움직이는 부분만 · 색 맞춤 · 카메라 같은 흐림/잡티
@@ -192,7 +193,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       onUpdate: function (a) {
         // 11/28 0.25초 넘게 안 잡힌 면은 걷음(영상 · 대사 글 모두) — 다시 잡히면 바로 다시
         var nowV = Date.now();
-        Object.keys(faces).forEach(function (k) { var f = faces[k], on = nowV - (seen[k] || 0) < 250 && f.g.visible !== undefined; if (!f.vis) f.vis = 0; f.vis += ((on ? 1 : 0) - f.vis) * (on ? 0.35 : 0.3); if (UU[k]) UU[k].uVis.value = f.vis; f.heads.forEach(function (hd) { if (hd.tx && hd.tx.mesh.material) hd.tx.mesh.material.opacity = Math.min(hd.tx.mesh.material.opacity, f.vis); }); if (f.vis < 0.02 && !on) f.g.visible = false; });
+        Object.keys(faces).forEach(function (k) { var f = faces[k], on = nowV - (seen[k] || 0) < 250 && f.g.visible !== undefined; if (!f.vis) f.vis = 0; f.vis += ((on ? 1 : 0) - f.vis) * (on ? 0.35 : 0.3); var vv2 = videos[k], live = vv2 && !vv2.paused && vv2.readyState >= 2 && vv2.currentTime > 0.05; if (UU[k]) UU[k].uVis.value = live ? f.vis : 0; if (vv2 && !vv2.paused && nowV - (seen[k] || 0) > 1500) vv2.pause();   /* 11/29 못 틀면 검게 덮던 것 · 안 보이는 면 멈춤 */ f.heads.forEach(function (hd) { if (hd.tx && hd.tx.mesh.material) hd.tx.mesh.material.opacity = Math.min(hd.tx.mesh.material.opacity, f.vis); }); if (f.vis < 0.02 && !on) f.g.visible = false; });
         Object.keys(UU).forEach(function (k) { UU[k].uTime.value = (UU[k].uTime.value + 0.013) % 100;
           var f = faces[k]; if (VIDEO[k].glass && f && f.sized && camera) { f.g.updateMatrixWorld(true); var cl = f.m.worldToLocal(camera.position.clone()); UU[k].uCam.value.set(cl.x, cl.y, cl.z * f.m.scale.z / f.m.scale.x); /* 판 단위(가로 · 세로 ±0.5, 깊이 = 창 폭 단위) */ }
         }); tone(a && a.processGpuResult && a.processGpuResult.camerapixelarray); placeSay(); },
@@ -233,7 +234,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       });
     }
     seen[d.name] = Date.now(); dbg[d.name] = 'tracked ' + (d.scaledWidth || 0).toFixed(2) + 'x' + (d.scaledHeight || 0).toFixed(2);
-    var vv = videos[d.name]; if (vv && vv.paused) vv.play().catch(function () {});
+    var vv = videos[d.name]; if (vv && vv.paused) { if (vv.preload !== 'auto') { vv.preload = 'auto'; vv.load(); } vv.play().catch(function () {}); }
   }
   // ── 벽 위 글: 캔버스에 글을 그려 벽면과 같은 판에 붙인다. 한 글자씩 0.35초 동안 스르륵(투명 → 진하게), 초당 11자
   var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 720, LH = 74, PAD = 28;   // 머리 위에 좁게(한 줄 12자 안팎)

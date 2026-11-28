@@ -101,9 +101,12 @@ export function style() {   // 11/18: 출구(exit.html)도 같은 판 모양(금
 //   앱 웹뷰 안이면 앱 수집함에도(exp/[id].tsx 가 {type:'collect'} 를 받아 이 페이지의 수집품으로 담는다 — 저장 단추가 없어졌으므로)
 export function collect(taskId) {
   store.save(taskId); navigator.vibrate?.(16);
-  try { window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'collect', url: location.href })); } catch {}
+  // 11/29 앱은 주소로 어느 체험인지 찾는다(xr8 스캔 화면 주소는 모름 → 수집이 기록 안 되던 것) — 그 체험 본 페이지 주소로 알림
+  const PAGE_OF = { salon: 'salon.html', flyer: 'society.html', ticket: 'industry.html', paint: 'atelier.html', sunrise: 'monet.html' };
+  const url = PAGE_OF[taskId] ? new URL(PAGE_OF[taskId], V3).href : location.href;
+  try { window.ReactNativeWebView?.postMessage(JSON.stringify({ type: 'collect', url, task: taskId })); } catch {}
   // 앱 웹 버전(다른 주소의 iframe) — 부모 창에 알린다
-  if (EMBED) try { window.parent.postMessage({ m100: 'collect', url: location.href }, '*'); } catch {}
+  if (EMBED) try { window.parent.postMessage({ m100: 'collect', url, task: taskId }, '*'); } catch {}
 }
 
 // 앱 웹 버전 안(iframe)에서는 체험 목록(v3 index)으로 가는 이동을 앱 목록으로 돌린다 — 웹 프로토타입 목록이 뜨지 않게
