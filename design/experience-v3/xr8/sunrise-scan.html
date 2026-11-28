@@ -37,7 +37,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .top{position:fixed;left:0;right:0;top:0;z-index:6;box-sizing:border-box;height:calc(52px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 12px 0;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;color:#fff;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0))}   /* 11/28 체험 화면 공통 위 막대 */
 .top button{width:40px;height:40px;padding:0;margin:0;border-radius:20px;border:0;background:none;color:inherit;display:grid;place-items:center}
 .top button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.top b{text-align:center;font-size:17px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top b{text-align:center;font-size:19px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hint{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);text-align:center;z-index:5;transition:opacity .3s;pointer-events:none}   /* 공통 아래 안내 줄 = 다음에 할 일 */
 .hint span{display:inline-block;max-width:100%;box-sizing:border-box;padding:10px 18px;border-radius:20px;background:rgba(20,16,13,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:15px;font-weight:500;line-height:1.45;white-space:pre-line;word-break:keep-all}
 .found{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translate(-50%,-6px);z-index:7;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px 0 9px;box-sizing:border-box;border-radius:18px;background:rgba(20,16,13,.66);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:14.5px;font-weight:700;line-height:1;letter-spacing:-.01em;white-space:nowrap;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}   /* 공통 인식 알림 = 무엇을 비췄는지(막대 바로 아래 12px) */
@@ -47,7 +47,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .found.no i{background:rgba(242,237,226,.22) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
 .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 .pick.on{opacity:1;transform:none;pointer-events:auto}
-.pick button{width:100%;max-width:400px;min-height:54px;border:0;border-radius:14px;background:#F2EDE2;color:#141210;font:800 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.pick button{width:100%;max-width:400px;box-sizing:border-box;min-height:56px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 .skip{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:8;border:1px solid rgba(255,255,255,.45);background:rgba(0,0,0,.35);color:#fff;font:600 14px Freesentation,sans-serif;padding:9px 18px;border-radius:999px;opacity:0;transition:opacity .3s;pointer-events:none}
 .skip.on{opacity:1;pointer-events:auto}
 </style>

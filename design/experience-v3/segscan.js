@@ -18,7 +18,7 @@ const CSS = `
 .v3-seg .top{position:absolute;left:0;right:0;top:0;box-sizing:border-box;color:#fff;padding:env(safe-area-inset-top,0px) 12px 0;height:calc(52px + env(safe-area-inset-top,0px));display:grid;grid-template-columns:40px 1fr 40px;align-items:center;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0));z-index:3;transition:opacity .3s}
 .v3-seg .top button{width:40px;height:40px;padding:0;margin:0;border-radius:20px;border:0;background:none;color:#fff;display:grid;place-items:center}
 .v3-seg .top svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.v3-seg .top b{text-align:center;font-size:17px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 11/28 공통 위 막대 */
+.v3-seg .top b{text-align:center;font-size:19px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* 11/28 공통 위 막대 */
 .v3-seg .ret{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;z-index:2;pointer-events:none;transition:transform .25s,opacity .3s}
 .v3-seg .ret i{position:absolute;width:12px;height:12px;border:2px solid rgba(255,255,255,.85)}
 .v3-seg .ret i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}.v3-seg .ret i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}

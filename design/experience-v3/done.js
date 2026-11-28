@@ -24,7 +24,7 @@ const CSS = `
 .v3-done .d-bar{flex:none;height:calc(52px + env(safe-area-inset-top, 0px));padding:env(safe-area-inset-top, 0px) 12px 0;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;border-bottom:1px solid transparent}
 .v3-done .d-bar a{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;color:var(--d-ink);text-decoration:none;position:relative}
 .v3-done .d-bar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.v3-done .d-loc{text-align:center;font-size:17px;font-weight:700;color:var(--d-ink);letter-spacing:-.01em}
+.v3-done .d-loc{text-align:center;font-size:19px;font-weight:700;color:var(--d-ink);letter-spacing:-.01em}   /* 11/28 체험 화면 위 막대 제목 공통 19px */
 .v3-done .d-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 20px 24px}
 .v3-done .d-in{max-width:440px;margin:0 auto}
 .v3-done .d-cap{margin:6px auto 0;width:max-content;display:flex;align-items:center;gap:6px;padding:7px 14px 7px 9px;border-radius:999px;background:var(--d-tint);color:var(--d-sage-deep);font-size:14.5px;font-weight:700;letter-spacing:-.01em}
@@ -39,7 +39,7 @@ const CSS = `
 .v3-done .d-txt{margin-top:20px;padding-top:18px;border-top:1px solid var(--d-line);text-align:center;opacity:0;transform:translateY(8px);transition:opacity .5s,transform .5s}
 .v3-done.read .d-txt{opacity:1;transform:none}
 .v3-done .d-title{font-family:Paperlogy,Freesentation,sans-serif;font-size:19px;font-weight:800;line-height:1.4}
-.v3-done .d-again{display:block;margin:22px auto 6px;padding:8px 16px;border:1px solid var(--d-line);border-radius:999px;background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--d-sub)}
+.v3-done .d-again{display:block;box-sizing:border-box;margin:22px auto 6px;padding:8px 16px;border:1px solid var(--d-line);border-radius:999px;background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--d-sub)}
 .v3-done .d-guide{margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--d-panel);font-size:15px;font-weight:700;line-height:1.5;text-align:center;white-space:pre-line}
 .v3-done .d-body{margin-top:8px;font-size:15.5px;line-height:1.7;white-space:pre-line}
 .v3-done .d-note{margin:34px auto 4px;max-width:320px;text-align:center;font-family:Paperlogy,Freesentation,sans-serif;font-size:15.5px;font-weight:600;line-height:1.8;letter-spacing:-.01em;color:var(--d-ink);white-space:pre-line;word-break:keep-all;opacity:0;transform:translateY(8px);transition:opacity 1s .6s,transform 1s .6s}
@@ -83,10 +83,10 @@ const CSS = `
 .v3-end .ve-got img{width:28px;height:28px;object-fit:cover;border-radius:4px;flex:none}
 .v3-end .ve-got img.contain{object-fit:contain;background:rgba(127,127,127,.15)}
 .v3-end .ve-btns{display:flex;gap:8px}
-.v3-end .ve-btn{flex:1;min-height:54px;padding:8px 10px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:inherit;font-size:16px;font-weight:800;line-height:1.25;text-decoration:none;cursor:pointer}
+.v3-end .ve-btn{flex:1;box-sizing:border-box;min-height:56px;padding:8px 12px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:inherit;font-size:17px;font-weight:700;line-height:1.25;text-decoration:none;cursor:pointer}   /* 11/28 앱 주 단추와 같게(높이 56 · 17px) — 페이지마다 여백 계산이 달라 54/70 으로 갈리던 것(box-sizing 고정) */
 .v3-end .ve-btn.line{background:transparent;color:var(--ve-ink);border:1px solid color-mix(in srgb,var(--ve-ink) 32%,transparent)}
 .v3-end .ve-btn.fill{background:var(--ve-fill);color:var(--ve-on);border:0}
-.v3-end .ve-btn small{font-size:12px;font-weight:600;opacity:.72}
+.v3-end .ve-btn small{font-size:13px;font-weight:600;opacity:.72}
 .v3-end .ve-more{margin:12px auto 0;padding:10px 12px;display:inline-flex;align-items:center;gap:2px;background:none;border:0;font:inherit;font-size:14px;font-weight:600;color:var(--ve-ink);opacity:.62;cursor:pointer}
 .v3-end .ve-more svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 `;

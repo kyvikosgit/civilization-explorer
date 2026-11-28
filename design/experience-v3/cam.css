@@ -20,7 +20,7 @@
 .v3-cam .top .x .ico{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .v3-cam .top .tt{display:flex;flex-direction:column;align-items:center;gap:0;padding:0 6px;min-width:0;text-align:center;position:relative}
 .v3-cam .top .cap{display:none}
-.v3-cam .top .t{font-family:inherit;font-size:17px;font-weight:700;line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.v3-cam .top .t{font-family:inherit;font-size:19px;font-weight:700;line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .v3-cam .top .dots{display:flex;gap:6px;position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%)}
 .v3-cam .top .dots:empty{display:none}
 .v3-cam .top .dots i{width:5px;height:5px;border-radius:50%;background:rgba(242,237,226,.3);transition:background .3s,transform .3s}
