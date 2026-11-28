@@ -218,7 +218,7 @@ if (window.__lift) {   // 떠오른 그림이 가운데에 떠 있는 채로 열
   history.replaceState(null, '', location.pathname + '?' + (() => { const q = new URLSearchParams(location.search); q.delete('lift'); return q.toString(); })());
 } else if (store.saved(task.id)) { $('start').style.display = 'none'; finish(); }
 else boot();
-$('go').addEventListener('click', () => location.reload());
+$('go').addEventListener('click', () => { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'camera-perm' })); else location.reload(); });   // 11/29 앱: 권한을 다시 물음(안드로이드) · 막혀 있으면 설정 화면
 </script>
 </body>
 </html>

@@ -299,7 +299,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     var ready = function () { $('start').style.display = 'none'; $('hint').hidden = false; };
     return { name: 'm100status', onStart: ready, onCameraStatusChange: function (e) {
       if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
-      else if (e.status === 'failed') { $('start').style.display = ''; $('start').classList.add('fail'); $('go').hidden = false; $('lead').hidden = true; $('err').textContent = '카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'; }
+      else if (e.status === 'failed') { $('go').onclick = function () { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'camera-perm' })); else location.reload(); }; $('start').style.display = ''; $('start').classList.add('fail'); $('go').hidden = false; $('lead').hidden = true; $('err').textContent = '카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'; }
     } };
   }
   function boot() {

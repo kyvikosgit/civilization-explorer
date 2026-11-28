@@ -394,7 +394,7 @@ function boot() {
   window.addEventListener('xrloaded', run, { once: true });
   setTimeout(() => { if (!window.XR8) fail('카메라 엔진을 불러오지 못했습니다. 다시 시도해 주세요.', 'engine'); }, 20000);
 }
-$('go').addEventListener('click', () => location.reload());
+$('go').addEventListener('click', () => { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'camera-perm' })); else location.reload(); });   // 11/29 앱: 권한을 다시 물음(안드로이드) · 막혀 있으면 설정 화면
 </script>
 </body>
 </html>
