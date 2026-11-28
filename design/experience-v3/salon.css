@@ -1,13 +1,14 @@
 /* v3 살롱 — 벽에 선 뒤: 아래에서 올라오는 안내 · 왼쪽 위 목록으로. 입장 중에는 숨긴다 */
 .hub-back{position:absolute;left:12px;top:calc(env(safe-area-inset-top) + 8px);z-index:9;width:36px;height:36px;display:grid;place-items:center;color:#FFF7EA;opacity:0;pointer-events:none;transition:opacity .4s}
 .hub-back svg{width:22px;height:22px}
-.stage[data-mode="wall"] .hub-back{opacity:1;pointer-events:auto}
+.hub-back{display:none!important}   /* 11/28 뒤로는 공통 막대의 '<' 하나만(겹치던 것) */
 .stage[data-mode="wall"] .role{padding-top:calc(var(--safe-t) + 64px)}   /* 11/24: 뒤로 단추 아래 단독 줄 · 글은 왼쪽 여백에(다른 체험과 같은 자리) */
 .role h1{margin-top:4px}
 .role .lead{margin-top:12px}
 
 /* 찾은 뒤에는 v2 의 메달 연출을 그대로 쓴다. 그림 앞 단추와 관람객 비율은 쓰지 않는다 */
-body:not(.pick) .stage .dock,body:not(.pick) .stage .gest,body:not(.pick) .stage #back2{display:none!important}
+body:not(.pick) .stage .dock,body:not(.pick) .stage .gest{display:none!important}
+.stage #back2{display:grid!important;opacity:1!important;pointer-events:auto!important}   /* 11/28 뒤로 단추는 다른 체험 첫 화면과 같이 늘 보임(벽 화면에서는 체험 밖으로) */
 /* 11/03: 벽 전체를 비춘 뒤(body.pick) 화면의 벽에서 고른다 — 그림 앞 단추를 다시 쓴다 */
 .wr-b{margin-top:10px;font-size:15px;line-height:1.6;white-space:pre-line;color:var(--ink-2,#555)}
 #s3 .res-btns{display:block;padding-top:34px;background:linear-gradient(180deg,rgba(23,8,6,0),rgba(23,8,6,.97) 30px,#170806 56px)}

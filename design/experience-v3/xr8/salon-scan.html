@@ -66,6 +66,13 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .card{flex-wrap:wrap}
 .card .r{flex-basis:100%;margin:2px 0 0;padding-top:12px;border-top:1px solid rgba(242,237,226,.12);font-family:'Gowun Batang',serif;font-size:14.5px;line-height:1.7;color:rgba(242,237,226,.84);word-break:keep-all}   /* 11/28 오답 = 그 그림의 심사평(당선작이 아닌 이유) */
 .card .r:empty,.card .n:empty,.card .v.off{display:none}
+/* 11/28 정답 카드 꾸밈: 금색 테두리 · 위 금빛 · 오른쪽 위에 걸린 메달(살롱 POP 메달) · 위 작은 머리글 · 작품 설명 */
+.card .k{display:none;margin:0 0 2px;font-family:'Gowun Batang',serif;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#E9C77B}
+.card .medal{display:none;position:absolute;right:16px;top:-30px;width:38px;height:auto;border-radius:0;box-shadow:none;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));pointer-events:none}
+.card.win{border:1px solid rgba(233,199,123,.6);background:linear-gradient(180deg,rgba(74,54,24,.92) 0%,rgba(28,22,15,.9) 46%,rgba(20,16,13,.9) 100%);box-shadow:0 0 0 1px rgba(0,0,0,.25),0 14px 36px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,232,180,.25)}
+.card.win .k,.card.win .medal{display:block}
+.card.win .ct{padding-right:34px}
+.card.win img:not(.medal){box-shadow:0 0 0 2px #D9B25F,0 0 0 3px rgba(0,0,0,.4),0 0 16px rgba(233,199,123,.45)}
 .card .n{flex-basis:100%;margin:0;font-size:14px;font-weight:600;color:rgba(242,237,226,.7)}
 .card.up{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
 .card img{flex:none;width:58px;height:58px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 2px #B08A45,0 0 0 3px rgba(0,0,0,.4)}
@@ -83,7 +90,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>아카데미 살롱</b><span></span></div>
 <div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>1등급 메달을 받은 그림을 찾아<br>카메라로 비춰 보세요</span></div>
-<div class="card" id="card"><img id="cardImg" alt=""><div class="ct"><b id="cardT"></b><small id="cardS"></small><span class="v"><span id="cardV"></span></span></div><p class="r" id="cardR"></p><p class="n" id="cardN"></p></div>
+<div class="card" id="card"><img class="medal" src="../img/salon_medal.webp" alt=""><img id="cardImg" alt=""><div class="ct"><p class="k">1873년 살롱 · 1등급 메달</p><b id="cardT"></b><small id="cardS"></small><span class="v"><span id="cardV"></span></span></div><p class="r" id="cardR"></p><p class="n" id="cardN"></p></div>
 <div class="pick" id="pick"><button type="button" id="pickGo">선택</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
@@ -231,16 +238,16 @@ function placeProbe(d, i) {   // 그 오답 그림 전체 크기 · 자리에 �
   const sc = d.scale * L; probeG.scale.set(sc, sc, sc); probe.scale.set(pw, ph, 1); probe.material.uniforms.r.value = ph / pw;
 }
 // 점검용(화면에 안 보임): 인식 없이 흐름만 — window.__salonSim(2) = 정답, 0 = 오답
-window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); setTimeout(() => $('pick').classList.add('on'), 650); } else wrong(i); };
+window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); clearInterval(window.__simKeep); window.__simKeep = setInterval(() => { winSeen = performance.now(); }, 100); setTimeout(() => $('pick').classList.add('on'), 650); } else { clearInterval(window.__simKeep); winSeen = 0; wrong(i); } };   // 점검용: 정답을 계속 비추는 것처럼
 // 11/28 비춘 그림 설명 카드(아래): 오답 = 작은 그림 · 제목 · 작가와 연도 + '다른 작품을 비춰 보세요'(2.8초 뒤 기본 안내로) · 정답 = 같은 카드 + '1873년 살롱 1등급 메달' + [선택]
 const HINT0 = $('hint').querySelector('span').innerHTML;
 let cardMode = '', cardT = 0;
 function showCard(i, mode) {
   const t = TG[i], c = $('card');
   $('cardImg').src = '../' + t.img; $('cardT').textContent = T(t.title); $('cardS').textContent = T(`${t.sub} · ${YEAR[i]}`);
-  $('cardV').textContent = mode === 'win' ? T('1873년 살롱 1등급 메달') : ''; $('cardV').parentNode.classList.toggle('off', mode !== 'win');
+  $('cardV').textContent = ''; $('cardV').parentNode.classList.add('off');   // 정답 = 위 머리글(1873년 살롱 · 1등급 메달)이 대신
   $('cardN').textContent = mode === 'win' ? '' : T('다른 작품을 비춰 보세요');   // 오답: 심사평 다음 맨 끝에 할 일   // 11/28 사용자: 판정 문구 · 체크 표시 없이 — 오답은 다음에 할 일만
-  const fb = String(t.feedback || ''), why = mode === 'win' ? '' : (fb.split('심사평 — ')[1] || '').split('\n')[0].trim();   // data.js 심사평 문장만
+  const fb = String(t.feedback || ''), why = mode === 'win' ? String(t.desc || '').split('\n')[0].trim() : (fb.split('심사평 — ')[1] || '').split('\n')[0].trim();   // 오답 = 심사평 · 정답 = 작품 설명 첫 문단(data.js)
   $('cardR').textContent = T(why);
   c.classList.toggle('win', mode === 'win'); c.classList.toggle('up', mode === 'win'); c.classList.add('on'); cardMode = mode;
   $('hint').hidden = true;

@@ -791,7 +791,7 @@ function toWall() {
   $('#wallTitle').textContent = '';
 }
 $('#otherBtn').addEventListener('click', () => { if (mode === 'focus') toWall(); });
-$('#back2').addEventListener('click', () => { if (mode === 'focus') toWall(); else if (mode === 'reveal') again(); });
+$('#back2').addEventListener('click', () => { if (mode === 'focus') toWall(); else if (mode === 'reveal') again(); else location.href = '../../experience-v3/index.html'; });   // 11/28 벽 화면 = 다른 체험 첫 화면의 뒤로와 같이 밖으로(앱은 이 주소를 받아 체험을 닫음)
 
 // ── 메달 → 확인
 const confirm = sheet($('#confirm'));
