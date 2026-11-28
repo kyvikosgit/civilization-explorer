@@ -132,15 +132,17 @@ $('back').addEventListener('click', () => {
 // ── 정답 오라 — salon.js AURA 셰이더 그대로(액자 둘레를 따라 일렁이며 흐르는 금빛). 단위도 같게: 그림 긴 변 = 1, 액자 테 M = 0.07
 // 11/28 원통형(모리스 칼럼 지름 600mm · 전단지 가로 300mm): 엔진이 알려 주는 원통 조각(반지름 · 높이 · 호) 위에 같은 오라를 휘어서 — 기둥 곡면 밖으로 넘치지 않게
 function cylAura(d) {
-  const r = d.radiusTop || d.geometry?.radiusTop, h = d.height || d.geometry?.height, al = (d.arcLengthRadians ?? d.geometry?.arcLengthRadians) * 999 / 930, a0 = -al / 2;   // 인식은 가운데 3:4(가로 930/999) — 오라는 전단지 전체 폭에   // XRExtras 공식: 정면(+z) 가운데로 대칭(엔진 arcStartRadians 는 안 씀)
+  const r = d.radiusTop || d.geometry?.radiusTop, h = d.height || d.geometry?.height, al = (d.arcLengthRadians ?? d.geometry?.arcLengthRadians) * WF, a0 = -al / 2;   // 인식은 가운데 3:4(가로 930/999) — 오라는 전단지 전체 폭에   // XRExtras 공식: 정면(+z) 가운데로 대칭(엔진 arcStartRadians 는 안 씀)
   if (!(r > 0 && h > 0 && al > 0)) return null;
   const P = h * 0.3, pa = P / r;   // 번짐 폭(세로 12%) — 호 방향은 각도로
   const geo = new THREE.CylinderGeometry(r, r, h + 2 * P, 48, 1, true, a0 - pa, al + 2 * pa);
+  geo.translate(0, h * UP, 0);
   const m = auraMesh(1, 1); m.geometry.dispose(); m.geometry = geo; m.material.side = THREE.DoubleSide;
-  const U = m.material.uniforms; U.hs.value.set(r * al / 2 / h, 0.5); U.size.value.set(r * (al + 2 * pa) / h, (h + 2 * P) / h);   // 세로 = 1 로 맞춘 단위(평면 오라와 같은 번짐 폭)
+  const U = m.material.uniforms; U.hs.value.set(r * al / 2 / h, HT); U.size.value.set(r * (al + 2 * pa) / h, (h + 2 * P) / h);   // 세로 = 1 로 맞춘 단위(평면 오라와 같은 번짐 폭)
   return m;
 }
 let cyl = null;
+const WF = 1.03, HT = 0.52, UP = 0.02;   // 11/28 현장 맞춤: 좌우 폭(인식 폭의 1.03배 · 전에는 1.074로 넓었음) · 위로 4% 더(세로 반폭 0.52, 가운데를 0.02 위로)
 function auraMesh(pw, ph) {
   /* 종이 전단지 = 액자 테 없이 · 가까이서 보므로 번짐 폭을 좁게 */ const M = 0.015, P = 0.18, ow = pw + 2 * M, oh = ph + 2 * M, w = ow + 2 * P, h = oh + 2 * P;
   const mat = new THREE.ShaderMaterial({
@@ -154,12 +156,16 @@ function auraMesh(pw, ph) {
       void main(){
         vec2 p = (vUv - 0.5) * size;
         float r = 0.06; vec2 q = abs(p) - hs + r; float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
-        if (d < -0.02) discard;
+        if (d < -0.12) discard;
         float ang = atan(p.y, p.x);
         float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9));
         float n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
         float core = exp(-max(d, 0.0) * 12.0);
         float haze = exp(-max(d, 0.0) * 4.5) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.22, 0.3, d));
+        /* 11/28 안쪽으로도 털처럼 일렁이며 스며듦(깎아지른 안쪽 경계 대신) — 깊이가 물결(n3)에 따라 들쭉날쭉 */
+        float n3 = fbm(vec2(ang * 7.0 - t * 0.5, t * 0.7)) * 0.6 + fbm(vec2(-ang * 13.0 + t * 0.8, 1.7)) * 0.4;
+        float inner = 0.0;
+        if (d < 0.0) { float k = 0.02 + 0.06 * n3; inner = exp(d / k) * (0.75 + 0.25 * smoothstep(0.25, 0.8, n2)); core = inner; haze = exp(d / (k * 2.6)) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)); }   /* 경계에서 바깥 빛과 이어지며 안쪽으로 물결 깊이만큼 스며듦 */
         float a = clamp(core * 0.95 + haze * 0.7, 0.0, 1.0) * op * 0.8;   /* 11/28 가까이서 보는 전단지라 살롱의 절반 밝기 */
         vec3 col = mix(vec3(1.0, 0.86, 0.55), vec3(1.0, 0.98, 0.9), core);
         gl_FragColor = vec4(col * a, a);
@@ -236,7 +242,7 @@ function onImage(e) {
     const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
     if (DBG && !DBG.done) { DBG.done = true; const el = document.createElement('pre'); el.style.cssText = 'position:fixed;left:8px;right:8px;top:120px;z-index:99;font:11px/1.4 monospace;color:#0f0;background:rgba(0,0,0,.7);padding:8px;white-space:pre-wrap;pointer-events:none'; el.textContent = JSON.stringify(d, (k, v) => (typeof v === 'number' ? Math.round(v * 1000) / 1000 : v)).slice(0, 900); document.body.appendChild(el); }   // ?debug=1: 엔진이 준 값
     const curved = (d.radiusTop || d.geometry?.radiusTop) > 0 || /CYL|CON/.test(String(d.type || ''));   // 11/28 엔진은 'CYLINDRICAL' 로 알려 줌(이름 대신 반지름이 있으면 원통)
-    if (curved && !cyl) { const m = cylAura(d); if (m) { const al = (d.arcLengthRadians ?? d.geometry?.arcLengthRadians) * 999 / 930; cyl = { r: d.radiusTop || d.geometry?.radiusTop, h: d.height || d.geometry?.height, a0: -al / 2, al }; auraG.remove(aura); aura = m; aura.renderOrder = 5; auraG.add(aura); } }
+    if (curved && !cyl) { const m = cylAura(d); if (m) { const al = (d.arcLengthRadians ?? d.geometry?.arcLengthRadians) * WF; cyl = { r: d.radiusTop || d.geometry?.radiusTop, h: d.height || d.geometry?.height, a0: -al / 2, al }; auraG.remove(aura); aura = m; aura.renderOrder = 5; auraG.add(aura); } }
     auraG.position.copy(d.position); auraG.quaternion.copy(d.rotation);
     if (cyl) { auraG.scale.setScalar(d.scale > 0 ? d.scale : 1); auraG.visible = true; winSeen = performance.now(); if (!winT) win(); return; }
     const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true; winSeen = performance.now();
