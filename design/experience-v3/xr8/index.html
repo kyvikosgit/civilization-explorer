@@ -209,8 +209,9 @@ document.getElementById('close').addEventListener('click', function () { if (win
   var TQ = new THREE.Quaternion(), TP = new THREE.Vector3();
   // 11/29 아이폰 저전력 모드: 화면을 누르기 전엔 영상 자동재생이 막힘 → 막히면 아래 안내, 한 번 누르면 모든 창 영상을 풀어 줌
   var tapShown = false;
-  function needTap() { if (tapShown) return; tapShown = true; var h = $('hint'); if (h) { h.querySelector('span').textContent = window.M100_T ? window.M100_T('화면을 한 번 눌러 주세요') : '화면을 한 번 눌러 주세요'; h.hidden = false; } }
-  function unlockAll() { Object.keys(videos).forEach(function (k) { var v = videos[k]; if (Date.now() - (seen[k] || 0) > 1500) return; if (v.preload !== 'auto') { v.preload = 'auto'; v.load(); } v.play().catch(function () {}); });   /* 지금 보이는 창 영상만 */ if (tapShown) { tapShown = false; var h = $('hint'); if (h) h.querySelector('span').textContent = window.M100_T ? window.M100_T('카페 벽과 만국박람회 벽을 비춰 주세요') : '카페 벽과 만국박람회 벽을 비춰 주세요'; } }
+  function needTap() { if (tapShown) return; tapShown = true; var h = $('hint'); if (h) { h.querySelector('span').textContent = window.M100_T ? window.M100_T('화면을 한 번 누르면 영상이 나와요') : '화면을 한 번 누르면 영상이 나와요'; h.hidden = false; } }
+  function unlockAll() { Object.keys(videos).forEach(function (k) { var v = videos[k]; if (Date.now() - (seen[k] || 0) > 1500) return; if (v.preload !== 'auto') { v.preload = 'auto'; v.load(); } v.play().then(tapDone).catch(function () {}); });   /* 지금 보이는 창 영상만 · 안내는 실제로 틀어졌을 때 내림 */ }
+  function tapDone() { if (!tapShown) return; tapShown = false; var h = $('hint'); if (h) h.querySelector('span').textContent = window.M100_T ? window.M100_T('카페 벽과 만국박람회 벽을 비춰 주세요') : '카페 벽과 만국박람회 벽을 비춰 주세요'; }
   document.addEventListener('touchend', unlockAll, { passive: true }); document.addEventListener('click', unlockAll);
   function place(e) {
     // 11/28 여러 각도 타깃(같은 창 사진 5장)이 동시에 잡히면 서로 조금씩 다른 자리를 번갈아 알려 판이 붕붕 떠다님 →
@@ -240,7 +241,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       });
     }
     seen[d.name] = Date.now(); dbg[d.name] = 'tracked ' + (d.scaledWidth || 0).toFixed(2) + 'x' + (d.scaledHeight || 0).toFixed(2);
-    var vv = videos[d.name]; if (vv && vv.paused && Date.now() - (vv.__try || 0) > 1000) { vv.__try = Date.now(); if (vv.preload !== 'auto') { vv.preload = 'auto'; vv.load(); } vv.play().catch(function () { needTap(); }); }   /* 재시도는 1초에 한 번 */
+    var vv = videos[d.name]; if (vv && vv.paused && Date.now() - (vv.__try || 0) > 1000) { vv.__try = Date.now(); if (vv.preload !== 'auto') { vv.preload = 'auto'; vv.load(); } vv.play().then(tapDone).catch(function () { needTap(); }); }   /* 재시도는 1초에 한 번 */
   }
   // ── 벽 위 글: 캔버스에 글을 그려 벽면과 같은 판에 붙인다. 한 글자씩 0.35초 동안 스르륵(투명 → 진하게), 초당 11자
   var FONT = "700 54px 'Gowun Batang', 'AppleMyungjo', serif", CW = 720, LH = 74, PAD = 28;   // 머리 위에 좁게(한 줄 12자 안팎)
@@ -292,7 +293,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
       h.tx.mesh.visible = h.a > 0;
       if (h.a > 0) drawText(h.tx, on ? (now - h.t0) / 1000 : 99, h.a);
     }); });
-    $('hint').hidden = !!best || Object.keys(seen).some(function (k) { return now - seen[k] < 4000; });
+    $('hint').hidden = !tapShown && (!!best || Object.keys(seen).some(function (k) { return now - seen[k] < 4000; }));   /* 11/29 저전력: 인식되면 안내 줄을 숨기던 것 때문에 '눌러 주세요'가 안 보였음 — 누를 때까지 띄움 */
     if (DEBUG) { $('dbg').hidden = false; $('dbg').textContent = JSON.stringify(dbg, null, 1); }
   }
 

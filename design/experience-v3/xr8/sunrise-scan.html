@@ -169,12 +169,17 @@ function found() {
     big.classList.remove('on'); try { bv.pause(); } catch {}
     $('card').classList.add('up', 'on'); setTimeout(() => $('pick').classList.add('on'), 250);
   };
-  skipF = back; big.onclick = back;
-  bv.play().catch(() => {});
+  /* 11/29 저전력 모드: 영상이 저절로 안 틀어짐 → 그림을 띄워 두고 아래에 '눌러 주세요' — 누르면 그때부터 재생 */
+  let blocked = false, tm = 0;
+  const say = (t) => { const h = $('hint'); h.querySelector('span').textContent = window.M100_T ? window.M100_T(t) : t; h.style.zIndex = '10'; h.hidden = false; };
+  const played = () => { blocked = false; $('hint').hidden = true; clearTimeout(tm); tm = setTimeout(back, PLAY_MS - 1000); };
+  skipF = back; big.onclick = () => { if (blocked) { bv.play().then(played).catch(() => {}); return; } back(); };
+  bv.poster = '../img/sunrise_print.jpg';
+  bv.play().catch(() => { blocked = true; clearTimeout(tm); say('화면을 한 번 누르면 영상이 나와요'); });
   (async () => {
     await big.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, fill: 'forwards' }).finished.catch(() => {});   // 액자 자리에 그대로 겹쳐 뜸
     await big.animate([{ ...pos(r0) }, { ...pos(full) }], { duration: 800, easing: ease, fill: 'forwards' }).finished.catch(() => {});
-    setTimeout(back, PLAY_MS - 1000);
+    if (!blocked) tm = setTimeout(back, PLAY_MS - 1000);
   })();
 }
 $('pickGo').addEventListener('click', () => { $('pick').classList.remove('on'); $('card').classList.remove('on'); lift(); });
