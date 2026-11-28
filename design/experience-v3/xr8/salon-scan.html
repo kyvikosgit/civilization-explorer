@@ -60,7 +60,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .sheet button{width:100%;min-height:52px;border:0;border-radius:12px;background:#2A2119;color:#F7F0DF;font:800 16px Freesentation,sans-serif}
 .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 .pick.on{opacity:1;transform:none;pointer-events:auto}
-/* 11/28 비춘 그림 설명 카드(아래) — 작은 그림 · 제목 · 작가와 연도(명조) · 판정 한 줄. 정답이면 [이 그림 선택하기] 위로 올라감 */
+/* 11/28 비춘 그림 설명 카드(아래) — 작은 그림 · 제목 · 작가와 연도(명조) · 아래 한 줄(오답 = 다음에 할 일). 정답이면 [선택] 위로 올라감 */
 .card{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);z-index:7;max-width:420px;margin:0 auto;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:rgba(20,16,13,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;transform:translateY(12px);transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1),bottom .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 .card.on{opacity:1;transform:none}
 .card.up{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
@@ -68,10 +68,8 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .card .ct{min-width:0;display:flex;flex-direction:column;gap:3px}
 .card b{font-family:'Gowun Batang',serif;font-weight:700;font-size:17px;line-height:1.35;color:#F2EDE2;word-break:keep-all}
 .card small{font-family:'Gowun Batang',serif;font-size:13.5px;color:rgba(242,237,226,.66);letter-spacing:.01em}
-.card .v{margin-top:5px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:rgba(242,237,226,.86)}
-.card .v i{flex:none;width:16px;height:16px;border-radius:50%;background:rgba(242,237,226,.2) center/10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E")}
+.card .v{margin-top:4px;font-size:14px;font-weight:500;color:rgba(242,237,226,.78)}   /* 11/28 아이콘 없이 글 한 줄 */
 .card.win .v{color:#E9C77B}
-.card.win .v i{background:#E9C77B center/11px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .pick{bottom:0}
 .pick button{width:100%;max-width:400px;box-sizing:border-box;min-height:56px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 </style>
@@ -81,8 +79,8 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>아카데미 살롱</b><span></span></div>
 <div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>1등급 메달을 받은 그림을 찾아<br>카메라로 비춰 보세요</span></div>
-<div class="card" id="card"><img id="cardImg" alt=""><div class="ct"><b id="cardT"></b><small id="cardS"></small><span class="v"><i></i><span id="cardV"></span></span></div></div>
-<div class="pick" id="pick"><button type="button" id="pickGo">이 그림 선택하기</button></div>
+<div class="card" id="card"><img id="cardImg" alt=""><div class="ct"><b id="cardT"></b><small id="cardS"></small><span class="v"><span id="cardV"></span></span></div></div>
+<div class="pick" id="pick"><button type="button" id="pickGo">선택</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
 import { store } from '../store.js';
@@ -187,7 +185,7 @@ function salonModule() {
       if (liftT) auraK *= 0.8;
       aura.material.uniforms.op.value = auraK * auraK * (3 - 2 * auraK);
       if (!vis && auraK < 0.02) auraG.visible = false;
-      if (winT && !liftT && now - wrongAt > 2800) {   // 정답 그림이 보이는 동안 = 정답 카드 + [이 그림 선택하기], 벗어나면 둘 다 걷고 기본 안내
+      if (winT && !liftT && now - wrongAt > 2800) {   // 정답 그림이 보이는 동안 = 정답 카드 + [선택], 벗어나면 둘 다 걷고 기본 안내
         const on = !!vis; $('pick').classList.toggle('on', on && now - winT > 600);
         if (on && cardMode !== 'win') showCard(WIN, 'win'); else if (!on && cardMode === 'win') { hideCard(); $('hint').hidden = false; }
       }
@@ -230,13 +228,13 @@ function placeProbe(d, i) {   // 그 오답 그림 전체 크기 · 자리에 �
 }
 // 점검용(화면에 안 보임): 인식 없이 흐름만 — window.__salonSim(2) = 정답, 0 = 오답
 window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); setTimeout(() => $('pick').classList.add('on'), 650); } else wrong(i); };
-// 11/28 비춘 그림 설명 카드(아래): 오답 = 작은 그림 · 제목 · 작가와 연도 + '1등급 메달 수상작이 아니에요'(2.8초 뒤 기본 안내로) · 정답 = 같은 카드 + '1등급 메달 · 올해의 당선작' + [이 그림 선택하기]
+// 11/28 비춘 그림 설명 카드(아래): 오답 = 작은 그림 · 제목 · 작가와 연도 + '다른 작품을 비춰 보세요'(2.8초 뒤 기본 안내로) · 정답 = 같은 카드 + '1873년 살롱 1등급 메달' + [선택]
 const HINT0 = $('hint').querySelector('span').innerHTML;
 let cardMode = '', cardT = 0;
 function showCard(i, mode) {
   const t = TG[i], c = $('card');
   $('cardImg').src = '../' + t.img; $('cardT').textContent = T(t.title); $('cardS').textContent = T(`${t.sub} · ${YEAR[i]}`);
-  $('cardV').textContent = T(mode === 'win' ? '1등급 메달 · 올해의 당선작' : '1등급 메달 수상작이 아니에요');
+  $('cardV').textContent = T(mode === 'win' ? '1873년 살롱 1등급 메달' : '다른 작품을 비춰 보세요');   // 11/28 사용자: 판정 문구 · 체크 표시 없이 — 오답은 다음에 할 일만
   c.classList.toggle('win', mode === 'win'); c.classList.toggle('up', mode === 'win'); c.classList.add('on'); cardMode = mode;
   $('hint').hidden = true;
 }
@@ -248,7 +246,7 @@ function wrong(i) {
   showCard(i, 'no');
   clearTimeout(cardT); cardT = setTimeout(() => { if (cardMode === 'no') { hideCard(); const sp = $('hint').querySelector('span'); sp.textContent = T('다른 작품을 비춰 보세요'); $('hint').hidden = false; setTimeout(() => { if (!cardMode) sp.innerHTML = HINT0; }, 3000); } }, 2800);
 }
-// 정답 = 오라 + 정답 카드 + [이 그림 선택하기] — 누르면 그림이 그 자리에서 떠올라 수집품 카드로(done.js liftToCard)
+// 정답 = 오라 + 정답 카드 + [선택] — 누르면 그림이 그 자리에서 떠올라 수집품 카드로(done.js liftToCard)
 function win() {
   winT = performance.now(); winSeen = winT; wrongAt = 0; clearTimeout(cardT);
   showCard(WIN, 'win');

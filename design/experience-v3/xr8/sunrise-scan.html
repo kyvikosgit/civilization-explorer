@@ -57,10 +57,8 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .card .ct{min-width:0;display:flex;flex-direction:column;gap:3px}
 .card b{font-family:'Gowun Batang',serif;font-weight:700;font-size:17px;line-height:1.35;color:#F2EDE2;word-break:keep-all}
 .card small{font-family:'Gowun Batang',serif;font-size:13.5px;color:rgba(242,237,226,.66);letter-spacing:.01em}
-.card .v{margin-top:5px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:rgba(242,237,226,.86)}
-.card .v i{flex:none;width:16px;height:16px;border-radius:50%;background:rgba(242,237,226,.2) center/10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E")}
+.card .v{margin-top:4px;font-size:14px;font-weight:500;color:rgba(242,237,226,.78)}   /* 11/28 아이콘 없이 글 한 줄 */
 .card.win .v{color:#E9C77B}
-.card.win .v i{background:#E9C77B center/11px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .card .cskip{flex:none;margin-left:auto;align-self:center;min-height:40px;padding:0 14px;border:1px solid rgba(242,237,226,.35);border-radius:20px;background:none;color:#F2EDE2;font:600 14px Freesentation,sans-serif;pointer-events:auto}
 .found.no i{background:rgba(242,237,226,.22) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
 .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
@@ -73,7 +71,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>인상파 전시회</b><span></span></div>
 <div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>〈인상, 해돋이〉에<br>카메라를 비춰 보세요</span></div>
-<div class="card win" id="card"><img src="../img/sunrise_original.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><i></i><span>인상주의라는 이름을 낳은 그림</span></span></div><button type="button" class="cskip" id="skip">건너뛰기</button></div>
+<div class="card win" id="card"><img src="../img/sunrise_original.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><span>인상주의라는 이름을 낳은 그림</span></span></div><button type="button" class="cskip" id="skip">건너뛰기</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
 import { store } from '../store.js';
