@@ -208,7 +208,7 @@ function showGuide() {
   if (!store.saved(TASK.id)) preloadSeg(SEG_MODEL);
   // 11/18: 제목은 할 일 한 줄(역할 줄의 질문을 되풀이하지 않는다)
   const h = guide.show({
-    coach: { img: src('tube'), kind: 'photo' },
+    coach: { img: V3 + 'img/lift_paint.webp', kind: 'obj' },   // 11/29 최신 화구 상자(수집품과 같은 그림)
     title: IOS_UL ? '화구 상자 속 튜브물감을 찾아\n휴대폰 윗부분을 대 보세요' : '화구 상자 속 튜브물감을 찾아\n카메라로 비춰 보세요',
     buttons: [{ label: '튜브물감 찾기', cam: true, on: startScan }],
     note: IOS_UL ? '' : '카메라 권한을 물으면 ‘허용’을 눌러 주세요',

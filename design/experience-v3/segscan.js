@@ -145,6 +145,7 @@ export function openSegScan(o) {
     const M = 14, rx = Math.max(0, Math.floor(bx - bw / 2 - M)), ry = Math.max(0, Math.floor(by - bh / 2 - M));
     const rw = Math.min(S, Math.ceil(bx + bw / 2 + M)) - rx, rh = Math.min(S, Math.ceil(by + bh / 2 + M)) - ry;
     if (rw < 8 || rh < 8) return;
+    if (o.pick) al.fill(0);   // 11/29 이전 장면 실루엣이 남아 엉뚱한 곳(바다)까지 오라가 그려지던 것
     const md = mImg.data, gq = gImg.data;
     for (let y = 0; y < rh; y++) { const fy = Math.min(P - 1.001, Math.max(0, (ry + y + 0.5) / 4 - 0.5)), y8 = fy | 0, ty = fy - y8;
       for (let x = 0; x < rw; x++) { const fxp = Math.min(P - 1.001, Math.max(0, (rx + x + 0.5) / 4 - 0.5)), x8 = fxp | 0, tx = fxp - x8, i = y8 * P + x8;
@@ -179,7 +180,14 @@ export function openSegScan(o) {
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (al[y * S + x] > 0.5) din[y * S + x] = INF;
     for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x; if (!din[i]) continue; let d = din[i]; if (x > x0) d = Math.min(d, din[i - 1] + A); if (y > y0) { d = Math.min(d, din[i - S] + A); if (x > x0) d = Math.min(d, din[i - S - 1] + B); if (x < x1 - 1) d = Math.min(d, din[i - S + 1] + B); } din[i] = d; }
     for (let y = y1 - 1; y >= y0; y--) for (let x = x1 - 1; x >= x0; x--) { const i = y * S + x; if (!din[i]) continue; let d = din[i]; if (x < x1 - 1) d = Math.min(d, din[i + 1] + A); if (y < y1 - 1) { d = Math.min(d, din[i + S] + A); if (x < x1 - 1) d = Math.min(d, din[i + S + 1] + B); if (x > x0) d = Math.min(d, din[i + S - 1] + B); } din[i] = d; }
-    for (let i = 0; i < S * S; i++) { const sd = Math.min(dist[i], DR) - Math.min(din[i], IN); dtex[i] = Math.max(0, Math.min(255, ((sd + IN) / (DR + IN)) * 255)); }   // 부호 거리(안 = 음수)
+    for (let i = 0; i < S * S; i++) dist[i] = Math.min(dist[i], DR) - Math.min(din[i], IN);   // 부호 거리(안 = 음수)
+    // 11/29 격자(320칸) 계단을 없애려고 부호 거리를 가로 · 세로로 두 번 흐림(반지름 3칸)
+    for (let pass = 0; pass < 2; pass++) {
+      for (let y = y0; y < y1; y++) { const row = y * S; let acc = 5 * dist[row + x0] + dist[row + Math.min(x1 - 1, x0 + 1)] + dist[row + Math.min(x1 - 1, x0 + 2)];   /* 앞 칸 창(x0−1) 합 — 가장자리는 x0 값 */ for (let x = x0; x < x1; x++) { const a1 = x + 3 < x1 ? dist[row + x + 3] : dist[row + x1 - 1], a0 = x - 4 >= x0 ? dist[row + x - 4] : dist[row + x0]; acc += a1 - a0; din[row + x] = acc / 7; } }
+      for (let x = x0; x < x1; x++) { let acc = 5 * din[y0 * S + x] + din[Math.min(y1 - 1, y0 + 1) * S + x] + din[Math.min(y1 - 1, y0 + 2) * S + x]; for (let y = y0; y < y1; y++) { const a1 = y + 3 < y1 ? din[(y + 3) * S + x] : din[(y1 - 1) * S + x], a0 = y - 4 >= y0 ? din[(y - 4) * S + x] : din[y0 * S + x]; acc += a1 - a0; dist[y * S + x] = acc / 7; } }
+    }
+    dtex.fill(255);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x; dtex[i] = Math.max(0, Math.min(255, ((dist[i] + IN) / (DR + IN)) * 255)); }
     Ulen = L; gcen = [rx + rw / 2, ry + rh / 2];
     if (glOK) { gl.bindTexture(gl.TEXTURE_2D, gtex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, S, S, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, dtex); }
   }
