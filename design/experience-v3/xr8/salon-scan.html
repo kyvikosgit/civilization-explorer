@@ -14,6 +14,7 @@
 <script src="../i18n.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <!-- 8th Wall 엔진은 스캔할 때만 — 완료 화면(done=1, 다시 체험 표시 없음)은 엔진 없이(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐, 폰)
      11/27: 엔진을 나중에 끼워 넣던 방식에서 '네트워크를 확인해 주세요'가 뜸(폰) → 처음 시험해서 되던 방식(문서에 바로 쓰기)으로 되돌림 -->
@@ -32,9 +33,13 @@
 <style>
 html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;word-break:keep-all}
 #c{position:fixed;left:0;top:0}
-.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:28px;text-align:center;background:#000;z-index:20}
-.start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:15px;line-height:1.6;margin:0}
-.start button{font:700 17px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:15px 30px}
+.start{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 32px;text-align:center;background:#0E0C0A}   /* 11/28 체험 카메라 공통 로딩 화면(위 막대는 그대로 보임) */
+.start .spin{width:34px;height:34px;box-sizing:border-box;border-radius:50%;border:2.5px solid rgba(242,237,226,.14);border-top-color:#E9C77B;animation:m100spin .9s linear infinite}
+@keyframes m100spin{to{transform:rotate(360deg)}}
+.start p{margin:0;color:rgba(242,237,226,.72);font-size:15px;line-height:1.5;white-space:pre-line;word-break:keep-all}
+.start #err:empty{display:none}
+.start button{min-height:56px;box-sizing:border-box;padding:0 28px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif}
+.start.fail .spin{display:none}
 .top{position:fixed;left:0;right:0;top:0;z-index:6;box-sizing:border-box;height:calc(52px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 12px 0;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;color:#fff;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0))}   /* 11/28 체험 화면 공통 위 막대 */
 .top button{width:40px;height:40px;padding:0;margin:0;border-radius:20px;border:0;background:none;color:inherit;display:grid;place-items:center}
 .top button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -55,15 +60,28 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .sheet button{width:100%;min-height:52px;border:0;border-radius:12px;background:#2A2119;color:#F7F0DF;font:800 16px Freesentation,sans-serif}
 .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 .pick.on{opacity:1;transform:none;pointer-events:auto}
+/* 11/28 비춘 그림 설명 카드(아래) — 작은 그림 · 제목 · 작가와 연도(명조) · 판정 한 줄. 정답이면 [이 그림 선택하기] 위로 올라감 */
+.card{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);z-index:7;max-width:420px;margin:0 auto;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:rgba(20,16,13,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;transform:translateY(12px);transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1),bottom .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.card.on{opacity:1;transform:none}
+.card.up{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
+.card img{flex:none;width:58px;height:58px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 2px #B08A45,0 0 0 3px rgba(0,0,0,.4)}
+.card .ct{min-width:0;display:flex;flex-direction:column;gap:3px}
+.card b{font-family:'Gowun Batang',serif;font-weight:700;font-size:17px;line-height:1.35;color:#F2EDE2;word-break:keep-all}
+.card small{font-family:'Gowun Batang',serif;font-size:13.5px;color:rgba(242,237,226,.66);letter-spacing:.01em}
+.card .v{margin-top:5px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:rgba(242,237,226,.86)}
+.card .v i{flex:none;width:16px;height:16px;border-radius:50%;background:rgba(242,237,226,.2) center/10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E")}
+.card.win .v{color:#E9C77B}
+.card.win .v i{background:#E9C77B center/11px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.pick{bottom:0}
 .pick button{width:100%;max-width:400px;box-sizing:border-box;min-height:56px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>아카데미 살롱</b><span></span></div>
-<div class="start" id="start"><h1>올해의 그림</h1><p>벽의 후보작 가운데<br>1등급 메달을 받은 그림을 찾아 비춰 보세요.</p><p id="lead">카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
+<div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>1등급 메달을 받은 그림을 찾아<br>카메라로 비춰 보세요</span></div>
-<div class="found" id="found"><i></i><span id="foundT">1등급 메달 · 올해의 당선작</span></div>
+<div class="card" id="card"><img id="cardImg" alt=""><div class="ct"><b id="cardT"></b><small id="cardS"></small><span class="v"><i></i><span id="cardV"></span></span></div></div>
 <div class="pick" id="pick"><button type="button" id="pickGo">이 그림 선택하기</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
@@ -129,6 +147,7 @@ function auraMesh(pw, ph) {
   return new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
 }
 
+const YEAR = ['1873', '1872', '1872', '1873', '1873'];   // salon.js WORKS 와 같은 값
 let aura = null, auraG = null, winT = 0, ended = false, lastWrong = -1, wrongAt = 0, liftT = 0, xs = null, PW = 1, PH = 1, winSeen = 0, auraK = 0, probe = null, probeG = null, probeT = 0, probeI = -1, probeSeen = 0;
 const WON = '1등급 메달 · 올해의 당선작';
 function salonModule() {
@@ -168,7 +187,10 @@ function salonModule() {
       if (liftT) auraK *= 0.8;
       aura.material.uniforms.op.value = auraK * auraK * (3 - 2 * auraK);
       if (!vis && auraK < 0.02) auraG.visible = false;
-      if (winT && !liftT) { $('pick').classList.toggle('on', vis && now - winT > 600); $('found').classList.toggle('on', !!vis); }
+      if (winT && !liftT && now - wrongAt > 2800) {   // 정답 그림이 보이는 동안 = 정답 카드 + [이 그림 선택하기], 벗어나면 둘 다 걷고 기본 안내
+        const on = !!vis; $('pick').classList.toggle('on', on && now - winT > 600);
+        if (on && cardMode !== 'win') showCard(WIN, 'win'); else if (!on && cardMode === 'win') { hideCard(); $('hint').hidden = false; }
+      }
       if (probe) {
         const pp = probeT ? (now - probeT) / 1000 : 9;
         const pv = now - probeSeen < 350;
@@ -194,7 +216,9 @@ function onImage(e) {
     if (!winT) win();
   } else {
     if (i === probeI) { placeProbe(d, i); probeSeen = performance.now(); }
-    if (!winT && (i !== lastWrong || performance.now() - wrongAt > 4000)) { placeProbe(d, i); probeSeen = performance.now(); wrong(i); }
+    // 11/28 정답을 한 번 비춘 뒤에도(정답 그림이 화면에 없으면) 오답에 반응 — 전에는 정답 뒤로 오답이 다시 안 잡혔음
+    const winVis = winT && performance.now() - winSeen < 350;
+    if (!liftT && !winVis && (i !== lastWrong || performance.now() - wrongAt > 4000)) { placeProbe(d, i); probeSeen = performance.now(); wrong(i); }
   }
 }
 function placeProbe(d, i) {   // 그 오답 그림 전체 크기 · 자리에 훑는 빛 판
@@ -205,25 +229,29 @@ function placeProbe(d, i) {   // 그 오답 그림 전체 크기 · 자리에 �
   const sc = d.scale * L; probeG.scale.set(sc, sc, sc); probe.scale.set(pw, ph, 1); probe.material.uniforms.r.value = ph / pw;
 }
 // 점검용(화면에 안 보임): 인식 없이 흐름만 — window.__salonSim(2) = 정답, 0 = 오답
-window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); setTimeout(() => $('pick').classList.add('on'), 650); } else if (!winT) wrong(i); };
-// 11/28 사용자: 오답은 설명 판 없이 아래 안내 한 줄만 잠깐 — '다른 작품을 스캔해 보세요'
+window.__salonSim = (i) => { if (i === WIN) { if (!winT) win(); setTimeout(() => $('pick').classList.add('on'), 650); } else wrong(i); };
+// 11/28 비춘 그림 설명 카드(아래): 오답 = 작은 그림 · 제목 · 작가와 연도 + '1등급 메달 수상작이 아니에요'(2.8초 뒤 기본 안내로) · 정답 = 같은 카드 + '1등급 메달 · 올해의 당선작' + [이 그림 선택하기]
 const HINT0 = $('hint').querySelector('span').innerHTML;
-let hintT = 0;
+let cardMode = '', cardT = 0;
+function showCard(i, mode) {
+  const t = TG[i], c = $('card');
+  $('cardImg').src = '../' + t.img; $('cardT').textContent = T(t.title); $('cardS').textContent = T(`${t.sub} · ${YEAR[i]}`);
+  $('cardV').textContent = T(mode === 'win' ? '1등급 메달 · 올해의 당선작' : '1등급 메달 수상작이 아니에요');
+  c.classList.toggle('win', mode === 'win'); c.classList.toggle('up', mode === 'win'); c.classList.add('on'); cardMode = mode;
+  $('hint').hidden = true;
+}
+function hideCard() { $('card').classList.remove('on'); cardMode = ''; }
 function wrong(i) {
   lastWrong = i; wrongAt = performance.now(); probeI = i; probeT = performance.now();
   navigator.vibrate?.(12);
-  // 위 알림 — 비춘 그림 이름 + '1등급 메달이 아니에요'(정답 알림과 같은 자리 · 같은 모양, 아이콘만 다름)
-  const fd = $('found'), tt = TG[i].title, c = tt.charCodeAt(tt.length - 1) - 0xAC00, eun = c >= 0 && c < 11172 && c % 28 ? '은' : '는';
-  fd.classList.add('no'); $('foundT').textContent = T(`〈${tt}〉${eun} 1등급 메달이 아니에요`); fd.classList.add('on');   // 11/28 위 = 무엇을 비췄는지 · 아래 = 다음에 할 일
-  clearTimeout(window.__foundT); window.__foundT = setTimeout(() => { if (!winT) fd.classList.remove('on'); }, 2200);
-  const sp = $('hint').querySelector('span'); sp.textContent = T('다른 작품을 비춰 보세요');
-  $('hint').hidden = false; clearTimeout(hintT);
-  hintT = setTimeout(() => { if (!winT) sp.innerHTML = HINT0; }, 2600);
+  $('pick').classList.remove('on');
+  showCard(i, 'no');
+  clearTimeout(cardT); cardT = setTimeout(() => { if (cardMode === 'no') { hideCard(); const sp = $('hint').querySelector('span'); sp.textContent = T('다른 작품을 비춰 보세요'); $('hint').hidden = false; setTimeout(() => { if (!cardMode) sp.innerHTML = HINT0; }, 3000); } }, 2800);
 }
-// 11/28 정답 = 오라 + 위 알림 + [이 그림 선택하기] — 누르면 그림이 그 자리에서 떠올라 수집품 카드로(done.js liftToCard)
+// 정답 = 오라 + 정답 카드 + [이 그림 선택하기] — 누르면 그림이 그 자리에서 떠올라 수집품 카드로(done.js liftToCard)
 function win() {
-  winT = performance.now(); winSeen = winT; clearTimeout(hintT); clearTimeout(window.__foundT); $('hint').hidden = true;
-  $('found').classList.remove('no'); $('foundT').textContent = T(WON); $('found').classList.add('on');
+  winT = performance.now(); winSeen = winT; wrongAt = 0; clearTimeout(cardT);
+  showCard(WIN, 'win');
   navigator.vibrate?.([18, 50, 24]);
 }
 const V = new THREE.Vector3();
@@ -237,7 +265,7 @@ function paintRect() {   // 정답 그림(액자 안 그림)의 화면 자리 �
 }
 $('pickGo').addEventListener('click', async () => {
   if (liftT) return; liftT = performance.now();
-  $('pick').classList.remove('on'); $('found').classList.remove('on'); $('top').style.opacity = '0';
+  $('pick').classList.remove('on'); hideCard(); $('top').style.opacity = '0';
   store.solve(task.id); collect(task.id);
   // 떠올라 가운데까지는 이 화면에서, 카드로 들어가는 건 엔진 없이 새로 연 화면에서(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐)
   await liftToCard('salon', { from: '../img/salon_0' + (WIN + 1) + '.jpg', rect: paintRect(), complete: null, hold: true });
@@ -253,12 +281,12 @@ function statusModule() {
   const ready = () => { $('start').style.display = 'none'; $('hint').hidden = false; };
   return { name: 'm100status', onStart: ready, onCameraStatusChange(e) {
     if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
-    else if (e.status === 'failed') { $('start').style.display = ''; $('go').hidden = false; $('lead').hidden = true; $('err').textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); }
+    else if (e.status === 'failed') { $('start').style.display = ''; $('start').classList.add('fail'); $('go').hidden = false; $('lead').hidden = true; $('err').textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); }
   } };
 }
 function boot() {
   // 실패 이유를 나눠서(작은 글로 코드도) — 11/27 '네트워크를 확인해 주세요'만 떠서 원인을 알 수 없던 것
-  const fail = (msg, why) => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T(msg) + (why ? `  (${why})` : ''); };
+  const fail = (msg, why) => { $('start').classList.add('fail'); $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T(msg) + (why ? `  (${why})` : ''); };
   const run = async () => {
     let data;
     try { data = await Promise.all([1, 2, 3, 4, 5].map((n) => fetch(`image-targets-salon/s${n}.json`, { cache: 'no-store' }).then((r) => { if (!r.ok) throw new Error('t' + r.status); return r.json(); }))); }

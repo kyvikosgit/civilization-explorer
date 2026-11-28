@@ -161,6 +161,8 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
   const slot = COLLECT_IDS.findIndex((id) => ZONES.find((z) => z.id === zoneId)?.tasks.some((t) => t.id === id));   // 이 구역 수집품 칸(없으면 -1 · 나다르)
   const cc = slot >= 0 ? ccOf(COLLECT_IDS[slot]) : '';   // 11/23 수집품 카드 그림(앱과 같은 것) — 큰 카드 · 날아가는 사본 · 칸 모두
   const img = cc || (item?.img ? new URL(item.img, V3).href : '');
+  // 11/28 사용자: 큰 자리에 크림색 카드 바탕(세로로 긴 황색 네모)까지 박히던 것 — 큰 자리는 수집품 그림만(액자 · 물건, 투명 바탕 lift_<id>), 아래 작은 칸은 카드 그대로
+  const big = slot >= 0 && LIFT[COLLECT_IDS[slot]] ? liftImg(COLLECT_IDS[slot]) : img;
   if (cc && item) item = { ...item, contain: false };
   // 11/26 클라이언트 완료 문구: 제목 = successTitle, 기존 해설(제목 · 본문)은 그 아래 그대로, 맨 아래 = successGuide(다음 이동 안내)
   const ct = slot >= 0 ? findTask(COLLECT_IDS[slot])?.task : null;
@@ -173,7 +175,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
       <span></span></div>
     <div class="d-scroll"><div class="d-in">
       <p class="d-cap">${esc(cap)}</p>
-      ${img ? `<div class="d-card"><img src="${esc(img)}" alt=""></div>` : ''}
+      ${img ? `<div class="d-card"><img src="${esc(big)}" alt=""></div>` : ''}
       ${item?.name ? `<p class="d-name">${esc(item.name)}</p>` : ''}${item?.sub ? `<p class="d-sub">${esc(item.sub)}</p>` : ''}
       ${slot >= 0 ? `<div class="d-col"><p class="d-colt">나의 수집품<span class="d-cnt"><b>${got - 1}</b> / ${total}</span></p><div class="d-slots">${COLLECT_IDS.map((id, i) => { const it = findTask(id)?.task?.item; const on = i !== slot && store.saved(id); return `<span class="${on ? 'on' : ''}${i === slot ? ' me' : ''}">${on && (ccOf(id) || it?.img) ? `<img src="${esc(ccOf(id) || new URL(it.img, V3).href)}" alt="">` : ''}</span>`; }).join('')}</div></div>` : ''}
       <div class="d-txt">${title ? `<p class="d-title">${esc(title)}</p>` : ''}${body ? `<p class="d-body">${esc(body)}</p>` : ''}${note ? `<p class="d-note">${esc(note)}</p>` : ''}${guide ? `<p class="d-guide">${esc(guide)}</p>` : ''}</div>
@@ -205,7 +207,7 @@ export function showComplete(zoneId, { item, title = '', body = '', note = '', m
     const src = el.querySelector('.d-card img'), card = el.querySelector('.d-card'), box = el.querySelectorAll('.d-slots span')[slot];
     const a = src.getBoundingClientRect(), b = box.getBoundingClientRect();
     const r0 = parseFloat(getComputedStyle(card).borderRadius) || 14, r1 = parseFloat(getComputedStyle(box).borderRadius) || 8;
-    const f = document.createElement('img'); f.src = img; f.className = 'v3-fly';
+    const f = document.createElement('img'); f.src = big; f.className = 'v3-fly'; f.style.objectFit = 'contain'; f.style.boxShadow = 'none';
     Object.assign(f.style, { left: a.left + 'px', top: a.top + 'px', width: a.width + 'px', height: a.height + 'px', borderRadius: r0 + 'px' });
     document.body.appendChild(f);
     const anim = f.animate([
@@ -293,8 +295,8 @@ export async function liftToCard(id, { from = '', rect = null, complete, cleanup
   card.style.transition = 'none'; card.style.transform = 'none'; card.style.opacity = '1'; cimg.style.opacity = '0';
   try { await cimg.decode(); } catch {}
   await sleep(60);
-  const c = cimg.getBoundingClientRect(), [x, y, w, h] = LIFT[id];
-  const T = { l: c.left + c.width * x / 720, t: c.top + c.height * y / 960, r: c.left + c.width * (x + w) / 720, b: c.top + c.height * (y + h) / 960 };
+  const c = cimg.getBoundingClientRect();
+  const T = { l: c.left, t: c.top, r: c.right, b: c.bottom };   // 큰 자리 = 같은 물건 그림(lift_<id>)이라 그 칸에 그대로
   A(bg, [{ opacity: 1 }, { opacity: 0 }], { duration: 300, delay: 120 });
   setTimeout(() => { cimg.style.transition = 'opacity .35s ease-out'; cimg.style.opacity = '1'; }, 560);
   await A(o, [{ ...pos(L) }, { ...pos(T) }], { duration: 760, easing: LIFT_EASE });

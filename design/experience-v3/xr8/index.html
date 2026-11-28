@@ -21,9 +21,13 @@
 <style>
 html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden}
 #c{position:fixed;left:0;top:0}
-.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:28px;text-align:center;background:#000;z-index:20}
-.start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:14px;line-height:1.6;margin:0;word-break:keep-all}
-.start button{font:700 17px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:15px 30px}
+.start{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 32px;text-align:center;background:#0E0C0A}   /* 11/28 체험 카메라 공통 로딩 화면(위 막대는 그대로 보임) */
+.start .spin{width:34px;height:34px;box-sizing:border-box;border-radius:50%;border:2.5px solid rgba(242,237,226,.14);border-top-color:#E9C77B;animation:m100spin .9s linear infinite}
+@keyframes m100spin{to{transform:rotate(360deg)}}
+.start p{margin:0;color:rgba(242,237,226,.72);font-size:15px;line-height:1.5;white-space:pre-line;word-break:keep-all}
+.start #err:empty{display:none}
+.start button{min-height:56px;box-sizing:border-box;padding:0 28px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif}
+.start.fail .spin{display:none}
 .hint{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);text-align:center;z-index:5;pointer-events:none}   /* 11/28 체험 카메라 화면 공통 아래 안내 줄 */
 .hint span{display:inline-block;max-width:100%;box-sizing:border-box;padding:10px 18px;border-radius:20px;background:rgba(20,16,13,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font-size:15px;font-weight:500;line-height:1.45;white-space:pre-line;word-break:keep-all}
 #dbg{position:fixed;left:8px;top:calc(8px + env(safe-area-inset-top));font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.6);padding:6px 8px;border-radius:8px;white-space:pre;z-index:6}
@@ -37,7 +41,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:-apple-
 </head>
 <body>
 <canvas id="c"></canvas>
-<div class="start" id="start"><h1>사람들의 대화</h1><p>카페 벽과 만국박람회 벽을 비춰 주세요.<br>그림 속 사람들의 대화가 들립니다.</p><p id="lead" hidden>카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
+<div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="xbar"><button type="button" id="close" aria-label="뒤로"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>시민사회</b><span></span></div>
 <div class="hint" id="hint" hidden><span>카페 벽과 만국박람회 벽을 비춰 주세요</span></div>
 <div id="dbg" hidden></div>
@@ -278,7 +282,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
     var ready = function () { $('start').style.display = 'none'; $('hint').hidden = false; };
     return { name: 'm100status', onStart: ready, onCameraStatusChange: function (e) {
       if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
-      else if (e.status === 'failed') { $('start').style.display = ''; $('go').hidden = false; $('lead').hidden = true; $('err').textContent = '카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'; }
+      else if (e.status === 'failed') { $('start').style.display = ''; $('start').classList.add('fail'); $('go').hidden = false; $('lead').hidden = true; $('err').textContent = '카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'; }
     } };
   }
   function boot() {
@@ -295,7 +299,7 @@ document.getElementById('close').addEventListener('click', function () { if (win
   }
   // 11/26: 시작 단추 없이 바로 카메라(공간 고정을 끄면 동작 센서 허락이 필요 없어 터치 없이 시작 가능) — 못 켜면 그때만 단추
   function start() {
-    $('go').hidden = true; $('lead').hidden = false; $('err').textContent = '';
+    $('go').hidden = true; $('lead').hidden = false; $('err').textContent = ''; $('start').classList.remove('fail');
     Object.keys(videos).forEach(function (k) { videos[k].play().then(function () { videos[k].pause(); }).catch(function () {}); });
     var asks = [window.DeviceOrientationEvent, window.DeviceMotionEvent].filter(function (E) { return SLAM && E && typeof E.requestPermission === 'function'; }).map(function (E) { return E.requestPermission().catch(function () { return 'denied'; }); });
     Promise.all(asks).then(function () {

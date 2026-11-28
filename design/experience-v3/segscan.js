@@ -31,7 +31,10 @@ const CSS = `
 .v3-seg .msg span{display:inline-block;max-width:100%;box-sizing:border-box;background:rgba(20,16,13,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:10px 18px;border-radius:20px;font-size:15px;font-weight:500;line-height:1.45;white-space:pre-line;word-break:keep-all}
 .v3-seg.caught .top,.v3-seg.caught .ret,.v3-seg.caught .ring,.v3-seg.caught .msg{opacity:0}
 .v3-seg img.cut{position:absolute;max-width:none;max-height:none;z-index:4;pointer-events:none;filter:drop-shadow(0 0 14px rgba(214,245,207,.75)) drop-shadow(0 10px 20px rgba(0,0,0,.35));transform-origin:center;will-change:transform,left,top,width,height}
-.v3-seg .wait{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:5;background:#000;font-size:15px;color:#bbb;text-align:center;padding:28px;line-height:1.6}
+.v3-seg .wait{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:2;background:#0E0C0A;font-size:15px;line-height:1.5;color:rgba(242,237,226,.72);text-align:center;padding:0 32px;white-space:pre-line;word-break:keep-all}   /* 11/28 체험 카메라 공통 로딩 화면(위 막대는 그대로) */
+.v3-seg .wait::before{content:'';width:34px;height:34px;box-sizing:border-box;border-radius:50%;border:2.5px solid rgba(242,237,226,.14);border-top-color:#E9C77B;animation:m100spin .9s linear infinite}
+.v3-seg .wait.fail::before{display:none}
+@keyframes m100spin{to{transform:rotate(360deg)}}
 `;
 let styled = false, ort = null, sess = null, cur = null;
 function style() { if (styled) return; styled = true; const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); }
@@ -62,7 +65,7 @@ export function openSegScan(o) {
     <div class="top"><button type="button" aria-label="${T('닫기')}"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>${T(({ '에트르타': '화가의 작업 공간' })[String(o.title || '').split(' · ')[0]] || String(o.title || '').split(' · ')[0])}</b><span></span></div>
     <div class="ret"><i></i><i></i><i></i><i></i><b></b></div>
     <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="176"/></svg>
-    <div class="msg"><span></span></div><div class="wait">${T('카메라를 켜는 중…')}</div>`;
+    <div class="msg"><span></span></div><div class="wait">${T('카메라를 켜고 있어요')}</div>`;
   document.body.appendChild(el);
   const $ = (q) => el.querySelector(q);
   const v = $('video'), fx = $('canvas.fx'), fxx = fx.getContext('2d'), ring = $('.ring circle'), msgEl = $('.msg span'), wait = $('.wait');
@@ -265,12 +268,12 @@ export function openSegScan(o) {
       if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
       v.srcObject = stream; await v.play();
     } catch (e) {
-      wait.textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); return;
+      wait.classList.add('fail'); wait.textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); return;
     }
     if (!sess) preloadSeg(o.model);
     const s = await sess;
     if (stopped) return;
-    if (!s) { wait.textContent = T('네트워크를 확인해 주세요'); return; }
+    if (!s) { wait.classList.add('fail'); wait.textContent = T('네트워크를 확인해 주세요'); return; }
     wait.remove(); raf = requestAnimationFrame(frame); analyze();
   })();
   return api;

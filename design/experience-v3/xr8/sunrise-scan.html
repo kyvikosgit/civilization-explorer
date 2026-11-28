@@ -13,6 +13,7 @@
 <script src="../i18n.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Freesentation/Freesentation.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <!-- 8th Wall 엔진은 스캔할 때만 — 완료 화면(done=1, 다시 체험 표시 없음)은 엔진 없이(엔진이 돈 화면 위 완료 화면은 위 막대가 틀어짐, 폰)
      11/27: 엔진을 나중에 끼워 넣던 방식에서 '네트워크를 확인해 주세요'가 뜸(폰) → 처음 시험해서 되던 방식(문서에 바로 쓰기)으로 되돌림 -->
@@ -31,9 +32,13 @@
 <style>
 html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesentation,-apple-system,'Apple SD Gothic Neo',sans-serif;overflow:hidden;word-break:keep-all}
 #c{position:fixed;left:0;top:0}
-.start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:28px;text-align:center;background:#000;z-index:20}
-.start h1{font-size:21px;margin:0}.start p{color:#9C958A;font-size:15px;line-height:1.6;margin:0}
-.start button{font:700 17px inherit;background:#F2EDE2;color:#141210;border:0;border-radius:12px;padding:15px 30px}
+.start{position:fixed;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:0 32px;text-align:center;background:#0E0C0A}   /* 11/28 체험 카메라 공통 로딩 화면(위 막대는 그대로 보임) */
+.start .spin{width:34px;height:34px;box-sizing:border-box;border-radius:50%;border:2.5px solid rgba(242,237,226,.14);border-top-color:#E9C77B;animation:m100spin .9s linear infinite}
+@keyframes m100spin{to{transform:rotate(360deg)}}
+.start p{margin:0;color:rgba(242,237,226,.72);font-size:15px;line-height:1.5;white-space:pre-line;word-break:keep-all}
+.start #err:empty{display:none}
+.start button{min-height:56px;box-sizing:border-box;padding:0 28px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif}
+.start.fail .spin{display:none}
 .top{position:fixed;left:0;right:0;top:0;z-index:6;box-sizing:border-box;height:calc(52px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 12px 0;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;color:#fff;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0))}   /* 11/28 체험 화면 공통 위 막대 */
 .top button{width:40px;height:40px;padding:0;margin:0;border-radius:20px;border:0;background:none;color:inherit;display:grid;place-items:center}
 .top button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -44,21 +49,31 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .found.on{opacity:1;transform:translate(-50%,0)}
 .found span{display:block;line-height:1;padding-top:1px}
 .found i{flex:none;width:20px;height:20px;border-radius:50%;background:#E9C77B center/13px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+/* 11/28 비춘 그림 설명 카드(아래) — 작은 그림 · 제목 · 작가와 연도(명조) · 판정 한 줄. 정답이면 [이 그림 선택하기] 위로 올라감 */
+.card{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 32px);z-index:7;max-width:420px;margin:0 auto;box-sizing:border-box;display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:16px;background:rgba(20,16,13,.8);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;transform:translateY(12px);transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1),bottom .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.card.on{opacity:1;transform:none}
+.card.up{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
+.card img{flex:none;width:58px;height:58px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 2px #B08A45,0 0 0 3px rgba(0,0,0,.4)}
+.card .ct{min-width:0;display:flex;flex-direction:column;gap:3px}
+.card b{font-family:'Gowun Batang',serif;font-weight:700;font-size:17px;line-height:1.35;color:#F2EDE2;word-break:keep-all}
+.card small{font-family:'Gowun Batang',serif;font-size:13.5px;color:rgba(242,237,226,.66);letter-spacing:.01em}
+.card .v{margin-top:5px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:rgba(242,237,226,.86)}
+.card .v i{flex:none;width:16px;height:16px;border-radius:50%;background:rgba(242,237,226,.2) center/10px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E")}
+.card.win .v{color:#E9C77B}
+.card.win .v i{background:#E9C77B center/11px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23231A0E' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.card .cskip{flex:none;margin-left:auto;align-self:center;min-height:40px;padding:0 14px;border:1px solid rgba(242,237,226,.35);border-radius:20px;background:none;color:#F2EDE2;font:600 14px Freesentation,sans-serif;pointer-events:auto}
 .found.no i{background:rgba(242,237,226,.22) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
 .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
 .pick.on{opacity:1;transform:none;pointer-events:auto}
 .pick button{width:100%;max-width:400px;box-sizing:border-box;min-height:56px;border:0;border-radius:12px;background:#F2EDE2;color:#141210;font:700 17px Freesentation,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.35)}
-.skip{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:8;border:1px solid rgba(255,255,255,.45);background:rgba(0,0,0,.35);color:#fff;font:600 14px Freesentation,sans-serif;padding:9px 18px;border-radius:999px;opacity:0;transition:opacity .3s;pointer-events:none}
-.skip.on{opacity:1;pointer-events:auto}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><b>인상파 전시회</b><span></span></div>
-<div class="start" id="start"><h1>비평가가 비웃은 그림</h1><p>〈인상, 해돋이〉를 찾아<br>카메라로 비춰 보세요.</p><p id="lead">카메라를 켜는 중…</p><button type="button" id="go" hidden>다시 시도</button><p id="err"></p></div>
+<div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>〈인상, 해돋이〉에<br>카메라를 비춰 보세요</span></div>
-<div class="found" id="found"><i></i><span>〈인상, 해돋이〉 · 1872</span></div>
-<button type="button" class="skip" id="skip">건너뛰기</button>
+<div class="card win" id="card"><img src="../img/sunrise_original.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><i></i><span>인상주의라는 이름을 낳은 그림</span></span></div><button type="button" class="cskip" id="skip">건너뛰기</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
 import { store } from '../store.js';
@@ -131,21 +146,20 @@ function onImage(e) {
 window.__sunSim = () => { if (!foundT) found(); };   // 점검용(화면에 안 보임)
 let skipF = null;
 function found() {
-  foundT = performance.now(); $('hint').hidden = true; $('found').classList.add('on');
+  foundT = performance.now(); $('hint').hidden = true; $('card').classList.add('on');   // 11/28 위 알림 대신 아래 설명 카드(살롱과 같은 모양) — 건너뛰기는 카드 안
   navigator.vibrate?.([20, 60, 30]);
   store.solve(task.id); collect(task.id);                         // 정답과 함께 저절로 — 영상 중간에 나가도 수집품은 남는다
-  setTimeout(() => $('found').classList.remove('on'), 1600);
   // 그림 → 영상(4.5초) → 그림 → 떠올라 수집품으로
   let over = false;
   const end = async () => {
-    if (over) return; over = true; $('skip').classList.remove('on');
+    if (over) return; over = true; $('card').classList.remove('on');
     want = 0; await new Promise((r) => setTimeout(r, 750)); try { vid.pause(); } catch {}
     await new Promise((r) => setTimeout(r, 350));                  // 카메라 속 진짜 그림으로 돌아온 걸 잠깐 보고
     lift();
   };
   skipF = end;
   try { vid.currentTime = 0; } catch {}
-  vid.play().then(() => { playing = true; want = 1; setTimeout(() => $('skip').classList.add('on'), 900); setTimeout(end, PLAY_MS); }).catch(() => setTimeout(end, 600));   // 재생이 막혀도 멈춰 있지 않게
+  vid.play().then(() => { playing = true; want = 1;  setTimeout(end, PLAY_MS); }).catch(() => setTimeout(end, 600));   // 재생이 막혀도 멈춰 있지 않게
   vid.addEventListener('ended', end, { once: true });
 }
 $('skip').addEventListener('click', () => skipF?.());
@@ -175,11 +189,11 @@ function statusModule() {
   const ready = () => { $('start').style.display = 'none'; $('hint').hidden = false; };
   return { name: 'm100status', onStart: ready, onCameraStatusChange(e) {
     if (e.status === 'hasStream' || e.status === 'hasVideo') ready();
-    else if (e.status === 'failed') { $('start').style.display = ''; $('go').hidden = false; $('lead').hidden = true; $('err').textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); }
+    else if (e.status === 'failed') { $('start').style.display = ''; $('start').classList.add('fail'); $('go').hidden = false; $('lead').hidden = true; $('err').textContent = T('카메라를 켜지 못했습니다. 카메라 사용을 허용해 주세요.'); }
   } };
 }
 function boot() {
-  const fail = (msg, why) => { $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T(msg) + (why ? `  (${why})` : ''); };
+  const fail = (msg, why) => { $('start').classList.add('fail'); $('lead').hidden = true; $('go').hidden = false; $('err').textContent = T(msg) + (why ? `  (${why})` : ''); };
   vid.load();   // 영상은 미리 받아 둠(비추자마자 바로 살아나게)
   const run = async () => {
     let data;
