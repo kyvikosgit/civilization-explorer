@@ -2,7 +2,7 @@
   "imagePath": "image-targets-flyer/f1_luminance.jpg",
   "metadata": null,
   "name": "f1",
-  "type": "CYLINDER",
+  "type": "PLANAR",
   "properties": {
     "left": 35,
     "top": 0,
@@ -10,15 +10,7 @@
     "height": 1240,
     "isRotated": false,
     "originalWidth": 999,
-    "originalHeight": 1240,
-    "targetCircumferenceTop": 300,
-    "cylinderCircumferenceTop": 1884.9555921538758,
-    "cylinderCircumferenceBottom": 1884.9555921538758,
-    "cylinderSideLength": 372.37237237237235,
-    "arcAngle": 57.29577951308232,
-    "coniness": 0,
-    "inputMode": "ADVANCED",
-    "unit": "mm"
+    "originalHeight": 1240
   },
   "resources": {
     "originalImage": "f1_original.jpg",
@@ -26,6 +18,6 @@
     "thumbnailImage": "f1_thumbnail.jpg",
     "luminanceImage": "f1_luminance.jpg"
   },
-  "created": 1795874317198,
-  "updated": 1795874317198
+  "created": 1795874633524,
+  "updated": 1795874633524
 }

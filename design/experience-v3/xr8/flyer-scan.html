@@ -101,6 +101,7 @@ const T = (s) => (window.M100_T ? window.M100_T(s) : s);
 const task = ZONES.find((z) => z.id === 'society').tasks.find((t) => t.id === 'flyer');
 const TG = task.targets;                                     // f1 하나(현장 실물 전단지)
 const WIN = 0;
+const CHORD = (2 * 300 * Math.sin(300 / 600)) / 300;   // 현/호 = 2R·sin(θ/2)/(Rθ), R = 300mm, 호 300mm → 0.959
 const DBG = new URLSearchParams(location.search).has('debug') ? {} : null;
 const WIN_W = { title: '환영: 14세기의 전설', artist: '뤽 올리비에 메르송', year: '1872' };   // salon.js WORKS 와 같은 값(완료 화면 제목)
 // 인식한 3:4(가운데) → 그림 전체. 세로 그림 = 위아래로 1400/1319, 가로(03) = 돌린 타깃이라 긴 변으로
@@ -181,6 +182,7 @@ function flyerModule() {
       auraG = new THREE.Group(); auraG.visible = false; xs.scene.add(auraG);
       const [w, h] = SIZE[WIN], a = w / h;
       PW = a >= 1 ? 1 : a; PH = a >= 1 ? 1 / a : 1;
+      PW *= CHORD;   // 11/28 기둥(지름 600mm)에 감긴 전단지(가로 300mm)는 정면에서 현 길이 287mm 로 보임 — 오라 좌우를 그만큼 좁혀 넘치지 않게
       aura = auraMesh(PW, PH); aura.renderOrder = 5; auraG.add(aura);
       // 11/28 오답도 '비췄다'는 반응 — 그 그림 테두리가 하얗게 한 번 빛나고 빛 한 줄이 위에서 아래로 훑고 지나감(금빛 오라와 다르게)
       probeG = new THREE.Group(); probeG.visible = false; xs.scene.add(probeG);
@@ -234,7 +236,7 @@ function onImage(e) {
     const L = Math.max(d.scaledWidth, d.scaledHeight) * (ROTATED[i] ? SIZE[i][0] / CROP : SIZE[i][1] / CROP);
     if (DBG && !DBG.done) { DBG.done = true; const el = document.createElement('pre'); el.style.cssText = 'position:fixed;left:8px;right:8px;top:120px;z-index:99;font:11px/1.4 monospace;color:#0f0;background:rgba(0,0,0,.7);padding:8px;white-space:pre-wrap;pointer-events:none'; el.textContent = JSON.stringify(d, (k, v) => (typeof v === 'number' ? Math.round(v * 1000) / 1000 : v)).slice(0, 900); document.body.appendChild(el); }   // ?debug=1: 엔진이 준 값
     const curved = (d.radiusTop || d.geometry?.radiusTop) > 0 || /CYL|CON/.test(String(d.type || ''));   // 11/28 엔진은 'CYLINDRICAL' 로 알려 줌(이름 대신 반지름이 있으면 원통)
-    if (curved && !cyl) { const m = cylAura(d); if (m) { cyl = { r: d.radiusTop || d.geometry?.radiusTop, h: d.height || d.geometry?.height, a0: d.arcStartRadians ?? d.geometry?.arcStartRadians, al: d.arcLengthRadians ?? d.geometry?.arcLengthRadians }; auraG.remove(aura); aura = m; aura.renderOrder = 5; auraG.add(aura); } }
+    /* 원통형 경로는 현장에서 어긋나 끔(평면 인식 + 폭 보정) */ if (false && curved && !cyl) { const m = cylAura(d); if (m) { cyl = { r: d.radiusTop || d.geometry?.radiusTop, h: d.height || d.geometry?.height, a0: d.arcStartRadians ?? d.geometry?.arcStartRadians, al: d.arcLengthRadians ?? d.geometry?.arcLengthRadians }; auraG.remove(aura); aura = m; aura.renderOrder = 5; auraG.add(aura); } }
     auraG.position.copy(d.position); auraG.quaternion.copy(d.rotation);
     if (cyl) { auraG.scale.setScalar(d.scale > 0 ? d.scale : 1); auraG.visible = true; winSeen = performance.now(); if (!winT) win(); return; }
     const s = d.scale * L; auraG.scale.set(s, s, s); auraG.visible = true; winSeen = performance.now();
