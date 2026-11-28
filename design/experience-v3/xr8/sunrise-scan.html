@@ -59,6 +59,10 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 .card small{font-family:'Gowun Batang',serif;font-size:13.5px;color:rgba(242,237,226,.66);letter-spacing:.01em}
 .card .v{margin-top:4px;font-size:14px;font-weight:500;color:rgba(242,237,226,.78)}   /* 11/28 아이콘 없이 글 한 줄 */
 .card.win .v{color:#E9C77B}
+.big{position:fixed;z-index:9;overflow:hidden;opacity:0;pointer-events:none;box-shadow:0 18px 50px rgba(0,0,0,.55);border-radius:2px;will-change:left,top,width,height}
+.big.on{pointer-events:auto}
+.big video{width:100%;height:100%;object-fit:cover;display:block}
+.card.up{bottom:calc(env(safe-area-inset-bottom,0px) + 104px)}
 .card .cskip{flex:none;margin-left:auto;align-self:center;min-height:40px;padding:0 14px;border:1px solid rgba(242,237,226,.35);border-radius:20px;background:none;color:#F2EDE2;font:600 14px Freesentation,sans-serif;pointer-events:auto}
 .found.no i{background:rgba(242,237,226,.22) center/12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 7l10 10M17 7L7 17' fill='none' stroke='%23F2EDE2' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
 .pick{position:fixed;left:0;right:0;bottom:0;z-index:8;padding:16px 20px calc(18px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .35s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none}
@@ -71,7 +75,9 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></button><b>인상파 전시회</b><span></span></div>
 <div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>〈인상, 해돋이〉에<br>카메라를 비춰 보세요</span></div>
-<div class="card win" id="card"><img src="../img/sunrise_print.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><span>인상주의라는 이름을 낳은 그림</span></span></div><button type="button" class="cskip" id="skip">건너뛰기</button></div>
+<div class="card win" id="card"><img src="../img/sunrise_print.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><span>인상주의라는 이름을 낳은 그림</span></span></div></div>
+<div class="pick" id="pick"><button type="button" id="pickGo">확인</button></div>
+<div class="big" id="big"><video id="bigV" playsinline muted preload="auto"></video></div>
 <script type="module">
 import { ZONES } from '../data.js';
 import { store } from '../store.js';
@@ -144,23 +150,34 @@ function onImage(e) {
 window.__sunSim = () => { if (!foundT) found(); };   // 점검용(화면에 안 보임)
 let skipF = null;
 function found() {
-  foundT = performance.now(); $('hint').hidden = true; $('card').classList.add('on');   // 11/28 위 알림 대신 아래 설명 카드(살롱과 같은 모양) — 건너뛰기는 카드 안
+  // 11/29 사용자: 인식되면 액자 자리에서 그림이 부드럽게 커져 화면 가로를 채우는 영상 → 잠시 뒤 다시 액자 크기로 → 영상이 걷히며 카메라 속 실제 그림 → 아래 설명 카드 + [확인]
+  foundT = performance.now(); $('hint').hidden = true;
   navigator.vibrate?.([20, 60, 30]);
   store.solve(task.id); collect(task.id);                         // 정답과 함께 저절로 — 영상 중간에 나가도 수집품은 남는다
-  // 그림 → 영상(4.5초) → 그림 → 떠올라 수집품으로
+  const big = $('big'), bv = $('bigV'); bv.src = VIDEO; try { bv.currentTime = 0; } catch {}
+  const W = innerWidth, H = innerHeight, r0 = paintRect() || { l: W * 0.15, t: H * 0.35, r: W * 0.85, b: H * 0.35 + W * 0.7 * RATIO };
+  const vh = W * 560 / 752, full = { l: 0, t: H * 0.44 - vh / 2, r: W, b: H * 0.44 + vh / 2 };
+  const pos = (r) => ({ left: r.l + 'px', top: r.t + 'px', width: (r.r - r.l) + 'px', height: (r.b - r.t) + 'px' });
+  Object.assign(big.style, pos(r0)); big.classList.add('on');
+  const ease = 'cubic-bezier(.45,0,.2,1)';
   let over = false;
-  const end = async () => {
-    if (over) return; over = true; $('card').classList.remove('on');
-    want = 0; await new Promise((r) => setTimeout(r, 750)); try { vid.pause(); } catch {}
-    await new Promise((r) => setTimeout(r, 350));                  // 카메라 속 진짜 그림으로 돌아온 걸 잠깐 보고
-    lift();
+  const back = async () => {   // 다시 액자로 → 영상이 걷히며 실제 그림
+    if (over) return; over = true;
+    const r1 = paintRect() || r0;
+    await big.animate([{ ...pos(full) }, { ...pos(r1) }], { duration: 750, easing: ease, fill: 'forwards' }).finished.catch(() => {});
+    await big.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, easing: 'ease-in-out', fill: 'forwards' }).finished.catch(() => {});
+    big.classList.remove('on'); try { bv.pause(); } catch {}
+    $('card').classList.add('up', 'on'); setTimeout(() => $('pick').classList.add('on'), 250);
   };
-  skipF = end;
-  try { vid.currentTime = 0; } catch {}
-  vid.play().then(() => { playing = true; want = 1;  setTimeout(end, PLAY_MS); }).catch(() => setTimeout(end, 600));   // 재생이 막혀도 멈춰 있지 않게
-  vid.addEventListener('ended', end, { once: true });
+  skipF = back; big.onclick = back;
+  bv.play().catch(() => {});
+  (async () => {
+    await big.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, fill: 'forwards' }).finished.catch(() => {});   // 액자 자리에 그대로 겹쳐 뜸
+    await big.animate([{ ...pos(r0) }, { ...pos(full) }], { duration: 800, easing: ease, fill: 'forwards' }).finished.catch(() => {});
+    setTimeout(back, PLAY_MS - 1000);
+  })();
 }
-$('skip').addEventListener('click', () => skipF?.());
+$('pickGo').addEventListener('click', () => { $('pick').classList.remove('on'); $('card').classList.remove('on'); lift(); });
 const V = new THREE.Vector3();
 function paintRect() {
   if (!G?.visible || !xs) return null;
