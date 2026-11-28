@@ -83,9 +83,9 @@ document.getElementById('close').addEventListener('click', function () { if (win
     //   영상 = 정면 현장 사진(004)의 창틀 · 둘레 + 안쪽은 창살 구운 영상(cafe3_framed.mp4, 창 영역의 1.319 × 1.28 배), 바깥 4% 는 벽에 스며들게(cafe3_framed_edge.png)
     //   front = { depth: 그림보다 앞(창 폭 단위, 현장 사진 12장 시차 0.151), ext: 창 영역 대비 판 크기, k: 그 깊이에서의 크기(정면 카메라 거리 기준 1/1.084) }
     // 11/28 왼쪽 창(cafe1) · 가운데 문 창(cafe2) — 오른쪽 창과 같은 방식: 11/25 전체 벽 영상(글 없는 원본, tools/xr8/gen/cafe_veo31fast_6s_v4cycle.mp4)을 창 자리대로 자르고
-    //   정면 현장 사진의 창틀 · 둘레(왼쪽은 창살도)를 입혀 창틀 깊이(원본 그림 83px 앞 = 오른쪽 창에서 잰 값)에 띄움. off = 판 가운데가 유리 가운데에서 벗어난 만큼(유리 크기 단위, 아래 +)
-    cafe1: { src: 'cafe1_framed.mp4', ref: 'cafe1_framed_ref.jpg', px: [1092, 1230], ownText: true, full: true, mask: 'cafe1_edge.png', front: { depth: 0.1515, ext: [1.3285, 1.3443], k: 0.8826, off: [-0.0091, 0.0246] } },
-    cafe2: { src: 'cafe2_framed.mp4', ref: 'cafe2_framed_ref.jpg', px: [590, 1170], ownText: true, full: true, mask: 'cafe2_edge.png', front: { depth: 0.3532, ext: [1.2553, 1.1143], k: 0.8763, off: [0, 0] } },
+    //   현장 영상(11/28 23:46) 정면 프레임의 유리 + 얇은 창틀(왼쪽은 창살도)을 입혀 그 영상 시차로 잰 창틀 깊이(문 74.5 · 왼쪽 94.3, 원본 그림 px)에 띄움 — tools/xr8/make_cafe12.py. off = 판 가운데가 유리 가운데에서 벗어난 만큼(유리 크기 단위, 아래 +)
+    cafe1: { src: 'cafe1_framed.mp4', ref: 'cafe1_framed_ref.jpg', px: [1168, 1292], ownText: true, full: true, mask: 'cafe1_edge.png', front: { depth: 0.1721, ext: [1.0657, 1.059], k: 0.8934, off: [-0.0013, 0.0017] } },
+    cafe2: { src: 'cafe2_framed.mp4', ref: 'cafe2_framed_ref.jpg', px: [558, 1138], ownText: true, full: true, mask: 'cafe2_edge.png', front: { depth: 0.317, ext: [1.1872, 1.0838], k: 0.8956, off: [-0.0043, -0.0025] } },
     cafe3: { src: 'cafe3_framed.mp4', ref: 'cafe3_framed_ref.jpg', px: [900, 1008], ownText: true, full: true, mask: 'cafe3_framed_edge.png',
       front: { depth: 0.151, ext: [1829 / 1387, 2048 / 1600], k: 0.922 } } };
   var $ = function (id) { return document.getElementById(id); };
