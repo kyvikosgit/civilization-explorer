@@ -24,7 +24,7 @@ const WIN = targets.findIndex((t) => t.correct);
 const guide = makeGuide();
 // 11/18: 르루아의 글은 가상의 관람객이 나누는 대화 — 원문에 충실한 번역만 쓰고, 비평가가 제목을 두고 한 말처럼 쓰지 않는다
 const INFO = {
-  coach: { img: V3 + 'img/sunrise_original.jpg', kind: 'gilt', land: true },
+  coach: { img: V3 + 'img/sunrise_print.jpg', kind: 'gilt', land: true },   // 11/28 현장 인쇄본 색
   title: '비평가가 비웃은 그림을 찾아\n카메라로 비춰 보세요',
   sub: '“막 그리기 시작한 벽지도\n이 바다 그림보다는 더 완성돼 있다.”',
   buttons: [{ label: '그림 찾기', cam: true, on: toScan }],   // 11/28 8th Wall 스캔 화면으로(이전 MindAR 카메라 = start, 남겨 둠)

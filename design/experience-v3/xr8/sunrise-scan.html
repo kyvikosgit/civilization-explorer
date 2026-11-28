@@ -71,7 +71,7 @@ html,body{margin:0;height:100%;background:#000;color:#F2EDE2;font-family:Freesen
 <div class="top" id="top"><button type="button" id="back" aria-label="닫기"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></button><b>인상파 전시회</b><span></span></div>
 <div class="start" id="start"><i class="spin"></i><p id="lead">카메라를 켜고 있어요</p><p id="err"></p><button type="button" id="go" hidden>다시 시도</button></div>
 <div class="hint" id="hint" hidden><span>〈인상, 해돋이〉에<br>카메라를 비춰 보세요</span></div>
-<div class="card win" id="card"><img src="../img/sunrise_original.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><span>인상주의라는 이름을 낳은 그림</span></span></div><button type="button" class="cskip" id="skip">건너뛰기</button></div>
+<div class="card win" id="card"><img src="../img/sunrise_print.jpg" alt=""><div class="ct"><b>인상, 해돋이</b><small>클로드 모네 · 1872</small><span class="v"><span>인상주의라는 이름을 낳은 그림</span></span></div><button type="button" class="cskip" id="skip">건너뛰기</button></div>
 <script type="module">
 import { ZONES } from '../data.js';
 import { store } from '../store.js';
@@ -83,7 +83,7 @@ const task = ZONES.find((z) => z.id === 'monet').tasks[0];   // id 'sunrise'
 const RATIO = 1241 / 1600;                                   // 그림 세로/가로
 const VAR = 752 / 560;                                       // 영상 가로/세로
 const PLAY_MS = 4500;                                        // 11/27 사용자: 영상은 몇 초만 살아났다가 그림으로
-const VIDEO = new URL('../video/sunrise-scene-graded.mp4', location.href).href;
+const VIDEO = new URL('../video/sunrise-scene-field.mp4', location.href).href;   // 11/28 현장 인쇄본 색
 
 function finish() {
   const [head, ...body] = task.successBody.split('\n\n');

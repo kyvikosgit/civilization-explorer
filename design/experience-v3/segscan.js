@@ -12,6 +12,8 @@ const T = (s) => (window.M100_T ? window.M100_T(s) : s);
 const CSS = `
 .v3-seg{position:fixed;inset:0;z-index:8000;background:#000;color:#fff;font-family:Freesentation,-apple-system,sans-serif;word-break:keep-all}
 .v3-seg video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.v3-seg canvas.gl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.v3-seg.pickmode .ret,.v3-seg.pickmode .ring{display:none!important}   /* 11/28 조준점 없이(다른 스캔과 같게) */
 .v3-seg canvas.fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .v3-seg .dim{position:absolute;inset:0;background:rgba(0,0,0,.62);opacity:0;transition:opacity .45s;pointer-events:none}
 .v3-seg.caught .dim{opacity:1}
@@ -84,7 +86,7 @@ export function closeSegScan() { cur?.close(); }
 export function openSegScan(o) {
   style(); if (cur) cur.close(true);
   const el = document.createElement('div'); el.className = 'v3-seg';
-  el.innerHTML = `<video playsinline muted autoplay></video><canvas class="fx"></canvas><div class="dim"></div>
+  el.innerHTML = `<video playsinline muted autoplay></video><canvas class="gl"></canvas><canvas class="fx"></canvas><div class="dim"></div>
     <div class="top"><button type="button" aria-label="${T('닫기')}"><svg viewBox="0 0 24 24"><path d="M15.375 5.25L8.625 12l6.75 6.75" style="stroke-width:2.25"/></svg></button><b>${T(({ '에트르타': '화가의 작업 공간' })[String(o.title || '').split(' · ')[0]] || String(o.title || '').split(' · ')[0])}</b><span></span></div>
     <div class="ret"><i></i><i></i><i></i><i></i><b></b></div>
     <svg class="ring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="176"/></svg>
@@ -157,10 +159,76 @@ export function openSegScan(o) {
     const E = 3, full = bx - bw / 2 > px + E && bx + bw / 2 < px + lw - E && by - bh / 2 > py + E && by + bh / 2 < py + lh - E;
     geo = { x: rx, y: ry, w: rw, h: rh, px, py, k, r, lw, lh, full, b: [(bx - bw / 2 - px) / k, (by - bh / 2 - py) / k, bw / k, bh / k] };
     const cx = Math.round(W / 2 * k + px) - rx, cy = Math.round(H / 2 * k + py) - ry;
-    const h1 = cx >= 0 && cy >= 0 && cx < rw && cy < rh && al[(ry + cy) * S + rx + cx] > 0.5;
+    const h1 = o.pick ? true : (cx >= 0 && cy >= 0 && cx < rw && cy < rh && al[(ry + cy) * S + rx + cx] > 0.5);   // 11/28 pick: 화면 어디서든 잡히면
+    if (o.pick && h1) distField(rx, ry, rw, rh, Math.max(bw, bh));
     const hit = h1 && prevHit; prevHit = h1;
     if (hit) { hitT = performance.now(); if (full || !last) last = geo; }
   }
+  // ── 11/28 살롱 · 전단지와 같은 오라 셰이더(WebGL) — 실루엣 바깥 거리장(거리 = 물건 긴 변 단위)을 매번 올려 그 둘레에 금빛이 일렁이며 번짐
+  const DR = 128, dist = new Float32Array(S * S), dtex = new Uint8Array(S * S);
+  let glOK = false, gl = null, gprog = null, gtex = null, Ugeo = null, Ut = null, Uop = null, Uscr = null, Ulen = 1, Uc = null, gcen = [0, 0];
+  function distField(rx, ry, rw, rh, L) {   // 2패스 근사 거리(칸 단위): 안 = 0, 바깥 = 가까운 실루엣까지
+    const pad = 70, x0 = Math.max(0, rx - pad), y0 = Math.max(0, ry - pad), x1 = Math.min(S, rx + rw + pad), y1 = Math.min(S, ry + rh + pad), INF = 1e4;
+    dist.fill(INF);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) if (al[y * S + x] > 0.5) dist[y * S + x] = 0;
+    const A = 1, B = 1.4142;
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = y * S + x; let d = dist[i]; if (x > x0) d = Math.min(d, dist[i - 1] + A); if (y > y0) { d = Math.min(d, dist[i - S] + A); if (x > x0) d = Math.min(d, dist[i - S - 1] + B); if (x < x1 - 1) d = Math.min(d, dist[i - S + 1] + B); } dist[i] = d; }
+    for (let y = y1 - 1; y >= y0; y--) for (let x = x1 - 1; x >= x0; x--) { const i = y * S + x; let d = dist[i]; if (x < x1 - 1) d = Math.min(d, dist[i + 1] + A); if (y < y1 - 1) { d = Math.min(d, dist[i + S] + A); if (x < x1 - 1) d = Math.min(d, dist[i + S + 1] + B); if (x > x0) d = Math.min(d, dist[i + S - 1] + B); } dist[i] = d; }
+    for (let i = 0; i < S * S; i++) dtex[i] = Math.min(255, (Math.min(dist[i], DR) / DR) * 255);
+    Ulen = L; gcen = [rx + rw / 2, ry + rh / 2];
+    if (glOK) { gl.bindTexture(gl.TEXTURE_2D, gtex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, S, S, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, dtex); }
+  }
+  function glInit() {
+    const c = el.querySelector('canvas.gl'); gl = c.getContext('webgl', { premultipliedAlpha: true, alpha: true }); if (!gl) return;
+    const vs = 'attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
+    const fs = `precision highp float; uniform sampler2D D; uniform vec4 geo; uniform vec2 scr, cen; uniform float t, op, len;
+      float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y); }
+      float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int k = 0; k < 3; k++) { v += a * noise(p); p *= 2.0; a *= 0.5; } return v; }
+      void main(){
+        vec2 sp = vec2(gl_FragCoord.x, scr.y - gl_FragCoord.y) / scr * geo.zw;            /* 화면(CSS px) */
+        vec2 m = vec2(sp.x * geo.x + PXY.x, sp.y * geo.x + PXY.y);   /* 화면 → 모델 칸(320) */
+        float dpx = texture2D(D, m / ${S}.0).r * ${DR}.0; float d = dpx / len;
+        if (dpx < 0.5) discard;
+        vec2 rel = m - cen; float ang = atan(rel.y, rel.x);
+        float n = fbm(vec2(ang * 2.2 + t * 0.35, d * 5.0 - t * 0.9)), n2 = fbm(vec2(-ang * 3.1 + t * 0.22, d * 9.0 - t * 1.4));
+        float core = exp(-max(d, 0.0) * 7.5);
+        float haze = exp(-max(d, 0.0) * 2.7) * (0.35 + 0.65 * smoothstep(0.3, 0.85, n * 0.7 + n2 * 0.5)) * (1.0 - smoothstep(0.52, 0.69, d));
+        float a = clamp(core * 0.95 + haze * 0.7, 0.0, 1.0) * op;
+        vec3 col = mix(vec3(1.0, 0.86, 0.55), vec3(1.0, 0.98, 0.9), core);
+        gl_FragColor = vec4(col * a * a, a * a);   /* 살롱(three AdditiveBlending)과 같은 밝기 */
+      }`;
+    const mk = (type, src) => { const sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(sh)); return null; } return sh; };
+    const v1 = mk(gl.VERTEX_SHADER, vs), f1 = mk(gl.FRAGMENT_SHADER, fs.replace('uniform float t, op, len;', 'uniform float t, op, len; uniform vec2 PXY;')); if (!v1 || !f1) return;
+    gprog = gl.createProgram(); gl.attachShader(gprog, v1); gl.attachShader(gprog, f1); gl.linkProgram(gprog); gl.useProgram(gprog);
+    const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(gprog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    gtex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, gtex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, S, S, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, new Uint8Array(S * S).fill(255));
+    Ugeo = gl.getUniformLocation(gprog, 'geo'); Ut = gl.getUniformLocation(gprog, 't'); Uop = gl.getUniformLocation(gprog, 'op'); Uscr = gl.getUniformLocation(gprog, 'scr'); Uc = gl.getUniformLocation(gprog, 'cen');
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); glOK = true;
+  }
+  function glDraw(op) {
+    if (!glOK) return;
+    const c = el.querySelector('canvas.gl'), cw = Math.round(W * dpr), ch = Math.round(H * dpr);
+    if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
+    gl.viewport(0, 0, cw, ch); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    if (op < 0.01 || !geo) return;
+    gl.uniform4f(Ugeo, geo.k, 0, W, H); gl.uniform2f(gl.getUniformLocation(gprog, 'PXY'), geo.px, geo.py); gl.uniform2f(Uscr, cw, ch);
+    gl.uniform1f(Ut, performance.now() / 1000); gl.uniform1f(Uop, op); gl.uniform1f(gl.getUniformLocation(gprog, 'len'), Ulen); gl.uniform2f(Uc, gcen[0], gcen[1]);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  if (o.pick) glInit();
+  // 점검용(?segtest): 가짜 실루엣(가운데 상자)으로 오라만 그려 봄
+  if (o.pick && /segtest/.test(location.search)) window.__segTest = () => {
+    const k = S / Math.max(W, H), lw = W * k, lh = H * k, px = (S - lw) / 2, py = (S - lh) / 2;
+    al.fill(0); const bx0 = 130, by0 = 150, bw0 = 70, bh0 = 50;
+    for (let y = by0; y < by0 + bh0; y++) for (let x = bx0; x < bx0 + bw0; x++) al[y * S + x] = (x - bx0 < 20 && y - by0 < 20 && (x - bx0) + (y - by0) < 20) ? 0 : 1;
+    geo = { x: bx0, y: by0, w: bw0, h: bh0, px, py, k, full: true }; distField(bx0, by0, bw0, bh0, Math.max(bw0, bh0)); ready = true; readyA = 1; hitT = performance.now() + 1e9;
+    el.querySelector('.card')?.classList.add('on'); el.querySelector('.pick')?.classList.add('on');
+    const w = el.querySelector('.wait'); if (w) w.remove(); if (!raf) raf = requestAnimationFrame(frame);
+  };
   const seen = new Uint8Array(S * S), stack = new Int32Array(S * S), bA = new Uint8Array(S * S), bB = new Uint8Array(S * S);
   // 실루엣 다듬기 — 닫힘(팽창 → 침식, 반지름 R)으로 가장자리 틈을 막은 뒤, 바깥에서 닿지 않는 빈 칸(밝은 물감 · 화구)을 채움
   function morph(src, dst, rw, rh, r, isMax) {   // 가로 · 세로 최대(팽창) / 최소(침식)
@@ -205,6 +273,7 @@ export function openSegScan(o) {
       } else if (p >= 1 && last && last.full) catchIt();
     }
     fxx.setTransform(dpr, 0, 0, dpr, 0, 0); fxx.globalCompositeOperation = 'source-over'; fxx.globalAlpha = 1; fxx.clearRect(0, 0, W, H);
+    if (o.pick) { readyA += ((ready ? 1 : 0) - readyA) * 0.15; glDraw(caught ? 0 : readyA); return; }   // 11/28 pick: 살롱과 같은 셰이더 오라만(초록 칠 · 훑는 빛 · 모서리 표식 없음)
     if (glowA < 0.02 || !geo || caught) return;
     const g = geo, gx = (g.x - g.px) / g.k, gy = (g.y - g.py) / g.k, gw = g.w / g.k, gh = g.h / g.k;
     // 11/27 진행 = 화면 효과로만: ① 실루엣이 옅게 칠해지고 ② 위에서 아래로 훑는 빛이 지나간 곳은 진하게 차오름(진행) ③ 물건 둘레 모서리 표식이 바깥에서 조여 들어옴
